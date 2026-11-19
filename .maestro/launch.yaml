@@ -1,0 +1,11 @@
+appId: io.kaitech.mobile
+name: Release APK launches to the first screen
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: app-root
+    timeout: 30000
+- assertVisible: Kaitech
+- takeScreenshot: launch

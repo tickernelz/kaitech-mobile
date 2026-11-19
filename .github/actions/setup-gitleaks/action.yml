@@ -1,0 +1,17 @@
+name: Set up gitleaks
+description: Installs a pinned, checksum-verified gitleaks binary on PATH.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GITLEAKS_VERSION: 8.30.1
+        GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+      run: |
+        set -euo pipefail
+        dest="$RUNNER_TEMP/gitleaks"
+        mkdir -p "$dest"
+        curl -sSfL -o "$dest/gitleaks.tgz" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+        echo "${GITLEAKS_SHA256}  $dest/gitleaks.tgz" | sha256sum -c -
+        tar -xzf "$dest/gitleaks.tgz" -C "$dest" gitleaks
+        echo "$dest" >> "$GITHUB_PATH"
