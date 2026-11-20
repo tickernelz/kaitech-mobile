@@ -1,0 +1,51 @@
+name: Set up ccache
+description: Installs a pinned, checksum-verified ccache on a Linux runner, configures it through CCACHE_* variables and restores its cache. Save it with actions/cache/save using the key and dir outputs.
+inputs:
+  key:
+    description: Exact cache key.
+    required: true
+  restore-prefix:
+    description: Prefix of older entries to fall back to when the exact key is missing.
+    required: true
+outputs:
+  key:
+    description: The exact cache key.
+    value: ${{ inputs.key }}
+  cache-hit:
+    description: true when the exact key was restored.
+    value: ${{ steps.restore.outputs.cache-hit }}
+  dir:
+    description: The ccache directory.
+    value: ${{ runner.temp }}/ccache
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        CCACHE_VERSION: 4.14.3
+        CCACHE_SHA256: c94a5688546883eee4c87764b34fa2eb18a4879421a51589c37538aed6312dfc
+      run: |
+        set -euo pipefail
+        asset="ccache-${CCACHE_VERSION}-linux-x86_64-glibc.tar.xz"
+        curl -sSfL -o "$RUNNER_TEMP/$asset" "https://github.com/ccache/ccache/releases/download/v${CCACHE_VERSION}/$asset"
+        echo "$CCACHE_SHA256  $RUNNER_TEMP/$asset" | sha256sum -c -
+        mkdir -p "$RUNNER_TEMP/ccache-bin" "$RUNNER_TEMP/ccache"
+        tar -xf "$RUNNER_TEMP/$asset" -C "$RUNNER_TEMP/ccache-bin" --strip-components=1
+        echo "$RUNNER_TEMP/ccache-bin" >> "$GITHUB_PATH"
+        {
+          echo "CCACHE_DIR=$RUNNER_TEMP/ccache"
+          echo "CCACHE_MAXSIZE=2G"
+          echo "CCACHE_COMPILERCHECK=content"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE"
+          echo "CCACHE_SLOPPINESS=include_file_ctime,include_file_mtime,time_macros"
+        } >> "$GITHUB_ENV"
+    - id: restore
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ runner.temp }}/ccache
+        key: ${{ inputs.key }}
+        restore-keys: ${{ inputs.restore-prefix }}
+    - shell: bash
+      run: |
+        ccache --version | head -1
+        ccache --zero-stats > /dev/null
