@@ -87,6 +87,7 @@ for orientation in portrait landscape; do
   if ! run_flows; then
     if grep -q IOSDriverTimeoutException "$dir/maestro-console.log"; then
       log "$cell: iOS driver not ready in time, retrying once"
+      mv "$dir/maestro-console.log" "$dir/maestro-console-attempt1.log"
       run_flows || status=1
     else
       status=1

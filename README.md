@@ -67,7 +67,7 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 
 Artefak E2E hanya diunggah bila gitleaks bersih.
 
-Artefak per run: `e2e-apk-x86_64` (APK yang diuji E2E), `kaitech-android-apk` (APK universal, hanya `main` dan tag), `kaitech-ios-ipa`, `perf-android-x86_64`, `perf-android-universal` dan `perf-ios` (angka gerbang performa), delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro, `cold-start.txt` di sel ponsel portrait `en-US`). Run `iPad trial` mengunggah `e2e-ipad-en-US` (satu folder per sel, video `simctl`, `junit.xml`, keluaran Maestro, log konsol Maestro `maestro-console.log`, dan screenshot Maestro di `screenshots/`). Tag rilis menambah `e2e-android-universal-phone-portrait-en-US`.
+Artefak per run: `e2e-apk-x86_64` (APK yang diuji E2E), `kaitech-android-apk` (APK universal, hanya `main` dan tag), `kaitech-ios-ipa`, `perf-android-x86_64`, `perf-android-universal` dan `perf-ios` (angka gerbang performa), delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro, `cold-start.txt` di sel ponsel portrait `en-US`). Run `iPad trial` mengunggah `e2e-ipad-en-US` (satu folder per sel, video `simctl`, `junit.xml`, keluaran Maestro, log konsol Maestro `maestro-console.log` (ditambah `maestro-console-attempt1.log` bila sel diulang), dan screenshot Maestro di `screenshots/`). Tag rilis menambah `e2e-android-universal-phone-portrait-en-US`.
 
 ### Jalur cepat dan cache
 
