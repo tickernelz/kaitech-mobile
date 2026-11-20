@@ -41,6 +41,19 @@ echo "simulator: $device_name, $runtime_name" | tee "$out/simulator.txt"
 
 log() { echo "$(date -u +%T) $*"; }
 
+export MAESTRO_DRIVER_STARTUP_TIMEOUT="${MAESTRO_DRIVER_STARTUP_TIMEOUT:-600000}"
+
+run_flows() {
+  rm -rf "$dir/maestro" "$dir/junit.xml"
+  maestro --device "$udid" test .maestro \
+    -e APP_LANGUAGE="$language" \
+    -e DEVICE_SIZE=tablet \
+    -e ORIENTATION="$orientation" \
+    --format junit \
+    --output "$dir/junit.xml" \
+    --test-output-dir "$dir/maestro" 2>&1 | tee "$dir/maestro-console.log"
+}
+
 boot() {
   log "boot $udid"
   xcrun simctl boot "$udid"
@@ -71,13 +84,15 @@ for orientation in portrait landscape; do
   recorder=$!
   sleep 2
 
-  maestro --device "$udid" test .maestro \
-    -e APP_LANGUAGE="$language" \
-    -e DEVICE_SIZE=tablet \
-    -e ORIENTATION="$orientation" \
-    --format junit \
-    --output "$dir/junit.xml" \
-    --test-output-dir "$dir/maestro" || status=1
+  if ! run_flows; then
+    if grep -q IOSDriverTimeoutException "$dir/maestro-console.log"; then
+      log "$cell: iOS driver not ready in time, retrying once"
+      mv "$dir/maestro-console.log" "$dir/maestro-console-attempt1.log"
+      run_flows || status=1
+    else
+      status=1
+    fi
+  fi
 
   kill -INT "$recorder" 2> /dev/null || true
   wait "$recorder" || true
