@@ -30,7 +30,7 @@ onFlowStart:
 - hideKeyboard
 - runFlow:
     when:
-      true: ${ORIENTATION === 'portrait'}
+      true: ${ORIENTATION === 'portrait' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
     commands:
       - setOrientation: LANDSCAPE_LEFT
       - assertVisible:
@@ -39,7 +39,7 @@ onFlowStart:
       - setOrientation: PORTRAIT
 - runFlow:
     when:
-      true: ${ORIENTATION === 'landscape'}
+      true: ${ORIENTATION === 'landscape' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
     commands:
       - setOrientation: PORTRAIT
       - assertVisible:
