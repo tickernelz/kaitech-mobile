@@ -65,6 +65,14 @@ sleep 3
 adb install -r "$apk"
 adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' | head -2 | tee "$out/installed.txt"
 
+activity="$(adb shell cmd package resolve-activity --brief io.kaitech.mobile | tr -d '\r' | tail -1)"
+adb shell am start -W -n "$activity" > /dev/null
+for _ in $(seq 1 20); do
+  rotation_state | grep -q "mRotation=ROTATION_$((rotation * 90)) " && break
+  sleep 1
+done
+echo "app in front: $(rotation_state)" | tee -a "$out/display.txt"
+
 recording="e2e-android-$cell.mp4"
 adb shell screenrecord --bit-rate 4000000 --time-limit 170 "/sdcard/$recording" &
 recorder=$!
