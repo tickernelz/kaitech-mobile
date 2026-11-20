@@ -1,0 +1,22 @@
+appId: io.kaitech.mobile
+name: Finish the running recording and wait until its upload starts (local only, the host kills the app next)
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: recorder-time
+    timeout: 30000
+- tapOn:
+    id: recorder-stop
+- tapOn:
+    text: (?i)(finish|selesai)
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: upload-sending
+    timeout: 120000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: h1-upload-sending
