@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="kaitech_call_ring_channel">Incoming calls</string>
+  <string name="kaitech_call_ring_description">Ringing for voice and video calls</string>
+  <string name="kaitech_call_active_channel">Ongoing calls</string>
+  <string name="kaitech_call_active_description">Controls for the call in progress</string>
+  <string name="kaitech_call_ending_title">Kaitech</string>
+  <string name="kaitech_call_ending_body">Ending the call</string>
+  <string name="kaitech_call_hidden_title">Kaitech</string>
+  <string name="kaitech_call_decline">Decline</string>
+  <string name="kaitech_call_answer">Answer</string>
+</resources>

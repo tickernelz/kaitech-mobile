@@ -24,7 +24,10 @@
         "tinted": "./assets/icon-tinted.png"
       },
       "infoPlist": {
-        "CFBundleAllowMixedLocalizations": true
+        "CFBundleAllowMixedLocalizations": true,
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -50,6 +53,10 @@
           ]
         }
       ],
+      "./plugins/with-livekit-gradle",
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
+      "./modules/kaitech-call/plugin",
       "expo-secure-store",
       "expo-web-browser",
       "expo-sqlite",
@@ -106,7 +113,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Kaitech uses the microphone to record meetings and the voice messages you send.",
+          "microphonePermission": "Kaitech uses the microphone to record meetings and voice messages, and to make calls.",
           "recordAudioAndroid": true,
           "enableBackgroundRecording": true,
           "enableBackgroundPlayback": false
@@ -117,7 +124,7 @@
         {
           "photosPermission": "Kaitech opens your photos so you can send them in messages.",
           "cameraPermission": "Kaitech uses the camera to take photos and videos you send in messages.",
-          "microphonePermission": "Kaitech uses the microphone to record meetings and the voice messages you send."
+          "microphonePermission": "Kaitech uses the microphone to record meetings and voice messages, and to make calls."
         }
       ],
       [

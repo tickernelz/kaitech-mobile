@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="kaitech_call_ring_channel">Panggilan masuk</string>
+  <string name="kaitech_call_ring_description">Dering untuk panggilan suara dan video</string>
+  <string name="kaitech_call_active_channel">Panggilan berlangsung</string>
+  <string name="kaitech_call_active_description">Kontrol panggilan yang sedang berjalan</string>
+  <string name="kaitech_call_ending_title">Kaitech</string>
+  <string name="kaitech_call_ending_body">Menutup panggilan</string>
+  <string name="kaitech_call_hidden_title">Kaitech</string>
+  <string name="kaitech_call_decline">Tolak</string>
+  <string name="kaitech_call_answer">Terima</string>
+</resources>

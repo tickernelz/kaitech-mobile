@@ -57,3 +57,7 @@ e2e-output/
 *.apk
 *.aab
 *.ipa
+
+# local Expo module build outputs
+modules/*/android/build/
+modules/*/android/.gradle/

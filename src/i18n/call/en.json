@@ -1,0 +1,51 @@
+{
+  "incoming": {
+    "voice": "Incoming voice call",
+    "video": "Incoming video call"
+  },
+  "calling": "Calling…",
+  "connecting": "Connecting…",
+  "reconnecting": "Reconnecting…",
+  "inCall": "In a call",
+  "participants": "{{count}} people",
+  "participants_one": "{{count}} person",
+  "you": "You",
+  "cameraOff": "Camera is off",
+  "microphoneOff": "Microphone is off",
+  "answer": "Answer",
+  "decline": "Decline",
+  "hangUp": "Hang up",
+  "mute": "Mute microphone",
+  "unmute": "Unmute microphone",
+  "cameraOn": "Turn camera on",
+  "cameraTurnOff": "Turn camera off",
+  "flip": "Switch camera",
+  "speaker": "Speaker",
+  "earpiece": "Earpiece",
+  "people": "People in the call",
+  "pictureInPicture": "Shrink to a small window",
+  "close": "Close",
+  "backToCall": "Back to the call",
+  "startVoice": "Voice call",
+  "startVideo": "Video call",
+  "ended": {
+    "left": "Call ended",
+    "declined": "Call declined",
+    "disconnected": "The call connection dropped",
+    "removed": "You were removed from the call",
+    "microphone": "Calls need microphone permission",
+    "camera": "Video calls need camera permission",
+    "signedOut": "The call ended because you signed out",
+    "call_unavailable": "Calls are not available in this conversation",
+    "temporarily_unavailable": "Calls are unavailable right now, try again later",
+    "forbidden": "You no longer have access to this conversation",
+    "not_found": "The conversation was not found",
+    "network": "The network is offline",
+    "call_failed": "The call could not be connected"
+  },
+  "fullScreen": {
+    "title": "Allow full-screen notifications",
+    "body": "So calls ring on the lock screen",
+    "action": "Open settings"
+  }
+}
