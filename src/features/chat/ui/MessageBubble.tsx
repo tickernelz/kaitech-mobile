@@ -266,7 +266,7 @@ export const PendingBubble = memo(function PendingBubble({
     <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`} onLayout={onShown ? () => onShown(pending.key) : undefined}>
       <Frame mine label={label} failed={failed}>
         {pending.files.map((file) => (
-          <View key={file.key} style={[styles.file, { backgroundColor: colors.surface }]}>
+          <View key={file.key} style={[styles.file, styles.pendingFile, { backgroundColor: colors.surface }]}>
             <Icon name={file.voice ? 'mic' : file.mimetype.startsWith('image/') ? 'image' : 'file'} color={colors.inkSoft} />
             <Text variant="callout" numberOfLines={1} style={styles.flex}>
               {file.voice ? t('composer.voiceLength', { length: duration(file.durationMs ?? 0) }) : file.name}
@@ -324,6 +324,7 @@ const styles = StyleSheet.create({
   quoteBox: { borderLeftWidth: 3, borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
   file: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48 },
+  pendingFile: { minWidth: 200 },
   fileIcon: { width: 40, height: 40, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   picture: { width: 240, maxWidth: '100%', aspectRatio: 4 / 3, borderRadius: radius.md },
   meta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },

@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../theme';
+import { initials } from '../../../ui/initials';
 import { Text } from '../../../ui/Text';
 import { useChat } from '../chat';
 import { useCookie } from './useCookie';
@@ -13,11 +14,6 @@ const tints = [
   ['#E4F0FF', '#225899'],
   ['#FFE7E6', '#B91C1E'],
 ] as const;
-
-export function initials(name: string): string {
-  const parts = name.replace(/\([^)]*\)/g, ' ').replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/).filter((part) => /\p{L}/u.test(part));
-  return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase() || '#';
-}
 
 function tintFor(seed: number) {
   return tints[Math.abs(seed) % tints.length];

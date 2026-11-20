@@ -166,7 +166,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     const staged: Staged[] = [];
     for (const item of picked) {
       try {
-        const copy = stageFile(item.uri, item.name, item.mimeType);
+        const copy = stageFile(item.uri, item.name);
         staged.push({ uri: copy.uri, name: item.name, mimetype: item.mimeType, size: copy.size, voice: false, durationMs: null });
       } catch {
         Alert.alert(t('composer.fileFailed', { name: item.name }));
@@ -240,9 +240,9 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
       return;
     }
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    const kept = adoptFile(uri, 'audio/mp4');
-    const startedAt = clock();
     const name = `voice-${new Date(current.started).toISOString().replace(/[:.]/g, '-')}.m4a`;
+    const kept = adoptFile(uri, name);
+    const startedAt = clock();
     const voice: Staged = { uri: kept.uri, name, mimetype: 'audio/mp4', size: kept.size, voice: true, durationMs: elapsed };
     const replyTo = parentId;
     if (replyTo) setParentId(null);

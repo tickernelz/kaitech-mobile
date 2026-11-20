@@ -226,7 +226,7 @@ export function ThreadView({
   return (
     <SafeAreaView edges={twoPane ? ['top', 'right'] : ['top', 'left', 'right']} style={[styles.flex, { backgroundColor: colors.canvas }]} testID={`thread-${channelId}`}>
       {header}
-      <KeyboardAvoidingView behavior="padding" style={styles.flex}>
+      <KeyboardAvoidingView behavior="padding" automaticOffset style={styles.flex}>
         <View style={styles.flex}>
           <FlashList
             ref={list}

@@ -5,6 +5,7 @@ import { AppState } from 'react-native';
 import type { Account } from '../../auth/oauth';
 import { onAccountForgotten } from '../../auth/session';
 import { ChatClient, errorCode, sendErrorFrom } from './api';
+import { dropFile } from './files';
 import { cachedConversations, cachedMessages, forgetAccount, pendingFor, removePending, savePending, storeConversations, storeMessages } from './db';
 import { composeBody, mentionsInText, plainText } from './html';
 import {
@@ -87,7 +88,11 @@ let realtime: Realtime | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let readTimers = new Map<number, ReturnType<typeof setTimeout>>();
 let teardown: (() => void)[] = [];
-let active = AppState.currentState === 'active';
+let active = false;
+
+function foreground(state: string | null | undefined): boolean {
+  return state !== 'background' && state !== 'inactive';
+}
 
 function set(next: Partial<ChatState>) {
   state = { ...state, ...next };
@@ -144,15 +149,16 @@ async function flush() {
 }
 
 function delivered(sent: Sent) {
+  const { pending } = sent;
+  pending.files.forEach((file) => dropFile(file.uri));
   const message = messagesFromStore(sent.data, state.partnerId).find((item) => item.id === sent.messageId);
   if (message) {
-    upsertMessages(sent.channelId, [message]);
-    touchConversation(sent.channelId, message);
+    upsertMessages(pending.channelId, [message]);
+    touchConversation(pending.channelId, message);
     return;
   }
-  const pending = state.pending.find((item) => item.key === sent.key) ?? null;
-  if (pending) set({ delivered: [...state.delivered.filter((item) => item.key !== sent.key), { key: sent.key, messageId: sent.messageId, pending }] });
-  void fetchNewer(sent.channelId);
+  set({ delivered: [...state.delivered.filter((item) => item.key !== pending.key), { key: pending.key, messageId: sent.messageId, pending }] });
+  void fetchNewer(pending.channelId);
 }
 
 function upsertMessages(channelId: number, incoming: Message[]) {
@@ -322,6 +328,7 @@ export function startChat(account: Account) {
     delivered,
   );
   outbox.load(pending);
+  active = foreground(AppState.currentState);
   realtime = new Realtime(current, onNotifications, onRealtimeState);
   if (active) realtime.start();
   void refreshConversations();
@@ -338,7 +345,7 @@ export function startChat(account: Account) {
   });
   void getNetworkStateAsync().then((network) => set({ online: network.isConnected !== false && network.isInternetReachable !== false }));
   const app = AppState.addEventListener('change', (next) => {
-    const nowActive = next === 'active';
+    const nowActive = foreground(next);
     if (nowActive === active) return;
     active = nowActive;
     if (active) {
@@ -607,7 +614,8 @@ export async function retrySend(key: string) {
 }
 
 export async function discardSend(key: string) {
-  await outbox?.discard(key);
+  const removed = await outbox?.discard(key);
+  removed?.files.forEach((file) => dropFile(file.uri));
 }
 
 export async function toggleReaction(message: Message, content: string) {

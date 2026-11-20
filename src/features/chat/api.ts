@@ -1,3 +1,4 @@
+import { File, UploadType } from 'expo-file-system';
 import { bearer, route, sessionCookie, ApiError } from '../../api/odoo';
 import { AppError } from '../../auth/errors';
 import type { Account } from '../../auth/oauth';
@@ -98,20 +99,19 @@ export class ChatClient {
       markExpired();
       throw new AppError('sessionEnded');
     }
-    const form = new FormData();
-    form.append('channel_id', String(channelId));
-    form.append('key', file.key);
-    if (file.voice) form.append('voice', 'true');
-    form.append('file', { uri: file.uri, name: file.name, type: file.mimetype } as unknown as Blob);
+    const source = new File(file.uri);
+    if (!source.exists) throw new ApiError('file_missing', 400);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), uploadTimeoutMs);
-    let response: Response;
+    let answer: { status: number; body: string };
     try {
-      response = await fetch(`${this.origin}/kaitech_mobile/chat/upload`, {
-        method: 'POST',
-        credentials: 'omit',
+      answer = await source.upload(`${this.origin}/kaitech_mobile/chat/upload`, {
+        httpMethod: 'POST',
+        uploadType: UploadType.MULTIPART,
+        fieldName: 'file',
+        mimeType: file.mimetype,
+        parameters: { channel_id: String(channelId), key: file.key, ...(file.voice ? { voice: 'true' } : {}) },
         headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(this.account.db ? { 'X-Odoo-Database': this.account.db } : {}) },
-        body: form,
         signal: controller.signal,
       });
     } catch {
@@ -119,13 +119,19 @@ export class ChatClient {
     } finally {
       clearTimeout(timer);
     }
-    const body = (await response.json().catch(() => null)) as Record<string, unknown> | null;
-    if (response.status === 401) {
+    let body: Record<string, unknown> | null = null;
+    try {
+      const parsed: unknown = JSON.parse(answer.body);
+      if (parsed && typeof parsed === 'object') body = parsed as Record<string, unknown>;
+    } catch {
+      body = null;
+    }
+    if (answer.status === 401) {
       markExpired();
       throw new AppError('sessionEnded');
     }
-    if (response.status !== 200 || typeof body?.attachment_id !== 'number' || typeof body.ownership_token !== 'string') {
-      throw new ApiError(typeof body?.error_code === 'string' ? body.error_code : response.status >= 500 ? 'server' : 'unknown', response.status);
+    if (answer.status !== 200 || typeof body?.attachment_id !== 'number' || typeof body.ownership_token !== 'string') {
+      throw new ApiError(typeof body?.error_code === 'string' ? body.error_code : answer.status >= 500 ? 'server' : 'unknown', answer.status);
     }
     return { attachmentId: body.attachment_id, ownershipToken: body.ownership_token };
   }

@@ -28,7 +28,7 @@ export function retryDelay(attempts: number): number {
   return Math.min(30000, 1000 * 2 ** Math.max(0, attempts - 1));
 }
 
-export type Sent = { key: string; channelId: number; messageId: number; data: unknown };
+export type Sent = { pending: Pending; messageId: number; data: unknown };
 
 export class Outbox {
   private items = new Map<string, Pending>();
@@ -63,11 +63,13 @@ export class Outbox {
     await this.update({ ...item, state: 'queued', error: null });
   }
 
-  async discard(key: string): Promise<void> {
-    if (this.items.get(key)?.state === 'sending') return;
+  async discard(key: string): Promise<Pending | null> {
+    const item = this.items.get(key);
+    if (!item || item.state === 'sending') return null;
     this.items.delete(key);
     this.emit();
     await this.store.remove(key);
+    return item;
   }
 
   flush(): Promise<void> {
@@ -113,7 +115,7 @@ export class Outbox {
       this.items.delete(item.key);
       this.emit();
       await this.store.remove(item.key);
-      this.onSent({ key: item.key, channelId: item.channelId, messageId: posted.messageId, data: posted.data });
+      this.onSent({ pending: item, messageId: posted.messageId, data: posted.data });
       return false;
     } catch (error) {
       const failure = error instanceof SendError ? error : new SendError('network', true);

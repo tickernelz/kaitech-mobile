@@ -89,7 +89,7 @@ export class Realtime {
     if (generation !== this.generation || !this.running) return;
     const Socket = WebSocket as unknown as SocketWithHeaders;
     const socket = new Socket(this.client.websocketUrl(), null, {
-      headers: { Cookie: cookie, 'User-Agent': 'KaitechMobile' },
+      headers: { Cookie: cookie, Origin: this.client.origin, 'User-Agent': 'KaitechMobile' },
     });
     this.socket = socket;
     const reconnected = this.last > 0;
