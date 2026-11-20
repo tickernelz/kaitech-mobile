@@ -6,6 +6,9 @@ on:
 permissions:
   contents: read
 
+env:
+  SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
 jobs:
   android:
     name: android apk
@@ -14,6 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ env.SOURCE_SHA }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -74,7 +78,10 @@ jobs:
           set -euo pipefail
           apk=android/app/build/outputs/apk/release/app-release.apk
           apksigner="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)/apksigner"
-          actual="$("$apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr -d ':' | tr 'a-f' 'A-F')"
+          certs="$("$apksigner" verify --verbose --print-certs "$apk")"
+          echo "$certs" | grep -E '^(Verified using|Signer|Number of signers)'
+          actual="$(echo "$certs" | grep -m1 -E 'certificate SHA-256 digest:' | sed -E 's/.*digest: //' | tr -d ': ' | tr 'a-f' 'A-F')"
+          [ -n "$actual" ] || { echo "::error::apksigner printed no certificate digest"; exit 1; }
           expected="$(tr -d ': \n' < .github/android-release-cert.sha256 | tr 'a-f' 'A-F')"
           echo "APK certificate SHA-256: $actual"
           if [ -n "${RELEASE_KEYSTORE:-}" ]; then
@@ -92,7 +99,7 @@ jobs:
       - name: Name artifact
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/app-release.apk "dist/kaitech-${APP_BUILD_NUMBER}-${GITHUB_SHA::7}${SIGN_SUFFIX}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/kaitech-${APP_BUILD_NUMBER}-${SOURCE_SHA::7}${SIGN_SUFFIX}.apk"
           (cd dist && sha256sum ./*.apk | tee SHA256SUMS-android.txt)
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -108,6 +115,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ env.SOURCE_SHA }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -148,7 +156,7 @@ jobs:
           test -f "$app/main.jsbundle"
           mkdir -p ipa/Payload dist
           cp -R "$app" ipa/Payload/
-          ipa_name="kaitech-${APP_BUILD_NUMBER}-${GITHUB_SHA::7}-unsigned.ipa"
+          ipa_name="kaitech-${APP_BUILD_NUMBER}-${SOURCE_SHA::7}-unsigned.ipa"
           (cd ipa && zip -qry "../dist/$ipa_name" Payload)
           (cd dist && shasum -a 256 ./*.ipa | tee SHA256SUMS-ios.txt)
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
