@@ -1,0 +1,70 @@
+appId: io.kaitech.mobile
+name: Sign-in form checks the server address before opening the browser
+tags:
+  - sign-in
+onFlowStart:
+  - runFlow: shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- tapOn:
+    id: welcome-sign-in
+- assertVisible:
+    id: sign-in-server
+- runFlow:
+    file: shared/screenshot.yaml
+    env:
+      SCREEN: sign-in
+- scrollUntilVisible:
+    element:
+      id: sign-in-continue
+- tapOn:
+    id: sign-in-continue
+- assertVisible:
+    id: sign-in-server-error
+    text: "${APP_LANGUAGE === 'id' ? 'Masukkan alamat server.' : 'Enter your server address.'}"
+- tapOn:
+    id: sign-in-server
+- inputText: http://erp.example.com
+- hideKeyboard
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'portrait' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
+    commands:
+      - setOrientation: LANDSCAPE_LEFT
+      - assertVisible:
+          id: sign-in-server
+          text: http://erp.example.com
+      - setOrientation: PORTRAIT
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'landscape' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
+    commands:
+      - setOrientation: PORTRAIT
+      - assertVisible:
+          id: sign-in-server
+          text: http://erp.example.com
+      - setOrientation: LANDSCAPE_LEFT
+- assertVisible:
+    id: sign-in-server
+    text: http://erp.example.com
+- tapOn:
+    id: sign-in-continue
+- assertVisible:
+    id: sign-in-server-error
+    text: "${APP_LANGUAGE === 'id' ? 'Server harus memakai koneksi aman .https..' : 'The server must use a secure connection .https..'}"
+- runFlow:
+    file: shared/screenshot.yaml
+    env:
+      SCREEN: sign-in-error
+- scrollUntilVisible:
+    element:
+      id: sign-in-back
+- tapOn:
+    id: sign-in-back
+- assertVisible:
+    id: welcome-title

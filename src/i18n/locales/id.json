@@ -1,6 +1,106 @@
 {
   "app": {
-    "name": "Kaitech",
-    "greeting": "Selamat datang"
+    "name": "Kaitech"
+  },
+  "welcome": {
+    "title": "Selamat datang di Kaitech",
+    "body": "Masuk dengan akun Kaitech Anda untuk melanjutkan.",
+    "signIn": "Masuk"
+  },
+  "language": {
+    "en": "English",
+    "id": "Bahasa Indonesia",
+    "switchTo": "Ganti ke {{language}}"
+  },
+  "signIn": {
+    "title": "Masuk",
+    "body": "Masukkan alamat server Anda. Anda akan masuk di halaman milik server itu, jadi aplikasi ini tidak pernah melihat kata sandi Anda.",
+    "serverLabel": "Alamat server",
+    "serverPlaceholder": "erp.contoh.com",
+    "databaseLabel": "Basis data (opsional)",
+    "databaseHint": "Kosongkan bila server Anda hanya memiliki satu basis data.",
+    "continue": "Lanjutkan",
+    "continueHint": "Membuka halaman masuk server Anda di peramban",
+    "finishing": "Menyelesaikan proses masuk…",
+    "back": "Kembali"
+  },
+  "errors": {
+    "serverRequired": "Masukkan alamat server.",
+    "serverInvalid": "Alamat server tidak valid.",
+    "serverInsecure": "Server harus memakai koneksi aman (https).",
+    "network": "Server tidak dapat dihubungi. Periksa koneksi dan alamatnya, lalu coba lagi.",
+    "cancelled": "Proses masuk dibatalkan.",
+    "accessDenied": "Permintaan masuk di perangkat ini ditolak.",
+    "stateMismatch": "Tanggapan masuk tidak cocok dengan permintaan ini. Silakan coba lagi.",
+    "codeExpired": "Tautan masuk itu sudah kedaluwarsa atau sudah dipakai. Silakan masuk lagi.",
+    "sessionEnded": "Sesi Anda telah berakhir. Silakan masuk lagi.",
+    "server": "Server sedang mengalami masalah. Silakan coba lagi nanti.",
+    "unsupported": "Server ini belum mendukung aplikasi Kaitech.",
+    "linkNotConfigured": "Build ini belum dapat menyelesaikan proses masuk karena domain tautan masuknya belum diatur.",
+    "unknown": "Terjadi kesalahan. Silakan coba lagi.",
+    "accountNotTeam": "Akun ini tidak dapat memakai aplikasi Kaitech.",
+    "accountInactive": "Akun ini sudah tidak aktif."
+  },
+  "wizard": {
+    "skip": "Lewati",
+    "next": "Berikutnya",
+    "done": "Selesai",
+    "step": "Langkah {{current}} dari {{total}}",
+    "languageTitle": "Pilih bahasa",
+    "languageBody": "Anda dapat mengubahnya kapan saja di Pengaturan.",
+    "lockTitle": "Kunci aplikasi",
+    "lockBody": "Minta verifikasi {{method}} saat Anda kembali ke Kaitech setelah 5 menit tidak digunakan.",
+    "lockEnable": "Aktifkan",
+    "lockLater": "Nanti saja",
+    "lockEnabled": "Kunci aplikasi sudah aktif."
+  },
+  "lock": {
+    "title": "Kaitech terkunci",
+    "unlock": "Buka kunci",
+    "prompt": "Buka kunci Kaitech",
+    "failed": "Verifikasi gagal. Silakan coba lagi.",
+    "faceId": "Face ID",
+    "touchId": "Touch ID",
+    "biometric": "biometrik",
+    "unavailable": "Atur kunci layar di perangkat ini terlebih dahulu."
+  },
+  "tabs": {
+    "chat": "Chat",
+    "discovery": "Discovery",
+    "mom": "MoM",
+    "activity": "Aktivitas",
+    "profile": "Profil dan pengaturan",
+    "comingTitle": "Hadir di pembaruan berikutnya",
+    "comingBody": "Bagian aplikasi ini masih dalam pengembangan."
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "close": "Tutup",
+    "account": "Akun",
+    "server": "Server",
+    "database": "Basis data",
+    "signedInSince": "Masuk sejak {{date}}",
+    "accounts": "Akun di perangkat ini",
+    "active": "Aktif",
+    "switchTo": "Beralih ke {{name}}",
+    "addAccount": "Tambah akun lain",
+    "language": "Bahasa",
+    "languageSystem": "Bahasa perangkat",
+    "languageSystemHint": "Saat ini {{language}}",
+    "security": "Keamanan",
+    "appLock": "Kunci aplikasi",
+    "appLockHint": "Minta verifikasi {{method}} setelah 5 menit tidak digunakan",
+    "signOut": "Keluar",
+    "signOutTitle": "Keluar dari akun {{name}}?",
+    "signOutBody": "Perangkat ini akan dihapus dari akun Anda dan tidak lagi menerima notifikasinya.",
+    "signOutOffline": "Anda sudah keluar di perangkat ini. Perangkat ini mungkin masih tercantum di akun Anda sampai dihapus lewat web.",
+    "cancel": "Batal",
+    "version": "Versi {{version}} ({{build}})"
+  },
+  "expired": {
+    "title": "Sesi Anda telah berakhir",
+    "body": "Masuk lagi untuk tetap memakai {{server}}.",
+    "signIn": "Masuk lagi",
+    "remove": "Hapus akun ini"
   }
 }

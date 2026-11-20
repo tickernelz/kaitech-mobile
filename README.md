@@ -136,7 +136,25 @@ Gerbang CI `npm run i18n:check` menggagalkan build bila dalam satu pasangan:
 - placeholder `{{nama}}` berbeda antarbahasa,
 - salah satu berkas tidak ada.
 
-`src/i18n/language.ts` hanya pengisi sementara untuk layar awal. Pustaka i18n dan pengaturan bahasa diputuskan di F0 aplikasi; gerbang ini tidak bergantung pada pustaka itu.
+Teks izin OS dan nama aplikasi per bahasa ada di `src/i18n/native/`, dipasang lewat `locales` di `app.json`. Lint (`i18next/no-literal-string`) menolak teks yang ditulis langsung di JSX, termasuk `label`, `title`, `placeholder`, dan `accessibilityLabel`.
+
+Pustaka: `expo-localization` + `i18next` + `react-i18next`.
+
+- `expo-localization` adalah modul Expo resmi untuk membaca bahasa perangkat; di Android bahasa perangkat bisa berubah tanpa restart, jadi dibaca ulang setiap aplikasi kembali aktif.
+- `i18next` mengganti bahasa saat aplikasi berjalan (`changeLanguage`) dan `react-i18next` merender ulang layar yang memakainya, sehingga pilihan di Pengaturan berlaku tanpa restart. Plural dan interpolasi memakai `Intl` bawaan Hermes.
+- Alternatif yang tidak dipakai: `i18n-js` tidak punya hook yang merender ulang komponen saat bahasa berganti; Lingui butuh macro Babel dan langkah kompilasi katalog.
+
+Bahasa awal mengikuti perangkat (`id` atau `in` menjadi Indonesia, selain itu Inggris). Pilihan di Pengaturan (Bahasa perangkat, English, Bahasa Indonesia) disimpan di `expo-sqlite/kv-store` dan dibaca sinkron sebelum layar pertama, jadi tidak ada kedipan bahasa. Tanggal dan angka diformat lewat `useFormatters()` dengan `Intl` di bahasa terpilih. Galat dari server dibaca dari `error_code` yang stabil lalu diterjemahkan aplikasi (`src/auth/errors.ts`); kalimat dari server tidak pernah ditampilkan.
+
+### Masuk (login)
+
+Aplikasi membuka `/kaitech_mobile/authorize` di server yang diisi pengguna lewat browser sistem dengan PKCE S256, lalu menukar kode di `/kaitech_mobile/token`. Token perangkat disimpan di Keychain/Keystore (`expo-secure-store`, hanya perangkat ini, hanya saat terbuka); data akun yang bukan rahasia disimpan di `kv-store`. Kontrak server: README modul `kaitech_mobile` lab0.
+
+Server mengembalikan kode ke App Link/Universal Link `https://<domain tautan>/kaitech_mobile/callback`; skema kustom tidak dipakai. Domain tautan dibaca saat build dari variabel `KAITECH_LINK_HOST` (bukan dari repo). Build tanpa variabel itu tetap jalan, tetapi layar masuk menampilkan pesan bahwa domain tautan belum diatur. Domain itu harus menyajikan `/.well-known/assetlinks.json` dengan sidik jari sertifikat di atas dan terdaftar di `kaitech_mobile.redirect_uris` server.
+
+### Ikon dan splash
+
+`node scripts/brand-assets.mjs` membuat ulang semua ikon dan gambar splash dari huruf K dan garis gradien logo Kaitech (butuh `inkscape`). Sumber SVG ada di `assets/brand/`. Warna latar splash sama dengan warna kanvas tema (terang `#FAF9FC`, gelap `#110B18`), jadi tidak ada kedipan putih saat JS mengambil alih. Font merek Plus Jakarta Sans (OFL, `assets/fonts/OFL.txt`) ditanam lewat plugin `expo-font`; teks isi memakai font sistem.
 
 ### E2E
 
@@ -146,7 +164,7 @@ Alur Maestro ada di `.maestro/`. Jalankan lokal di emulator yang sudah memasang 
 maestro test .maestro
 ```
 
-Di CI, setiap alur jalan dua kali, di emulator ber-locale `en-US` dan `id-ID`. `scripts/e2e-android.sh` mengganti locale sistem (`persist.sys.locale` lalu restart framework), menunggu sampai konfigurasi framework memakai locale itu, memasang APK release, merekam layar, lalu menjalankan semua alur dengan variabel `APP_LANGUAGE` (`en` atau `id`) untuk teks yang diperiksa, misalnya `${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}`. Lebih disarankan memeriksa elemen lewat `testID`.
+Di CI, setiap alur jalan dua kali, di emulator ber-locale `en-US` dan `id-ID`. `scripts/e2e-android.sh` mengganti locale sistem (`persist.sys.locale` lalu restart framework), menunggu sampai konfigurasi framework memakai locale itu, memasang APK release, merekam layar, lalu menjalankan semua alur dengan variabel `APP_LANGUAGE` (`en` atau `id`) untuk teks yang diperiksa, misalnya `${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}`. Lebih disarankan memeriksa elemen lewat `testID`. Alur `sign-in-form` juga memutar layar ke orientasi lain dan kembali, lalu memeriksa isi kolom alamat server tidak hilang.
 
 Jalankan lokal: `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATION=portrait .maestro`. Ketiga variabel wajib dikirim lewat `-e`; jangan beri nilai bawaan di blok `env:` alur, karena nilai itu menimpa `-e`.
 
@@ -183,6 +201,8 @@ Semua screenshot sel disalin ke `screenshots/`. `scripts/check-screenshots.mjs` 
 ### Gerbang konfigurasi tablet
 
 `node scripts/check-tablet-config.mjs` (langkah CI di job lint) gagal bila `orientation` bukan `default`, `ios.supportsTablet` bukan `true`, `ios.requireFullScreen` bernilai `true`, atau hasil `expo prebuild` mengunci `android:screenOrientation`, mematikan `android:resizeableActivity`, menyalakan `UIRequiresFullScreen`, atau tidak mendukung keempat orientasi iPad.
+
+Alur masuk sampai keluar ada di `.maestro/signed-in/` dan tidak ikut `maestro test .maestro` di CI, karena butuh server, akun uji, dan build dengan `KAITECH_LINK_HOST`. Jalankan dengan `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATION=portrait -e SERVER=<alamat> -e LOGIN=<akun> -e PASSWORD=<sandi> .maestro/signed-in`; nilainya jangan pernah ditulis ke repo, log, atau artefak publik.
 
 ## Lisensi
 
