@@ -7,25 +7,36 @@ out="${2:?$usage}"
 bundle_id=io.kaitech.mobile
 mkdir -p "$out"
 
-IFS=$'\t' read -r runtime device_type runtime_name device_name < <(
-  xcrun simctl list -j runtimes | node -e '
-    const { runtimes } = JSON.parse(require("fs").readFileSync(0, "utf8"));
+IFS=$'\t' read -r udid device_name runtime_name < <(
+  xcrun simctl list -j | node -e '
+    const { devices, devicetypes, runtimes } = JSON.parse(require("fs").readFileSync(0, "utf8"));
     const ios = runtimes
       .filter((r) => r.platform === "iOS" && r.isAvailable)
-      .sort((a, b) => a.version.localeCompare(b.version, undefined, { numeric: true }));
-    const runtime = ios.at(-1);
-    if (!runtime) throw new Error("no available iOS simulator runtime");
-    const ipads = runtime.supportedDeviceTypes.filter((d) => d.name.startsWith("iPad"));
-    console.error(`iPad device types in ${runtime.name}: ${ipads.map((d) => d.name).join(", ") || "none"}`);
-    const device = ["iPad Pro 13", "iPad Pro 11", "iPad Air", "iPad"]
-      .map((prefix) => ipads.find((d) => d.name.startsWith(prefix)))
-      .find(Boolean);
-    if (!device) throw new Error(`no iPad device type for ${runtime.name}`);
-    console.log([runtime.identifier, device.identifier, runtime.name, device.name].join("\t"));
+      .sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }));
+    const preference = ["iPad Pro 13", "iPad Pro 11", "iPad Air", "iPad"];
+    const byPreference = (list) => preference.map((p) => list.find((d) => d.name.startsWith(p))).find(Boolean);
+    console.error(`iOS runtimes: ${ios.map((r) => r.name).join(", ") || "none"}`);
+    for (const runtime of ios) {
+      const existing = (devices[runtime.identifier] ?? []).filter((d) => d.isAvailable && d.name.startsWith("iPad"));
+      console.error(`${runtime.name} iPads: ${existing.map((d) => d.name).join(", ") || "none"}`);
+      const device = byPreference(existing);
+      if (device) {
+        console.log([device.udid, device.name, runtime.name].join("\t"));
+        process.exit(0);
+      }
+    }
+    const type = byPreference(devicetypes.filter((d) => d.name.startsWith("iPad")));
+    if (!type || ios.length === 0) throw new Error("no iPad simulator device type or iOS runtime on this runner");
+    console.log(["create:" + type.identifier + ":" + ios[0].identifier, type.name, ios[0].name].join("\t"));
   '
 )
-udid="$(xcrun simctl create kaitech-ipad "$device_type" "$runtime")"
-echo "simulator: $device_name, $runtime_name ($udid)" | tee "$out/simulator.txt"
+if [[ "$udid" == create:* ]]; then
+  IFS=: read -r _ device_type runtime <<< "$udid"
+  udid="$(xcrun simctl create kaitech-ipad "$device_type" "$runtime")"
+  created=1
+fi
+xcrun simctl shutdown "$udid" 2> /dev/null || true
+echo "simulator: $device_name, $runtime_name" | tee "$out/simulator.txt"
 
 boot() {
   xcrun simctl boot "$udid"
@@ -78,5 +89,5 @@ for locale in en-US id-ID; do
   xcrun simctl shutdown "$udid"
 done
 
-xcrun simctl delete "$udid"
+[ -z "${created:-}" ] || xcrun simctl delete "$udid"
 exit "$status"

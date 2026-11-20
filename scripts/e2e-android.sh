@@ -84,7 +84,9 @@ adb shell pkill -INT screenrecord || true
 wait "$recorder" || true
 sleep 2
 adb pull "/sdcard/$recording" "$out/$recording"
-adb logcat -d > "$out/logcat.txt" || true
+app_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
+adb logcat -d -b main,crash --uid="$app_uid" > "$out/logcat.txt" || true
+find "$out/maestro" -name device-logcat.txt -delete
 echo "after maestro: $(rotation_state)" | tee -a "$out/display.txt"
 
 mkdir -p "$out/screenshots"
