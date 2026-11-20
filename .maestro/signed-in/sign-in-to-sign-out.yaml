@@ -2,6 +2,8 @@ appId: io.kaitech.mobile
 name: Sign in on the server page, finish setup, reach the tabs, sign out
 tags:
   - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
 ---
 - launchApp:
     clearState: true
@@ -9,7 +11,10 @@ tags:
     visible:
       id: welcome-sign-in
     timeout: 30000
-- takeScreenshot: 01-welcome-${APP_LANGUAGE}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: 01-welcome
 - tapOn:
     id: welcome-sign-in
 - tapOn:
@@ -22,7 +27,10 @@ tags:
     visible:
       text: (Email|Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
     timeout: 60000
-- takeScreenshot: 02-server-page-${APP_LANGUAGE}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: 02-server-page
 - runFlow:
     when:
       visible:
@@ -41,7 +49,10 @@ tags:
     visible:
       text: (Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
     timeout: 60000
-- takeScreenshot: 03-confirm-device-${APP_LANGUAGE}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: 03-confirm-device
 - scrollUntilVisible:
     element:
       text: (Sign in|Masuk)
@@ -52,7 +63,10 @@ tags:
     visible:
       id: setup
     timeout: 60000
-- takeScreenshot: 04-setup-${APP_LANGUAGE}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: 04-setup
 - tapOn:
     id: setup-next
 - runFlow:
@@ -66,15 +80,24 @@ tags:
     visible:
       id: tab-chat
     timeout: 30000
-- takeScreenshot: 05-tabs-${APP_LANGUAGE}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: 05-tabs
 - tapOn:
     id: open-settings
 - assertVisible:
     id: settings
-- takeScreenshot: 06-settings-${APP_LANGUAGE}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: 06-settings
 - tapOn:
     id: "language-${APP_LANGUAGE === 'id' ? 'en' : 'id'}"
-- takeScreenshot: 07-settings-switched-${APP_LANGUAGE}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: 07-settings-switched
 - tapOn:
     id: language-system
 - scrollUntilVisible:
@@ -82,11 +105,17 @@ tags:
       id: settings-sign-out
 - tapOn:
     id: settings-sign-out
-- takeScreenshot: 08-sign-out-confirm-${APP_LANGUAGE}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: 08-sign-out-confirm
 - tapOn:
     id: android:id/button1
 - extendedWaitUntil:
     visible:
       id: welcome-title
     timeout: 30000
-- takeScreenshot: 09-signed-out-${APP_LANGUAGE}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: 09-signed-out

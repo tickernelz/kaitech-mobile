@@ -2,6 +2,8 @@ appId: io.kaitech.mobile
 name: Sign-in form checks the server address before opening the browser
 tags:
   - sign-in
+onFlowStart:
+  - runFlow: shared/orientation.yaml
 ---
 - launchApp:
     clearState: true
@@ -13,6 +15,10 @@ tags:
     id: welcome-sign-in
 - assertVisible:
     id: sign-in-server
+- runFlow:
+    file: shared/screenshot.yaml
+    env:
+      SCREEN: sign-in
 - tapOn:
     id: sign-in-continue
 - assertVisible:
@@ -22,12 +28,24 @@ tags:
     id: sign-in-server
 - inputText: http://erp.example.com
 - hideKeyboard
-- setOrientation: LANDSCAPE_LEFT
-- assertVisible:
-    id: sign-in-server
-    text: http://erp.example.com
-- takeScreenshot: sign-in-landscape-${APP_LANGUAGE}
-- setOrientation: PORTRAIT
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'portrait'}
+    commands:
+      - setOrientation: LANDSCAPE_LEFT
+      - assertVisible:
+          id: sign-in-server
+          text: http://erp.example.com
+      - setOrientation: PORTRAIT
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'landscape'}
+    commands:
+      - setOrientation: PORTRAIT
+      - assertVisible:
+          id: sign-in-server
+          text: http://erp.example.com
+      - setOrientation: LANDSCAPE_LEFT
 - assertVisible:
     id: sign-in-server
     text: http://erp.example.com
@@ -36,7 +54,10 @@ tags:
 - assertVisible:
     id: sign-in-server-error
     text: "${APP_LANGUAGE === 'id' ? 'Server harus memakai koneksi aman .https..' : 'The server must use a secure connection .https..'}"
-- takeScreenshot: sign-in-error-${APP_LANGUAGE}
+- runFlow:
+    file: shared/screenshot.yaml
+    env:
+      SCREEN: sign-in-error
 - tapOn:
     id: sign-in-back
 - assertVisible:

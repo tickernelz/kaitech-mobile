@@ -2,6 +2,8 @@ appId: io.kaitech.mobile
 name: Welcome follows the device language and keeps the chosen one
 tags:
   - welcome
+onFlowStart:
+  - runFlow: shared/orientation.yaml
 ---
 - launchApp:
     clearState: true
@@ -12,14 +14,14 @@ tags:
 - assertVisible:
     id: welcome-title
     text: "${APP_LANGUAGE === 'id' ? 'Selamat datang di Kaitech' : 'Welcome to Kaitech'}"
-- assertNotVisible:
-    text: .*(Chat|Discovery|MoM).*
-- takeScreenshot: welcome-${APP_LANGUAGE}
-- setOrientation: LANDSCAPE_LEFT
 - assertVisible:
     id: welcome-sign-in
-- takeScreenshot: welcome-landscape-${APP_LANGUAGE}
-- setOrientation: PORTRAIT
+- assertNotVisible:
+    text: .*(Chat|Discovery|MoM).*
+- runFlow:
+    file: shared/screenshot.yaml
+    env:
+      SCREEN: welcome
 - tapOn:
     id: welcome-language
 - assertVisible:
@@ -27,9 +29,13 @@ tags:
     text: "${APP_LANGUAGE === 'id' ? 'Welcome to Kaitech' : 'Selamat datang di Kaitech'}"
 - stopApp
 - launchApp
+- runFlow: shared/orientation.yaml
 - extendedWaitUntil:
     visible:
       id: welcome-title
       text: "${APP_LANGUAGE === 'id' ? 'Welcome to Kaitech' : 'Selamat datang di Kaitech'}"
     timeout: 30000
-- takeScreenshot: welcome-switched-kept-${APP_LANGUAGE}
+- runFlow:
+    file: shared/screenshot.yaml
+    env:
+      SCREEN: welcome-switched

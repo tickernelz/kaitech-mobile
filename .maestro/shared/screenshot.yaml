@@ -1,0 +1,4 @@
+appId: io.kaitech.mobile
+name: Screenshot named <screen>-<size>-<orientation>-<language>
+---
+- takeScreenshot: ${SCREEN}-${DEVICE_SIZE}-${ORIENTATION}-${APP_LANGUAGE}
