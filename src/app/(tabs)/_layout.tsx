@@ -54,14 +54,13 @@ export default function TabsLayout() {
   const { windowClass } = useWindowClass();
   const rail = windowClass !== 'compact';
   return (
-    <Tabs style={[styles.fill, { flexDirection: rail ? 'row' : 'column', backgroundColor: colors.canvas }]}>
-      {rail ? null : <TabSlot style={styles.fill} />}
+    <Tabs style={[styles.fill, { flexDirection: rail ? 'row' : 'column-reverse', backgroundColor: colors.canvas }]}>
       <TabList
         accessibilityRole="tablist"
         style={[
           { backgroundColor: colors.surface, borderColor: colors.line },
           rail
-            ? [styles.rail, { paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.lg, paddingLeft: insets.left }]
+            ? [styles.rail, { width: railWidth + insets.left, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.lg, paddingLeft: insets.left }]
             : [styles.bar, { paddingBottom: Math.max(insets.bottom, space.sm) }],
         ]}>
         {tabs.map((name) => (
@@ -70,15 +69,17 @@ export default function TabsLayout() {
           </TabTrigger>
         ))}
       </TabList>
-      {rail ? <TabSlot style={styles.fill} /> : null}
+      <TabSlot style={styles.fill} />
     </Tabs>
   );
 }
 
+const railWidth = 88;
+
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   bar: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm },
-  rail: { flexDirection: 'column', justifyContent: 'flex-start', gap: space.md, width: 88, borderRightWidth: StyleSheet.hairlineWidth },
+  rail: { flexDirection: 'column', justifyContent: 'flex-start', gap: space.md, borderRightWidth: StyleSheet.hairlineWidth },
   barItem: { flex: 1, alignItems: 'center', gap: 2, minHeight: 52, justifyContent: 'center' },
   railItem: { alignItems: 'center', gap: space.xs, minHeight: 56, paddingHorizontal: space.xs },
   pill: { width: 56, height: 30, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },

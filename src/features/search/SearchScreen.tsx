@@ -121,6 +121,7 @@ export function SearchScreen() {
             placeholderTextColor={colors.inkFaint}
             accessibilityLabel={t('search.placeholder')}
             returnKeyType="search"
+            disableFullscreenUI
             maxLength={maxLength}
             selectionColor={colors.focus}
             testID="search-input"
