@@ -7,10 +7,10 @@
       "source": "run 44824949991, SHA e866df1 (exact bytes from the perf artifact); F2 Calls (ZHA-7240): @livekit/react-native-webrtc 150.2.0 native libraries, livekit-client loaded eagerly by the call screen, the local Android call module and the call screens; was 55396270 at 6cab11b"
     },
     "android.apk_universal_bytes": {
-      "value": 104683865,
+      "value": 159582781,
       "maxIncrease": 0.15,
       "unit": "bytes",
-      "source": "local release build of SHA e011ed8 with the CI Gradle and NDK (its x86_64 APK matched run 44692239972 byte for byte); PR runs skip this job; F0 app shell (ZHA-7236): expo-router, Reanimated, react-native-svg, expo-sqlite, i18next; was 66719031 at ca0fc0f"
+      "source": "run 44830443810, SHA b41edfe (main, universal APK job; the CI table printed 152.19 MiB); F2 Calls (ZHA-7240): @livekit/react-native-webrtc 150.2.0 native libraries for all four ABIs, livekit-client, the local Android call module and the call screens; was 104683865 at e011ed8 (F0 app shell)"
     },
     "android.js_bundle_bytes": {
       "value": 6632972,
