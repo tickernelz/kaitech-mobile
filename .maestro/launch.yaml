@@ -12,5 +12,5 @@ env:
 - assertVisible: Kaitech
 - assertVisible:
     id: app-greeting
-    text: ${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}
-- takeScreenshot: launch-${APP_LANGUAGE}
+    text: "${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}"
+- takeScreenshot: "launch-${APP_LANGUAGE}"

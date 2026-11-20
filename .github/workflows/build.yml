@@ -217,16 +217,7 @@ jobs:
         with:
           name: kaitech-android-apk
           path: dist
-      - name: Install Maestro
-        env:
-          MAESTRO_VERSION: cli-2.12.1
-          MAESTRO_SHA256: 54dbb0716425626604973cbb374c585ca30272375d9ce15177a1152765ddd9d7
-        run: |
-          set -euo pipefail
-          curl -sSfL -o "$RUNNER_TEMP/maestro.zip" "https://github.com/mobile-dev-inc/maestro/releases/download/${MAESTRO_VERSION}/maestro.zip"
-          echo "${MAESTRO_SHA256}  $RUNNER_TEMP/maestro.zip" | sha256sum -c -
-          unzip -q "$RUNNER_TEMP/maestro.zip" -d "$RUNNER_TEMP"
-          echo "$RUNNER_TEMP/maestro/bin" >> "$GITHUB_PATH"
+      - uses: ./.github/actions/setup-maestro
       - name: Run Maestro flows on emulator
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
