@@ -8,6 +8,12 @@ module.exports = defineConfig([
     ignores: ['dist/*'],
   },
   {
+    files: ['src/features/call/livekit.ts'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
     files: ['src/**/*.tsx'],
     ...i18next.configs['flat/recommended'],
     rules: {

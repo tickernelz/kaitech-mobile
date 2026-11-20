@@ -94,7 +94,7 @@ function publish(next: Partial<CallState>) {
 }
 
 function stale(started: number): boolean {
-  return started !== generation || state.phase === 'ended' || state.phase === 'idle';
+  return started !== generation || state.phase === 'ended';
 }
 
 export function videoTrack(sid: string, source: 'camera' | 'screen' = 'camera') {
@@ -398,6 +398,7 @@ function scheduleIdle() {
 function reset() {
   if (endTimer) clearTimeout(endTimer);
   endTimer = null;
+  generation += 1;
   stopRinging();
   stopPing();
   callAccount = null;

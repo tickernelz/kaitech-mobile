@@ -166,6 +166,11 @@ function serve() {
       response.end(JSON.stringify(sessions.room));
       return;
     }
+    if (path === '/state') {
+      response.setHeader('content-type', 'application/json');
+      response.end(JSON.stringify(sessions.state));
+      return;
+    }
     if (path === '/livekit-client.umd.js') {
       response.setHeader('content-type', 'text/javascript');
       response.end(read(joinPath(process.cwd(), 'node_modules/livekit-client/dist/livekit-client.umd.js')));
@@ -222,7 +227,12 @@ function serve() {
       const peerState = sessions.state;
       if (sessions.ready && peerState && peerState.connected) {
         clearInterval(timer);
-        if (cfg.holdMs === 0) finish({ ok: true, pid: sessions.pid, port, sessionId: sessions.sessionId, logs: sessions.logs, state: peerState });
+        const report = { ok: true, pid: sessions.pid, port, sessionId: sessions.sessionId, logs: sessions.logs, state: peerState };
+        if (cfg.holdMs === 0) {
+          finish(report);
+          return;
+        }
+        writeState(report);
         return;
       }
       if (sessions.ready && peerState && peerState.error) {

@@ -33,6 +33,7 @@ class KaitechCallModule : Module() {
 
     AsyncFunction("takePending") { CallBridge.takePending() }
 
+
     AsyncFunction("takeLaunchAction") { CallIntents.takeLaunch(appContext) }
 
     AsyncFunction("ring") { title: String, body: String, channelId: Int, callId: Int, video: Boolean, db: String, uid: Int ->
