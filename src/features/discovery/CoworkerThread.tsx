@@ -280,6 +280,7 @@ export function CoworkerThread({
           placeholderTextColor={colors.inkFaint}
           accessibilityLabel={t('discovery.thread.placeholder')}
           multiline
+          disableFullscreenUI
           submitBehavior="submit"
           returnKeyType="send"
           onSubmitEditing={submit}
