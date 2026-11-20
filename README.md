@@ -66,7 +66,7 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 
 Artefak E2E hanya diunggah bila gitleaks bersih.
 
-Artefak per run: `e2e-apk-x86_64` (APK yang diuji E2E), `kaitech-android-apk` (APK universal, hanya `main` dan tag), `kaitech-ios-ipa`, `perf-android-x86_64`, `perf-android-universal` dan `perf-ios` (angka gerbang performa), delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro, `cold-start.txt` di sel ponsel portrait `en-US`), dan `e2e-ipad` (satu folder per sel). Tag rilis menambah `e2e-android-universal-phone-portrait-en-US`.
+Artefak per run: `e2e-apk-x86_64` (APK yang diuji E2E), `kaitech-android-apk` (APK universal, hanya `main` dan tag), `kaitech-ios-ipa`, `perf-android-x86_64`, `perf-android-universal` dan `perf-ios` (angka gerbang performa), delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro, `cold-start.txt` di sel ponsel portrait `en-US`), dan `e2e-ipad-<locale>` (satu folder per sel, video `simctl`, screenshot awal dari `simctl` dan screenshot Maestro). Tag rilis menambah `e2e-android-universal-phone-portrait-en-US`.
 
 ### Jalur cepat dan cache
 
@@ -158,7 +158,7 @@ Superapp harus responsif di ponsel dan tablet, Android dan iOS, portrait dan lan
 |---|---|---|---|---|---|---|
 | Android 15 (API 35) | `phone` | emulator profil `pixel_6` | 411 dp (compact) / 914 dp | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
 | Android 15 (API 35) | `tablet` | emulator profil `pixel_tablet` (10 inci) | 800 dp (medium) / 1280 dp (expanded) | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
-| iPadOS (runtime simulator terbaru di runner `xcode-27`) | `tablet` | simulator iPad Pro 13 inci (atau iPad lain bila tidak ada) | lihat `simulator.txt` | portrait, landscape | `en-US`, `id-ID` | percobaan |
+| iPadOS (runtime simulator terbaru di runner `xcode-27`) | `tablet` | simulator iPad Pro 13 inci (atau iPad lain bila tidak ada) | lihat `simulator.txt` | portrait, landscape | `en-US`, `id-ID` | percobaan, satu job per bahasa, tidak memblokir (`continue-on-error`) |
 
 Orientasi Android diatur lewat `user_rotation` dengan memperhitungkan orientasi alami panel (tablet alami landscape); iPad memakai `setOrientation` Maestro di hook `onFlowStart` (`.maestro/shared/orientation.yaml`), karena runner XCTest Maestro mengembalikan simulator ke portrait setiap sesi baru. Setiap alur baru wajib memuat hook itu:
 
@@ -178,7 +178,7 @@ Screenshot dinamai `<layar>-<ukuran>-<orientasi>-<bahasa>.png`, misalnya `launch
       SCREEN: launch
 ```
 
-Semua screenshot sel disalin ke `screenshots/`. `scripts/check-screenshots.mjs` menggagalkan sel bila ada screenshot yang tidak mengikuti pola nama atau dimensinya tidak cocok dengan orientasi sel (misalnya layar terkunci portrait di sel landscape). Alur di subfolder `.maestro/shared/` tidak dijalankan sendiri.
+Semua screenshot sel disalin ke `screenshots/`. `scripts/check-screenshots.mjs` menggagalkan sel bila ada screenshot yang tidak mengikuti pola nama atau dimensinya tidak cocok dengan orientasi sel (misalnya layar terkunci portrait di sel landscape). Screenshot iOS disimpan dalam bingkai portrait dengan tag orientasi EXIF; pemeriksaan memakai dimensi setelah tag itu diterapkan. Alur di subfolder `.maestro/shared/` tidak dijalankan sendiri.
 
 ### Gerbang konfigurasi tablet
 

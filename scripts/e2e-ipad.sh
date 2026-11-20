@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-usage="usage: e2e-ipad.sh <Kaitech.app built for the simulator> <output-dir>"
+usage="usage: e2e-ipad.sh <Kaitech.app built for the simulator> <output-dir> <locale: en-US|id-ID>"
 app="${1:?$usage}"
 out="${2:?$usage}"
+locale="${3:?$usage}"
+language="${locale%%-*}"
 mkdir -p "$out"
 
 IFS=$'\t' read -r udid device_name runtime_name < <(
@@ -55,41 +57,38 @@ set_language() {
 }
 
 status=0
-for locale in en-US id-ID; do
-  language="${locale%%-*}"
-  set_language "$language" "${locale/-/_}"
-  boot
-  xcrun simctl install "$udid" "$app"
-  log "installed"
+set_language "$language" "${locale/-/_}"
+boot
+xcrun simctl install "$udid" "$app"
+log "installed"
 
-  for orientation in portrait landscape; do
-    cell="tablet-$orientation-$locale"
-    dir="$out/$cell"
-    mkdir -p "$dir/screenshots"
-    log "$cell: start"
-    xcrun simctl io "$udid" recordVideo --codec=h264 --force "$dir/e2e-ipad-$cell.mp4" > /dev/null 2>&1 &
-    recorder=$!
-    sleep 2
+for orientation in portrait landscape; do
+  cell="tablet-$orientation-$locale"
+  dir="$out/$cell"
+  mkdir -p "$dir/screenshots"
+  log "$cell: start"
+  xcrun simctl io "$udid" recordVideo --codec=h264 --force "$dir/e2e-ipad-$cell.mp4" > /dev/null 2>&1 &
+  recorder=$!
+  sleep 2
 
-    maestro --device "$udid" test .maestro \
-      -e APP_LANGUAGE="$language" \
-      -e DEVICE_SIZE=tablet \
-      -e ORIENTATION="$orientation" \
-      --format junit \
-      --output "$dir/junit.xml" \
-      --test-output-dir "$dir/maestro" || status=1
+  maestro --device "$udid" test .maestro \
+    -e APP_LANGUAGE="$language" \
+    -e DEVICE_SIZE=tablet \
+    -e ORIENTATION="$orientation" \
+    --format junit \
+    --output "$dir/junit.xml" \
+    --test-output-dir "$dir/maestro" || status=1
 
-    kill -INT "$recorder" 2> /dev/null || true
-    wait "$recorder" || true
+  kill -INT "$recorder" 2> /dev/null || true
+  wait "$recorder" || true
 
-    find "$dir/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$dir/screenshots/" \;
-    find "$dir/maestro" -name device-simulator.log -delete
-    log "$cell: done"
-    node scripts/check-screenshots.mjs "$dir/screenshots" tablet "$orientation" "$language" || status=1
-  done
-  xcrun simctl shutdown "$udid"
-  log "shut down"
+  find "$dir/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$dir/screenshots/" \;
+  find "$dir/maestro" -name device-simulator.log -delete
+  log "$cell: done"
+  node scripts/check-screenshots.mjs "$dir/screenshots" tablet "$orientation" "$language" || status=1
 done
+xcrun simctl shutdown "$udid"
+log "shut down"
 
 [ -z "${created:-}" ] || xcrun simctl delete "$udid"
 exit "$status"
