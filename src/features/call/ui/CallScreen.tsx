@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { layoutFor, pagesFor, stageFor, tileGap } from '../grid';
@@ -30,8 +30,13 @@ export function CallScreen() {
     return { stage, ids: pages[0] ?? [] };
   }, [call.people, call.speaking, width, height, layout.controls, layout.people]);
 
+  const live = useRef(call.phase !== 'idle');
   useEffect(() => {
-    if (call.phase === 'idle') router.back();
+    if (call.phase !== 'idle') {
+      live.current = true;
+      return;
+    }
+    if (live.current) router.back();
   }, [call.phase, router]);
 
   const title = call.channelName || call.callerName;
