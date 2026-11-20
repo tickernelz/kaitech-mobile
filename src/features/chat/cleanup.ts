@@ -1,5 +1,7 @@
 import type { Pending } from './types';
 
+export const stagingFolder = 'chat-outbox';
+
 export async function forgetChatAccount(
   accountId: string,
   deps: {
@@ -14,7 +16,21 @@ export async function forgetChatAccount(
   await deps.forgetAccount(accountId);
 }
 
-export function orphanStaging(stagedFolders: string[], referencedUris: string[]): string[] {
-  const kept = new Set(referencedUris.map((uri) => uri.replace(/\/[^/]*$/, '')));
-  return stagedFolders.filter((folder) => !kept.has(folder.replace(/\/$/, '')));
+export function stagingName(uri: string): string | null {
+  const match = new RegExp(`(?:^|/)${stagingFolder}/([^/]+)/[^/]+$`).exec(uri);
+  return match ? match[1] : null;
+}
+
+export function orphanStaging(folderNames: string[], referencedUris: string[]): string[] {
+  const kept = new Set(referencedUris.map(stagingName).filter((name): name is string => name !== null));
+  return folderNames.filter((name) => !kept.has(name));
+}
+
+export function relativeStaged(documentUri: string, uri: string): string {
+  const base = documentUri.endsWith('/') ? documentUri : `${documentUri}/`;
+  return uri.startsWith(base) ? uri.slice(base.length) : uri;
+}
+
+export function openedFolderName(accountId: string, attachmentId: number, checksum: string | null): string {
+  return `${accountId.replace(/[^\w-]/g, '_')}/${attachmentId}-${(checksum ?? 'none').replace(/[^\w-]/g, '_')}`;
 }

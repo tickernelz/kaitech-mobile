@@ -28,8 +28,9 @@ export function accountForPush(data: Record<string, unknown>, accounts: Pick<Acc
   const db = typeof data.db === 'string' ? data.db : null;
   const uid = Number(data.uid);
   if (db && Number.isInteger(uid) && uid > 0) {
-    const match = accounts.find((account) => account.db === db && account.userId === uid);
-    return match ? { accountId: match.id, switchTo: match.id !== activeId } : null;
+    const matches = accounts.filter((account) => account.db === db && account.userId === uid);
+    if (matches.length !== 1) return null;
+    return { accountId: matches[0].id, switchTo: matches[0].id !== activeId };
   }
   if (accounts.length === 1 && activeId === accounts[0].id) return { accountId: activeId, switchTo: false };
   return null;

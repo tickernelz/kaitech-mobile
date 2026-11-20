@@ -1,8 +1,9 @@
-import { File, UploadType } from 'expo-file-system';
+import { UploadType } from 'expo-file-system';
 import { bearer, route, sessionCookie, ApiError } from '../../api/odoo';
 import { AppError } from '../../auth/errors';
 import type { Account } from '../../auth/oauth';
 import { markExpired, tokenFor } from '../../auth/session';
+import { localFile } from './files';
 import { SendError, type Posted, type Uploaded } from './outbox';
 import type { PendingFile } from './types';
 
@@ -99,7 +100,7 @@ export class ChatClient {
       markExpired();
       throw new AppError('sessionEnded');
     }
-    const source = new File(file.uri);
+    const source = localFile(file.uri);
     if (!source.exists) throw new ApiError('file_missing', 400);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), uploadTimeoutMs);

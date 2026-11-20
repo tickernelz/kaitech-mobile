@@ -17,7 +17,12 @@ export function useOpenAttachment() {
       try {
         const headers = await client.cookieHeaders();
         const url = attachmentUrl(client.origin, attachment, { download: true, token: false });
-        const file = await downloadForOpening(url, attachment.name || `file-${attachment.id}`, headers);
+        const file = await downloadForOpening(
+          { accountId: client.account.id, attachmentId: attachment.id, checksum: attachment.checksum },
+          url,
+          attachment.name || `file-${attachment.id}`,
+          headers,
+        );
         const mimeType = attachment.mimetype || undefined;
         if (await file.canPreview({ mimeType })) await file.preview({ mimeType, title: attachment.name });
         else Alert.alert(t('thread.cannotOpen', { name: attachment.name }));

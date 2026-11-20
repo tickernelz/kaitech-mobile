@@ -48,6 +48,11 @@ describe('accountForPush', () => {
     expect(accountForPush({ db: 'lab0', uid: 7 }, accounts, 'a')).toEqual({ accountId: 'a', switchTo: false });
   });
 
+  it('opens nothing when two signed-in accounts share the database name and user id', () => {
+    const twins = [...accounts, { id: 'c', db: 'lab0', userId: 7 }];
+    expect(accountForPush({ db: 'lab0', uid: '7' }, twins, 'a')).toBeNull();
+  });
+
   it('opens nothing for a push from an account that is not signed in here', () => {
     expect(accountForPush({ db: 'lab0', uid: '8' }, accounts, 'a')).toBeNull();
   });
