@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, readFileSync as read, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join as joinPath } from 'node:path';
 
 const statePath = process.env.CALL_PEER_STATE ?? joinPath(tmpdir(), 'kaitech-call-peer.json');
 const action = process.argv[2] ?? 'state';
@@ -72,7 +72,7 @@ async function joinRoom(cfg, cookie) {
 const page = [
   '<!doctype html><html><head><meta charset="utf-8"><title>call peer</title></head>',
   '<body style="font-family: sans-serif"><h1>Kaitech call peer</h1><pre id="log"></pre>',
-  '<script src="/livekit-client.umd.min.js"></script><script src="/peer.js"></script>',
+  '<script src="/livekit-client.umd.js"></script><script src="/peer.js"></script>',
   '</body></html>',
 ].join('');
 
@@ -166,9 +166,9 @@ function serve() {
       response.end(JSON.stringify(sessions.room));
       return;
     }
-    if (path === '/livekit-client.umd.min.js') {
+    if (path === '/livekit-client.umd.js') {
       response.setHeader('content-type', 'text/javascript');
-      response.end(read(joinPath(process.cwd(), 'node_modules/livekit-client/dist/livekit-client.umd.min.js')));
+      response.end(read(joinPath(process.cwd(), 'node_modules/livekit-client/dist/livekit-client.umd.js')));
       return;
     }
     if (path === '/peer.js') {

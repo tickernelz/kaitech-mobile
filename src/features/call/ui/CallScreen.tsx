@@ -23,10 +23,12 @@ export function CallScreen() {
 
   const visible = useMemo(() => {
     const ids = call.people.map((person) => person.sid);
-    const stage = stageFor(call.people.length, width, height);
+    const stageWidth = Math.max(240, width - (layout.controls === 'rail' ? 120 : 2 * space.md));
+    const stageHeight = Math.max(180, height - (layout.people === 'side' ? 260 : 220));
+    const stage = stageFor(call.people.length, stageWidth, stageHeight);
     const pages = pagesFor(ids, call.speaking, stage.perPage);
     return { stage, ids: pages[0] ?? [] };
-  }, [call.people, call.speaking, width, height]);
+  }, [call.people, call.speaking, width, height, layout.controls, layout.people]);
 
   useEffect(() => {
     if (call.phase === 'idle') router.back();
