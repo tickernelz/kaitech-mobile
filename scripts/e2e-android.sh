@@ -101,4 +101,19 @@ mkdir -p "$out/screenshots"
 find "$out/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$out/screenshots/" \;
 node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
 
+if [ "${COLD_START_RUNS:-0}" -gt 0 ]; then
+  starts=()
+  for _ in $(seq 1 "$COLD_START_RUNS"); do
+    total="$(adb shell am start -W -S -n "$activity" | tr -d '\r' | sed -n 's/^TotalTime: //p')"
+    [ -n "$total" ] || { echo "am start -W printed no TotalTime" >&2; status=1; break; }
+    starts+=("$total")
+    sleep 2
+  done
+  if [ "${#starts[@]}" -eq "$COLD_START_RUNS" ]; then
+    median="$(printf '%s\n' "${starts[@]}" | sort -n | sed -n "$(((COLD_START_RUNS + 1) / 2))p")"
+    echo "cold start TotalTime ms: ${starts[*]} (median $median)" | tee "$out/cold-start.txt"
+    node scripts/perf-gate.mjs --out "$out/perf-cold-start.json" "android.cold_start_ms=$median" || status=1
+  fi
+fi
+
 exit "$status"

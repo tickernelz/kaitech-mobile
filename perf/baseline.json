@@ -1,0 +1,10 @@
+{
+  "metrics": {
+    "android.apk_x86_64_bytes": { "value": 66719031, "maxIncrease": 0.15, "unit": "bytes", "source": "upper bound (universal APK of run 44658858469) until the first x86_64 run" },
+    "android.apk_universal_bytes": { "value": 66719031, "maxIncrease": 0.15, "unit": "bytes", "source": "run 44658858469, SHA ca0fc0f" },
+    "android.js_bundle_bytes": { "value": 1205216, "maxIncrease": 0.15, "unit": "bytes", "source": "run 44658858469, SHA ca0fc0f" },
+    "ios.ipa_bytes": { "value": 9201352, "maxIncrease": 0.15, "unit": "bytes", "source": "run 44658858469, SHA ca0fc0f" },
+    "ios.js_bundle_bytes": { "value": 1491835, "maxIncrease": 0.15, "unit": "bytes", "source": "run 44658858469, SHA ca0fc0f" },
+    "android.cold_start_ms": { "value": 10000, "maxIncrease": 0.15, "unit": "ms", "source": "placeholder until the first measured run" }
+  }
+}
