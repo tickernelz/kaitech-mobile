@@ -1,5 +1,6 @@
 import { AppError } from '../src/auth/errors';
 import type { Account } from '../src/auth/oauth';
+import { ApiError, bearer, rpc } from '../src/api/odoo';
 
 const mockMarkExpired = jest.fn();
 
@@ -10,7 +11,6 @@ jest.mock('../src/auth/session', () => ({
 }));
 jest.mock('../src/i18n', () => ({ __esModule: true, default: { language: 'id' } }));
 
-import { ApiError, bearer, rpc } from '../src/api/odoo';
 
 const account: Account = {
   id: 'u2_test',
