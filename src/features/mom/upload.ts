@@ -48,7 +48,7 @@ export type UploadDeps = {
   read(upload: Upload, offset: number, length: number): Promise<Uint8Array<ArrayBuffer>>;
   md5(bytes: Uint8Array<ArrayBuffer>): Promise<string>;
   fingerprint(upload: Upload): Promise<string>;
-  put(url: string, bytes: Uint8Array<ArrayBuffer>, checksum: string): Promise<string>;
+  put(upload: Upload, number: number, url: string, bytes: Uint8Array<ArrayBuffer>, checksum: string): Promise<string>;
   save(upload: Upload): void;
   remove(upload: Upload): void;
   stopped(): boolean;
@@ -151,7 +151,7 @@ async function send(upload: Upload, deps: UploadDeps): Promise<Upload> {
     );
     const url = signed.parts.find((part) => part.number === number)?.url;
     if (!url) throw new ApiError('parts_invalid', 400);
-    const etag = await deps.put(url, bytes, checksum);
+    const etag = await deps.put(current, number, url, bytes, checksum);
     update({ etags: { ...current.etags, [number]: etag }, checksums: { ...current.checksums, [number]: checksum } });
   }
   const parts = [];

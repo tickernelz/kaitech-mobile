@@ -1,0 +1,6 @@
+appId: io.kaitech.mobile
+name: Start a recording in a signed-in app (local only, the host then reads the notification shade)
+---
+- launchApp:
+    stopApp: true
+- runFlow: ../shared/record-meeting.yaml

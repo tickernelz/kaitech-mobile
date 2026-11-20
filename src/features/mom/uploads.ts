@@ -1,7 +1,6 @@
 import * as BackgroundTask from 'expo-background-task';
 import * as Crypto from 'expo-crypto';
-import { File, Paths } from 'expo-file-system';
-import { fetch as nativeFetch } from 'expo/fetch';
+import { Directory, File, Paths, UploadType } from 'expo-file-system';
 import * as Network from 'expo-network';
 import Storage from 'expo-sqlite/kv-store';
 import * as TaskManager from 'expo-task-manager';
@@ -17,7 +16,7 @@ import { advance, isPending, PartRefused, type Upload, type UploadDeps } from '.
 const storageKey = 'mom.uploads.v1';
 const taskName = 'kaitech-mom-uploads';
 const readChunk = 1024 * 1024;
-const partTimeoutMs = 5 * 60_000;
+const idleTimeoutMs = 60_000;
 const keepDoneMs = 24 * 60 * 60_000;
 
 function load(): Upload[] {
@@ -36,6 +35,25 @@ function load(): Upload[] {
 let rows: Upload[] = load();
 const listeners = new Set<() => void>();
 const inFlight = new Set<AbortController>();
+const partsDirectory = 'mom-parts';
+const progress = new Map<string, number>();
+const progressListeners = new Set<() => void>();
+
+function reportProgress(key: string, bytes: number | null) {
+  if (bytes === null) progress.delete(key);
+  else progress.set(key, bytes);
+  progressListeners.forEach((listener) => listener());
+}
+
+export function usePartProgress(key: string): number {
+  return useSyncExternalStore(
+    (listener) => {
+      progressListeners.add(listener);
+      return () => progressListeners.delete(listener);
+    },
+    () => progress.get(key) ?? 0,
+  );
+}
 
 function persist(next: Upload[]) {
   rows = next;
@@ -113,24 +131,49 @@ async function fingerprint(upload: Upload): Promise<string> {
   return hash.hex();
 }
 
-async function sendPart(url: string, bytes: Uint8Array<ArrayBuffer>, checksum: string): Promise<string> {
+function partFile(upload: Upload, number: number): File {
+  const directory = new Directory(Paths.cache, partsDirectory);
+  if (!directory.exists) directory.create({ intermediates: true });
+  return new File(directory, `${upload.key}-${number}.part`);
+}
+
+function headerOf(headers: Record<string, string>, name: string): string | undefined {
+  const wanted = name.toLowerCase();
+  return Object.entries(headers).find(([key]) => key.toLowerCase() === wanted)?.[1];
+}
+
+async function sendPart(upload: Upload, number: number, url: string, bytes: Uint8Array<ArrayBuffer>, checksum: string): Promise<string> {
+  const file = partFile(upload, number);
+  file.write(bytes);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), partTimeoutMs);
+  let idle: ReturnType<typeof setTimeout> = setTimeout(() => controller.abort(), idleTimeoutMs);
   inFlight.add(controller);
   try {
-    let response;
+    let result;
     try {
-      response = await nativeFetch(url, { method: 'PUT', body: bytes, headers: { 'Content-MD5': checksum }, signal: controller.signal });
+      result = await file.upload(url, {
+        httpMethod: 'PUT',
+        uploadType: UploadType.BINARY_CONTENT,
+        headers: { 'Content-MD5': checksum },
+        signal: controller.signal,
+        onProgress: ({ bytesSent }) => {
+          clearTimeout(idle);
+          idle = setTimeout(() => controller.abort(), idleTimeoutMs);
+          reportProgress(upload.key, bytesSent);
+        },
+      });
     } catch {
       throw new PartRefused(408);
     }
-    if (!response.ok) throw new PartRefused(response.status);
-    const etag = response.headers.get('etag');
+    if (result.status < 200 || result.status >= 300) throw new PartRefused(result.status);
+    const etag = headerOf(result.headers, 'etag');
     if (!etag) throw new PartRefused(502);
     return etag;
   } finally {
-    clearTimeout(timer);
+    clearTimeout(idle);
     inFlight.delete(controller);
+    reportProgress(upload.key, null);
+    if (file.exists) file.delete();
   }
 }
 
@@ -278,4 +321,10 @@ AppState.addEventListener('change', (state) => {
   if (state === 'active') void drain();
 });
 
+function sweepParts() {
+  const directory = new Directory(Paths.cache, partsDirectory);
+  if (directory.exists) directory.delete();
+}
+
+sweepParts();
 void drain();

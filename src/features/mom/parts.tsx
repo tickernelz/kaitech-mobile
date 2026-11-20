@@ -10,7 +10,7 @@ import { Chip } from '../discovery/ui';
 import type { MeetingRow } from './api';
 import { clock, useRecorderClock, type Recording } from './recorder';
 import { isPending, sentBytes, type Upload } from './upload';
-import { discard, dismiss, retry } from './uploads';
+import { discard, dismiss, retry, usePartProgress } from './uploads';
 
 const paths = {
   record: 'M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm0 2.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z',
@@ -161,7 +161,8 @@ export function UploadCard({ upload }: { upload: Upload }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const format = useMomFormat();
-  const share = upload.state === 'done' ? 1 : upload.size ? sentBytes(upload) / upload.size : 0;
+  const sending = usePartProgress(upload.key);
+  const share = upload.state === 'done' ? 1 : upload.size ? Math.min(1, (sentBytes(upload) + sending) / upload.size) : 0;
   const reason = t(`mom.errors.${upload.error ?? 'unknown'}` as never, { defaultValue: t('mom.errors.unknown') }) as string;
   const line = {
     queued: t('mom.upload.queued', { size: format.size(upload.size) }),

@@ -91,7 +91,7 @@ function server(options: { stored?: number[]; finish?: () => unknown; begin?: ()
     },
     md5: async (bytes) => `md5:${new TextDecoder().decode(bytes)}`,
     fingerprint: async () => 'f'.repeat(64),
-    put: async (url) => {
+    put: async (_upload, _number, url) => {
       const number = Number(url.split('/').pop());
       const failure = failPut?.(number);
       if (failure) throw failure;

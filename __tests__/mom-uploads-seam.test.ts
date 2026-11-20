@@ -17,7 +17,13 @@ jest.mock('expo-sqlite/kv-store', () => ({
   },
 }));
 jest.mock('expo-file-system', () => ({
-  Paths: { document: { uri: 'file:///doc/' } },
+  Paths: { document: { uri: 'file:///doc/' }, cache: { uri: 'file:///cache/' } },
+  UploadType: { BINARY_CONTENT: 0 },
+  Directory: class {
+    get exists() {
+      return false;
+    }
+  },
   File: class {
     path: string;
     constructor(_root: unknown, path: string) {
@@ -31,7 +37,6 @@ jest.mock('expo-file-system', () => ({
     }
   },
 }));
-jest.mock('expo/fetch', () => ({ fetch: jest.fn() }));
 jest.mock('../src/api/resource', () => ({ invalidate: jest.fn() }));
 jest.mock('expo-network', () => ({ addNetworkStateListener: jest.fn() }));
 jest.mock('expo-task-manager', () => ({ defineTask: jest.fn(), isTaskRegisteredAsync: async () => false }));

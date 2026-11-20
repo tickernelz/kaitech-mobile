@@ -24,8 +24,8 @@ name: Long recording, part 2 - still recording after the screen was off, finish,
     timeout: 120000
 - extendedWaitUntil:
     visible:
-      text: .*[1-9][0-9] ?%.*
-    timeout: 600000
+      text: .*[89][0-9].?%.*
+    timeout: 900000
 - setAirplaneMode: enabled
 - extendedWaitUntil:
     visible:
