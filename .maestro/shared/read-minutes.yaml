@@ -5,7 +5,7 @@ name: Read the seeded test meeting minutes, items, transcript and Final MoM, the
     while:
       notVisible:
         id: meeting-${MINUTES_MEETING}
-    times: 12
+    times: 40
     commands:
       - swipe:
           start: 22%, 75%
