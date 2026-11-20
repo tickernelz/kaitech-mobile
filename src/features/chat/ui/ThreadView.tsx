@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { conversationById, discardSend, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat, type Delivered } from '../chat';
+import { conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat, type Delivered } from '../chat';
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
 import { readersOf, readState } from '../odoo';
@@ -66,7 +66,6 @@ export function ThreadView({
   const allDelivered = useChat((state) => state.delivered);
   const list = useRef<FlashListRef<Row>>(null);
   const composer = useRef<ComposerHandle>(null);
-  const sendTimes = useRef(new Map<string, number>());
   const [acting, setActing] = useState<Message | null>(null);
   const [highlight, setHighlight] = useState<number | null>(focusMessage ?? null);
 
@@ -136,15 +135,13 @@ export function ThreadView({
     [channelId, onOpenChannel],
   );
 
-  const onSent = useCallback((key: string, startedAt: number) => {
-    sendTimes.current.set(key, startedAt);
+  const onSent = useCallback(() => {
     requestAnimationFrame(() => void list.current?.scrollToEnd({ animated: true }));
   }, []);
 
   const onShown = useCallback((key: string) => {
-    const started = sendTimes.current.get(key);
+    const started = takeSendStart(key);
     if (started === undefined) return;
-    sendTimes.current.delete(key);
     console.log(`[kaitech-perf] send_visible_ms=${(performance.now() - started).toFixed(1)}`);
   }, []);
 

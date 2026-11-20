@@ -2,7 +2,7 @@ import { bearer, route, sessionCookie, ApiError } from '../../api/odoo';
 import { AppError } from '../../auth/errors';
 import type { Account } from '../../auth/oauth';
 import { markExpired, tokenFor } from '../../auth/session';
-import { SendError, type Uploaded } from './outbox';
+import { SendError, type Posted, type Uploaded } from './outbox';
 import type { PendingFile } from './types';
 
 const uploadTimeoutMs = 120000;
@@ -70,7 +70,7 @@ export class ChatClient {
     return route<Record<string, unknown>>(this.account, '/discuss/channel/sub_channel/create', { parent_channel_id: channelId, from_message_id: messageId });
   }
 
-  async post(input: { key: string; channelId: number; body: string; parentId: number | null; partnerIds: number[]; mentionTokens: Record<string, string>; files: Uploaded[] }): Promise<number> {
+  async post(input: { key: string; channelId: number; body: string; parentId: number | null; partnerIds: number[]; mentionTokens: Record<string, string>; files: Uploaded[] }): Promise<Posted> {
     const result = await route<Record<string, unknown> | null>(this.account, '/mail/message/post', {
       thread_model: 'discuss.channel',
       thread_id: input.channelId,
@@ -89,7 +89,7 @@ export class ChatClient {
     });
     const messageId = result?.message_id;
     if (typeof messageId !== 'number') throw new ApiError('server', 500);
-    return messageId;
+    return { messageId, data: result?.store_data ?? null };
   }
 
   async upload(channelId: number, file: PendingFile): Promise<Uploaded> {

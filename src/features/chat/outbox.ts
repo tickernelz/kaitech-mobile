@@ -2,9 +2,11 @@ import type { Pending, PendingFile } from './types';
 
 export type Uploaded = { attachmentId: number; ownershipToken: string };
 
+export type Posted = { messageId: number; data: unknown };
+
 export type Transport = {
   upload(pending: Pending, file: PendingFile): Promise<Uploaded>;
-  post(pending: Pending, files: Uploaded[]): Promise<number>;
+  post(pending: Pending, files: Uploaded[]): Promise<Posted>;
 };
 
 export type OutboxStore = {
@@ -26,7 +28,7 @@ export function retryDelay(attempts: number): number {
   return Math.min(30000, 1000 * 2 ** Math.max(0, attempts - 1));
 }
 
-export type Sent = { key: string; channelId: number; messageId: number };
+export type Sent = { key: string; channelId: number; messageId: number; data: unknown };
 
 export class Outbox {
   private items = new Map<string, Pending>();
@@ -107,11 +109,11 @@ export class Outbox {
         await this.update(item);
         uploaded.push(done);
       }
-      const messageId = await this.transport.post(item, uploaded);
+      const posted = await this.transport.post(item, uploaded);
       this.items.delete(item.key);
       this.emit();
       await this.store.remove(item.key);
-      this.onSent({ key: item.key, channelId: item.channelId, messageId });
+      this.onSent({ key: item.key, channelId: item.channelId, messageId: posted.messageId, data: posted.data });
       return false;
     } catch (error) {
       const failure = error instanceof SendError ? error : new SendError('network', true);

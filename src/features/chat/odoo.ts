@@ -24,7 +24,9 @@ function ids(value: unknown): number[] {
 }
 
 function text(value: unknown): string {
-  return typeof value === 'string' ? value : '';
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value) && value[0] === 'markup' && typeof value[1] === 'string') return value[1];
+  return '';
 }
 
 export function utc(value: unknown): number {

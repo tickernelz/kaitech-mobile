@@ -59,7 +59,7 @@ class FlakyServer implements Transport {
       this.byKey.set(item.key, id);
     }
     if (fate === 'drop-answer') throw new SendError('network', true);
-    return id;
+    return { messageId: id, data: null };
   }
 }
 
@@ -88,7 +88,7 @@ describe('Outbox', () => {
     const post = jest.fn(async () => {
       posts += 1;
       if (posts === 1) throw new SendError('network', true);
-      return 77;
+      return { messageId: 77, data: null };
     });
     const { store, saved } = memoryStore();
     const outbox = new Outbox({ upload, post }, store, () => undefined, () => undefined);
@@ -110,7 +110,7 @@ describe('Outbox', () => {
       post: async (item) => {
         if (down) throw new SendError('network', true);
         order.push(item.key);
-        return order.length;
+        return { messageId: order.length, data: null };
       },
     };
     const outbox = new Outbox(transport, memoryStore().store, () => undefined, () => undefined);
@@ -132,7 +132,7 @@ describe('Outbox', () => {
       upload: async () => ({ attachmentId: 1, ownershipToken: 't' }),
       post: async (item) => {
         if (refused.has(item.key)) throw new SendError('forbidden', false);
-        return 5;
+        return { messageId: 5, data: null };
       },
     };
     const outbox = new Outbox(transport, memoryStore().store, () => undefined, () => undefined);

@@ -144,12 +144,15 @@ async function flush() {
 }
 
 function delivered(sent: Sent) {
-  const pending = state.pending.find((item) => item.key === sent.key) ?? null;
-  const thread = state.threads[sent.channelId];
-  if (pending && !thread?.messages.some((message) => message.id === sent.messageId)) {
-    set({ delivered: [...state.delivered.filter((item) => item.key !== sent.key), { key: sent.key, messageId: sent.messageId, pending }] });
+  const message = messagesFromStore(sent.data, state.partnerId).find((item) => item.id === sent.messageId);
+  if (message) {
+    upsertMessages(sent.channelId, [message]);
+    touchConversation(sent.channelId, message);
+    return;
   }
-  if (state.realtime !== 'open') void fetchNewer(sent.channelId);
+  const pending = state.pending.find((item) => item.key === sent.key) ?? null;
+  if (pending) set({ delivered: [...state.delivered.filter((item) => item.key !== sent.key), { key: sent.key, messageId: sent.messageId, pending }] });
+  void fetchNewer(sent.channelId);
 }
 
 function upsertMessages(channelId: number, incoming: Message[]) {
@@ -567,10 +570,19 @@ export function newKey(): string {
   return randomUUID();
 }
 
-export async function send(outgoing: Outgoing): Promise<string | null> {
+const sendStarts = new Map<string, number>();
+
+export function takeSendStart(key: string): number | undefined {
+  const started = sendStarts.get(key);
+  sendStarts.delete(key);
+  return started;
+}
+
+export async function send(outgoing: Outgoing, startedAt?: number): Promise<string | null> {
   if (!outbox || !state.accountId) return null;
   if (!outgoing.text.trim() && !outgoing.files.length) return null;
   const key = newKey();
+  if (startedAt !== undefined) sendStarts.set(key, startedAt);
   const item: Pending = {
     key,
     accountId: state.accountId,

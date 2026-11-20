@@ -10,6 +10,7 @@ import { useSession, verifyActiveSession } from '../auth/session';
 import { ChatRuntime } from '../features/chat/ChatRuntime';
 import { useLock } from '../lock/lock';
 import { LockScreen } from '../lock/LockScreen';
+import { useRecentsGuard } from '../lock/useRecentsGuard';
 import { useTheme } from '../theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -22,6 +23,7 @@ export default function RootLayout() {
   const hasAccount = session.active !== null;
   const signedIn = hasAccount && !session.expired;
   const locked = signedIn && lock.locked;
+  useRecentsGuard(signedIn && lock.enabled);
   const home = !hasAccount ? '/welcome' : session.expired ? '/expired' : session.onboarded ? '/' : '/setup';
 
   useEffect(() => {

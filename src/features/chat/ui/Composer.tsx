@@ -58,7 +58,7 @@ function RoundButton({ icon, label, onPress, filled, testID }: { icon: IconName;
 
 type Recording = { started: number; elapsed: number; offset: number };
 
-export const Composer = forwardRef<ComposerHandle, { accountId: string; channelId: number; messages: Message[]; onSent: (key: string, startedAt: number) => void }>(function Composer(
+export const Composer = forwardRef<ComposerHandle, { accountId: string; channelId: number; messages: Message[]; onSent: () => void }>(function Composer(
   { accountId, channelId, messages, onSent },
   ref,
 ) {
@@ -139,9 +139,9 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   };
 
   const delivered = useCallback(
-    (key: string | null, startedAt: number) => {
+    (key: string | null) => {
       if (!key) return;
-      onSent(key, startedAt);
+      onSent();
       void askForPushOnce(accountId);
     },
     [accountId, onSent],
@@ -159,7 +159,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     clearDraft(accountId, channelId);
     typingAt.current = 0;
     notifyTyping(channelId, false);
-    void send(outgoing).then((key) => delivered(key, startedAt));
+    void send(outgoing, startedAt).then((key) => delivered(key));
   };
 
   const addPicked = (picked: { uri: string; name: string; mimeType: string }[]) => {
@@ -246,7 +246,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     const voice: Staged = { uri: kept.uri, name, mimetype: 'audio/mp4', size: kept.size, voice: true, durationMs: elapsed };
     const replyTo = parentId;
     if (replyTo) setParentId(null);
-    delivered(await send({ channelId, text: '', parentId: replyTo, mentions: [], files: [voice] }), startedAt);
+    delivered(await send({ channelId, text: '', parentId: replyTo, mentions: [], files: [voice] }, startedAt));
   };
 
   const starting = useRef<Promise<void> | null>(null);

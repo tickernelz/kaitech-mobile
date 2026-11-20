@@ -1,0 +1,124 @@
+appId: io.kaitech.mobile
+name: Chat with the web peer, 50 messages across a network cut, read marks, voice notes both ways
+tags:
+  - signed-in
+  - chat
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      id: chat-list
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      text: ${PEER}
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c1-list
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- evalScript: ${output.sent = 0}
+- repeat:
+    times: 25
+    commands:
+      - evalScript: ${output.sent = output.sent + 1}
+      - tapOn:
+          id: composer-input
+      - inputText: ${RUN + ' m' + output.sent}
+      - tapOn:
+          id: composer-send
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c2-thread
+- setAirplaneMode: enabled
+- repeat:
+    times: 25
+    commands:
+      - evalScript: ${output.sent = output.sent + 1}
+      - tapOn:
+          id: composer-input
+      - inputText: ${RUN + ' m' + output.sent}
+      - tapOn:
+          id: composer-send
+- runFlow: ../shared/dismiss-keyboard.yaml
+- extendedWaitUntil:
+    visible:
+      id: pending-queued
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c3-offline-queue
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    notVisible:
+      id: (pending-queued|pending-sending|pending-failed)
+    timeout: 180000
+- extendedWaitUntil:
+    visible:
+      text: ${RUN + ' m50'}
+    timeout: 30000
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: count
+      EXPECTED: '50'
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: read
+- extendedWaitUntil:
+    visible:
+      text: .*(Read|Dibaca).*
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c4-read
+- longPressOn:
+    id: composer-mic
+- extendedWaitUntil:
+    notVisible:
+      id: (pending-queued|pending-sending)
+    timeout: 60000
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: voice
+- extendedWaitUntil:
+    visible:
+      text: (Play voice message|Putar pesan suara)
+      index: 1
+    timeout: 30000
+- tapOn:
+    text: (Play voice message|Putar pesan suara)
+    index: -1
+- extendedWaitUntil:
+    visible:
+      text: 0:0[1-9] / 0:0[1-9]
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c5-voice

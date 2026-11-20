@@ -4,7 +4,7 @@ const store = {
   'mail.message': [
     {
       id: 12,
-      body: '<p>Halo</p>',
+      body: ['markup', '<p>Halo</p>'],
       date: '2026-11-20 01:02:03',
       author_id: 7,
       attachment_ids: [30],
@@ -40,6 +40,7 @@ describe('messagesFromStore', () => {
       attachments: [{ id: 30, voice: true, accessToken: 'tok', size: 2048 }],
       reactions: [{ content: '👍', count: 2, mine: true }],
     });
+    expect(messages[1].body).toBe('<p>Halo</p>');
   });
 });
 
