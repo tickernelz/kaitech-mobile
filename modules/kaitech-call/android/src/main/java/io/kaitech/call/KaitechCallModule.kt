@@ -52,6 +52,8 @@ class KaitechCallModule : Module() {
 
     Function("setInCall") { value: Boolean -> CallBridge.setInCall(value) }
 
+    Function("setLocked") { value: Boolean -> CallBridge.setLocked(value) }
+
     Function("stopCall") {
       CallService.stop(requireContext())
     }

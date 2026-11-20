@@ -25,6 +25,7 @@ type NativeCall = {
   updateCall(action: PictureInPicture): void;
   stopCall(): void;
   setInCall(value: boolean): void;
+  setLocked(value: boolean): void;
   enterPictureInPicture(): Promise<boolean>;
   isPictureInPictureSupported(): boolean;
   canUseFullScreenIntent(): boolean;

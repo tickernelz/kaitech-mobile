@@ -10,6 +10,7 @@ import { useSession, verifyActiveSession } from '../auth/session';
 import { CallRuntime } from '../features/call/CallRuntime';
 import { ChatRuntime } from '../features/chat/ChatRuntime';
 import { useLock } from '../lock/lock';
+import { setLocked } from '../features/call/call';
 import { LockScreen } from '../lock/LockScreen';
 import { useRecentsGuard } from '../lock/useRecentsGuard';
 import { useTheme } from '../theme';
@@ -25,6 +26,9 @@ export default function RootLayout() {
   const signedIn = hasAccount && !session.expired;
   const locked = signedIn && lock.locked;
   useRecentsGuard(signedIn && lock.enabled);
+  useEffect(() => {
+    setLocked(signedIn && lock.locked);
+  }, [signedIn, lock.locked]);
   const home = !hasAccount ? '/welcome' : session.expired ? '/expired' : session.onboarded ? '/' : '/setup';
 
   useEffect(() => {

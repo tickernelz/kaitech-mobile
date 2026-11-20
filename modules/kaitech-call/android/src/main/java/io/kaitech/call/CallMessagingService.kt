@@ -21,7 +21,7 @@ class CallMessagingService : FirebaseMessagingService() {
       return
     }
     val callId = data["call_id"]?.toIntOrNull() ?: 0
-    val system = CallBridge.module == null || !CallBridge.foreground
+    val system = CallBridge.module == null || !CallBridge.foreground || CallBridge.locked
     if (type == CANCEL) {
       if (system) CallService.cancelRing(this, channelId)
       CallBridge.send(mapOf("type" to "cancel", "channelId" to channelId, "callId" to callId))
@@ -47,6 +47,24 @@ class CallMessagingService : FirebaseMessagingService() {
         "uid" to uid,
       ),
     )
+  }
+
+  override fun onNewToken(token: String) {
+    val handler = delegate ?: return
+    try {
+      handler.javaClass.getMethod("onNewToken", String::class.java).invoke(handler, token)
+    } catch (error: ReflectiveOperationException) {
+      Log.w(TAG, "expo could not take the push token", error)
+    }
+  }
+
+  override fun onDeletedMessages() {
+    val handler = delegate ?: return
+    try {
+      handler.javaClass.getMethod("onDeletedMessages").invoke(handler)
+    } catch (error: ReflectiveOperationException) {
+      Log.w(TAG, "expo could not take the dropped messages", error)
+    }
   }
 
   private fun forward(message: RemoteMessage) {

@@ -414,6 +414,10 @@ export function pictureInPictureSupported(): boolean {
   return callNative()?.isPictureInPictureSupported() ?? false;
 }
 
+export function setLocked(locked: boolean) {
+  callNative()?.setLocked(locked);
+}
+
 function stopRinging() {
   Vibration.cancel();
   callNative()?.cancelRing(state.channelId);

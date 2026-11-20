@@ -13,12 +13,20 @@ object CallBridge {
   var inCall = false
 
   @Volatile
+  var locked = false
+
+  @Volatile
   var pipRequested = false
 
   private val pending = CopyOnWriteArraySet<Map<String, Any?>>()
 
   fun setInCall(value: Boolean): Boolean {
     inCall = value
+    return true
+  }
+
+  fun setLocked(value: Boolean): Boolean {
+    locked = value
     return true
   }
 
