@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../theme';
-import { initials } from '../../../ui/initials';
+import { initials } from '../../../screens/initials';
 import { Text } from '../../../ui/Text';
 import { useChat } from '../chat';
 import { useCookie } from './useCookie';

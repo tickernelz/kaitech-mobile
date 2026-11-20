@@ -162,6 +162,7 @@ export function DiscoveryHome() {
   const latest = useResource(programme ? `discovery.findings.${programme}` : null, (signedIn) => findings(signedIn, programme));
   const conversation = useOpenConversation(account, programme);
   const [focusCard, setFocusCard] = useState<number>();
+  const [focusInput, setFocusInput] = useState(0);
   useLatestConversation(programme);
 
   useEffect(() => {
@@ -173,7 +174,8 @@ export function DiscoveryHome() {
       openConversation(account, programme, null);
       setFocusCard(undefined);
     }
-    if (!expanded) router.push(`/program/${programme}/coworker`);
+    if (expanded) setFocusInput((count) => count + 1);
+    else router.push({ pathname: '/program/[id]/coworker', params: { id: String(programme), ask: '1' } });
   };
 
   const openCard = (packet: { id: number; conversation_id: number }) => {
@@ -299,7 +301,7 @@ export function DiscoveryHome() {
           </>
         }
       />
-      <CoworkerThread key={`${programme}-${conversation ?? 'new'}`} programme={programme} focusCard={focusCard} testID="coworker" />
+      <CoworkerThread key={`${programme}-${conversation ?? 'new'}`} programme={programme} focusCard={focusCard} focusInput={focusInput} testID="coworker" />
     </View>
   ) : (
     <View style={[styles.fill, { backgroundColor: colors.surface2 }]} />

@@ -1,4 +1,4 @@
-import { initials } from '../src/ui/initials';
+import { initials } from '../src/screens/initials';
 
 describe('initials', () => {
   it.each([
