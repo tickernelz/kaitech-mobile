@@ -37,27 +37,36 @@ fi
 xcrun simctl shutdown "$udid" 2> /dev/null || true
 echo "simulator: $device_name, $runtime_name" | tee "$out/simulator.txt"
 
+log() { echo "$(date -u +%T) $*"; }
+
 boot() {
+  log "boot $udid"
   xcrun simctl boot "$udid"
   xcrun simctl bootstatus "$udid" -b > /dev/null
+  log "booted"
+}
+
+set_language() {
+  local prefs="$HOME/Library/Developer/CoreSimulator/Devices/$udid/data/Library/Preferences/.GlobalPreferences.plist"
+  mkdir -p "$(dirname "$prefs")"
+  [ -f "$prefs" ] || printf '<?xml version="1.0" encoding="UTF-8"?>\n<plist version="1.0"><dict/></plist>\n' > "$prefs"
+  plutil -replace AppleLanguages -json "[\"$1\"]" "$prefs"
+  plutil -replace AppleLocale -string "$2" "$prefs"
 }
 
 status=0
 for locale in en-US id-ID; do
   language="${locale%%-*}"
-  echo "$(date -u +%T) $locale: boot"
-  boot
-  xcrun simctl spawn "$udid" defaults write -g AppleLanguages -array "$language"
-  xcrun simctl spawn "$udid" defaults write -g AppleLocale "${locale/-/_}"
-  xcrun simctl shutdown "$udid"
+  set_language "$language" "${locale/-/_}"
   boot
   xcrun simctl install "$udid" "$app"
+  log "installed"
 
   for orientation in portrait landscape; do
     cell="tablet-$orientation-$locale"
     dir="$out/$cell"
     mkdir -p "$dir/screenshots"
-    echo "$(date -u +%T) $cell: start"
+    log "$cell: start"
     xcrun simctl io "$udid" recordVideo --codec=h264 --force "$dir/e2e-ipad-$cell.mp4" > /dev/null 2>&1 &
     recorder=$!
     sleep 2
@@ -75,10 +84,11 @@ for locale in en-US id-ID; do
 
     find "$dir/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$dir/screenshots/" \;
     find "$dir/maestro" -name device-simulator.log -delete
-    echo "$(date -u +%T) $cell: done"
+    log "$cell: done"
     node scripts/check-screenshots.mjs "$dir/screenshots" tablet "$orientation" "$language" || status=1
   done
   xcrun simctl shutdown "$udid"
+  log "shut down"
 done
 
 [ -z "${created:-}" ] || xcrun simctl delete "$udid"
