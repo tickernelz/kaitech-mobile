@@ -20,14 +20,14 @@ object CallNotifications {
   fun ensureChannels(context: Context) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
     val manager = context.getSystemService(NotificationManager::class.java) ?: return
-    val ring = NotificationChannel(RING_CHANNEL, "Panggilan masuk", NotificationManager.IMPORTANCE_HIGH).apply {
-      description = "Dering panggilan suara dan video"
+    val ring = NotificationChannel(RING_CHANNEL, context.getString(R.string.kaitech_call_ring_channel), NotificationManager.IMPORTANCE_HIGH).apply {
+      description = context.getString(R.string.kaitech_call_ring_description)
       lockscreenVisibility = Notification.VISIBILITY_PUBLIC
       setSound(null, null)
       enableVibration(false)
     }
-    val active = NotificationChannel(CALL_CHANNEL, "Panggilan berlangsung", NotificationManager.IMPORTANCE_LOW).apply {
-      description = "Kontrol panggilan yang sedang berjalan"
+    val active = NotificationChannel(CALL_CHANNEL, context.getString(R.string.kaitech_call_active_channel), NotificationManager.IMPORTANCE_LOW).apply {
+      description = context.getString(R.string.kaitech_call_active_description)
       lockscreenVisibility = Notification.VISIBILITY_PUBLIC
       setSound(null, null)
       enableVibration(false)
@@ -52,16 +52,17 @@ object CallNotifications {
     return PendingIntent.getBroadcast(context, requestCode, intent, flags)
   }
 
-  private fun publicVersion(context: Context, title: String): Notification =
+  private fun publicVersion(context: Context): Notification =
     NotificationCompat.Builder(context, CALL_CHANNEL)
       .setSmallIcon(context.applicationInfo.icon)
-      .setContentTitle(title)
+      .setContentTitle(context.getString(R.string.kaitech_call_hidden_title))
       .setPriority(NotificationCompat.PRIORITY_MIN)
       .setSilent(true)
       .build()
 
-  private fun visible(context: Context, title: String): Int =
-    if (CallBridge.locked) Notification.VISIBILITY_PRIVATE else Notification.VISIBILITY_PUBLIC
+  private fun visible(): Int =
+    if (CallBridge.module != null && CallBridge.foreground && !CallBridge.locked) Notification.VISIBILITY_PUBLIC
+    else Notification.VISIBILITY_PRIVATE
 
   fun ringing(context: Context, ring: CallService.Ring, timeoutMs: Long): Notification {
     ensureChannels(context)
@@ -73,8 +74,8 @@ object CallNotifications {
       .setContentText(ring.body)
       .setCategory(NotificationCompat.CATEGORY_CALL)
       .setPriority(NotificationCompat.PRIORITY_MAX)
-      .setVisibility(visible(context, ring.title))
-      .setPublicVersion(publicVersion(context, "Kaitech"))
+      .setVisibility(visible())
+      .setPublicVersion(publicVersion(context))
       .setOngoing(true)
       .setAutoCancel(false)
       .setOnlyAlertOnce(true)
@@ -87,8 +88,8 @@ object CallNotifications {
       val answer = action(context, RING_ID + 2, CallNotifications.ACTION_ANSWER, ring)
       builder.setStyle(NotificationCompat.CallStyle.forIncomingCall(person(ring.title), decline, answer))
     } else {
-      builder.addAction(0, "Tolak", action(context, RING_ID + 1, CallNotifications.ACTION_DECLINE, ring))
-      builder.addAction(0, "Terima", action(context, RING_ID + 2, CallNotifications.ACTION_ANSWER, ring))
+      builder.addAction(0, context.getString(R.string.kaitech_call_decline), action(context, RING_ID + 1, CallNotifications.ACTION_DECLINE, ring))
+      builder.addAction(0, context.getString(R.string.kaitech_call_answer), action(context, RING_ID + 2, CallNotifications.ACTION_ANSWER, ring))
       builder.setStyle(NotificationCompat.BigTextStyle().bigText(ring.body))
     }
     return builder.build()
@@ -103,8 +104,8 @@ object CallNotifications {
       .setContentText(call.body)
       .setCategory(NotificationCompat.CATEGORY_CALL)
       .setPriority(NotificationCompat.PRIORITY_LOW)
-      .setVisibility(visible(context, call.title))
-      .setPublicVersion(publicVersion(context, "Kaitech"))
+      .setVisibility(visible())
+      .setPublicVersion(publicVersion(context))
       .setOngoing(true)
       .setShowWhen(true)
       .setWhen(call.startedAt)

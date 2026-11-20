@@ -72,6 +72,7 @@ let known = new Set<number>();
 let pingTimer: ReturnType<typeof setInterval> | null = null;
 let endTimer: ReturnType<typeof setTimeout> | null = null;
 let generation = 0;
+let callAccount: Account | null = null;
 const tracks = new Map<string, unknown>();
 
 export function callState(): CallState {
@@ -127,6 +128,10 @@ function clientFor(account: Account | null): CallClient | null {
   if (!account) return null;
   if (client && client.account.id === account.id) return client;
   return new CallClient(account);
+}
+
+function sessionClient(): CallClient | null {
+  return clientFor(callAccount) ?? callClient();
 }
 
 function collectTracks() {
@@ -190,6 +195,7 @@ export async function startCall(input: { channelId: number; channelName: string;
   const api = callClient();
   if (!api) return;
   const started = ++generation;
+  callAccount = api.account;
   if (!(await ensureMicrophone())) {
     if (started === generation) {
       publish({ ...idle, phase: 'ended', endedReason: 'microphone', version: state.version + 1 });
@@ -221,7 +227,7 @@ export async function startCall(input: { channelId: number; channelName: string;
 
 export async function answer() {
   if (state.phase !== 'incoming') return;
-  const api = callClient();
+  const api = sessionClient();
   if (!api) return;
   const started = generation;
   stopRinging();
@@ -241,7 +247,7 @@ export async function answer() {
 
 export async function decline() {
   if (state.phase !== 'incoming') return;
-  const api = callClient();
+  const api = sessionClient();
   const channelId = state.channelId;
   generation += 1;
   stopRinging();
@@ -352,7 +358,7 @@ export async function hangUp(reason = 'left') {
 async function finish(reason: string) {
   if (state.phase === 'ended' || state.phase === 'idle') return;
   generation += 1;
-  const api = client;
+  const api = clientFor(callAccount) ?? client;
   const session = joined;
   stopRinging();
   stopPing();
@@ -394,6 +400,7 @@ function reset() {
   endTimer = null;
   stopRinging();
   stopPing();
+  callAccount = null;
   state = { ...idle, version: state.version + 1 };
   listeners.forEach((listener) => listener());
 }
@@ -445,8 +452,9 @@ async function routeAudio(speaker: boolean) {
 }
 
 function send(values: SessionValues) {
-  if (!client || !joined) return Promise.resolve();
-  return client.update(joined.sessionId, values).catch(() => undefined);
+  const api = sessionClient();
+  if (!api || !joined) return Promise.resolve();
+  return api.update(joined.sessionId, values).catch(() => undefined);
 }
 
 function presence() {
@@ -490,8 +498,8 @@ function stopRinging() {
 }
 
 async function lookForInvitations(channelId: number | null, options: { account?: Account | null; ring?: boolean } = {}): Promise<Invitation[]> {
-  const api = options.account ? clientFor(options.account) : callClient();
-  const account = options.account ?? activeAccount();
+  const account = 'account' in options ? options.account ?? null : activeAccount();
+  const api = clientFor(account);
   if (!api || !account) return [];
   if (state.phase !== 'idle' && state.phase !== 'ended' && state.phase !== 'incoming') return [];
   try {
@@ -506,7 +514,7 @@ async function lookForInvitations(channelId: number | null, options: { account?:
       return found;
     }
     if (state.phase === 'idle' || state.phase === 'ended') {
-      ring(found[0]);
+      ring(found[0], account);
       if (options.ring !== false) inAppRing();
     }
     return found;
@@ -515,8 +523,9 @@ async function lookForInvitations(channelId: number | null, options: { account?:
   }
 }
 
-function ring(invitation: Invitation) {
+function ring(invitation: Invitation, account: Account) {
   generation += 1;
+  callAccount = account;
   publish({
     ...idle,
     phase: 'incoming',
@@ -537,7 +546,7 @@ function inAppRing() {
   if (!native) return;
   void native.ringing().then((ringing) => {
     if (ringing) return;
-    const account = activeAccount();
+    const account = callAccount ?? activeAccount();
     void native.ring(state.callerName || state.channelName, i18n.t('call:incoming.voice'), state.channelId, state.callId, state.video, account?.db ?? '', account?.userId ?? 0);
   });
 }
@@ -547,13 +556,15 @@ export function onNotification(type: string, payload: unknown) {
 }
 
 function fromNative(action: CallAction) {
-  const target = action.db || action.uid ? accountFromPush(action) : null;
+  const carriesAccount = Boolean(action.db || action.uid);
+  const target = carriesAccount ? accountFromPush(action) : null;
+  if (carriesAccount && !target) return;
   if (action.type === 'decline') {
     if (state.phase === 'incoming' && (!action.channelId || action.channelId === state.channelId)) {
       void decline();
       return;
     }
-    const api = target ? clientFor(target) : action.db || action.uid ? null : callClient();
+    const api = clientFor(target ?? callAccount);
     void api?.decline(action.channelId ?? state.channelId).catch(() => undefined);
     return;
   }
@@ -565,14 +576,13 @@ function fromNative(action: CallAction) {
     if (state.phase === 'incoming' && (!action.channelId || action.channelId === state.channelId)) reset();
     return;
   }
-  if (action.type === 'incoming' && !target) return;
   void takeLaunch(action, target);
 }
 
 async function takeLaunch(action: CallAction, target: Account | null) {
   if (action.type !== 'incoming' && action.type !== 'answer' && action.type !== 'open') return;
   if (!action.channelId) return;
-  const found = await lookForInvitations(action.channelId, { account: target });
+  const found = await lookForInvitations(action.channelId, { account: target ?? activeAccount() });
   if (!found.length) return;
   if (action.type === 'answer' && state.phase === 'incoming') await answer();
 }

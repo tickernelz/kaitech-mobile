@@ -32,7 +32,7 @@ class CallDeclineTask : HeadlessJsTaskService() {
   }
 
   private fun notification(): Notification =
-    CallNotifications.silent(this, "Kaitech", "Menutup panggilan / Ending the call")
+    CallNotifications.silent(this, getString(R.string.kaitech_call_ending_title), getString(R.string.kaitech_call_ending_body))
 
   companion object {
     const val TASK = "KaitechCallDecline"
