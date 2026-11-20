@@ -46,6 +46,8 @@ jobs:
       - run: npm run typecheck
       - name: i18n key parity (en = id)
         run: npm run i18n:check
+      - name: Tablet config gate (rotation, iPad multitasking, Android multi-window)
+        run: node scripts/check-tablet-config.mjs
       - run: npm test -- --ci
       - uses: ./.github/actions/setup-maestro
       - name: Maestro flow syntax

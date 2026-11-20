@@ -59,14 +59,14 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 
 | Workflow | Pemicu | Isi |
 |---|---|---|
-| `CI` (`ci.yml`) | push ke `main`, PR, manual | gitleaks seluruh riwayat dan pohon kerja; lint, typecheck, paritas kunci terjemahan, Jest; build APK, IPA, E2E emulator |
-| `Build` (`build.yml`) | dipanggil CI dan Release | APK release (Gradle, runner Linux), IPA tanpa tanda tangan (`xcodebuild`, runner macOS `xcode-27`), pindai rahasia di bundle JS, E2E Maestro di emulator Android dalam locale `en-US` dan `id-ID`, rekaman layar per locale |
+| `CI` (`ci.yml`) | push ke `main`, PR, manual | gitleaks seluruh riwayat dan pohon kerja; lint, typecheck, paritas kunci terjemahan, gerbang konfigurasi tablet, Jest; build APK, IPA, E2E emulator dan simulator iPad |
+| `Build` (`build.yml`) | dipanggil CI dan Release | APK release (Gradle, runner Linux), IPA tanpa tanda tangan (`xcodebuild`, runner macOS `xcode-27`), pindai rahasia di bundle JS, E2E Maestro di emulator Android (ponsel dan tablet, portrait dan landscape, `en-US` dan `id-ID`, paralel), percobaan simulator iPad, rekaman dan screenshot per sel |
 | `Release` (`release.yml`) | tag `v*` | tolak tag yang tidak menunjuk commit di `main`, gitleaks, build, lalu GitHub Release berisi APK, IPA, dan `SHA256SUMS.txt` |
 | `gitleaks push` (`gitleaks.yml`) | push ke cabang selain `main` dan setiap tag | gitleaks seluruh riwayat dan pohon kerja |
 
 Artefak E2E hanya diunggah bila gitleaks bersih. APK di PR hanya berisi ABI `arm64-v8a` dan `x86_64` supaya lebih cepat; push ke `main` dan tag membangun keempat ABI.
 
-Artefak per run: `kaitech-android-apk`, `kaitech-ios-ipa`, `e2e-android-recording-en-US` dan `e2e-android-recording-id-ID` (video `e2e-android-<locale>.mp4`, screenshot Maestro, JUnit, logcat).
+Artefak per run: `kaitech-android-apk`, `kaitech-ios-ipa`, delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro), dan `e2e-ipad-<locale>` (satu folder per sel, video `simctl`, `junit.xml`, keluaran Maestro, dan screenshot Maestro di `screenshots/`).
 
 Rilis: `git tag v0.1.0 && git push origin v0.1.0`.
 
@@ -121,7 +121,41 @@ maestro test .maestro
 
 Di CI, setiap alur jalan dua kali, di emulator ber-locale `en-US` dan `id-ID`. `scripts/e2e-android.sh` mengganti locale sistem (`persist.sys.locale` lalu restart framework), menunggu sampai konfigurasi framework memakai locale itu, memasang APK release, merekam layar, lalu menjalankan semua alur dengan variabel `APP_LANGUAGE` (`en` atau `id`) untuk teks yang diperiksa, misalnya `${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}`. Lebih disarankan memeriksa elemen lewat `testID`.
 
-Jalankan lokal: `maestro test -e APP_LANGUAGE=id .maestro`. `APP_LANGUAGE` wajib dikirim lewat `-e`; jangan beri nilai bawaan di blok `env:` alur, karena nilai itu menimpa `-e`.
+Jalankan lokal: `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATION=portrait .maestro`. Ketiga variabel wajib dikirim lewat `-e`; jangan beri nilai bawaan di blok `env:` alur, karena nilai itu menimpa `-e`.
+
+### Matriks perangkat
+
+Superapp harus responsif di ponsel dan tablet, Android dan iOS, portrait dan landscape. Setiap sel Android adalah job tersendiri dengan emulatornya sendiri, jadi kedelapan sel jalan paralel.
+
+| Platform | Ukuran | Perangkat | Lebar jendela portrait / landscape | Orientasi | Bahasa | Status |
+|---|---|---|---|---|---|---|
+| Android 15 (API 35) | `phone` | emulator profil `pixel_6` | 411 dp (compact) / 914 dp | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
+| Android 15 (API 35) | `tablet` | emulator profil `pixel_tablet` (10 inci) | 800 dp (medium) / 1280 dp (expanded) | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
+| iPadOS (runtime simulator terbaru di runner `xcode-27`) | `tablet` | simulator iPad Pro 13 inci (atau iPad lain bila tidak ada) | lihat `simulator.txt` | portrait, landscape | `en-US`, `id-ID` | percobaan, satu job per bahasa, tidak memblokir (`continue-on-error`) |
+
+Orientasi Android diatur lewat `user_rotation` dengan memperhitungkan orientasi alami panel (tablet alami landscape); iPad memakai `setOrientation` Maestro di hook `onFlowStart` (`.maestro/shared/orientation.yaml`), karena runner XCTest Maestro mengembalikan simulator ke portrait setiap sesi baru. Setiap alur baru wajib memuat hook itu:
+
+```yaml
+onFlowStart:
+  - runFlow: shared/orientation.yaml
+```
+
+Di Android hook itu tidak melakukan apa-apa. Ukuran panel, density, dan rotasi tiap sel dicatat di `display.txt`. Pemeriksaan status `e2e android en-US` dan `e2e android id-ID` di branch protection hijau hanya bila kedelapan sel Android hijau. Simulator iPad tidak butuh tanda tangan atau akun Apple; perangkat iPad asli belum diuji.
+
+Screenshot dinamai `<layar>-<ukuran>-<orientasi>-<bahasa>.png`, misalnya `launch-tablet-landscape-id.png`, lewat subflow bersama:
+
+```yaml
+- runFlow:
+    file: shared/screenshot.yaml
+    env:
+      SCREEN: launch
+```
+
+Semua screenshot sel disalin ke `screenshots/`. `scripts/check-screenshots.mjs` menggagalkan sel bila ada screenshot yang tidak mengikuti pola nama atau dimensinya tidak cocok dengan orientasi sel (misalnya layar terkunci portrait di sel landscape). Screenshot iOS disimpan dalam bingkai portrait dengan tag orientasi EXIF; pemeriksaan memakai dimensi setelah tag itu diterapkan. Alur di subfolder `.maestro/shared/` tidak dijalankan sendiri.
+
+### Gerbang konfigurasi tablet
+
+`node scripts/check-tablet-config.mjs` (langkah CI di job lint) gagal bila `orientation` bukan `default`, `ios.supportsTablet` bukan `true`, `ios.requireFullScreen` bernilai `true`, atau hasil `expo prebuild` mengunci `android:screenOrientation`, mematikan `android:resizeableActivity`, menyalakan `UIRequiresFullScreen`, atau tidak mendukung keempat orientasi iPad.
 
 ## Lisensi
 

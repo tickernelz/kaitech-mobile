@@ -1,5 +1,7 @@
 appId: io.kaitech.mobile
 name: Release APK launches to the first screen
+onFlowStart:
+  - runFlow: shared/orientation.yaml
 ---
 - launchApp:
     clearState: true
@@ -11,4 +13,7 @@ name: Release APK launches to the first screen
 - assertVisible:
     id: app-greeting
     text: "${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}"
-- takeScreenshot: "launch-${APP_LANGUAGE}"
+- runFlow:
+    file: shared/screenshot.yaml
+    env:
+      SCREEN: launch

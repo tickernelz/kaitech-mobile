@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-usage="usage: e2e-android.sh <apk-dir> <output-dir> <locale, e.g. en-US or id-ID>"
+usage="usage: e2e-android.sh <apk-dir> <output-dir> <locale: en-US|id-ID> <size: phone|tablet> <orientation: portrait|landscape>"
 apk_dir="${1:?$usage}"
 out="${2:?$usage}"
 locale="${3:?$usage}"
+size="${4:?$usage}"
+orientation="${5:?$usage}"
+case "$orientation" in portrait | landscape) ;; *) echo "$usage" >&2; exit 2 ;; esac
 language="${locale%%-*}"
+cell="$size-$orientation-$locale"
 mkdir -p "$out"
 
 apk="$(find "$apk_dir" -maxdepth 1 -name '*.apk' | head -1)"
@@ -36,12 +40,55 @@ for _ in $(seq 1 120); do
 done
 echo "framework config: ${config:-none} (expected $language-r$region)" | tee "$out/locale.txt"
 [ -n "$ready" ] || { echo "framework did not come up in $locale" >&2; exit 1; }
+for _ in $(seq 1 60); do
+  [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ] && break
+  sleep 2
+done
 sleep 5
+
+natural="$(adb shell wm size | tr -d '\r' | sed -n 's/^Physical size: //p')"
+natural_width="${natural%x*}"
+natural_height="${natural#*x}"
+if { [ "$orientation" = landscape ] && [ "$natural_width" -gt "$natural_height" ]; } ||
+  { [ "$orientation" = portrait ] && [ "$natural_width" -lt "$natural_height" ]; }; then
+  rotation=0
+else
+  rotation=1
+fi
+rotation_state() { adb shell dumpsys window displays | tr -d '\r' | grep -oE '(mUserRotationMode|mUserRotation|mRotation|mCurrentAppOrientation|mLastOrientation)=[A-Z_0-9]+' | sort -u | tr '\n' ' '; echo; }
+adb shell cmd window user-rotation lock "$rotation"
+sleep 3
+{
+  echo "cell: $cell"
+  echo "physical size (natural orientation): $natural"
+  adb shell wm density | tr -d '\r'
+  echo "user rotation: $rotation"
+  echo "before maestro: $(rotation_state)"
+} | tee "$out/display.txt"
 
 adb install -r "$apk"
 adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' | head -2 | tee "$out/installed.txt"
 
-recording="e2e-android-$locale.mp4"
+activity="$(adb shell cmd package resolve-activity --brief io.kaitech.mobile | tr -d '\r' | tail -1)"
+adb shell am start -W -n "$activity" > /dev/null
+target="mRotation=ROTATION_$((rotation * 90)) "
+stable=0
+for _ in $(seq 1 60); do
+  if rotation_state | grep -q "$target"; then
+    stable=$((stable + 1))
+    [ "$stable" -ge 10 ] && break
+  else
+    stable=0
+    echo "rotation drifted, locking again: $(rotation_state)" | tee -a "$out/display.txt"
+    adb shell cmd window user-rotation lock "$rotation"
+  fi
+  sleep 1
+done
+echo "app in front: $(rotation_state)" | tee -a "$out/display.txt"
+adb shell dumpsys window displays | tr -d '\r' | sed -n '/DisplayRotation/,/^ *$/p' > "$out/rotation-dump.txt" || true
+[ "$stable" -ge 10 ] || { echo "rotation did not hold at $((rotation * 90)) degrees" >&2; exit 1; }
+
+recording="e2e-android-$cell.mp4"
 adb shell screenrecord --bit-rate 4000000 --time-limit 170 "/sdcard/$recording" &
 recorder=$!
 sleep 1
@@ -49,6 +96,8 @@ sleep 1
 status=0
 maestro test .maestro \
   -e APP_LANGUAGE="$language" \
+  -e DEVICE_SIZE="$size" \
+  -e ORIENTATION="$orientation" \
   --format junit \
   --output "$out/junit.xml" \
   --test-output-dir "$out/maestro" || status=$?
@@ -58,6 +107,13 @@ adb shell pkill -INT screenrecord || true
 wait "$recorder" || true
 sleep 2
 adb pull "/sdcard/$recording" "$out/$recording"
-adb logcat -d > "$out/logcat.txt" || true
+app_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
+adb logcat -d -b main,crash --uid="$app_uid" > "$out/logcat.txt" || true
+find "$out/maestro" -name device-logcat.txt -delete
+echo "after maestro: $(rotation_state)" | tee -a "$out/display.txt"
+
+mkdir -p "$out/screenshots"
+find "$out/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$out/screenshots/" \;
+node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
 
 exit "$status"
