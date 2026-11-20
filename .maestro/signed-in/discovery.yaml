@@ -85,10 +85,9 @@ onFlowStart:
 - inputText: ${QUESTION}
 - runFlow:
     when:
-      true: ${DEVICE_SIZE === 'phone'}
-      platform: Android
+      true: ${ORIENTATION === 'portrait' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
     commands:
-      - setOrientation: ${ORIENTATION === 'portrait' ? 'LANDSCAPE' : 'PORTRAIT'}
+      - setOrientation: LANDSCAPE_LEFT
       - extendedWaitUntil:
           visible:
             id: coworker-input
@@ -97,7 +96,25 @@ onFlowStart:
           file: ../shared/screenshot-rotated.yaml
           env:
             SCREEN: d6-draft-rotated
-      - setOrientation: ${ORIENTATION === 'portrait' ? 'PORTRAIT' : 'LANDSCAPE'}
+      - assertVisible:
+          text: ${QUESTION}
+      - setOrientation: PORTRAIT
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'landscape' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
+    commands:
+      - setOrientation: PORTRAIT
+      - extendedWaitUntil:
+          visible:
+            id: coworker-input
+          timeout: 10000
+      - runFlow:
+          file: ../shared/screenshot-rotated.yaml
+          env:
+            SCREEN: d6-draft-rotated
+      - assertVisible:
+          text: ${QUESTION}
+      - setOrientation: LANDSCAPE_LEFT
 - assertVisible:
     text: ${QUESTION}
 - tapOn:
