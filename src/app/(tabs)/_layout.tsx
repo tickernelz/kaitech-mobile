@@ -54,8 +54,8 @@ export default function TabsLayout() {
   const { windowClass } = useWindowClass();
   const rail = windowClass !== 'compact';
   return (
-    <Tabs style={[styles.fill, { flexDirection: rail ? 'row' : 'column', backgroundColor: colors.canvas }]}>
-      {rail ? null : <TabSlot style={styles.fill} />}
+    <Tabs style={[styles.fill, { flexDirection: rail ? 'row-reverse' : 'column', backgroundColor: colors.canvas }]}>
+      <TabSlot style={styles.fill} />
       <TabList
         accessibilityRole="tablist"
         style={[
@@ -70,7 +70,6 @@ export default function TabsLayout() {
           </TabTrigger>
         ))}
       </TabList>
-      {rail ? <TabSlot style={styles.fill} /> : null}
     </Tabs>
   );
 }
