@@ -67,7 +67,7 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 
 Artefak E2E hanya diunggah bila gitleaks bersih.
 
-Artefak per run: `e2e-apk-x86_64` (APK yang diuji E2E), `kaitech-android-apk` (APK universal, hanya `main` dan tag), `kaitech-ios-ipa`, `perf-android-x86_64`, `perf-android-universal` dan `perf-ios` (angka gerbang performa), delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro, `cold-start.txt` di sel ponsel portrait `en-US`). Run `iPad trial` mengunggah `e2e-ipad-en-US` (satu folder per sel, video `simctl`, `junit.xml`, keluaran Maestro, dan screenshot Maestro di `screenshots/`). Tag rilis menambah `e2e-android-universal-phone-portrait-en-US`.
+Artefak per run: `e2e-apk-x86_64` (APK yang diuji E2E), `kaitech-android-apk` (APK universal, hanya `main` dan tag), `kaitech-ios-ipa`, `perf-android-x86_64`, `perf-android-universal` dan `perf-ios` (angka gerbang performa), delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro, `cold-start.txt` di sel ponsel portrait `en-US`). Run `iPad trial` mengunggah `e2e-ipad-en-US` (satu folder per sel, video `simctl`, `junit.xml`, keluaran Maestro, log konsol Maestro `maestro-console.log` (ditambah `maestro-console-attempt1.log` bila sel diulang), dan screenshot Maestro di `screenshots/`). Tag rilis menambah `e2e-android-universal-phone-portrait-en-US`.
 
 ### Jalur cepat dan cache
 
@@ -177,7 +177,7 @@ Superapp harus responsif di ponsel dan tablet, Android dan iOS, portrait dan lan
 |---|---|---|---|---|---|---|
 | Android 15 (API 35) | `phone` | emulator profil `pixel_6` | 411 dp (compact) / 914 dp | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
 | Android 15 (API 35) | `tablet` | emulator profil `pixel_tablet` (10 inci) | 800 dp (medium) / 1280 dp (expanded) | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
-| iPadOS (runtime simulator terbaru di runner `xcode-27`) | `tablet` | simulator iPad Pro 13 inci (atau iPad lain bila tidak ada) | lihat `simulator.txt` | portrait, landscape | `en-US` | percobaan di workflow `iPad trial` (push `main`, tag, manual), tidak memblokir (`continue-on-error`) |
+| iPadOS (runtime simulator terbaru di runner `xcode-27`) | `tablet` | simulator iPad Pro 13 inci (atau iPad lain bila tidak ada) | lihat `simulator.txt` | portrait, landscape | `en-US` | percobaan di workflow `iPad trial` (push `main`, tag, manual), tidak memblokir (`continue-on-error`); driver XCTest Maestro diberi waktu start 10 menit (`MAESTRO_DRIVER_STARTUP_TIMEOUT=600000`) dan sel diulang sekali hanya bila gagal dengan `IOSDriverTimeoutException` |
 
 Orientasi Android diatur lewat `user_rotation` dengan memperhitungkan orientasi alami panel (tablet alami landscape); iPad memakai `setOrientation` Maestro di hook `onFlowStart` (`.maestro/shared/orientation.yaml`), karena runner XCTest Maestro mengembalikan simulator ke portrait setiap sesi baru. Setiap alur baru wajib memuat hook itu:
 
