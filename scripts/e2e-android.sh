@@ -51,14 +51,15 @@ if { [ "$orientation" = landscape ] && [ "$natural_width" -gt "$natural_height" 
 else
   rotation=1
 fi
-adb shell settings put system accelerometer_rotation 0
-adb shell settings put system user_rotation "$rotation"
+rotation_state() { adb shell dumpsys window displays | tr -d '\r' | grep -oE '(mUserRotationMode|mUserRotation|mRotation|mCurrentAppOrientation|mLastOrientation)=[A-Z_0-9]+' | sort -u | tr '\n' ' '; echo; }
+adb shell cmd window user-rotation lock "$rotation"
 sleep 3
 {
   echo "cell: $cell"
   echo "physical size (natural orientation): $natural"
   adb shell wm density | tr -d '\r'
-  echo "user_rotation: $rotation"
+  echo "user rotation: $rotation"
+  echo "before maestro: $(rotation_state)"
 } | tee "$out/display.txt"
 
 adb install -r "$apk"
@@ -84,6 +85,7 @@ wait "$recorder" || true
 sleep 2
 adb pull "/sdcard/$recording" "$out/$recording"
 adb logcat -d > "$out/logcat.txt" || true
+echo "after maestro: $(rotation_state)" | tee -a "$out/display.txt"
 
 mkdir -p "$out/screenshots"
 find "$out/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$out/screenshots/" \;

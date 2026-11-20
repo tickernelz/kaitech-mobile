@@ -15,7 +15,8 @@ IFS=$'\t' read -r runtime device_type runtime_name device_name < <(
       .sort((a, b) => a.version.localeCompare(b.version, undefined, { numeric: true }));
     const runtime = ios.at(-1);
     if (!runtime) throw new Error("no available iOS simulator runtime");
-    const ipads = runtime.supportedDeviceTypes.filter((d) => d.productFamily === "iPad");
+    const ipads = runtime.supportedDeviceTypes.filter((d) => d.name.startsWith("iPad"));
+    console.error(`iPad device types in ${runtime.name}: ${ipads.map((d) => d.name).join(", ") || "none"}`);
     const device = ["iPad Pro 13", "iPad Pro 11", "iPad Air", "iPad"]
       .map((prefix) => ipads.find((d) => d.name.startsWith(prefix)))
       .find(Boolean);
