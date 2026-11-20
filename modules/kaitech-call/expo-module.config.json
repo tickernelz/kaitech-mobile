@@ -1,0 +1,11 @@
+{
+  "platforms": ["android"],
+  "android": {
+    "modules": ["io.kaitech.call.KaitechCallModule"],
+    "publication": {
+      "groupId": "io.kaitech.call",
+      "artifactId": "kaitech-call",
+      "repository": "local-maven-repo"
+    }
+  }
+}

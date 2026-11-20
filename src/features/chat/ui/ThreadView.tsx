@@ -14,6 +14,7 @@ import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
 import { readersOf, readState } from '../odoo';
 import type { Message, Pending } from '../types';
+import { CallButtons } from '../../call/ui/CallButtons';
 import { Avatar } from './Avatar';
 import { Composer, type ComposerHandle } from './Composer';
 import { useChatFormat } from './format';
@@ -211,6 +212,7 @@ export function ThreadView({
           {subtitle}
         </Text>
       </View>
+      {type === 'chat' || type === 'group' || type === 'channel' ? <CallButtons channelId={channelId} channelName={name} /> : null}
     </View>
   );
 

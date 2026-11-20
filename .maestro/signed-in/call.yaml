@@ -1,0 +1,59 @@
+appId: io.kaitech.mobile
+name: Voice call from a chat with the web peer, in-call controls, hang up
+tags:
+  - signed-in
+  - call
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      id: chat-list
+    timeout: 30000
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: call-voice
+    timeout: 30000
+- tapOn:
+    id: call-voice
+- extendedWaitUntil:
+    visible:
+      id: call-screen
+    timeout: 60000
+- extendedWaitUntil:
+    visible:
+      id: call-controls
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: k1-live
+- tapOn:
+    id: call-mute
+- tapOn:
+    id: call-speaker
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: k2-muted
+- tapOn:
+    id: call-hangup
+- extendedWaitUntil:
+    notVisible:
+      id: call-screen
+    timeout: 30000

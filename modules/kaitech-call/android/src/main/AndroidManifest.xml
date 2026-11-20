@@ -1,0 +1,36 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+
+  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+  <application>
+    <service
+      android:name="io.kaitech.call.CallService"
+      android:exported="false"
+      android:foregroundServiceType="microphone|camera|mediaPlayback" />
+
+    <service
+      android:name="io.kaitech.call.CallDeclineTask"
+      android:exported="false" />
+
+    <receiver
+      android:name="io.kaitech.call.CallActionReceiver"
+      android:exported="false" />
+
+    <service
+      android:name="io.kaitech.call.CallMessagingService"
+      android:exported="false"
+      tools:node="replace">
+      <intent-filter android:priority="0">
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+      </intent-filter>
+    </service>
+
+    <service
+      android:name="expo.modules.notifications.service.ExpoFirebaseMessagingService"
+      tools:node="remove" />
+  </application>
+</manifest>

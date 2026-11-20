@@ -8,6 +8,8 @@ import en from './locales/en.json';
 import id from './locales/id.json';
 import chatEn from './chat/en.json';
 import chatId from './chat/id.json';
+import callEn from './call/en.json';
+import callId from './call/id.json';
 import { effectiveLanguage, intlLocale, parsePreference, type Language, type LanguagePreference } from './language';
 
 export type { Language, LanguagePreference } from './language';
@@ -15,7 +17,7 @@ export type { Language, LanguagePreference } from './language';
 declare module 'i18next' {
   interface CustomTypeOptions {
     defaultNS: 'translation';
-    resources: { translation: typeof en; chat: typeof chatEn };
+    resources: { translation: typeof en; chat: typeof chatEn; call: typeof callEn };
   }
 }
 
@@ -29,8 +31,8 @@ function deviceLocaleTag(): string | null {
 }
 
 void i18n.use(initReactI18next).init({
-  resources: { en: { translation: en, chat: chatEn }, id: { translation: id, chat: chatId } },
-  ns: ['translation', 'chat'],
+  resources: { en: { translation: en, chat: chatEn, call: callEn }, id: { translation: id, chat: chatId, call: callId } },
+  ns: ['translation', 'chat', 'call'],
   defaultNS: 'translation',
   lng: effectiveLanguage(preference, deviceLocaleTag()),
   fallbackLng: 'en',

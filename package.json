@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "main": "expo-router/entry",
   "dependencies": {
+    "@config-plugins/react-native-webrtc": "^15.0.2",
+    "@livekit/react-native": "^3.2.0",
+    "@livekit/react-native-expo-plugin": "^1.2.0",
+    "@livekit/react-native-webrtc": "^150.2.0",
     "@shopify/flash-list": "2.3.2",
     "expo": "~58.0.26",
     "expo-asset": "~58.0.21",
@@ -31,6 +35,7 @@
     "expo-system-ui": "~58.0.7",
     "expo-web-browser": "~58.1.0",
     "i18next": "^27.2.2",
+    "livekit-client": "^2.25.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-i18next": "^18.0.3",

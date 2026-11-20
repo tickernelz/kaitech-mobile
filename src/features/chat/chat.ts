@@ -191,8 +191,16 @@ function touchConversation(channelId: number, message: Message): boolean {
   return true;
 }
 
+const realtimeListeners = new Set<(notification: Notification) => void>();
+
+export function onRealtimeNotifications(listener: (notification: Notification) => void): () => void {
+  realtimeListeners.add(listener);
+  return () => realtimeListeners.delete(listener);
+}
+
 function onNotifications(notifications: Notification[]) {
   for (const notification of notifications) {
+    for (const listener of realtimeListeners) listener(notification);
     if (notification.type === 'discuss.channel/new_message') {
       const payload = notification.payload as { data?: unknown; id?: unknown };
       const channelId = typeof payload.id === 'number' ? payload.id : 0;

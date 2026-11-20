@@ -1,0 +1,51 @@
+{
+  "incoming": {
+    "voice": "Panggilan suara masuk",
+    "video": "Panggilan video masuk"
+  },
+  "calling": "Memanggil…",
+  "connecting": "Menyambungkan…",
+  "reconnecting": "Menyambung ulang…",
+  "inCall": "Sedang dalam panggilan",
+  "participants": "{{count}} orang",
+  "participants_one": "{{count}} orang",
+  "you": "Anda",
+  "cameraOff": "Kamera mati",
+  "microphoneOff": "Mikrofon mati",
+  "answer": "Terima",
+  "decline": "Tolak",
+  "hangUp": "Akhiri",
+  "mute": "Bisukan mikrofon",
+  "unmute": "Nyalakan mikrofon",
+  "cameraOn": "Nyalakan kamera",
+  "cameraTurnOff": "Matikan kamera",
+  "flip": "Ganti kamera",
+  "speaker": "Pengeras suara",
+  "earpiece": "Gunakan telepon",
+  "people": "Daftar peserta",
+  "pictureInPicture": "Kecilkan ke jendela kecil",
+  "close": "Tutup",
+  "backToCall": "Kembali ke panggilan",
+  "startVoice": "Panggilan suara",
+  "startVideo": "Panggilan video",
+  "ended": {
+    "left": "Panggilan berakhir",
+    "declined": "Panggilan ditolak",
+    "disconnected": "Koneksi panggilan terputus",
+    "removed": "Anda dikeluarkan dari panggilan",
+    "microphone": "Izin mikrofon dibutuhkan untuk menelepon",
+    "camera": "Izin kamera dibutuhkan untuk panggilan video",
+    "signedOut": "Panggilan berakhir karena keluar akun",
+    "call_unavailable": "Panggilan tidak tersedia untuk percakapan ini",
+    "temporarily_unavailable": "Panggilan sedang tidak tersedia, coba lagi nanti",
+    "forbidden": "Anda tidak lagi punya akses ke percakapan ini",
+    "not_found": "Percakapan tidak ditemukan",
+    "network": "Jaringan terputus",
+    "call_failed": "Panggilan gagal disambungkan"
+  },
+  "fullScreen": {
+    "title": "Izinkan notifikasi layar penuh",
+    "body": "Supaya panggilan berdering di layar kunci",
+    "action": "Buka pengaturan"
+  }
+}
