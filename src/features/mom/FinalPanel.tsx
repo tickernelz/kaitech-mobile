@@ -123,7 +123,7 @@ export function FinalPanel({ programme, meeting }: { programme: number; meeting:
           <Text variant="callout" style={styles.fill}>
             {view.signoff && view.signedBy ? t('mom.final.signedBy', { name: view.signedBy }) : t('mom.final.notSigned')}
           </Text>
-          <Chip tone={view.signoff ? 'ok' : 'warn'} label={view.signoff ? t('mom.final.signed') : t('mom.final.notSigned')} />
+          {view.signoff ? <Chip tone="ok" label={t('mom.final.signed')} /> : null}
         </View>
       </Section>
       {view.drift ? <Text tone="warnInk">{t('mom.final.drift')}</Text> : null}

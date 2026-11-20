@@ -11,14 +11,20 @@ name: Start recording a new meeting from the MoM tab, answering the first-use pe
     id: mom-record
 - extendedWaitUntil:
     visible:
-      id: setup-start
+      id: setup-name
     timeout: 30000
 - runFlow:
     file: screenshot.yaml
     env:
       SCREEN: m0-setup
+- scrollUntilVisible:
+    element:
+      id: setup-consent
 - tapOn:
     id: setup-consent
+- scrollUntilVisible:
+    element:
+      id: setup-start
 - tapOn:
     id: setup-start
 - runFlow:

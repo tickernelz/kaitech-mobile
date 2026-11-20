@@ -58,7 +58,7 @@ export function SetupScreen() {
   const options = useResource(programme ? `mom.options.${programme}` : null, (account) => uploadOptions(account, programme));
   const [mode, setMode] = useState<Mode>('new');
   const [meetingId, setMeetingId] = useState<number | null>(null);
-  const [name, setName] = useState(() => t('mom.setup.defaultName', { date: format.day(new Date().toISOString().slice(0, 10)) }));
+  const [name, setName] = useState(() => t('mom.setup.defaultName', { date: format.day(new Date()) }));
   const [title, setTitle] = useState('');
   const [consent, setConsent] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);

@@ -53,7 +53,8 @@ export function useMomFormat() {
     [locale],
   );
   const day = useCallback(
-    (value: string) => {
+    (value: string | Date) => {
+      if (value instanceof Date) return new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short' }).format(value);
       const parsed = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`) : null;
       return parsed ? new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short' }).format(parsed) : value;
     },

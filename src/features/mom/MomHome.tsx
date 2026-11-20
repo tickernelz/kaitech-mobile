@@ -119,7 +119,7 @@ export function MomHome() {
   );
 
   return (
-    <SafeAreaView edges={['top', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-mom">
+    <SafeAreaView edges={expanded ? ['top', 'right', 'bottom'] : ['top', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-mom">
       <Panes list={list} detail={detail} />
     </SafeAreaView>
   );

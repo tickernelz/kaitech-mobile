@@ -28,15 +28,9 @@ onFlowStart:
     env:
       SCREEN: m2-rec
 - runFlow:
-    when:
-      true: ${ORIENTATION === 'portrait'}
-    commands:
-      - setOrientation: LANDSCAPE_LEFT
-- runFlow:
-    when:
-      true: ${ORIENTATION === 'landscape'}
-    commands:
-      - setOrientation: PORTRAIT
+    file: ../shared/rotate.yaml
+    env:
+      TO: "${ORIENTATION === 'portrait' ? 'landscape' : 'portrait'}"
 - extendedWaitUntil:
     visible:
       id: recorder-time
@@ -48,15 +42,9 @@ onFlowStart:
     env:
       SCREEN: m2-rec-rotated
 - runFlow:
-    when:
-      true: ${ORIENTATION === 'portrait'}
-    commands:
-      - setOrientation: PORTRAIT
-- runFlow:
-    when:
-      true: ${ORIENTATION === 'landscape'}
-    commands:
-      - setOrientation: LANDSCAPE_LEFT
+    file: ../shared/rotate.yaml
+    env:
+      TO: ${ORIENTATION}
 - tapOn:
     id: recorder-pause
 - assertVisible:

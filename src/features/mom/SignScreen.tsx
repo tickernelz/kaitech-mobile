@@ -49,6 +49,7 @@ export function SignScreen({ programme, meeting }: { programme: number; meeting:
   return (
     <Screen
       edges={['top', 'bottom', 'left', 'right']}
+      contentStyle={styles.sheet}
       testID="mom-sign"
       footer={
         <>
@@ -107,5 +108,6 @@ export function SignScreen({ programme, meeting }: { programme: number; meeting:
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  sheet: { maxWidth: 600 },
   trailing: { flexDirection: 'row', alignItems: 'center', gap: space.sm, flexShrink: 1 },
 });

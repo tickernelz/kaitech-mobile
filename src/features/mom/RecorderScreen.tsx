@@ -213,11 +213,9 @@ export function RecorderScreen() {
         {clock(durationMs)}
       </Text>
       <Waveform levels={live.levels} color={colors.primary} height={side ? 32 : 44} />
-      <View style={styles.chips}>
-        <Chip label={t('mom.recorder.format')} />
-        <Chip label={t('mom.recorder.size', { size: format.size(((durationMs / 1000) * bitRate) / 8) })} />
-        <Chip label={t('mom.recorder.screenOff')} />
-      </View>
+      <Text variant="footnote" tone="inkSoft" style={styles.meta}>
+        {[t('mom.recorder.format'), t('mom.recorder.size', { size: format.size(((durationMs / 1000) * bitRate) / 8) }), t('mom.recorder.screenOff')].join(' · ')}
+      </Text>
       {recording.consentAt ? (
         <View style={[styles.consent, { backgroundColor: colors.okBand }]}>
           <MomIcon name="check" size={20} color={colors.okInk} />
@@ -305,7 +303,7 @@ const styles = StyleSheet.create({
   meter: { alignItems: 'center', gap: space.md },
   timer: { fontSize: 64, lineHeight: 76, fontWeight: '700', fontVariant: ['tabular-nums'], letterSpacing: -1 },
   timerSide: { fontSize: 48, lineHeight: 58 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space.sm },
+  meta: { textAlign: 'center' },
   consent: { flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'stretch', padding: space.md, borderRadius: radius.md },
   controls: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: space.xl, flexWrap: 'wrap' },
   roundWrap: { alignItems: 'center', gap: space.xs, minWidth: 72 },
