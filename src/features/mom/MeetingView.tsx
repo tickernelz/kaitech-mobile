@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
-import { readableWidth } from '../../layout/windowClass';
+import { readableWidth, useWindowClass } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
 import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
@@ -16,6 +16,8 @@ import { MeetingChip, MomIcon, useMomFormat } from './parts';
 import { clock, useRecording } from './recorder';
 
 type Tab = 'notes' | 'items' | 'transcript' | 'final';
+
+const shortWindow = 520;
 
 async function loaded(player: AudioPlayer): Promise<boolean> {
   for (let tries = 0; tries < 100; tries++) {
@@ -197,12 +199,17 @@ function Items({ items, onPlay }: { items: Item[]; onPlay?: (seconds: number) =>
   );
 }
 
-function Transcript({ recording, onPlay }: { recording: number; onPlay: (seconds: number) => void }) {
+function Transcript({ recording, onPlay, header }: { recording: number; onPlay: (seconds: number) => void; header?: ReactNode }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const segments = useResource(`mom.transcript.${recording}`, (account) => transcript(account, recording), 300_000);
   if (!segments.data) {
-    return <StateView loading={segments.loading || !segments.error} error={segments.error} onRetry={() => void segments.refresh()} testID="transcript" />;
+    return (
+      <View style={styles.fill}>
+        {header}
+        <StateView loading={segments.loading || !segments.error} error={segments.error} onRetry={() => void segments.refresh()} testID="transcript" />
+      </View>
+    );
   }
   return (
     <FlatList
@@ -211,6 +218,7 @@ function Transcript({ recording, onPlay }: { recording: number; onPlay: (seconds
       contentContainerStyle={styles.content}
       initialNumToRender={20}
       windowSize={7}
+      ListHeaderComponent={header ? <>{header}</> : undefined}
       ListEmptyComponent={<Text tone="inkSoft">{t('mom.detail.noTranscript')}</Text>}
       renderItem={({ item }) => (
         <Pressable
@@ -237,6 +245,8 @@ function Transcript({ recording, onPlay }: { recording: number; onPlay: (seconds
 export function MeetingView({ meeting, back }: { meeting: number; back: boolean }) {
   const { t } = useTranslation();
   const format = useMomFormat();
+  const { height } = useWindowClass();
+  const short = height < shortWindow;
   const recordingNow = useRecording();
   const detail = useResource(`mom.detail.${meeting}`, (account) => minutesDetail(account, meeting));
   const [tab, setTab] = useState<Tab>('notes');
@@ -267,23 +277,8 @@ export function MeetingView({ meeting, back }: { meeting: number; back: boolean 
     { value: 'transcript', label: t('mom.detail.tabs.transcript') },
     { value: 'final', label: t('mom.detail.tabs.final') },
   ];
-  const scrolled = (body: ReactNode) => (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={detail.loading} onRefresh={() => void detail.refresh()} />}>
-      {body}
-    </ScrollView>
-  );
-  const notReady = (
-    <Card>
-      <MeetingChip row={data} />
-      <Text variant="headline">{t('mom.detail.notYet')}</Text>
-      <Text tone="inkSoft">{t('mom.detail.notYetBody')}</Text>
-    </Card>
-  );
-
-  return (
-    <View style={styles.fill} testID="mom-meeting">
+  const top = (
+    <>
       <Header title={data.meeting} subtitle={t('mom.meetingLine', { day: format.day(data.day), programme: data.programme })} back={back} />
       <View style={styles.tabs}>
         <Segmented options={tabs} value={tab} onChange={setTab} testID="meeting-tab" />
@@ -296,19 +291,41 @@ export function MeetingView({ meeting, back }: { meeting: number; back: boolean 
           />
         ) : null}
       </View>
+    </>
+  );
+  const inner = short ? top : undefined;
+  const scrolled = (body: ReactNode) => (
+    <ScrollView
+      contentContainerStyle={short ? styles.shortContent : styles.content}
+      refreshControl={<RefreshControl refreshing={detail.loading} onRefresh={() => void detail.refresh()} />}>
+      {inner}
+      {short ? <View style={styles.content}>{body}</View> : body}
+    </ScrollView>
+  );
+  const notReady = (
+    <Card>
+      <MeetingChip row={data} />
+      <Text variant="headline">{t('mom.detail.notYet')}</Text>
+      <Text tone="inkSoft">{t('mom.detail.notYetBody')}</Text>
+    </Card>
+  );
+
+  return (
+    <View style={styles.fill} testID="mom-meeting">
+      {short ? null : top}
       <View style={styles.fill}>
         {tab === 'notes' ? scrolled(data.generated ? <Notes detail={data} /> : notReady) : null}
         {tab === 'items' ? scrolled(<Items items={data.items} onPlay={recordings.length === 1 ? play : undefined} />) : null}
         {tab === 'transcript' ? (
           recording ? (
-            <Transcript key={recording} recording={recording} onPlay={(seconds) => play?.(seconds)} />
+            <Transcript key={recording} recording={recording} onPlay={(seconds) => play?.(seconds)} header={inner} />
           ) : (
             scrolled(<Text tone="inkSoft">{t('mom.detail.noTranscript')}</Text>)
           )
         ) : null}
-        {tab === 'final' ? <FinalPanel programme={data.programmeId} meeting={data.meeting_id} /> : null}
+        {tab === 'final' ? <FinalPanel programme={data.programmeId} meeting={data.meeting_id} header={inner} /> : null}
       </View>
-      {canPlay && tab !== 'final' ? <PlayerBar playback={playback} /> : null}
+      {canPlay && (tab === 'items' || tab === 'transcript' || playback.status.playing) ? <PlayerBar playback={playback} /> : null}
     </View>
   );
 }
@@ -317,6 +334,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   strong: { fontWeight: '600' },
   mono: { fontVariant: ['tabular-nums'] },
+  shortContent: { paddingBottom: space.xxl },
   tabs: { paddingHorizontal: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   content: { padding: space.lg, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center', paddingBottom: space.xxl },
   banner: { padding: space.md, borderRadius: radius.md },

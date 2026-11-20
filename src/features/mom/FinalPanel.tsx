@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useResource } from '../../api/resource';
@@ -101,13 +102,18 @@ function Paper({ view }: { view: FinalView }) {
   );
 }
 
-export function FinalPanel({ programme, meeting }: { programme: number; meeting: number }) {
+export function FinalPanel({ programme, meeting, header }: { programme: number; meeting: number; header?: ReactNode }) {
   const { t } = useTranslation();
   const router = useRouter();
   const final = useFinal(programme, meeting);
   const view = final.data;
   if (!view) {
-    return <StateView loading={final.loading || !final.error} error={final.error} onRetry={() => void final.refresh()} testID="final" />;
+    return (
+      <View style={styles.fill}>
+        {header}
+        <StateView loading={final.loading || !final.error} error={final.error} onRetry={() => void final.refresh()} testID="final" />
+      </View>
+    );
   }
   const ready = view.readiness.generated && !view.readiness.generating && !view.readiness.problems.length;
   const canSign = view.state === 'draft' && view.canChange;
@@ -116,7 +122,9 @@ export function FinalPanel({ programme, meeting }: { programme: number; meeting:
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={final.loading} onRefresh={() => void final.refresh()} />}
       testID="final-panel">
-      <Stages view={view} />
+      {header}
+      <View style={styles.body}>
+        <Stages view={view} />
       {view.readiness.generated ? <Paper view={view} /> : <Text tone="inkSoft">{t('mom.final.empty')}</Text>}
       <Section title={t('mom.final.signoff')}>
         <View style={styles.signer}>
@@ -152,13 +160,15 @@ export function FinalPanel({ programme, meeting }: { programme: number; meeting:
           testID="final-sign"
         />
       ) : null}
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  content: { padding: space.lg, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center', paddingBottom: space.xxl },
+  content: { paddingBottom: space.xxl },
+  body: { padding: space.lg, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   stages: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   stage: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: 1 },
   table: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
