@@ -5,17 +5,13 @@ tags:
 onFlowStart:
   - runFlow: ../shared/orientation.yaml
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - extendedWaitUntil:
     visible:
-      id: (welcome-sign-in|tab-chat|tab-discovery|tab-activity)
+      id: welcome-sign-in
     timeout: 30000
-- runFlow:
-    when:
-      visible:
-        id: welcome-sign-in
-    commands:
-      - runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/sign-in.yaml
 - tapOn:
     id: tab-button-discovery
 - extendedWaitUntil:
@@ -131,6 +127,7 @@ onFlowStart:
     notVisible:
       id: coworker-working
     timeout: 240000
+- runFlow: ../shared/dismiss-keyboard.yaml
 - runFlow:
     file: ../shared/screenshot.yaml
     env:

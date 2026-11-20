@@ -1,5 +1,6 @@
 import Storage from 'expo-sqlite/kv-store';
-import { useCallback, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
+import { AppState } from 'react-native';
 import { onAccountForgotten } from '../../auth/session';
 
 const listeners = new Set<() => void>();
@@ -24,22 +25,31 @@ export function readDraft(account: string, programme: number, conversation: numb
   return drafts.get(key) ?? '';
 }
 
+const saveDelayMs = 400;
+const unsaved = new Set<string>();
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+export function flushDrafts() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = null;
+  for (const key of unsaved) {
+    const text = drafts.get(key) ?? '';
+    if (text) Storage.setItemSync(key, text);
+    else Storage.removeItemSync(key);
+  }
+  unsaved.clear();
+}
+
 export function writeDraft(account: string, programme: number, conversation: number | null, text: string) {
   const key = draftKey(account, programme, conversation);
   drafts.set(key, text);
-  if (text) Storage.setItemSync(key, text);
-  else Storage.removeItemSync(key);
-  notify();
+  unsaved.add(key);
+  if (!saveTimer) saveTimer = setTimeout(flushDrafts, saveDelayMs);
 }
 
-export function useDraft(account: string, programme: number, conversation: number | null) {
-  const text = useSyncExternalStore(subscribe, () => readDraft(account, programme, conversation));
-  const set = useCallback(
-    (next: string) => writeDraft(account, programme, conversation, next),
-    [account, programme, conversation],
-  );
-  return [text, set] as const;
-}
+AppState.addEventListener('change', (state) => {
+  if (state !== 'active') flushDrafts();
+});
 
 const conversations = new Map<string, number | null>();
 
@@ -61,6 +71,7 @@ export function hasOpenConversation(account: string, programme: number): boolean
 }
 
 onAccountForgotten((account) => {
+  flushDrafts();
   for (const key of Storage.getAllKeysSync()) {
     if (key.startsWith(`discovery.draft.${account}.`) || key === lastKey(account)) Storage.removeItemSync(key);
   }

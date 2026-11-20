@@ -3,7 +3,7 @@ import { CoworkerScreen } from '../../../features/discovery/CoworkerScreen';
 import { idParam, textParam } from '../../../features/discovery/params';
 
 export default function CoworkerRoute() {
-  const params = useLocalSearchParams<{ id: string; conversation?: string; card?: string; prefill?: string }>();
+  const params = useLocalSearchParams<{ id: string; conversation?: string; card?: string; prefill?: string; ask?: string }>();
   const programme = idParam(params.id);
   if (!programme) return null;
   return (
@@ -12,6 +12,7 @@ export default function CoworkerRoute() {
       conversation={idParam(params.conversation)}
       card={idParam(params.card)}
       prefill={textParam(params.prefill)}
+      ask={params.ask === '1'}
     />
   );
 }

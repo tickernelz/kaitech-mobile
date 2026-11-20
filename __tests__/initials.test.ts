@@ -1,4 +1,4 @@
-import { initials } from '../src/screens/HeaderActions';
+import { initials } from '../src/screens/initials';
 
 describe('initials', () => {
   it('takes the first and last words that carry letters', () => {

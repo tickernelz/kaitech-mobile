@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSession, verifyActiveSession } from '../auth/session';
 import { useLock } from '../lock/lock';
@@ -37,6 +38,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <KeyboardProvider>
       <StatusBar style="auto" />
       <View style={styles.fill} importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'} pointerEvents={locked ? 'none' : 'auto'}>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
@@ -60,6 +62,7 @@ export default function RootLayout() {
         </Stack>
       </View>
       {locked ? <LockScreen /> : null}
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }

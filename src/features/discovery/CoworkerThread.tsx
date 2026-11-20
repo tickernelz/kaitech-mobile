@@ -1,12 +1,11 @@
 import { randomUUID } from 'expo-crypto';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import {
   AppState,
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   TextInput,
@@ -20,7 +19,7 @@ import { Text } from '../../ui/Text';
 import { ask, cards as readCards, panel, transcript, type Card, type Cursor, type TranscriptItem } from './api';
 import { DecisionCard } from './DecisionCard';
 import { Markdown } from './Markdown';
-import { openConversation, useDraft, useOpenConversation } from './store';
+import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
 import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread';
 import { Icon, IconButton, StateView, useErrorText } from './ui';
 
@@ -133,10 +132,14 @@ function Steps({ entry }: { entry: Extract<Entry, { kind: 'steps' }> }) {
 export function CoworkerThread({
   programme,
   focusCard,
+  focusInput = 0,
+  prefill = '',
   testID = 'coworker',
 }: {
   programme: number;
   focusCard?: number;
+  focusInput?: number;
+  prefill?: string;
   testID?: string;
 }) {
   const { t } = useTranslation();
@@ -145,11 +148,22 @@ export function CoworkerThread({
   const errorText = useErrorText();
   const account = active?.id ?? '';
   const conversation = useOpenConversation(account, programme);
-  const [draft, setDraft] = useDraft(account, programme, conversation);
+  const [draft, setDraftText] = useState(() => readDraft(account, programme, conversation) || (conversation ? '' : prefill));
+  const setDraft = (text: string) => {
+    setDraftText(text);
+    writeDraft(account, programme, conversation, text);
+  };
   const [pending, setPending] = useState<Pending[]>([]);
   const thread = useTranscript(conversation);
   const programmePanel = useResource(`discovery.panel.${programme}`, (signedIn) => panel(signedIn, programme));
   const list = useRef<FlatList<Entry | Pending | Card>>(null);
+  const input = useRef<ComponentRef<typeof TextInput>>(null);
+
+  useEffect(() => {
+    if (focusInput) input.current?.focus();
+  }, [focusInput]);
+
+  useEffect(() => flushDrafts, []);
 
   const cardIds = useMemo(() => {
     const ids = (programmePanel.data?.packets ?? [])
@@ -182,6 +196,7 @@ export function CoworkerThread({
     const text = draft.trim();
     if (!text || !active) return;
     setDraft('');
+    input.current?.clear();
     void send({ key: randomUUID(), text, failed: null });
   };
 
@@ -247,7 +262,7 @@ export function CoworkerThread({
 
   const empty = !conversation && !shownPending.length;
   return (
-    <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined} testID={testID}>
+    <KeyboardAvoidingView behavior="padding" automaticOffset style={styles.fill} testID={testID}>
       {empty ? (
         <StateView empty={{ title: t('discovery.thread.emptyTitle'), body: t('discovery.thread.emptyBody') }} testID={testID} />
       ) : thread.loading && !thread.items.length ? (
@@ -274,7 +289,8 @@ export function CoworkerThread({
       )}
       <View style={[styles.composer, { borderColor: colors.line, backgroundColor: colors.canvas }]}>
         <TextInput
-          value={draft}
+          ref={input}
+          defaultValue={draft}
           onChangeText={setDraft}
           placeholder={t('discovery.thread.placeholder')}
           placeholderTextColor={colors.inkFaint}
