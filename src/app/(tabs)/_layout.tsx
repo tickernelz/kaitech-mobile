@@ -60,7 +60,7 @@ export default function TabsLayout() {
         style={[
           { backgroundColor: colors.surface, borderColor: colors.line },
           rail
-            ? [styles.rail, { width: railWidth + insets.left, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.lg, paddingLeft: insets.left }]
+            ? [styles.rail, { width: railWidth + insets.left, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.lg }]
             : [styles.bar, { paddingBottom: Math.max(insets.bottom, space.sm) }],
         ]}>
         {tabs.map((name) => (

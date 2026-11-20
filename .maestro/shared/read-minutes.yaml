@@ -1,15 +1,34 @@
 appId: io.kaitech.mobile
 name: Read the seeded test meeting minutes, items, transcript and Final MoM, then open the sign-off sheet
 ---
-- scrollUntilVisible:
-    element:
-      id: meeting-${MINUTES_MEETING}
+- repeat:
+    while:
+      notVisible:
+        id: meeting-${MINUTES_MEETING}
+    times: 12
+    commands:
+      - swipe:
+          start: 22%, 75%
+          end: 22%, 35%
+          duration: 500
 - tapOn:
     id: meeting-${MINUTES_MEETING}
 - extendedWaitUntil:
     visible:
-      id: decision-0
+      id: (decision-0|meeting-tab-notes)
     timeout: 30000
+- repeat:
+    while:
+      notVisible:
+        id: decision-0
+    times: 5
+    commands:
+      - swipe:
+          start: 85%, 75%
+          end: 85%, 40%
+          duration: 500
+- assertVisible:
+    id: decision-0
 - runFlow:
     file: screenshot.yaml
     env:
