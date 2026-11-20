@@ -7,6 +7,7 @@ let state: VoiceState = { id: null, playing: false, position: 0, duration: 0, ra
 const listeners = new Set<() => void>();
 let player: AudioPlayer | null = null;
 let subscription: { remove(): void } | null = null;
+let startWhenLoaded = false;
 const rates = [1, 1.5, 2];
 
 function set(next: Partial<VoiceState>) {
@@ -15,6 +16,10 @@ function set(next: Partial<VoiceState>) {
 }
 
 function onStatus(status: AudioStatus) {
+  if (startWhenLoaded && status.isLoaded) {
+    startWhenLoaded = false;
+    if (!status.playing) player?.play();
+  }
   const duration = status.duration * 1000 || state.duration;
   const position = status.currentTime * 1000;
   if (status.didJustFinish) {
@@ -38,6 +43,7 @@ export function useVoice(): VoiceState {
 
 export async function toggleVoice(id: string, uri: string, headers?: Record<string, string>) {
   if (state.id === id && player) {
+    startWhenLoaded = false;
     if (state.playing) player.pause();
     else player.play();
     return;
@@ -49,6 +55,7 @@ export async function toggleVoice(id: string, uri: string, headers?: Record<stri
   player.setPlaybackRate(state.rate);
   subscription = player.addListener('playbackStatusUpdate', onStatus);
   set({ id, playing: false, position: 0, duration: 0, loading: true });
+  startWhenLoaded = true;
   player.play();
 }
 

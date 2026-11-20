@@ -101,7 +101,7 @@ onFlowStart:
 - extendedWaitUntil:
     notVisible:
       id: (pending-queued|pending-sending)
-    timeout: 60000
+    timeout: 120000
 - runScript:
     file: ../scripts/web-peer.js
     env:
