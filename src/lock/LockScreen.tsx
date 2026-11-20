@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, ReduceMotion } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { space, useTheme } from '../theme';
-import { duration } from '../theme/motion';
+import { duration, useMotion } from '../theme/motion';
 import { Button } from '../ui/Button';
 import { Screen } from '../ui/Screen';
 import { Text } from '../ui/Text';
@@ -14,6 +14,7 @@ export function LockScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const [failed, setFailed] = useState(false);
+  const fadeIn = useMotion(FadeIn.duration(duration.quick));
   const attempt = useCallback(
     () => unlock(t('lock.prompt'), t('settings.cancel')).then((ok) => setFailed(!ok)),
     [t],
@@ -23,7 +24,7 @@ export function LockScreen() {
   }, [t]);
   return (
     <Animated.View
-      entering={FadeIn.duration(duration.quick).reduceMotion(ReduceMotion.Never)}
+      entering={fadeIn}
       style={[StyleSheet.absoluteFill, { backgroundColor: colors.canvas }]}
       accessibilityViewIsModal>
       <Screen testID="lock" footer={<Button label={t('lock.unlock')} onPress={() => void attempt()} testID="lock-unlock" />}>

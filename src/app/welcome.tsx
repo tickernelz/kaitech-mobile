@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown, ReduceMotion } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { setLanguagePreference, useLanguage } from '../i18n';
 import { space } from '../theme';
-import { duration, easing, stagger } from '../theme/motion';
+import { duration, easing, stagger, useMotion } from '../theme/motion';
 import { Button } from '../ui/Button';
 import { Screen } from '../ui/Screen';
 import { Text } from '../ui/Text';
@@ -14,8 +14,7 @@ function rise(order: number) {
   return FadeInDown.duration(duration.hero)
     .delay(order * stagger)
     .easing(easing.expo)
-    .withInitialValues({ transform: [{ translateY: 8 }] })
-    .reduceMotion(ReduceMotion.System);
+    .withInitialValues({ transform: [{ translateY: 8 }] });
 }
 
 export default function Welcome() {
@@ -23,12 +22,16 @@ export default function Welcome() {
   const router = useRouter();
   const { language } = useLanguage();
   const other = language === 'id' ? 'en' : 'id';
+  const markIn = useMotion(FadeIn.duration(duration.hero).easing(easing.expo));
+  const titleIn = useMotion(rise(1));
+  const bodyIn = useMotion(rise(2));
+  const footerIn = useMotion(rise(3));
   return (
     <Screen
       scroll
       testID="welcome"
       footer={
-        <Animated.View entering={rise(3)} style={styles.footer}>
+        <Animated.View entering={footerIn} style={styles.footer}>
           <Button label={t('welcome.signIn')} onPress={() => router.push('/sign-in')} testID="welcome-sign-in" />
           <Button
             kind="plain"
@@ -39,15 +42,15 @@ export default function Welcome() {
         </Animated.View>
       }>
       <View style={styles.hero}>
-        <Animated.View entering={FadeIn.duration(duration.hero).easing(easing.expo).reduceMotion(ReduceMotion.System)}>
+        <Animated.View entering={markIn}>
           <Wordmark width={176} label={t('app.name')} />
         </Animated.View>
-        <Animated.View entering={rise(1)}>
+        <Animated.View entering={titleIn}>
           <Text variant="display" accessibilityRole="header" testID="welcome-title">
             {t('welcome.title')}
           </Text>
         </Animated.View>
-        <Animated.View entering={rise(2)}>
+        <Animated.View entering={bodyIn}>
           <Text tone="inkSoft">{t('welcome.body')}</Text>
         </Animated.View>
       </View>

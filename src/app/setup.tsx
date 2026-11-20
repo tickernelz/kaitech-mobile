@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeOut, ReduceMotion, SlideInRight, SlideOutLeft } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, SlideInRight, SlideOutLeft } from 'react-native-reanimated';
 import { markOnboarded } from '../auth/session';
 import { setLockEnabled, useLock } from '../lock/lock';
 import { useLockLabel } from '../lock/useLockLabel';
 import { LanguageChoices } from '../screens/LanguageChoices';
 import { space } from '../theme';
-import { duration, easing } from '../theme/motion';
+import { duration, easing, useMotion } from '../theme/motion';
 import { Button } from '../ui/Button';
 import { Screen } from '../ui/Screen';
 import { Text } from '../ui/Text';
@@ -23,8 +23,10 @@ export default function Setup() {
   const steps: Step[] = method ? ['language', 'lock'] : ['language'];
   const index = steps.indexOf(step);
   const last = index === steps.length - 1;
-  const enter = SlideInRight.duration(duration.axis).easing(easing.expo).reduceMotion(ReduceMotion.System);
-  const exit = SlideOutLeft.duration(duration.slow).easing(easing.exit).reduceMotion(ReduceMotion.System);
+  const enter = useMotion(index === 0 ? FadeIn.duration(duration.hero) : SlideInRight.duration(duration.axis).easing(easing.expo));
+  const exit = useMotion(SlideOutLeft.duration(duration.slow).easing(easing.exit));
+  const fadeIn = useMotion(FadeIn);
+  const fadeOut = useMotion(FadeOut);
 
   const turnOnLock = async () => {
     setBusy(true);
@@ -60,7 +62,7 @@ export default function Setup() {
         </Text>
         <Button kind="plain" label={t('wizard.skip')} onPress={markOnboarded} style={styles.skip} testID="setup-skip" />
       </View>
-      <Animated.View key={step} entering={index === 0 ? FadeIn.duration(duration.hero) : enter} exiting={exit} style={styles.step}>
+      <Animated.View key={step} entering={enter} exiting={exit} style={styles.step}>
         {step === 'language' ? (
           <>
             <Text variant="title" accessibilityRole="header">
@@ -70,7 +72,7 @@ export default function Setup() {
             <LanguageChoices />
           </>
         ) : (
-          <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.step}>
+          <Animated.View entering={fadeIn} exiting={fadeOut} style={styles.step}>
             <Text variant="title" accessibilityRole="header">
               {t('wizard.lockTitle')}
             </Text>
