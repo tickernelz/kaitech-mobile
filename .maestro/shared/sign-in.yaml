@@ -22,6 +22,14 @@ name: Sign in on the server page and finish setup when the app is signed out
           text: (Email|Login)
           index: 0
       - inputText: ${LOGIN}
+      - runFlow:
+          when:
+            platform: Android
+          commands:
+            - hideKeyboard
+      - scrollUntilVisible:
+          element:
+            text: (Password|Kata Sandi)
       - tapOn:
           text: (Password|Kata Sandi)
           index: 0
