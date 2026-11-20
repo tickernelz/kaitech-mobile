@@ -6,6 +6,7 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import {
   AppState,
   FlatList,
+  Keyboard,
   Pressable,
   StyleSheet,
   TextInput,
@@ -13,7 +14,7 @@ import {
 } from 'react-native';
 import { update, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
-import { readableWidth } from '../../layout/windowClass';
+import { readableWidth, useWindowClass } from '../../layout/windowClass';
 import { radius, space, type as typography, useTheme } from '../../theme';
 import { Text } from '../../ui/Text';
 import { ask, cards as readCards, panel, transcript, type Card, type Cursor, type TranscriptItem } from './api';
@@ -158,6 +159,7 @@ export function CoworkerThread({
   const programmePanel = useResource(`discovery.panel.${programme}`, (signedIn) => panel(signedIn, programme));
   const list = useRef<FlatList<Entry | Pending | Card>>(null);
   const input = useRef<ComponentRef<typeof TextInput>>(null);
+  const { windowClass, width } = useWindowClass();
 
   useEffect(() => {
     if (focusInput) input.current?.focus();
@@ -197,6 +199,7 @@ export function CoworkerThread({
     if (!text || !active) return;
     setDraft('');
     input.current?.clear();
+    if (windowClass === 'compact') Keyboard.dismiss();
     void send({ key: randomUUID(), text, failed: null });
   };
 
@@ -262,7 +265,7 @@ export function CoworkerThread({
 
   const empty = !conversation && !shownPending.length;
   return (
-    <KeyboardAvoidingView behavior="padding" automaticOffset style={styles.fill} testID={testID}>
+    <KeyboardAvoidingView key={width} behavior="padding" automaticOffset style={styles.fill} testID={testID}>
       {empty ? (
         <StateView empty={{ title: t('discovery.thread.emptyTitle'), body: t('discovery.thread.emptyBody') }} testID={testID} />
       ) : thread.loading && !thread.items.length ? (

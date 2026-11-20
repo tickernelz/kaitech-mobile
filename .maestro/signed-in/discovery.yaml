@@ -76,8 +76,12 @@ onFlowStart:
     timeout: 10000
 - tapOn:
     id: discovery-ask
-- tapOn:
-    id: coworker-input
+- extendedWaitUntil:
+    visible:
+      id: coworker-input
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 3000
 - inputText: ${QUESTION}
 - runFlow:
     when:
@@ -127,7 +131,6 @@ onFlowStart:
     notVisible:
       id: coworker-working
     timeout: 240000
-- runFlow: ../shared/dismiss-keyboard.yaml
 - runFlow:
     file: ../shared/screenshot.yaml
     env:

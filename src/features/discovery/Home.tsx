@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -163,6 +163,17 @@ export function DiscoveryHome() {
   const conversation = useOpenConversation(account, programme);
   const [focusCard, setFocusCard] = useState<number>();
   const [focusInput, setFocusInput] = useState(0);
+  const threadActive = useRef(false);
+  const shownClass = useRef(windowClass);
+
+  useEffect(() => {
+    const before = shownClass.current;
+    shownClass.current = windowClass;
+    if (before === 'expanded' && windowClass !== 'expanded' && threadActive.current && programme) {
+      threadActive.current = false;
+      router.push({ pathname: '/program/[id]/coworker', params: { id: String(programme) } });
+    }
+  }, [windowClass, programme, router]);
   useLatestConversation(programme);
 
   useEffect(() => {
@@ -174,7 +185,10 @@ export function DiscoveryHome() {
       openConversation(account, programme, null);
       setFocusCard(undefined);
     }
-    if (expanded) setFocusInput((count) => count + 1);
+    if (expanded) {
+      setFocusInput((count) => count + 1);
+      threadActive.current = true;
+    }
     else router.push({ pathname: '/program/[id]/coworker', params: { id: String(programme), ask: '1' } });
   };
 
@@ -182,6 +196,7 @@ export function DiscoveryHome() {
     if (expanded) {
       if (packet.conversation_id) openConversation(account, programme, packet.conversation_id);
       setFocusCard(packet.id);
+      threadActive.current = true;
     } else {
       router.push({ pathname: '/program/card/[id]', params: { id: String(packet.id), programme: String(programme), conversation: String(packet.conversation_id) } });
     }
