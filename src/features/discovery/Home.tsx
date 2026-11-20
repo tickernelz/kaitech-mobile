@@ -316,7 +316,7 @@ export function DiscoveryHome() {
           </>
         }
       />
-      <CoworkerThread key={`${programme}-${conversation ?? 'new'}`} programme={programme} focusCard={focusCard} focusInput={focusInput} testID="coworker" />
+      <CoworkerThread key={`${account}-${programme}-${conversation ?? 'new'}`} programme={programme} focusCard={focusCard} focusInput={focusInput} testID="coworker" />
     </View>
   ) : (
     <View style={[styles.fill, { backgroundColor: colors.surface2 }]} />

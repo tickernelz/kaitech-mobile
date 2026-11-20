@@ -70,7 +70,7 @@ export function CoworkerScreen({
         }
       />
       ) : null}
-      <CoworkerThread key={`${programme}-${open ?? 'new'}`} programme={programme} focusCard={card} focusInput={ask || prefill ? 1 : 0} prefill={prefill} />
+      <CoworkerThread key={`${account}-${programme}-${open ?? 'new'}`} programme={programme} focusCard={card} focusInput={ask || prefill ? 1 : 0} prefill={prefill} />
     </SafeAreaView>
   );
 }
