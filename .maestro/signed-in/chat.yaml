@@ -122,3 +122,38 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: c5-voice
+- tapOn:
+    id: composer-input
+- inputText: ${'draf ' + RUN.slice(3, 9)}
+- runFlow:
+    when:
+      true: ${maestro.platform === 'android' && DEVICE_SIZE === 'phone' && ORIENTATION === 'portrait'}
+    commands:
+      - setOrientation: LANDSCAPE_LEFT
+      - extendedWaitUntil:
+          visible:
+            text: ${'draf ' + RUN.slice(3, 9)}
+          timeout: 15000
+      - runFlow:
+          file: ../shared/screenshot-rotated.yaml
+          env:
+            SCREEN: c6-draft-rotated
+      - setOrientation: PORTRAIT
+- runFlow:
+    when:
+      true: ${maestro.platform === 'android' && DEVICE_SIZE === 'phone' && ORIENTATION === 'landscape'}
+    commands:
+      - setOrientation: PORTRAIT
+      - extendedWaitUntil:
+          visible:
+            text: ${'draf ' + RUN.slice(3, 9)}
+          timeout: 15000
+      - runFlow:
+          file: ../shared/screenshot-rotated.yaml
+          env:
+            SCREEN: c6-draft-rotated
+      - setOrientation: LANDSCAPE_LEFT
+- extendedWaitUntil:
+    visible:
+      text: ${'draf ' + RUN.slice(3, 9)}
+    timeout: 15000
