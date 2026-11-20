@@ -14,8 +14,14 @@ apk="$(find "$apk_dir" -maxdepth 1 -name '*.apk' | head -1)"
 region="${locale#*-}"
 
 adb wait-for-device
-adb root >/dev/null
-adb wait-for-device
+is_root() { [ "$(adb shell id -u 2>/dev/null | tr -d '\r')" = 0 ]; }
+for _ in $(seq 1 10); do
+  adb root >/dev/null 2>&1 || true
+  adb wait-for-device
+  is_root && break
+  sleep 3
+done
+is_root || { echo "adb root unavailable on the emulator" >&2; exit 1; }
 adb shell setprop persist.sys.locale "$locale"
 adb shell setprop ctl.restart zygote
 
