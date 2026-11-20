@@ -354,6 +354,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
                 placeholder={t('composer.placeholder')}
                 placeholderTextColor={colors.inkFaint}
                 multiline
+                disableFullscreenUI
                 submitBehavior={hardwareSubmit ? 'submit' : 'newline'}
                 returnKeyType={hardwareSubmit ? 'send' : 'default'}
                 onSubmitEditing={hardwareSubmit ? submit : undefined}

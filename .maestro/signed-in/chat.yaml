@@ -37,6 +37,9 @@ onFlowStart:
     visible:
       id: composer-input
     timeout: 30000
+- tapOn:
+    id: composer-input
+- eraseText: 400
 - evalScript: ${output.sent = 0}
 - repeat:
     times: 25
