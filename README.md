@@ -139,7 +139,7 @@ Gerbang CI `npm run i18n:check` menggagalkan build bila dalam satu pasangan:
 
 Teks izin OS dan nama aplikasi per bahasa ada di `src/i18n/native/`, dipasang lewat `locales` di `app.json`. Lint (`i18next/no-literal-string`) menolak teks yang ditulis langsung di JSX, termasuk `label`, `title`, `placeholder`, dan `accessibilityLabel`.
 
-Pustaka: `expo-localization` + `i18next` + `react-i18next`.
+Pustaka: `expo-localization` + `i18next` + `react-i18next`. Teks Chat ada di namespace `chat` (`src/i18n/chat/en.json`, `id.json`), dipanggil dengan `useTranslation('chat')`.
 
 - `expo-localization` adalah modul Expo resmi untuk membaca bahasa perangkat; di Android bahasa perangkat bisa berubah tanpa restart, jadi dibaca ulang setiap aplikasi kembali aktif.
 - `i18next` mengganti bahasa saat aplikasi berjalan (`changeLanguage`) dan `react-i18next` merender ulang layar yang memakainya, sehingga pilihan di Pengaturan berlaku tanpa restart. Plural dan interpolasi memakai `Intl` bawaan Hermes.
@@ -216,6 +216,20 @@ Alur `signed-in/discovery.yaml` masuk bila perlu, lalu membuka beranda Program, 
 Semua baca memakai metode yang sama dengan layar web (`chat_contexts`, `programme_panel`, `fetch_transcript`, `read_packets`, `briefing_for_me`, `search_read` pada `ck.evidence`, `ck.finding`, `ck.finding.side`), jadi aturan akses Odoo yang menentukan isi. Tulis hanya lewat `/kaitech_mobile/discovery/ask` (kunci idempoten per pertanyaan, kirim ulang memakai kunci yang sama) dan `/discovery/answer` (setuju atau bukan pada kartu yang menunggu konfirmasi orang); HP tidak membuat kartu. Jawaban Coworker tampil apa adanya; langkah alatnya dilipat jadi satu baris. Transkrip dibaca ulang tiap 2,5 detik hanya selama giliran masih berjalan, layar fokus, dan aplikasi aktif. Draf pertanyaan disimpan per Program dan percakapan di luar pohon layar, jadi tidak hilang saat rotasi atau ganti ukuran jendela, dan dihapus saat akun keluar.
 
 Di jendela expanded (840 dp ke atas) beranda Program dan utas Coworker tampil berdampingan, temuan di kiri dan buktinya di kanan, kartu dari notifikasi di kanan dengan kartu terbuka lain di kiri. `routeForPush()` memetakan push `discovery_card`, `discovery_card_restated`, dan `discovery_answer` ke layar kartu atau utas.
+
+### Chat (`src/features/chat`)
+
+Daftar percakapan dari `GET /kaitech_mobile/chat/conversations`; pesan, kirim, tanda baca, sedang mengetik, reaksi, dan thread lewat rute Discuss Odoo (`/discuss/channel/messages`, `/mail/message/post`, `/discuss/channel/mark_as_read`, `/discuss/channel/notify_typing`, `/mail/message/reaction`, `/discuss/channel/sub_channel/*`) memakai `route()` dari `src/api/odoo.ts`, jadi aturan akses Odoo sama dengan web. Pembaruan langsung lewat `/websocket` dengan cookie sesi yang sama; soket dibuka hanya saat aplikasi aktif dan, setelah tersambung ulang, aplikasi mengambil pesan yang terlewat.
+
+Kirim selalu lewat antrean di SQLite (`chat.db`, tabel `outbox`): setiap pesan membawa `kaitech_chat_send_key` dan setiap berkas kunci unggah `/kaitech_mobile/chat/upload`, jadi kirim ulang setelah jawaban hilang tidak membuat pesan atau berkas kedua. Antrean berurutan per akun: kegagalan jaringan menahan antrean dan dicoba lagi dengan jeda naik sampai 30 detik atau begitu jaringan kembali; penolakan server menandai pesan itu gagal (Coba lagi atau Hapus) tanpa menahan pesan berikutnya. Berkas yang akan dikirim disalin ke folder dokumen aplikasi sampai terkirim. Pesan, percakapan, dan draf (per percakapan, tidak hilang saat rotasi atau ganti ukuran jendela) disimpan per akun dan dihapus saat akun keluar.
+
+Pesan suara: tahan tombol mikrofon untuk merekam (AAC `.m4a`), lepas untuk mengirim, geser ke kiri untuk batal. Izin mikrofon, kamera, dan notifikasi diminta saat fitur itu pertama dipakai; izin notifikasi diminta setelah pesan pertama terkirim.
+
+Push Android lewat FCM bila build membawa `GOOGLE_SERVICES_JSON`; token dan bahasa perangkat didaftarkan ke `/kaitech_mobile/push`, dan mengetuk notifikasi membuka percakapannya (`res_id`) atau layar Discovery lewat `routeForPush()`. iOS tanpa APNs: pesan baru masuk hanya selama aplikasi terbuka, dan daftar percakapan menyebutnya.
+
+Di jendela expanded daftar di kiri (360 dp) dan percakapan di kanan; di compact dan medium percakapan dibuka sebagai layar sendiri. Di medium dan expanded tombol Enter di keyboard fisik mengirim pesan; di compact Enter membuat baris baru. Bila kunci aplikasi aktif, pratinjau di daftar aplikasi terbaru dikosongkan (Android `FLAG_SECURE` saat aplikasi di latar, iOS lapisan blur).
+
+Alur `signed-in/chat.yaml` masuk bila perlu, membuka percakapan dengan akun web, mengirim 25 pesan, menyalakan mode pesawat, mengirim 25 pesan lagi, mematikan mode pesawat, lalu memeriksa lewat server bahwa ke-50 pesan ada tepat sekali, tanda baca dari web, dan pesan suara dua arah. Variabel tambahan: `-e DB=<database> -e WEB_LOGIN=<akun web> -e WEB_PASSWORD=<sandi> -e CHANNEL_ID=<id percakapan> -e PEER=<nama akun web> -e RUN=<penanda unik>`. Waktu dari tekan Kirim sampai gelembung tampil dicatat di log sebagai `send_visible_ms`.
 
 ## Lisensi
 

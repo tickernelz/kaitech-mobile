@@ -8,8 +8,10 @@ import { AppState, StyleSheet, View } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSession, verifyActiveSession } from '../auth/session';
+import { ChatRuntime } from '../features/chat/ChatRuntime';
 import { useLock } from '../lock/lock';
 import { LockScreen } from '../lock/LockScreen';
+import { useRecentsGuard } from '../lock/useRecentsGuard';
 import { useTheme } from '../theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -22,6 +24,7 @@ export default function RootLayout() {
   const hasAccount = session.active !== null;
   const signedIn = hasAccount && !session.expired;
   const locked = signedIn && lock.locked;
+  useRecentsGuard(signedIn && lock.enabled);
   const home = !hasAccount ? '/welcome' : session.expired ? '/expired' : session.onboarded ? '/' : '/setup';
 
   useEffect(() => {
@@ -41,10 +44,12 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <KeyboardProvider>
       <StatusBar style="auto" />
+      <ChatRuntime account={signedIn && session.onboarded ? session.active : null} />
       <View style={styles.fill} importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'} pointerEvents={locked ? 'none' : 'auto'}>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
           <Stack.Protected guard={signedIn && session.onboarded} redirectTo={home}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="chat/[id]" />
             <Stack.Screen name="program" />
             <Stack.Screen name="mom" />
             <Stack.Screen name="search" options={{ animation: 'fade' }} />

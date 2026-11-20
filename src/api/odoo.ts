@@ -65,6 +65,13 @@ async function openSession(account: Account): Promise<Session> {
   return { id: answer.session_id, until: started + answer.expires_in * 1000 - renewBeforeMs };
 }
 
+const sessionListeners = new Set<(accountId: string) => void>();
+
+export function onSessionOpened(listener: (accountId: string) => void): () => void {
+  sessionListeners.add(listener);
+  return () => sessionListeners.delete(listener);
+}
+
 async function sessionFor(account: Account, renew: boolean): Promise<Session> {
   const held = sessions.get(account.id);
   if (held && !renew) {
@@ -73,6 +80,7 @@ async function sessionFor(account: Account, renew: boolean): Promise<Session> {
   }
   const opened = openSession(account);
   sessions.set(account.id, opened);
+  void opened.then(() => sessionListeners.forEach((listener) => listener(account.id)), () => undefined);
   opened.catch(() => {
     if (sessions.get(account.id) === opened) sessions.delete(account.id);
   });
@@ -123,3 +131,27 @@ export async function rpc<T>(
     throw new ApiError(rpcCode(typeof failure.data?.name === 'string' ? failure.data.name : ''), status);
   }
 }
+
+export async function sessionCookie(account: Account, renew = false): Promise<string> {
+  return `session_id=${(await sessionFor(account, renew)).id}`;
+}
+
+export async function route<T>(account: Account, path: string, params: Record<string, unknown>): Promise<T> {
+  for (let attempt = 0; ; attempt += 1) {
+    const session = await sessionFor(account, attempt > 0);
+    const { status, body } = await call(`${account.origin}${path}`, {
+      method: 'POST',
+      credentials: 'omit',
+      headers: { ...headers(account.db), Cookie: `session_id=${session.id}` },
+      body: JSON.stringify({ jsonrpc: '2.0', method: 'call', id: attempt, params }),
+    });
+    if (status === 404) throw new ApiError('not_found', status);
+    if (status !== 200) refused(status, body);
+    const failure = body?.error as RpcFailure | undefined;
+    if (!failure) return body?.result as T;
+    if (attempt === 0 && expired(failure)) continue;
+    const name = typeof failure.data?.name === 'string' ? failure.data.name : '';
+    throw new ApiError(failure.code === 404 || /NotFound$/.test(name) ? 'not_found' : rpcCode(name), status);
+  }
+}
+

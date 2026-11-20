@@ -2,7 +2,9 @@
   "ios": {
     "CFBundleDisplayName": "Kaitech",
     "NSFaceIDUsageDescription": "Kaitech uses Face ID to unlock the app when app lock is on.",
-    "NSMicrophoneUsageDescription": "Kaitech uses the microphone to record meetings and voice messages."
+    "NSMicrophoneUsageDescription": "Kaitech uses the microphone to record meetings and the voice messages you send.",
+    "NSCameraUsageDescription": "Kaitech uses the camera to take photos and videos you send in messages.",
+    "NSPhotoLibraryUsageDescription": "Kaitech opens your photos so you can send them in messages."
   },
   "android": {
     "app_name": "Kaitech",

@@ -35,7 +35,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": true
+      "predictiveBackGestureEnabled": true,
+      "allowBackup": false
     },
     "plugins": [
       "expo-dev-client",
@@ -105,10 +106,27 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Kaitech uses the microphone to record meetings and voice messages.",
+          "microphonePermission": "Kaitech uses the microphone to record meetings and the voice messages you send.",
           "recordAudioAndroid": true,
           "enableBackgroundRecording": true,
           "enableBackgroundPlayback": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Kaitech opens your photos so you can send them in messages.",
+          "cameraPermission": "Kaitech uses the camera to take photos and videos you send in messages.",
+          "microphonePermission": "Kaitech uses the microphone to record meetings and the voice messages you send."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#441D65",
+          "defaultChannel": "messages",
+          "enableRemoteNotifications": false
         }
       ],
       "expo-background-task",
