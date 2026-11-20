@@ -59,11 +59,11 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 
 | Workflow | Pemicu | Isi |
 |---|---|---|
-| `CI` (`ci.yml`) | push ke `main`, PR, manual | gitleaks seluruh riwayat dan pohon kerja; lint, typecheck, Jest; build APK, IPA, E2E emulator |
-| `Build` (`build.yml`) | dipanggil CI dan Release | APK release (Gradle, runner Linux), IPA tanpa tanda tangan (`xcodebuild`, runner macOS `xcode-27`), pindai rahasia di bundle JS, E2E Maestro di emulator Android dengan rekaman layar |
+| `CI` (`ci.yml`) | push ke `main`, PR, manual | gitleaks seluruh riwayat dan pohon kerja; lint, typecheck, paritas kunci terjemahan, Jest; build APK, IPA, E2E emulator |
+| `Build` (`build.yml`) | dipanggil CI dan Release | APK release (Gradle, runner Linux), IPA tanpa tanda tangan (`xcodebuild`, runner macOS `xcode-27`), pindai rahasia di bundle JS, E2E Maestro di emulator Android dalam locale `en-US` dan `id-ID`, rekaman layar per locale |
 | `Release` (`release.yml`) | tag `v*` | gitleaks, build, lalu GitHub Release berisi APK, IPA, dan `SHA256SUMS.txt` |
 
-Artefak per run: `kaitech-android-apk`, `kaitech-ios-ipa`, `e2e-android-recording` (video `e2e-android.mp4`, screenshot Maestro, JUnit, logcat).
+Artefak per run: `kaitech-android-apk`, `kaitech-ios-ipa`, `e2e-android-recording-en-US` dan `e2e-android-recording-id-ID` (video `e2e-android-<locale>.mp4`, screenshot Maestro, JUnit, logcat).
 
 Rilis: `git tag v0.1.0 && git push origin v0.1.0`.
 
@@ -75,6 +75,10 @@ Rilis: `git tag v0.1.0 && git push origin v0.1.0`.
 | `GOOGLE_SERVICES_JSON` | tidak | isi `google-services.json` (FCM). Tanpa secret ini build tetap hijau dan push Android mati. |
 
 Nilai secret tidak pernah ditulis ke repo, log, atau artefak. Berkas kredensial ditolak `.gitignore`.
+
+PR dari fork berjalan tanpa secret (APK bertanda tangan kunci debug, push mati) dan harus disetujui pemilik repo sebelum workflow jalan. Token workflow default hanya baca. Workflow rilis hanya jalan dari tag di repo ini.
+
+Jangan pernah menulis alamat server lab0 nyata, token, nama database, atau data nyata ke repo. Alamat server dibaca saat runtime dari isian pengguna di layar masuk; contoh dan fixture memakai data karangan.
 
 ## Pengembangan
 
@@ -91,6 +95,19 @@ npm start              # Metro untuk development build
 
 Tambah paket dengan `npx expo install <paket>` supaya versinya cocok dengan SDK.
 
+### Bahasa (en dan id)
+
+Semua teks yang tampil ke pengguna berasal dari katalog terjemahan, satu berkas per bahasa: `src/i18n/locales/en.json` dan `src/i18n/locales/id.json`. Katalog lain (misalnya teks izin OS) cukup diletakkan sebagai pasangan `en.json` dan `id.json` di folder mana pun di bawah `src/i18n/`.
+
+Gerbang CI `npm run i18n:check` menggagalkan build bila dalam satu pasangan:
+
+- ada kunci yang hilang atau berlebih di salah satu bahasa,
+- ada nilai kosong atau bukan string,
+- placeholder `{{nama}}` berbeda antarbahasa,
+- salah satu berkas tidak ada.
+
+`src/i18n/language.ts` hanya pengisi sementara untuk layar awal. Pustaka i18n dan pengaturan bahasa diputuskan di F0 aplikasi; gerbang ini tidak bergantung pada pustaka itu.
+
 ### E2E
 
 Alur Maestro ada di `.maestro/`. Jalankan lokal di emulator yang sudah memasang APK:
@@ -99,7 +116,9 @@ Alur Maestro ada di `.maestro/`. Jalankan lokal di emulator yang sudah memasang 
 maestro test .maestro
 ```
 
-Di CI, `scripts/e2e-android.sh` memasang APK release, merekam layar, menjalankan semua alur, lalu menyimpan hasilnya sebagai artefak.
+Di CI, setiap alur jalan dua kali: emulator di-boot dengan `-change-locale en-US` lalu `-change-locale id-ID`. `scripts/e2e-android.sh` memastikan locale emulator benar, memasang APK release, merekam layar, lalu menjalankan semua alur dengan variabel `APP_LANGUAGE` (`en` atau `id`) untuk teks yang diperiksa, misalnya `${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}`. Lebih disarankan memeriksa elemen lewat `testID`.
+
+Jalankan lokal: `maestro test -e APP_LANGUAGE=id .maestro`.
 
 ## Lisensi
 

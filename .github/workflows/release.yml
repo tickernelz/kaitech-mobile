@@ -14,6 +14,7 @@ concurrency:
 jobs:
   gitleaks:
     name: gitleaks
+    if: github.repository == 'tickernelz/kaitech-mobile'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

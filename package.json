@@ -29,7 +29,8 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "doctor": "expo-doctor"
+    "doctor": "expo-doctor",
+    "i18n:check": "jest --ci __tests__/i18n-catalogs.test.ts"
   },
   "private": true,
   "jest": {

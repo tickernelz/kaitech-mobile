@@ -1,5 +1,7 @@
 appId: io.kaitech.mobile
 name: Release APK launches to the first screen
+env:
+  APP_LANGUAGE: en
 ---
 - launchApp:
     clearState: true
@@ -8,4 +10,7 @@ name: Release APK launches to the first screen
       id: app-root
     timeout: 30000
 - assertVisible: Kaitech
-- takeScreenshot: launch
+- assertVisible:
+    id: app-greeting
+    text: ${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}
+- takeScreenshot: launch-${APP_LANGUAGE}
