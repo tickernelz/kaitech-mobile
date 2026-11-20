@@ -61,7 +61,7 @@ function FileChip({ attachment, mine }: { attachment: Attachment; mine: boolean 
       <View style={[styles.fileIcon, { backgroundColor: colors.dangerBand }]}>
         {busy ? <ActivityIndicator color={colors.dangerInk} /> : <Icon name="file" color={colors.dangerInk} />}
       </View>
-      <View style={styles.flex}>
+      <View style={styles.fileText}>
         <Text variant="callout" numberOfLines={2} style={styles.bold}>
           {attachment.name}
         </Text>
@@ -327,7 +327,8 @@ const styles = StyleSheet.create({
   item: { paddingLeft: space.xs },
   quoteBox: { borderLeftWidth: 3, borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
-  file: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48 },
+  file: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48, width: 260, maxWidth: '100%' },
+  fileText: { flexShrink: 1, flexGrow: 1 },
   pendingFile: { minWidth: 200 },
   fileIcon: { width: 40, height: 40, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   picture: { width: 240, maxWidth: '100%', aspectRatio: 4 / 3, borderRadius: radius.md },

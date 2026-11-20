@@ -169,11 +169,11 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     void send(outgoing, startedAt).then((key) => delivered(key));
   };
 
-  const addPicked = (picked: { uri: string; name: string; mimeType: string }[]) => {
+  const addPicked = async (picked: { uri: string; name: string; mimeType: string }[]) => {
     const staged: Staged[] = [];
     for (const item of picked) {
       try {
-        const copy = stageFile(item.uri, item.name);
+        const copy = await stageFile(item.uri, item.name);
         staged.push({ uri: copy.uri, name: item.name, mimetype: item.mimeType, size: copy.size, voice: false, durationMs: null });
       } catch {
         Alert.alert(t('composer.fileFailed', { name: item.name }));
@@ -197,18 +197,18 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     setSheet(false);
     if (source === 'files') {
       const result = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true });
-      if (!result.canceled) addPicked(result.assets.map((asset) => ({ uri: asset.uri, name: asset.name, mimeType: asset.mimeType ?? 'application/octet-stream' })));
+      if (!result.canceled) await addPicked(result.assets.map((asset) => ({ uri: asset.uri, name: asset.name, mimeType: asset.mimeType ?? 'application/octet-stream' })));
       return;
     }
     if (source === 'camera') {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) return deniedAlert('camera');
       const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images', 'videos'], quality: 0.8 });
-      if (!result.canceled) addPicked(result.assets.map((asset, index) => ({ uri: asset.uri, name: mediaName(asset, index, 'camera'), mimeType: mediaType(asset) })));
+      if (!result.canceled) await addPicked(result.assets.map((asset, index) => ({ uri: asset.uri, name: mediaName(asset, index, 'camera'), mimeType: mediaType(asset) })));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsMultipleSelection: true, quality: 0.8 });
-    if (!result.canceled) addPicked(result.assets.map((asset, index) => ({ uri: asset.uri, name: mediaName(asset, index, 'media'), mimeType: mediaType(asset) })));
+    if (!result.canceled) await addPicked(result.assets.map((asset, index) => ({ uri: asset.uri, name: mediaName(asset, index, 'media'), mimeType: mediaType(asset) })));
   };
 
   const startRecording = async () => {
@@ -248,7 +248,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     }
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const name = `voice-${new Date(current.started).toISOString().replace(/[:.]/g, '-')}.m4a`;
-    const kept = adoptFile(uri, name);
+    const kept = await adoptFile(uri, name);
     const startedAt = clock();
     const voice: Staged = { uri: kept.uri, name, mimetype: 'audio/mp4', size: kept.size, voice: true, durationMs: elapsed };
     const replyTo = parentId;

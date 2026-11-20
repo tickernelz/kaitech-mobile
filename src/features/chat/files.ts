@@ -23,15 +23,15 @@ function staged(target: File): { uri: string; size: number } {
   return { uri: relativeStaged(Paths.document.uri, file.uri), size: file.size ?? 0 };
 }
 
-export function stageFile(uri: string, name: string): { uri: string; size: number } {
+export async function stageFile(uri: string, name: string): Promise<{ uri: string; size: number }> {
   const target = new File(stagingDirectory(), safeName(name));
-  new File(uri).copy(target);
+  await new File(uri).copy(target);
   return staged(target);
 }
 
-export function adoptFile(uri: string, name: string): { uri: string; size: number } {
+export async function adoptFile(uri: string, name: string): Promise<{ uri: string; size: number }> {
   const target = new File(stagingDirectory(), safeName(name));
-  new File(uri).move(target);
+  await new File(uri).move(target);
   return staged(target);
 }
 
@@ -80,5 +80,14 @@ export async function downloadForOpening(
   const target = new File(directory, safeName(name));
   if (target.exists && (target.size ?? 0) > 0) return target;
   directory.create({ intermediates: true, idempotent: true });
-  return File.downloadFileAsync(url, target, { headers, idempotent: true });
+  const partialUri = new File(directory, `${newKey()}.part`).uri;
+  try {
+    const downloaded = await File.downloadFileAsync(url, new File(partialUri), { headers, idempotent: true });
+    if (target.exists) target.delete();
+    await downloaded.move(target);
+    return new File(target.uri);
+  } finally {
+    const leftover = new File(partialUri);
+    if (leftover.exists) leftover.delete();
+  }
 }
