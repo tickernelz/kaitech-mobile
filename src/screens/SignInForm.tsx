@@ -70,7 +70,7 @@ export function SignInForm({ onDone, onBack }: { onDone: () => void; onBack: () 
           <Button kind="plain" label={t('signIn.back')} onPress={onBack} disabled={busy} testID="sign-in-back" />
         </View>
       }>
-      <Text variant="title" accessibilityRole="header">
+      <Text variant="title" accessibilityRole="header" testID="sign-in-title">
         {t('signIn.title')}
       </Text>
       <Text tone="inkSoft">{t('signIn.body')}</Text>

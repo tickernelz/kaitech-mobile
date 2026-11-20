@@ -20,7 +20,7 @@ onFlowStart:
 - tapOn:
     id: sign-in-server
 - inputText: ${SERVER}
-- hideKeyboard
+- runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
     id: sign-in-continue
 - extendedWaitUntil:

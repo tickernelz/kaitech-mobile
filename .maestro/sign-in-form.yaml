@@ -30,7 +30,7 @@ onFlowStart:
 - tapOn:
     id: sign-in-server
 - inputText: http://erp.example.com
-- hideKeyboard
+- runFlow: shared/dismiss-keyboard.yaml
 - runFlow:
     when:
       true: ${ORIENTATION === 'portrait' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}

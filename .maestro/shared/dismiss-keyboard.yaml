@@ -1,0 +1,14 @@
+appId: io.kaitech.mobile
+name: Dismiss the keyboard without the iOS back swipe
+---
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: sign-in-title
