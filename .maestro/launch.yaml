@@ -1,7 +1,5 @@
 appId: io.kaitech.mobile
 name: Release APK launches to the first screen
-env:
-  APP_LANGUAGE: en
 ---
 - launchApp:
     clearState: true

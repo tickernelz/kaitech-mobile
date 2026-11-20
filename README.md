@@ -118,7 +118,7 @@ maestro test .maestro
 
 Di CI, setiap alur jalan dua kali, di emulator ber-locale `en-US` dan `id-ID`. `scripts/e2e-android.sh` mengganti locale sistem (`persist.sys.locale` lalu restart framework), menunggu sampai konfigurasi framework memakai locale itu, memasang APK release, merekam layar, lalu menjalankan semua alur dengan variabel `APP_LANGUAGE` (`en` atau `id`) untuk teks yang diperiksa, misalnya `${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}`. Lebih disarankan memeriksa elemen lewat `testID`.
 
-Jalankan lokal: `maestro test -e APP_LANGUAGE=id .maestro`.
+Jalankan lokal: `maestro test -e APP_LANGUAGE=id .maestro`. `APP_LANGUAGE` wajib dikirim lewat `-e`; jangan beri nilai bawaan di blok `env:` alur, karena nilai itu menimpa `-e`.
 
 ## Lisensi
 
