@@ -64,6 +64,7 @@ export function ThreadView({
   const conversation = useChat((state) => conversationById(state, channelId));
   const allPending = useChat((state) => state.pending);
   const allDelivered = useChat((state) => state.delivered);
+  const online = useChat((state) => state.online);
   const list = useRef<FlashListRef<Row>>(null);
   const composer = useRef<ComposerHandle>(null);
   const [acting, setActing] = useState<Message | null>(null);
@@ -139,11 +140,13 @@ export function ThreadView({
     requestAnimationFrame(() => void list.current?.scrollToEnd({ animated: true }));
   }, []);
 
-  const onShown = useCallback((key: string) => {
-    const started = takeSendStart(key);
-    if (started === undefined) return;
-    console.log(`[kaitech-perf] send_visible_ms=${(performance.now() - started).toFixed(1)}`);
-  }, []);
+  useEffect(() => {
+    for (const item of pending) {
+      const started = takeSendStart(item.key);
+      if (started === undefined) continue;
+      requestAnimationFrame(() => console.log(`[kaitech-perf] send_visible_ms=${(performance.now() - started).toFixed(1)}`));
+    }
+  }, [pending]);
 
   const renderItem = useCallback(
     ({ item }: { item: Row }) => {
@@ -157,7 +160,7 @@ export function ThreadView({
         );
       }
       if (item.kind === 'pending') {
-        return <PendingBubble pending={item.pending} onRetry={(key) => void retrySend(key)} onDiscard={(key) => void discardSend(key)} onShown={onShown} />;
+        return <PendingBubble pending={item.pending} offline={!online} onRetry={(key) => void retrySend(key)} onDiscard={(key) => void discardSend(key)} />;
       }
       const message = item.message;
       const mine = message.authorId === partnerId;
@@ -180,7 +183,7 @@ export function ThreadView({
         </View>
       );
     },
-    [colors, dayLabel, highlight, jumpTo, onShown, openSub, origin, partnerId, quoteOf, thread.members, thread.subChannels, twoPeople, type],
+    [colors, dayLabel, highlight, jumpTo, online, openSub, origin, partnerId, quoteOf, thread.members, thread.subChannels, twoPeople, type],
   );
 
   const typing = thread.typing;

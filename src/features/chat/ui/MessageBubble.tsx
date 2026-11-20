@@ -248,22 +248,23 @@ export const MessageBubble = memo(function MessageBubble({
 
 export const PendingBubble = memo(function PendingBubble({
   pending,
+  offline,
   onRetry,
   onDiscard,
-  onShown,
 }: {
   pending: Pending;
+  offline: boolean;
   onRetry: (key: string) => void;
   onDiscard: (key: string) => void;
-  onShown?: (key: string) => void;
 }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const { duration } = useChatFormat();
   const failed = pending.state === 'failed';
-  const label = [pending.text, failed ? t('thread.failed') : t('thread.waiting')].filter(Boolean).join(', ');
+  const status = failed ? t('thread.failed') : offline && pending.state === 'queued' ? t('thread.queued') : t('thread.waiting');
+  const label = [pending.text, status].filter(Boolean).join(', ');
   return (
-    <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`} onLayout={onShown ? () => onShown(pending.key) : undefined}>
+    <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`}>
       <Frame mine label={label} failed={failed}>
         {pending.files.map((file) => (
           <View key={file.key} style={[styles.file, styles.pendingFile, { backgroundColor: colors.surface }]}>
@@ -280,7 +281,7 @@ export const PendingBubble = memo(function PendingBubble({
         ) : null}
         <View style={styles.meta}>
           <Text variant="label" tone={failed ? 'dangerInk' : 'inkFaint'}>
-            {failed ? t('thread.failed') : t('thread.waiting')}
+            {status}
           </Text>
           <Icon name={failed ? 'alert' : 'clock'} size={16} color={failed ? colors.dangerInk : colors.inkFaint} />
         </View>

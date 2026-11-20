@@ -69,7 +69,8 @@
     },
     "back": "Kembali ke daftar percakapan",
     "empty": "Belum ada pesan di sini. Mulailah dengan menyapa.",
-    "pickOne": "Pilih percakapan untuk membacanya di sini."
+    "pickOne": "Pilih percakapan untuk membacanya di sini.",
+    "queued": "Menunggu koneksi"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",

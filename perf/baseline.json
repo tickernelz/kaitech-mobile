@@ -2,9 +2,9 @@
   "metrics": {
     "android.apk_x86_64_bytes": { "value": 34488667, "maxIncrease": 0.15, "unit": "bytes", "source": "run 44692239972, SHA e011ed8; F0 app shell (ZHA-7236): expo-router, Reanimated, react-native-svg, expo-sqlite, i18next; was 21348083 at f304cc0" },
     "android.apk_universal_bytes": { "value": 104683865, "maxIncrease": 0.15, "unit": "bytes", "source": "local release build of SHA e011ed8 with the CI Gradle and NDK (its x86_64 APK matched run 44692239972 byte for byte); PR runs skip this job; F0 app shell (ZHA-7236): expo-router, Reanimated, react-native-svg, expo-sqlite, i18next; was 66719031 at ca0fc0f" },
-    "android.js_bundle_bytes": { "value": 3395536, "maxIncrease": 0.15, "unit": "bytes", "source": "run 44692239972, SHA e011ed8; F0 app shell (ZHA-7236): expo-router, Reanimated, react-native-svg, expo-sqlite, i18next; was 1205216 at ca0fc0f" },
+    "android.js_bundle_bytes": { "value": 4066684, "maxIncrease": 0.15, "unit": "bytes", "source": "run 44739232785, SHA c19b67d; F1 Chat (ZHA-7238): thread list (@shopify/flash-list), keyboard handling (react-native-keyboard-controller), expo-notifications, expo-audio, expo-file-system, pickers, chat feature code; was 3395536 at e011ed8" },
     "ios.ipa_bytes": { "value": 14430130, "maxIncrease": 0.15, "unit": "bytes", "source": "run 44692239972, SHA e011ed8; F0 app shell (ZHA-7236): expo-router, Reanimated, react-native-svg, expo-sqlite, i18next; was 9201358 at f304cc0" },
-    "ios.js_bundle_bytes": { "value": 4141814, "maxIncrease": 0.15, "unit": "bytes", "source": "run 44692239972, SHA e011ed8; F0 app shell (ZHA-7236): expo-router, Reanimated, react-native-svg, expo-sqlite, i18next; was 1491835 at ca0fc0f" },
+    "ios.js_bundle_bytes": { "value": 4934633, "maxIncrease": 0.15, "unit": "bytes", "source": "run 44739232785, SHA c19b67d; F1 Chat (ZHA-7238): thread list (@shopify/flash-list), keyboard handling (react-native-keyboard-controller), expo-notifications, expo-audio, expo-file-system, pickers, chat feature code; was 4141814 at e011ed8" },
     "android.cold_start_ms": { "value": 1103, "maxIncrease": 1, "unit": "ms", "source": "median of nine run medians 965-1641 ms (runs 44674990425, 44676341472, 44677721981, 44679536480, 44680932036, 44688815107 attempts 1-4); the largest is 49% above it, the limit doubles that margin" }
   }
 }

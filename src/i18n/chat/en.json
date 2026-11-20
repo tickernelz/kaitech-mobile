@@ -69,7 +69,8 @@
     },
     "back": "Back to conversations",
     "empty": "No messages here yet. Say hello.",
-    "pickOne": "Pick a conversation to read it here."
+    "pickOne": "Pick a conversation to read it here.",
+    "queued": "Waiting for connection"
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",
