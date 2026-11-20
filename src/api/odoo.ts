@@ -65,6 +65,13 @@ async function openSession(account: Account): Promise<Session> {
   return { id: answer.session_id, until: started + answer.expires_in * 1000 - renewBeforeMs };
 }
 
+const sessionListeners = new Set<(accountId: string) => void>();
+
+export function onSessionOpened(listener: (accountId: string) => void): () => void {
+  sessionListeners.add(listener);
+  return () => sessionListeners.delete(listener);
+}
+
 async function sessionFor(account: Account, renew: boolean): Promise<Session> {
   const held = sessions.get(account.id);
   if (held && !renew) {
@@ -73,6 +80,7 @@ async function sessionFor(account: Account, renew: boolean): Promise<Session> {
   }
   const opened = openSession(account);
   sessions.set(account.id, opened);
+  void opened.then(() => sessionListeners.forEach((listener) => listener(account.id)), () => undefined);
   opened.catch(() => {
     if (sessions.get(account.id) === opened) sessions.delete(account.id);
   });

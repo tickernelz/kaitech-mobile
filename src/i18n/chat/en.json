@@ -70,7 +70,8 @@
     "back": "Back to conversations",
     "empty": "No messages here yet. Say hello.",
     "pickOne": "Pick a conversation to read it here.",
-    "queued": "Waiting for connection"
+    "queued": "Waiting for connection",
+    "cannotOpen": "No app on this device can open {{name}}."
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",

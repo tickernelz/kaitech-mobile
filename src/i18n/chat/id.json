@@ -70,7 +70,8 @@
     "back": "Kembali ke daftar percakapan",
     "empty": "Belum ada pesan di sini. Mulailah dengan menyapa.",
     "pickOne": "Pilih percakapan untuk membacanya di sini.",
-    "queued": "Menunggu koneksi"
+    "queued": "Menunggu koneksi",
+    "cannotOpen": "Tidak ada aplikasi di perangkat ini yang dapat membuka {{name}}."
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",

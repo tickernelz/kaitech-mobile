@@ -1,7 +1,6 @@
-import * as WebBrowser from 'expo-web-browser';
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
@@ -10,6 +9,7 @@ import { attachmentUrl, type ReadState } from '../odoo';
 import type { Attachment, Message, Pending } from '../types';
 import { useChatFormat } from './format';
 import { Icon } from './icons';
+import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
 
 export const bubbleMaxWidth = Math.round(readableWidth * 0.8);
@@ -45,19 +45,21 @@ function Body({ blocks, mine }: { blocks: Block[]; mine: boolean }) {
   );
 }
 
-function FileChip({ attachment, origin, mine }: { attachment: Attachment; origin: string; mine: boolean }) {
+function FileChip({ attachment, mine }: { attachment: Attachment; mine: boolean }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const { size } = useChatFormat();
-  const url = attachmentUrl(origin, attachment, true);
+  const { open, opening } = useOpenAttachment();
+  const busy = opening === attachment.id;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t('thread.openFile', { name: attachment.name })}
-      onPress={() => void WebBrowser.openBrowserAsync(url)}
+      accessibilityState={{ busy }}
+      onPress={() => void open(attachment)}
       style={({ pressed }) => [styles.file, { backgroundColor: mine ? colors.surface : colors.surface2, opacity: pressed ? 0.8 : 1 }]}>
       <View style={[styles.fileIcon, { backgroundColor: colors.dangerBand }]}>
-        <Icon name="file" color={colors.dangerInk} />
+        {busy ? <ActivityIndicator color={colors.dangerInk} /> : <Icon name="file" color={colors.dangerInk} />}
       </View>
       <View style={styles.flex}>
         <Text variant="callout" numberOfLines={2} style={styles.bold}>
@@ -75,8 +77,9 @@ function Picture({ attachment, origin }: { attachment: Attachment; origin: strin
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const uri = attachmentUrl(origin, attachment);
+  const { open, opening } = useOpenAttachment();
   return (
-    <Pressable accessibilityRole="imagebutton" accessibilityLabel={t('thread.openImage', { name: attachment.name })} onPress={() => void WebBrowser.openBrowserAsync(uri)}>
+    <Pressable accessibilityRole="imagebutton" accessibilityLabel={t('thread.openImage', { name: attachment.name })} accessibilityState={{ busy: opening === attachment.id }} onPress={() => void open(attachment)}>
       <Image source={{ uri }} style={[styles.picture, { backgroundColor: colors.surface2 }]} resizeMode="cover" />
     </Pressable>
   );
@@ -92,7 +95,7 @@ function Attachments({ attachments, origin, mine }: { attachments: Attachment[];
         ) : attachment.mimetype.startsWith('image/') ? (
           <Picture key={attachment.id} attachment={attachment} origin={origin} />
         ) : (
-          <FileChip key={attachment.id} attachment={attachment} origin={origin} mine={mine} />
+          <FileChip key={attachment.id} attachment={attachment} mine={mine} />
         ),
       )}
     </View>

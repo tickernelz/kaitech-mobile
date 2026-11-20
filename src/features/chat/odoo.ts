@@ -169,10 +169,11 @@ export function readersOf(message: Message, members: Member[], myPartnerId: numb
   return members.filter((member) => member.partnerId !== myPartnerId && member.seenMessageId >= message.id).length;
 }
 
-export function attachmentUrl(origin: string, attachment: Attachment, download = false): string {
+export function attachmentUrl(origin: string, attachment: Attachment, options: { download?: boolean; token?: boolean } = {}): string {
+  const { download = false, token = true } = options;
   const image = attachment.mimetype.startsWith('image/');
   const params = new URLSearchParams();
-  if (attachment.accessToken) params.set('access_token', attachment.accessToken);
+  if (token && attachment.accessToken) params.set('access_token', attachment.accessToken);
   if (attachment.name) params.set('filename', attachment.name);
   if (attachment.checksum) params.set('unique', attachment.checksum);
   if (download) params.set('download', 'true');

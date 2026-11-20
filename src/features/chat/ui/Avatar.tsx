@@ -48,7 +48,7 @@ export const Avatar = memo(function Avatar({
           {initials(name)}
         </Text>
       )}
-      {path && cookie && origin ? (
+      {path && /^\/(?!\/)/.test(path) && cookie && origin ? (
         <Image source={{ uri: `${origin}${path}`, headers: cookie }} style={[StyleSheet.absoluteFill, { borderRadius: size / 2 }]} />
       ) : null}
     </View>
