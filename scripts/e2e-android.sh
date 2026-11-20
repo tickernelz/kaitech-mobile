@@ -102,6 +102,8 @@ find "$out/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$out/screenshots
 node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
 
 if [ "${COLD_START_RUNS:-0}" -gt 0 ]; then
+  adb shell am start -W -S -n "$activity" > /dev/null
+  sleep 5
   starts=()
   for _ in $(seq 1 "$COLD_START_RUNS"); do
     total="$(adb shell am start -W -S -n "$activity" | tr -d '\r' | sed -n 's/^TotalTime: //p')"

@@ -41,7 +41,6 @@ jobs:
         with:
           key: ccache-android-${{ env.APK_VARIANT }}-${{ hashFiles('package-lock.json', 'app.json', 'app.config.ts') }}
           restore-prefix: ccache-android-${{ env.APK_VARIANT }}-
-          sloppiness: include_file_ctime,include_file_mtime,time_macros
       - run: npm ci
       - name: Build number
         run: echo "APP_BUILD_NUMBER=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
@@ -171,17 +170,14 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - id: ccache
-        uses: ./.github/actions/setup-ccache
-        with:
-          key: ccache-ios-${{ hashFiles('package-lock.json', 'app.json', 'app.config.ts') }}
-          restore-prefix: ccache-ios-
       - id: pods
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/Library/Caches/CocoaPods
-          key: cocoapods-${{ hashFiles('package-lock.json', 'app.json', 'app.config.ts') }}
-          restore-keys: cocoapods-
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/Library/Caches/ReactNative
+          key: ios-downloads-${{ hashFiles('package-lock.json', 'app.json', 'app.config.ts') }}
+          restore-keys: ios-downloads-
       - run: npm ci
       - name: Toolchain
         run: |
@@ -190,12 +186,12 @@ jobs:
       - name: Build number
         run: echo "APP_BUILD_NUMBER=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
       - run: npx expo prebuild --platform ios
-        env:
-          USE_CCACHE: '1'
       - if: github.event_name != 'pull_request' && steps.pods.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/Library/Caches/CocoaPods
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/Library/Caches/ReactNative
           key: ${{ steps.pods.outputs.cache-primary-key }}
       - name: xcodebuild (no code signing)
         run: |
@@ -216,13 +212,6 @@ jobs:
             exit 1
           fi
           grep -E '^\*\* BUILD' build/xcodebuild.log
-      - name: ccache statistics
-        run: ccache --show-stats
-      - if: github.event_name != 'pull_request' && steps.ccache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ steps.ccache.outputs.dir }}
-          key: ${{ steps.ccache.outputs.key }}
       - name: Package IPA
         run: |
           set -euo pipefail
@@ -380,42 +369,6 @@ jobs:
           path: dist
       - uses: ./.github/actions/setup-maestro
       - uses: ./.github/actions/setup-gitleaks
-      - id: sysimg
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: /usr/local/lib/android/sdk/system-images/android-35/google_apis/x86_64
-          key: sysimg-35-google_apis-x86_64-v1
-      - id: avd
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-35-google_apis-x86_64-${{ matrix.profile }}-v1
-      - name: Create AVD and boot snapshot
-        if: steps.avd.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
-        with:
-          api-level: 35
-          arch: x86_64
-          target: google_apis
-          profile: ${{ matrix.profile }}
-          force-avd-creation: false
-          disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: echo "AVD and boot snapshot created"
-      - if: github.event_name != 'pull_request' && steps.sysimg.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: /usr/local/lib/android/sdk/system-images/android-35/google_apis/x86_64
-          key: ${{ steps.sysimg.outputs.cache-primary-key }}
-      - if: github.event_name != 'pull_request' && steps.avd.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: ${{ steps.avd.outputs.cache-primary-key }}
       - name: Run Maestro flows on emulator
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
@@ -425,9 +378,8 @@ jobs:
           arch: x86_64
           target: google_apis
           profile: ${{ matrix.profile }}
-          force-avd-creation: false
           disable-animations: true
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bash scripts/e2e-android.sh dist e2e-output/${{ env.E2E_LABEL }}${{ matrix.size }}-${{ matrix.orientation }}-${{ matrix.locale }} ${{ matrix.locale }} ${{ matrix.size }} ${{ matrix.orientation }}
       - name: Scan E2E output for secrets
         id: scan-e2e
