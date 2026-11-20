@@ -76,7 +76,7 @@ export function codeFromCallback(url: string, expected: { redirectUri: string; s
   return params.code;
 }
 
-async function call(url: string, init: RequestInit): Promise<{ status: number; body: Record<string, unknown> | null }> {
+export async function call(url: string, init: RequestInit): Promise<{ status: number; body: Record<string, unknown> | null }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let response: Response;
@@ -98,7 +98,7 @@ async function call(url: string, init: RequestInit): Promise<{ status: number; b
   return { status: response.status, body };
 }
 
-function headers(db: string, token?: string): Record<string, string> {
+export function headers(db: string, token?: string): Record<string, string> {
   return {
     Accept: 'application/json',
     'Content-Type': 'application/json',

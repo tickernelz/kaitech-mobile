@@ -1,0 +1,193 @@
+appId: io.kaitech.mobile
+name: Discovery home, finding with its evidence, ask the Coworker, decision card, search, Activity
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-discovery
+- extendedWaitUntil:
+    visible:
+      id: programme-summary
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: d1-home
+- scrollUntilVisible:
+    element:
+      id: open-evidence
+- tapOn:
+    id: open-evidence
+- extendedWaitUntil:
+    visible:
+      id: (finding-[0-9]+|evidence-screen-empty|finding-detail)
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: d3-findings
+- runFlow:
+    when:
+      visible:
+        id: finding-[0-9]+
+    commands:
+      - tapOn:
+          id: finding-[0-9]+
+          index: 0
+      - extendedWaitUntil:
+          visible:
+            id: finding-side-[0-9]+
+          timeout: 30000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: d4-finding
+      - runFlow:
+          when:
+            visible:
+              id: finding-screen
+          commands:
+            - tapOn:
+                id: header-back
+- tapOn:
+    id: evidence-view-evidence
+- extendedWaitUntil:
+    visible:
+      id: evidence-[0-9]+
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: d5-evidence
+- tapOn:
+    id: header-back
+- extendedWaitUntil:
+    visible:
+      id: discovery-ask
+    timeout: 10000
+- tapOn:
+    id: discovery-ask
+- extendedWaitUntil:
+    visible:
+      id: coworker-input
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: ${QUESTION}
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'portrait' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
+    commands:
+      - setOrientation: LANDSCAPE_LEFT
+      - extendedWaitUntil:
+          visible:
+            id: coworker-input
+          timeout: 10000
+      - runFlow:
+          file: ../shared/screenshot-rotated.yaml
+          env:
+            SCREEN: d6-draft-rotated
+      - assertVisible:
+          text: ${QUESTION}
+      - setOrientation: PORTRAIT
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'landscape' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
+    commands:
+      - setOrientation: PORTRAIT
+      - extendedWaitUntil:
+          visible:
+            id: coworker-input
+          timeout: 10000
+      - runFlow:
+          file: ../shared/screenshot-rotated.yaml
+          env:
+            SCREEN: d6-draft-rotated
+      - assertVisible:
+          text: ${QUESTION}
+      - setOrientation: LANDSCAPE_LEFT
+- assertVisible:
+    text: ${QUESTION}
+- tapOn:
+    id: coworker-send
+- extendedWaitUntil:
+    visible:
+      id: coworker-request
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: coworker-reply
+    timeout: 240000
+- extendedWaitUntil:
+    notVisible:
+      id: coworker-working
+    timeout: 240000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: d2-coworker
+- runFlow:
+    when:
+      visible:
+        id: coworker-screen
+    commands:
+      - tapOn:
+          id: header-back
+- runFlow:
+    when:
+      visible:
+        id: waiting-card-[0-9]+
+    commands:
+      - tapOn:
+          id: waiting-card-[0-9]+
+          index: 0
+      - extendedWaitUntil:
+          visible:
+            id: card-[0-9]+
+          timeout: 30000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: d7-card
+      - runFlow:
+          when:
+            visible:
+              id: card-screen
+          commands:
+            - tapOn:
+                id: header-back
+- tapOn:
+    id: open-search
+- tapOn:
+    id: search-input
+- inputText: ${SEARCH}
+- extendedWaitUntil:
+    visible:
+      id: (search-hit-.*|search-results-empty)
+    timeout: 30000
+- runFlow: ../shared/dismiss-keyboard.yaml
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: s1-search
+- tapOn:
+    id: search-close
+- tapOn:
+    id: tab-button-activity
+- extendedWaitUntil:
+    visible:
+      id: (activity-.*-[0-9]+|activity-empty)
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: n2-activity

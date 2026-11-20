@@ -1,7 +1,3 @@
-import { useTranslation } from 'react-i18next';
-import { TabScreen } from '../../screens/TabScreen';
+import { ActivityScreen } from '../../features/activity/ActivityScreen';
 
-export default function Activity() {
-  const { t } = useTranslation();
-  return <TabScreen title={t('tabs.activity')} testID="tab-activity" />;
-}
+export default ActivityScreen;
