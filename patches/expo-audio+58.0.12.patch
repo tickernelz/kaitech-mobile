@@ -1,0 +1,51 @@
+diff --git a/node_modules/expo-audio/android/src/main/java/expo/modules/audio/service/AudioRecordingService.kt b/node_modules/expo-audio/android/src/main/java/expo/modules/audio/service/AudioRecordingService.kt
+index 2c92303..c0c1488 100644
+--- a/node_modules/expo-audio/android/src/main/java/expo/modules/audio/service/AudioRecordingService.kt
++++ b/node_modules/expo-audio/android/src/main/java/expo/modules/audio/service/AudioRecordingService.kt
+@@ -55,16 +55,26 @@ class AudioRecordingService : Service() {
+     return START_NOT_STICKY
+   }
+ 
++  private fun localized(name: String, fallback: String): String {
++    val id = resources.getIdentifier(name, "string", packageName)
++    if (id == 0) return fallback
++    return try {
++      getString(id)
++    } catch (e: android.content.res.Resources.NotFoundException) {
++      fallback
++    }
++  }
++
+   private fun createNotificationChannelIfNeeded() {
+     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+       val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+       if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
+         val channel = NotificationChannel(
+           CHANNEL_ID,
+-          "Audio Recording",
++          localized("expo_audio_recording_channel", "Audio Recording"),
+           NotificationManager.IMPORTANCE_LOW
+         ).apply {
+-          description = "Shows when audio is being recorded in the background"
++          description = localized("expo_audio_recording_channel_description", "Shows when audio is being recorded in the background")
+           setShowBadge(false)
+           enableVibration(false)
+           enableLights(false)
+@@ -96,14 +106,14 @@ class AudioRecordingService : Service() {
+     }
+ 
+     return NotificationCompat.Builder(this, CHANNEL_ID)
+-      .setContentTitle("Recording audio")
+-      .setContentText("Tap to return to app")
++      .setContentTitle(localized("expo_audio_recording_title", "Recording audio"))
++      .setContentText(localized("expo_audio_recording_text", "Tap to return to app"))
+       .setSmallIcon(android.R.drawable.ic_btn_speak_now)
+       .setOngoing(true)
+       .setContentIntent(contentIntent)
+       .addAction(
+         android.R.drawable.ic_delete,
+-        "Stop",
++        localized("expo_audio_recording_stop", "Stop"),
+         stopPendingIntent
+       )
+       .setCategory(NotificationCompat.CATEGORY_SERVICE)

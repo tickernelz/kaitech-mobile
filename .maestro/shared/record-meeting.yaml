@@ -1,0 +1,41 @@
+appId: io.kaitech.mobile
+name: Start recording a new meeting from the MoM tab, answering the first-use permission prompts
+---
+- tapOn:
+    id: tab-button-mom
+- extendedWaitUntil:
+    visible:
+      id: mom-record
+    timeout: 60000
+- tapOn:
+    id: mom-record
+- extendedWaitUntil:
+    visible:
+      id: setup-start
+    timeout: 30000
+- runFlow:
+    file: screenshot.yaml
+    env:
+      SCREEN: m0-setup
+- tapOn:
+    id: setup-consent
+- tapOn:
+    id: setup-start
+- runFlow:
+    when:
+      visible:
+        text: (While using the app|Saat aplikasi digunakan)
+    commands:
+      - tapOn:
+          text: (While using the app|Saat aplikasi digunakan)
+- runFlow:
+    when:
+      visible:
+        text: (Allow|Izinkan)
+    commands:
+      - tapOn:
+          text: (Allow|Izinkan)
+- extendedWaitUntil:
+    visible:
+      id: recorder-time
+    timeout: 30000

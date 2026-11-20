@@ -1,0 +1,81 @@
+appId: io.kaitech.mobile
+name: Read the seeded test meeting minutes, items, transcript and Final MoM, then open the sign-off sheet
+---
+- scrollUntilVisible:
+    element:
+      id: meeting-${MINUTES_MEETING}
+- tapOn:
+    id: meeting-${MINUTES_MEETING}
+- extendedWaitUntil:
+    visible:
+      id: decision-0
+    timeout: 30000
+- runFlow:
+    file: screenshot.yaml
+    env:
+      SCREEN: m3-minutes
+- tapOn:
+    id: meeting-tab-items
+- extendedWaitUntil:
+    visible:
+      id: item-[0-9]+
+    timeout: 10000
+- runFlow:
+    file: screenshot.yaml
+    env:
+      SCREEN: m3-items
+- tapOn:
+    id: meeting-tab-transcript
+- extendedWaitUntil:
+    visible:
+      id: (transcript-list|transcript-error)
+    timeout: 30000
+- runFlow:
+    file: screenshot.yaml
+    env:
+      SCREEN: m3-transcript
+- tapOn:
+    id: meeting-tab-final
+- extendedWaitUntil:
+    visible:
+      id: final-paper
+    timeout: 30000
+- runFlow:
+    file: screenshot.yaml
+    env:
+      SCREEN: m4-final
+- runFlow:
+    when:
+      visible:
+        id: final-sign
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: final-sign
+      - tapOn:
+          id: final-sign
+      - extendedWaitUntil:
+          visible:
+            id: signer-[0-9]+
+          timeout: 30000
+      - tapOn:
+          id: signer-[0-9]+
+          index: 0
+      - runFlow:
+          file: screenshot.yaml
+          env:
+            SCREEN: m5-sign
+      - runFlow:
+          when:
+            true: ${SIGN === '1'}
+          commands:
+            - tapOn:
+                id: sign-confirm
+            - extendedWaitUntil:
+                visible:
+                  id: stage-reviewed
+                timeout: 30000
+            - runFlow:
+                file: screenshot.yaml
+                env:
+                  SCREEN: m6-signed

@@ -1,7 +1,3 @@
-import { useTranslation } from 'react-i18next';
-import { TabScreen } from '../../screens/TabScreen';
+import { MomHome } from '../../features/mom/MomHome';
 
-export default function Mom() {
-  const { t } = useTranslation();
-  return <TabScreen title={t('tabs.mom')} testID="tab-mom" />;
-}
+export default MomHome;

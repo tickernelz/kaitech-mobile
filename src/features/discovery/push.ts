@@ -11,6 +11,10 @@ export function routeForPush(data: PushData): Href | null {
   const programme = idOf(data.engagement_id);
   const target = idOf(data.res_id);
   if (!programme || !target) return null;
+  if (data.type === 'mom_minutes') {
+    const meeting = idOf(data.meeting_id);
+    return meeting ? { pathname: '/mom/[meeting]', params: { meeting } } : null;
+  }
   if (data.type === 'discovery_card' || data.type === 'discovery_card_restated') {
     const conversation = idOf(data.conversation_id);
     return {

@@ -1,0 +1,82 @@
+appId: io.kaitech.mobile
+name: MoM record with marker, pause and rotation, upload, minutes, items, transcript, Final MoM and sign-off sheet
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/record-meeting.yaml
+- tapOn:
+    id: recorder-mark
+- extendedWaitUntil:
+    visible:
+      id: marker-text
+    timeout: 5000
+- tapOn:
+    id: marker-text
+- inputText: ${MARKER}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m2-rec
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'portrait'}
+    commands:
+      - setOrientation: LANDSCAPE_LEFT
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'landscape'}
+    commands:
+      - setOrientation: PORTRAIT
+- extendedWaitUntil:
+    visible:
+      id: recorder-time
+    timeout: 10000
+- assertVisible:
+    text: ${MARKER}
+- runFlow:
+    file: ../shared/screenshot-rotated.yaml
+    env:
+      SCREEN: m2-rec-rotated
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'portrait'}
+    commands:
+      - setOrientation: PORTRAIT
+- runFlow:
+    when:
+      true: ${ORIENTATION === 'landscape'}
+    commands:
+      - setOrientation: LANDSCAPE_LEFT
+- tapOn:
+    id: recorder-pause
+- assertVisible:
+    id: recorder-resume
+- tapOn:
+    id: recorder-resume
+- tapOn:
+    id: recorder-stop
+- tapOn:
+    text: (?i)(finish|selesai)
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: upload-done
+    timeout: 180000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m1-home-uploaded
+- runFlow:
+    when:
+      true: ${MINUTES_MEETING !== undefined && MINUTES_MEETING !== ''}
+    file: ../shared/read-minutes.yaml

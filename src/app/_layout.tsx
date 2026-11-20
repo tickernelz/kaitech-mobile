@@ -1,4 +1,5 @@
 import '../i18n';
+import '../features/mom/uploads';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -45,6 +46,7 @@ export default function RootLayout() {
           <Stack.Protected guard={signedIn && session.onboarded} redirectTo={home}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="program" />
+            <Stack.Screen name="mom" />
             <Stack.Screen name="search" options={{ animation: 'fade' }} />
             <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
             <Stack.Screen name="add-account" options={{ presentation: 'modal' }} />
