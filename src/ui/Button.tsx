@@ -41,7 +41,7 @@ export function Button({
         {busy ? (
           <ActivityIndicator color={ink} />
         ) : (
-          <Text variant="headline" style={{ color: ink }}>
+          <Text variant="headline" style={[styles.label, { color: ink }]}>
             {label}
           </Text>
         )}
@@ -58,4 +58,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  label: { textAlign: 'center' },
 });

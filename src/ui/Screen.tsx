@@ -21,7 +21,7 @@ export function Screen({
 }) {
   const { colors } = useTheme();
   const body = scroll ? (
-    <ScrollView contentContainerStyle={[styles.content, contentStyle]} keyboardShouldPersistTaps="handled">
+    <ScrollView contentContainerStyle={[styles.content, styles.grow, contentStyle]} keyboardShouldPersistTaps="handled">
       {children}
     </ScrollView>
   ) : (
@@ -39,6 +39,7 @@ export function Screen({
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  grow: { flexGrow: 1 },
   content: { paddingHorizontal: space.xl, paddingTop: space.lg, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   footer: { paddingHorizontal: space.xl, paddingBottom: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
 });

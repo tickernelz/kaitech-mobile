@@ -25,6 +25,7 @@ export default function Welcome() {
   const other = language === 'id' ? 'en' : 'id';
   return (
     <Screen
+      scroll
       testID="welcome"
       footer={
         <Animated.View entering={rise(3)} style={styles.footer}>
