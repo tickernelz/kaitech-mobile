@@ -59,10 +59,14 @@ export class Realtime {
   }
 
   reconnectNow() {
-    if (!this.running || this.socket) return;
+    if (!this.running) return;
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
     this.attempts = 0;
+    const stale = this.socket;
+    this.socket = null;
+    this.generation += 1;
+    stale?.close(1000);
     void this.connect(false);
   }
 

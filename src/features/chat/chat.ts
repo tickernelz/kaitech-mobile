@@ -337,8 +337,8 @@ export function startChat(account: Account) {
     const online = network.isConnected !== false && network.isInternetReachable !== false;
     const wasOnline = state.online;
     set({ online });
+    if (online !== wasOnline) realtime?.reconnectNow();
     if (online && !wasOnline) {
-      realtime?.reconnectNow();
       void flush();
       void refreshConversations();
     }
