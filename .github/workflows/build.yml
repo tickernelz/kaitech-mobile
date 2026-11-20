@@ -196,9 +196,14 @@ jobs:
           gitleaks dir --redact --verbose --exit-code 1 "$RUNNER_TEMP/ipa"
 
   ipad-simulator:
-    name: ipad simulator (trial)
+    name: ipad simulator ${{ matrix.locale }} (trial)
     runs-on: xcode-27
-    timeout-minutes: 75
+    timeout-minutes: 60
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        locale: [en-US, id-ID]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -234,7 +239,7 @@ jobs:
           fi
           grep -E '^\*\* BUILD' build/xcodebuild.log
       - name: Run Maestro flows on an iPad simulator
-        run: bash scripts/e2e-ipad.sh build/ios/Build/Products/Release-iphonesimulator/Kaitech.app e2e-output
+        run: bash scripts/e2e-ipad.sh build/ios/Build/Products/Release-iphonesimulator/Kaitech.app e2e-output ${{ matrix.locale }}
       - name: Scan E2E output for secrets
         id: scan-e2e
         if: always()
@@ -247,7 +252,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && steps.scan-e2e.outcome == 'success'
         with:
-          name: e2e-ipad
+          name: e2e-ipad-${{ matrix.locale }}
           path: e2e-output/
           if-no-files-found: warn
           retention-days: 30

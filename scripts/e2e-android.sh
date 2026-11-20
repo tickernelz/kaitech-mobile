@@ -40,6 +40,10 @@ for _ in $(seq 1 120); do
 done
 echo "framework config: ${config:-none} (expected $language-r$region)" | tee "$out/locale.txt"
 [ -n "$ready" ] || { echo "framework did not come up in $locale" >&2; exit 1; }
+for _ in $(seq 1 60); do
+  [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ] && break
+  sleep 2
+done
 sleep 5
 
 natural="$(adb shell wm size | tr -d '\r' | sed -n 's/^Physical size: //p')"
@@ -67,11 +71,22 @@ adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' 
 
 activity="$(adb shell cmd package resolve-activity --brief io.kaitech.mobile | tr -d '\r' | tail -1)"
 adb shell am start -W -n "$activity" > /dev/null
-for _ in $(seq 1 20); do
-  rotation_state | grep -q "mRotation=ROTATION_$((rotation * 90)) " && break
+target="mRotation=ROTATION_$((rotation * 90)) "
+stable=0
+for _ in $(seq 1 60); do
+  if rotation_state | grep -q "$target"; then
+    stable=$((stable + 1))
+    [ "$stable" -ge 10 ] && break
+  else
+    stable=0
+    echo "rotation drifted, locking again: $(rotation_state)" | tee -a "$out/display.txt"
+    adb shell cmd window user-rotation lock "$rotation"
+  fi
   sleep 1
 done
 echo "app in front: $(rotation_state)" | tee -a "$out/display.txt"
+adb shell dumpsys window displays | tr -d '\r' | sed -n '/DisplayRotation/,/^ *$/p' > "$out/rotation-dump.txt" || true
+[ "$stable" -ge 10 ] || { echo "rotation did not hold at $((rotation * 90)) degrees" >&2; exit 1; }
 
 recording="e2e-android-$cell.mp4"
 adb shell screenrecord --bit-rate 4000000 --time-limit 170 "/sdcard/$recording" &
