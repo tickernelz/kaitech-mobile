@@ -1,39 +1,22 @@
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSession } from '../auth/session';
 import { Panes } from '../layout/Panes';
 import { space, useTheme } from '../theme';
 import { Text } from '../ui/Text';
 import { Wordmark } from '../ui/Wordmark';
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase() || 'K';
-}
+import { HeaderActions } from './HeaderActions';
 
 export function TabScreen({ title, testID }: { title: string; testID: string }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const router = useRouter();
-  const { active } = useSession();
   const list = (
     <View style={styles.pane}>
       <View style={styles.header}>
         <Text variant="display" accessibilityRole="header" style={styles.title}>
           {title}
         </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('tabs.profile')}
-          onPress={() => router.push('/settings')}
-          testID="open-settings"
-          style={({ pressed }) => [styles.avatar, { backgroundColor: colors.select, opacity: pressed ? 0.8 : 1 }]}>
-          <Text variant="label" tone="selectInk">
-            {initials(active?.name ?? '')}
-          </Text>
-        </Pressable>
+        <HeaderActions />
       </View>
       <View style={styles.empty}>
         <Text variant="headline" style={styles.center}>
@@ -64,7 +47,6 @@ const styles = StyleSheet.create({
   pane: { flex: 1, paddingHorizontal: space.xl, paddingTop: space.lg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
   title: { flex: 1 },
-  avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.sm, paddingBottom: space.xxxl },
   center: { textAlign: 'center' },
   detail: { flex: 1, alignItems: 'center', justifyContent: 'center' },

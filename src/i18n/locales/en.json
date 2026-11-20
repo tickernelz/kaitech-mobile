@@ -102,5 +102,171 @@
     "body": "Sign in again to keep using {{server}}.",
     "signIn": "Sign in again",
     "remove": "Remove this account"
+  },
+  "discovery": {
+    "loading": "Loading",
+    "retry": "Try again",
+    "back": "Back",
+    "errors": {
+      "forbidden": "Your account can't open this. Ask the programme lead for access.",
+      "not_found": "This item no longer exists.",
+      "refused": "The server didn't accept this. Refresh and try again.",
+      "server": "The server ran into a problem. Please try again later.",
+      "unknown": "Something went wrong. Please try again.",
+      "key_invalid": "This question couldn't be sent. Please try again.",
+      "key_conflict": "This question was already sent with different words. Send it again as a new question.",
+      "conversation_invalid": "This conversation is no longer available.",
+      "conversation_not_found": "This conversation is no longer available.",
+      "programme_invalid": "This programme is no longer available.",
+      "programme_not_found": "This programme is no longer available.",
+      "request_missing": "Type a question first.",
+      "coworker_retired": "This programme's Coworker is no longer active.",
+      "ask_refused": "The Coworker can't take this question in this conversation.",
+      "agree_invalid": "That answer couldn't be recorded. Please try again.",
+      "card_invalid": "This card is no longer available.",
+      "card_not_found": "This card is no longer available.",
+      "card_not_awaiting": "This card was already answered.",
+      "card_refused": "This card isn't yours to answer.",
+      "search_too_long": "Use at most 64 characters."
+    },
+    "home": {
+      "gates": "{{signed}} of {{total}} gates signed",
+      "evidence": "Evidence",
+      "findings": "Findings",
+      "sources": "Documents",
+      "questions": "Questions answered",
+      "answered": "{{answered}} of {{total}}",
+      "ask": "Ask the Coworker about {{name}}",
+      "switch": "Programme: {{name}}. Switch programme",
+      "noneTitle": "No programme yet",
+      "noneBody": "Programmes you are part of appear here.",
+      "waiting": "Waiting for you",
+      "explore": "Explore",
+      "evidenceAndFindings": "Findings and evidence",
+      "evidenceAndFindingsBody": "Quotes from interviews, documents and meetings",
+      "conversations": "Coworker conversations",
+      "recent": "New findings"
+    },
+    "thread": {
+      "title": "Coworker",
+      "new": "New conversation",
+      "emptyTitle": "Ask the Coworker anything about this programme",
+      "emptyBody": "Answers come from the programme record, with the evidence behind them.",
+      "placeholder": "Ask the Coworker",
+      "send": "Send",
+      "sending": "Sending",
+      "failed": "The Coworker could not finish this answer.",
+      "working": "The Coworker is working",
+      "waitingForYou": "The Coworker is waiting for your answer",
+      "steps_one": "{{count}} step",
+      "steps_other": "{{count}} steps"
+    },
+    "card": {
+      "title": "Decision card",
+      "needsYou": "Needs your decision",
+      "confirm": "Confirm what the Coworker understood",
+      "settled": "Decided",
+      "withdrawn": "Withdrawn",
+      "accepted": "Accepted",
+      "held": "Held back",
+      "doubtful": "Uncertain",
+      "saidBack": "What {{name}} said, as the Coworker understood it",
+      "decidedByYou": "You decided this card.",
+      "decidedBy": "Decided by {{name}}.",
+      "replyHint": "Reply to the Coworker in the conversation to decide this card.",
+      "agree": "Yes, that is right",
+      "contradict": "No, that's not it",
+      "openThread": "Open the conversation"
+    },
+    "finding": {
+      "title": "Finding",
+      "sides_one": "{{count}} piece of evidence",
+      "sides_other": "{{count}} pieces of evidence",
+      "evidence_one": "Evidence ({{count}})",
+      "evidence_other": "Evidence ({{count}})",
+      "usedIn": "Used in",
+      "ask": "Ask about this finding",
+      "askPrefill": "Explain the finding \"{{name}}\" and its evidence.",
+      "noneTitle": "No findings yet",
+      "noneBody": "Findings appear once the Coworker compares the evidence.",
+      "kind": {
+        "conflict": "Conflicting",
+        "corroboration": "Corroborated",
+        "implied_requirement": "Implied requirement"
+      },
+      "state": {
+        "draft": "Not reviewed",
+        "accepted": "Accepted",
+        "dismissed": "Dismissed"
+      }
+    },
+    "source": {
+      "document": "Document",
+      "interview": "Interview",
+      "consultant": "Consultant",
+      "legacy": "Client system",
+      "prototype": "Prototype feedback",
+      "meeting": "Meeting",
+      "other": "Other source"
+    },
+    "evidence": {
+      "withdrawn": "No longer live",
+      "conflict": "Conflicting",
+      "used_one": "Used by {{count}} question",
+      "used_other": "Used by {{count}} questions",
+      "unused": "Not used yet",
+      "noneTitle": "No evidence here yet",
+      "noneBody": "Evidence appears after interviews, documents or meetings are added.",
+      "filter": {
+        "all": "All",
+        "interview": "Interviews",
+        "document": "Documents",
+        "meeting": "Meetings",
+        "other": "Other"
+      }
+    },
+    "pick": {
+      "title": "Choose a programme",
+      "waiting_one": "{{count}} card",
+      "waiting_other": "{{count}} cards"
+    }
+  },
+  "activity": {
+    "waiting": "Waiting for you",
+    "all": "All",
+    "noneTitle": "Nothing waiting",
+    "noneBody": "Cards and questions for you appear here.",
+    "kind": {
+      "card": "Decision card",
+      "coworker_asks": "Coworker question",
+      "answer": "Questions to answer",
+      "chase": "Follow-up",
+      "agenda": "Agenda",
+      "other": "Discovery"
+    }
+  },
+  "search": {
+    "open": "Search",
+    "placeholder": "Search messages, programmes, meetings",
+    "close": "Close search",
+    "all": "All",
+    "filter": "{{name}} {{count}}",
+    "groups": {
+      "chat": "Messages",
+      "discovery": "Discovery",
+      "mom": "Meetings"
+    },
+    "kind": {
+      "programme": "Programme",
+      "conversation": "Coworker conversation",
+      "card": "Decision card",
+      "recording": "Recording",
+      "minutes": "Minutes"
+    },
+    "ask": "Ask the Coworker: \"{{q}}\"",
+    "noneTitle": "No results",
+    "noneBody": "Try other words, or ask the Coworker.",
+    "hintTitle": "Search everything",
+    "hintBody": "Messages, Discovery and meetings in one place."
   }
 }

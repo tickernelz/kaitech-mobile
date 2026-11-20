@@ -42,6 +42,8 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
           <Stack.Protected guard={signedIn && session.onboarded} redirectTo={home}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="program" />
+            <Stack.Screen name="search" options={{ animation: 'fade' }} />
             <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
             <Stack.Screen name="add-account" options={{ presentation: 'modal' }} />
           </Stack.Protected>

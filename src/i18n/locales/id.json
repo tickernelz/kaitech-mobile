@@ -102,5 +102,171 @@
     "body": "Masuk lagi untuk tetap memakai {{server}}.",
     "signIn": "Masuk lagi",
     "remove": "Hapus akun ini"
+  },
+  "discovery": {
+    "loading": "Memuat",
+    "retry": "Coba lagi",
+    "back": "Kembali",
+    "errors": {
+      "forbidden": "Akun Anda tidak dapat membuka ini. Mintalah akses kepada pemimpin program.",
+      "not_found": "Item ini sudah tidak ada.",
+      "refused": "Server tidak menerima permintaan ini. Muat ulang, lalu coba lagi.",
+      "server": "Server sedang bermasalah. Silakan coba lagi nanti.",
+      "unknown": "Terjadi kesalahan. Silakan coba lagi.",
+      "key_invalid": "Pertanyaan ini tidak dapat dikirim. Silakan coba lagi.",
+      "key_conflict": "Pertanyaan ini sudah pernah dikirim dengan kata yang berbeda. Kirim ulang sebagai pertanyaan baru.",
+      "conversation_invalid": "Percakapan ini sudah tidak tersedia.",
+      "conversation_not_found": "Percakapan ini sudah tidak tersedia.",
+      "programme_invalid": "Program ini sudah tidak tersedia.",
+      "programme_not_found": "Program ini sudah tidak tersedia.",
+      "request_missing": "Tulis pertanyaan terlebih dahulu.",
+      "coworker_retired": "Coworker program ini sudah tidak aktif.",
+      "ask_refused": "Coworker tidak dapat menerima pertanyaan ini di percakapan ini.",
+      "agree_invalid": "Jawaban itu tidak dapat dicatat. Silakan coba lagi.",
+      "card_invalid": "Kartu ini sudah tidak tersedia.",
+      "card_not_found": "Kartu ini sudah tidak tersedia.",
+      "card_not_awaiting": "Kartu ini sudah dijawab.",
+      "card_refused": "Kartu ini bukan untuk Anda jawab.",
+      "search_too_long": "Gunakan paling banyak 64 karakter."
+    },
+    "home": {
+      "gates": "{{signed}} dari {{total}} gerbang ditandatangani",
+      "evidence": "Bukti",
+      "findings": "Temuan",
+      "sources": "Dokumen",
+      "questions": "Pertanyaan terjawab",
+      "answered": "{{answered}} dari {{total}}",
+      "ask": "Tanya Coworker tentang {{name}}",
+      "switch": "Program: {{name}}. Ganti program",
+      "noneTitle": "Belum ada program",
+      "noneBody": "Program yang Anda ikuti akan tampil di sini.",
+      "waiting": "Menunggu Anda",
+      "explore": "Jelajahi",
+      "evidenceAndFindings": "Temuan dan bukti",
+      "evidenceAndFindingsBody": "Kutipan dari wawancara, dokumen, dan rapat",
+      "conversations": "Percakapan Coworker",
+      "recent": "Temuan baru"
+    },
+    "thread": {
+      "title": "Coworker",
+      "new": "Percakapan baru",
+      "emptyTitle": "Tanyakan apa saja tentang program ini kepada Coworker",
+      "emptyBody": "Jawaban diambil dari catatan program, lengkap dengan buktinya.",
+      "placeholder": "Tanya Coworker",
+      "send": "Kirim",
+      "sending": "Mengirim",
+      "failed": "Coworker tidak dapat menyelesaikan jawaban ini.",
+      "working": "Coworker sedang bekerja",
+      "waitingForYou": "Coworker menunggu jawaban Anda",
+      "steps_one": "{{count}} langkah",
+      "steps_other": "{{count}} langkah"
+    },
+    "card": {
+      "title": "Kartu keputusan",
+      "needsYou": "Butuh keputusan Anda",
+      "confirm": "Pastikan pemahaman Coworker",
+      "settled": "Sudah diputuskan",
+      "withdrawn": "Ditarik",
+      "accepted": "Diterima",
+      "held": "Ditahan",
+      "doubtful": "Belum pasti",
+      "saidBack": "Ucapan {{name}} menurut pemahaman Coworker",
+      "decidedByYou": "Anda yang memutuskan kartu ini.",
+      "decidedBy": "Diputuskan oleh {{name}}.",
+      "replyHint": "Balas Coworker di percakapan untuk memutuskan kartu ini.",
+      "agree": "Ya, benar",
+      "contradict": "Bukan itu maksud saya",
+      "openThread": "Buka percakapan"
+    },
+    "finding": {
+      "title": "Temuan",
+      "sides_one": "{{count}} bukti",
+      "sides_other": "{{count}} bukti",
+      "evidence_one": "Bukti ({{count}})",
+      "evidence_other": "Bukti ({{count}})",
+      "usedIn": "Dipakai di",
+      "ask": "Tanya tentang temuan ini",
+      "askPrefill": "Jelaskan temuan \"{{name}}\" beserta buktinya.",
+      "noneTitle": "Belum ada temuan",
+      "noneBody": "Temuan muncul setelah Coworker membandingkan bukti.",
+      "kind": {
+        "conflict": "Bertentangan",
+        "corroboration": "Saling menguatkan",
+        "implied_requirement": "Kebutuhan tersirat"
+      },
+      "state": {
+        "draft": "Belum ditinjau",
+        "accepted": "Diterima",
+        "dismissed": "Ditolak"
+      }
+    },
+    "source": {
+      "document": "Dokumen",
+      "interview": "Wawancara",
+      "consultant": "Konsultan",
+      "legacy": "Sistem klien",
+      "prototype": "Masukan prototipe",
+      "meeting": "Rapat",
+      "other": "Sumber lain"
+    },
+    "evidence": {
+      "withdrawn": "Sudah tidak berlaku",
+      "conflict": "Bertentangan",
+      "used_one": "Dipakai {{count}} pertanyaan",
+      "used_other": "Dipakai {{count}} pertanyaan",
+      "unused": "Belum dipakai",
+      "noneTitle": "Belum ada bukti di sini",
+      "noneBody": "Bukti muncul setelah wawancara, dokumen, atau rapat ditambahkan.",
+      "filter": {
+        "all": "Semua",
+        "interview": "Wawancara",
+        "document": "Dokumen",
+        "meeting": "Rapat",
+        "other": "Lainnya"
+      }
+    },
+    "pick": {
+      "title": "Pilih program",
+      "waiting_one": "{{count}} kartu",
+      "waiting_other": "{{count}} kartu"
+    }
+  },
+  "activity": {
+    "waiting": "Menunggu Anda",
+    "all": "Semua",
+    "noneTitle": "Tidak ada yang menunggu",
+    "noneBody": "Kartu dan pertanyaan untuk Anda akan tampil di sini.",
+    "kind": {
+      "card": "Kartu keputusan",
+      "coworker_asks": "Pertanyaan Coworker",
+      "answer": "Pertanyaan untuk dijawab",
+      "chase": "Tindak lanjut",
+      "agenda": "Agenda",
+      "other": "Discovery"
+    }
+  },
+  "search": {
+    "open": "Cari",
+    "placeholder": "Cari pesan, program, rapat",
+    "close": "Tutup pencarian",
+    "all": "Semua",
+    "filter": "{{name}} {{count}}",
+    "groups": {
+      "chat": "Pesan",
+      "discovery": "Discovery",
+      "mom": "Rapat"
+    },
+    "kind": {
+      "programme": "Program",
+      "conversation": "Percakapan Coworker",
+      "card": "Kartu keputusan",
+      "recording": "Rekaman",
+      "minutes": "Notulen"
+    },
+    "ask": "Tanya Coworker: \"{{q}}\"",
+    "noneTitle": "Tidak ada hasil",
+    "noneBody": "Coba kata lain, atau tanyakan kepada Coworker.",
+    "hintTitle": "Cari semuanya",
+    "hintBody": "Pesan, Discovery, dan rapat dalam satu tempat."
   }
 }

@@ -1,0 +1,4 @@
+appId: io.kaitech.mobile
+name: Screenshot taken while the screen is turned away from the cell orientation
+---
+- takeScreenshot: ${SCREEN}-${DEVICE_SIZE}-rotated-${APP_LANGUAGE}

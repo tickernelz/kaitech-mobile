@@ -204,6 +204,18 @@ Semua screenshot sel disalin ke `screenshots/`. `scripts/check-screenshots.mjs` 
 
 Alur masuk sampai keluar ada di `.maestro/signed-in/` dan tidak ikut `maestro test .maestro` di CI, karena butuh server, akun uji, dan build dengan `KAITECH_LINK_HOST`. Jalankan dengan `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATION=portrait -e SERVER=<alamat> -e LOGIN=<akun> -e PASSWORD=<sandi> .maestro/signed-in`; nilainya jangan pernah ditulis ke repo, log, atau artefak publik.
 
+Alur `signed-in/discovery.yaml` masuk bila perlu, lalu membuka beranda Program, temuan dan buktinya, bertanya ke Coworker (di ponsel Android layar diputar di tengah mengetik untuk membuktikan draf tetap ada), kartu keputusan bila ada yang menunggu, cari gabungan, dan Aktivitas. Variabel tambahan: `-e QUESTION=<pertanyaan> -e SEARCH=<kata>`. Jalankan hanya dengan akun uji yang hanya menjadi anggota Program uji; rekaman memuat isi Program.
+
+### Klien server (`src/api`)
+
+`bearer()` memanggil rute `/kaitech_mobile/*` dengan token perangkat. `rpc()` memanggil metode model Odoo lewat `/web/dataset/call_kw` memakai sesi dari `POST /kaitech_mobile/session`: sesi disimpan di memori per akun, diperbarui semenit sebelum habis atau sekali saat server menjawab sesi kedaluwarsa, dan dikirim sebagai cookie `session_id` dengan `credentials: 'omit'` supaya jar cookie bawaan tidak ikut. Konteks `lang` mengikuti bahasa aplikasi, jadi label buatan server (status, judul agenda) tampil dalam bahasa yang sama. Galat server dipetakan ke kode stabil (`error_code` rute, atau `forbidden`, `not_found`, `refused`, `server` dari exception Odoo); teks penggunanya ada di katalog. Token 401 menandai sesi berakhir. `useResource()` menyimpan hasil per akun di memori, menyegarkan saat layar kembali fokus bila sudah basi, dan dikosongkan saat akun keluar.
+
+### Discovery (`src/features/discovery`)
+
+Semua baca memakai metode yang sama dengan layar web (`chat_contexts`, `programme_panel`, `fetch_transcript`, `read_packets`, `briefing_for_me`, `search_read` pada `ck.evidence`, `ck.finding`, `ck.finding.side`), jadi aturan akses Odoo yang menentukan isi. Tulis hanya lewat `/kaitech_mobile/discovery/ask` (kunci idempoten per pertanyaan, kirim ulang memakai kunci yang sama) dan `/discovery/answer` (setuju atau bukan pada kartu yang menunggu konfirmasi orang); HP tidak membuat kartu. Jawaban Coworker tampil apa adanya; langkah alatnya dilipat jadi satu baris. Transkrip dibaca ulang tiap 2,5 detik hanya selama giliran masih berjalan, layar fokus, dan aplikasi aktif. Draf pertanyaan disimpan per Program dan percakapan di luar pohon layar, jadi tidak hilang saat rotasi atau ganti ukuran jendela, dan dihapus saat akun keluar.
+
+Di jendela expanded (840 dp ke atas) beranda Program dan utas Coworker tampil berdampingan, temuan di kiri dan buktinya di kanan, kartu dari notifikasi di kanan dengan kartu terbuka lain di kiri. `routeForPush()` memetakan push `discovery_card`, `discovery_card_restated`, dan `discovery_answer` ke layar kartu atau utas.
+
 ## Lisensi
 
 MIT, lihat `LICENSE`.

@@ -103,8 +103,15 @@ export function markExpired() {
   if (state.activeId) set({ expired: true });
 }
 
+const forgetListeners = new Set<(id: string) => void>();
+
+export function onAccountForgotten(listener: (id: string) => void) {
+  forgetListeners.add(listener);
+}
+
 async function forget(id: string) {
   await SecureStore.deleteItemAsync(tokenKey(id), secure);
+  forgetListeners.forEach((listener) => listener(id));
   const remaining = state.accounts.filter((account) => account.id !== id);
   set({
     accounts: remaining,
