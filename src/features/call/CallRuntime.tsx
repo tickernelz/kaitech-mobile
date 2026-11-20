@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -12,6 +12,7 @@ import type { Account } from '../../auth/oauth';
 
 export function CallRuntime({ account }: { account: Account | null }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { t } = useTranslation('call');
   const { colors } = useTheme();
   const call = useCallState();
@@ -30,7 +31,7 @@ export function CallRuntime({ account }: { account: Account | null }) {
   if (call.phase === 'incoming') return <IncomingCall />;
 
   const inCall = call.phase === 'active' || call.phase === 'reconnecting' || call.phase === 'connecting';
-  if (!inCall) return null;
+  if (!inCall || pathname.startsWith('/call/')) return null;
 
   return (
     <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/call/[id]', params: { id: String(call.channelId) } })} style={[styles.banner, { backgroundColor: colors.primary }]} testID="call-banner">

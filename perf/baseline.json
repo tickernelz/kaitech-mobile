@@ -1,10 +1,10 @@
 {
   "metrics": {
     "android.apk_x86_64_bytes": {
-      "value": 55396270,
+      "value": 56207225,
       "maxIncrease": 0.15,
       "unit": "bytes",
-      "source": "run 44802787131, SHA 6cab11b; F2 Calls (ZHA-7240): @livekit/react-native-webrtc 150.2.0 native libraries (WebRTC per ABI), livekit-client, the local Android call module (CallStyle ring service, picture-in-picture) and the call screens; the CI table printed 52.83 MiB; was 32.89 MiB at 4dd7f09^ (F1 Chat)"
+      "source": "run 44824949991, SHA e866df1 (exact bytes from the perf artifact); F2 Calls (ZHA-7240): @livekit/react-native-webrtc 150.2.0 native libraries, livekit-client loaded eagerly by the call screen, the local Android call module and the call screens; was 55396270 at 6cab11b"
     },
     "android.apk_universal_bytes": {
       "value": 104683865,
@@ -13,22 +13,22 @@
       "source": "local release build of SHA e011ed8 with the CI Gradle and NDK (its x86_64 APK matched run 44692239972 byte for byte); PR runs skip this job; F0 app shell (ZHA-7236): expo-router, Reanimated, react-native-svg, expo-sqlite, i18next; was 66719031 at ca0fc0f"
     },
     "android.js_bundle_bytes": {
-      "value": 5840568,
+      "value": 6632972,
       "maxIncrease": 0.15,
       "unit": "bytes",
-      "source": "run 44802787131, SHA 6cab11b; F2 Calls (ZHA-7240): the call store, api, store parsers, adaptive grid, call and incoming screens, call namespace catalogues, deferred @livekit/react-native and livekit-client loading; the CI table printed 5.57 MiB; was 3.88 MiB at 4dd7f09^ (F1 Chat)"
+      "source": "run 44824949991, SHA e866df1 (exact bytes from the perf artifact); F2 Calls (ZHA-7240): @livekit/react-native-webrtc 150.2.0 native libraries, livekit-client loaded eagerly by the call screen, the local Android call module and the call screens; was 5840568 at 6cab11b"
     },
     "ios.ipa_bytes": {
-      "value": 22429041,
+      "value": 22884555,
       "maxIncrease": 0.15,
       "unit": "bytes",
-      "source": "run 44802787131, SHA 6cab11b; F2 Calls (ZHA-7240): LiveKitWebRTC pods, livekit-client, the call screens; the CI table printed 21.39 MiB; was 13.76 MiB at 4dd7f09^ (F1 Chat)"
+      "source": "run 44824949991, SHA e866df1 (exact bytes from the perf artifact); F2 Calls (ZHA-7240): @livekit/react-native-webrtc 150.2.0 native libraries, livekit-client loaded eagerly by the call screen, the local Android call module and the call screens; was 22428369 at 6cab11b"
     },
     "ios.js_bundle_bytes": {
-      "value": 7130317,
+      "value": 8123359,
       "maxIncrease": 0.15,
       "unit": "bytes",
-      "source": "run 44802787131, SHA 6cab11b; F2 Calls (ZHA-7240): the call store, api, store parsers, adaptive grid, call and incoming screens, call namespace catalogues; the CI table printed 6.80 MiB; was 4.71 MiB at 4dd7f09^ (F1 Chat)"
+      "source": "run 44824949991, SHA e866df1 (exact bytes from the perf artifact); F2 Calls (ZHA-7240): @livekit/react-native-webrtc 150.2.0 native libraries, livekit-client loaded eagerly by the call screen, the local Android call module and the call screens; was 7130317 at 6cab11b"
     },
     "android.cold_start_ms": {
       "value": 1103,

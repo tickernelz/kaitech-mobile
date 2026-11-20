@@ -149,7 +149,7 @@ function collectTracks() {
 }
 
 function partnerOf(participant: LiveParticipant, local: boolean): number | null {
-  if (local) return activeAccount()?.partnerId ?? null;
+  if (local) return (callAccount ?? activeAccount())?.partnerId ?? null;
   const conversation = conversationById(getChat(), state.channelId);
   if (conversation?.type !== 'chat') return null;
   const others = room ? room.remoteParticipants.size : 0;
@@ -561,7 +561,8 @@ function fromNative(action: CallAction) {
   const target = carriesAccount ? accountFromPush(action) : null;
   if (carriesAccount && !target) return;
   if (action.type === 'decline') {
-    if (state.phase === 'incoming' && (!action.channelId || action.channelId === state.channelId)) {
+    const mine = !target || target.id === callAccount?.id;
+    if (state.phase === 'incoming' && mine && (!action.channelId || action.channelId === state.channelId)) {
       void decline();
       return;
     }
@@ -574,7 +575,8 @@ function fromNative(action: CallAction) {
     return;
   }
   if (action.type === 'cancel') {
-    if (state.phase === 'incoming' && (!action.channelId || action.channelId === state.channelId)) reset();
+    const mine = !target || target.id === callAccount?.id;
+    if (state.phase === 'incoming' && mine && (!action.channelId || action.channelId === state.channelId)) reset();
     return;
   }
   void takeLaunch(action, target);
