@@ -1,0 +1,122 @@
+{
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday"
+  },
+  "size": {
+    "bytes_one": "{{count}} byte",
+    "bytes_other": "{{count}} bytes",
+    "kb": "{{value}} KB",
+    "mb": "{{value}} MB"
+  },
+  "list": {
+    "noMessages": "No messages yet",
+    "you": "You",
+    "voice": "Voice message",
+    "files_one": "{{count}} file",
+    "files_other": "{{count}} files",
+    "unreadCount_one": "{{count}} unread message",
+    "unreadCount_other": "{{count}} unread messages",
+    "waiting_one": "{{count}} waiting to send.",
+    "waiting_other": "{{count}} waiting to send.",
+    "filter": {
+      "all": "All",
+      "unread": "Unread",
+      "people": "Direct",
+      "rooms": "Groups & channels"
+    },
+    "offline": "You're offline. Messages you send will go out when you're back online.",
+    "offlineQueued_one": "You're offline. {{count}} message will go out when you're back online.",
+    "offlineQueued_other": "You're offline. {{count}} messages will go out when you're back online.",
+    "iosNoPush": "On iPhone and iPad, new messages arrive while Kaitech is open. Notifications in the background aren't available yet.",
+    "empty": {
+      "all": "No conversations yet.",
+      "unread": "You're all caught up.",
+      "people": "No direct conversations yet.",
+      "rooms": "You're not in any group or channel yet."
+    },
+    "loading": "Loading conversations…"
+  },
+  "errors": {
+    "network": "Can't reach the server. Showing what's saved on this device.",
+    "load": "Couldn't load this right now. Pull down to try again."
+  },
+  "thread": {
+    "openFile": "Open {{name}}",
+    "openImage": "Open picture {{name}}",
+    "you": "You",
+    "read": "Read",
+    "sent": "Sent",
+    "reaction": "{{emoji}} {{count}}",
+    "openSubThread": "Open thread",
+    "failed": "Not sent",
+    "waiting": "Sending…",
+    "retry": "Try again",
+    "discard": "Delete",
+    "olderMessage": "Earlier message",
+    "typing_one": "{{name}} is typing…",
+    "typing_other": "{{name}} are typing…",
+    "kind": {
+      "chat": "Direct message",
+      "group": "Group",
+      "channel": "Channel"
+    },
+    "members": {
+      "group_one": "Group · {{count}} member",
+      "group_other": "Group · {{count}} members",
+      "channel_one": "Channel · {{count}} member",
+      "channel_other": "Channel · {{count}} members"
+    },
+    "back": "Back to conversations",
+    "empty": "No messages here yet. Say hello.",
+    "pickOne": "Pick a conversation to read it here."
+  },
+  "composer": {
+    "voiceLength": "Voice message · {{length}}",
+    "fileFailed": "Couldn't add {{name}}.",
+    "holdToRecord": "Hold to record a voice message, release to send.",
+    "replyingTo": "Replying to {{name}}",
+    "cancelReply": "Cancel reply",
+    "removeFile": "Remove {{name}}",
+    "releaseToCancel": "Release to cancel",
+    "slideToCancel": "Slide left to cancel",
+    "attach": "Attach",
+    "placeholder": "Write a message",
+    "send": "Send",
+    "recordVoice": "Record voice message",
+    "closeSheet": "Close",
+    "attachTitle": "Attach",
+    "source": {
+      "camera": "Camera",
+      "photos": "Photos & videos",
+      "files": "Document"
+    }
+  },
+  "permissions": {
+    "cameraTitle": "Camera access is off",
+    "cameraBody": "Allow camera access for Kaitech in Settings to take photos for your messages.",
+    "microphoneTitle": "Microphone access is off",
+    "microphoneBody": "Allow microphone access for Kaitech in Settings to record voice messages.",
+    "cancel": "Not now",
+    "openSettings": "Open Settings"
+  },
+  "voice": {
+    "play": "Play voice message",
+    "pause": "Pause voice message",
+    "label": "Voice message",
+    "speed": "Playback speed {{rate}} times"
+  },
+  "actions": {
+    "reply": "Reply",
+    "thread": "Reply in thread",
+    "copy": "Copy text",
+    "close": "Close",
+    "react": "React with {{emoji}}",
+    "readBy_one": "Read by {{count}} person",
+    "readBy_other": "Read by {{count}} people",
+    "notRead": "Not read yet"
+  },
+  "push": {
+    "channel": "Messages"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "time": {
+    "today": "Hari ini",
+    "yesterday": "Kemarin"
+  },
+  "size": {
+    "bytes_one": "{{count}} bita",
+    "bytes_other": "{{count}} bita",
+    "kb": "{{value}} KB",
+    "mb": "{{value}} MB"
+  },
+  "list": {
+    "noMessages": "Belum ada pesan",
+    "you": "Anda",
+    "voice": "Pesan suara",
+    "files_one": "{{count}} berkas",
+    "files_other": "{{count}} berkas",
+    "unreadCount_one": "{{count}} pesan belum dibaca",
+    "unreadCount_other": "{{count}} pesan belum dibaca",
+    "waiting_one": "{{count}} menunggu dikirim.",
+    "waiting_other": "{{count}} menunggu dikirim.",
+    "filter": {
+      "all": "Semua",
+      "unread": "Belum dibaca",
+      "people": "Pribadi",
+      "rooms": "Grup & channel"
+    },
+    "offline": "Anda sedang luring. Pesan yang Anda kirim akan terkirim begitu tersambung kembali.",
+    "offlineQueued_one": "Anda sedang luring. {{count}} pesan akan terkirim begitu tersambung kembali.",
+    "offlineQueued_other": "Anda sedang luring. {{count}} pesan akan terkirim begitu tersambung kembali.",
+    "iosNoPush": "Di iPhone dan iPad, pesan baru masuk selama Kaitech terbuka. Notifikasi saat aplikasi tertutup belum tersedia.",
+    "empty": {
+      "all": "Belum ada percakapan.",
+      "unread": "Semua pesan sudah dibaca.",
+      "people": "Belum ada percakapan pribadi.",
+      "rooms": "Anda belum tergabung di grup atau channel mana pun."
+    },
+    "loading": "Memuat percakapan…"
+  },
+  "errors": {
+    "network": "Server tidak dapat dihubungi. Yang tampil adalah data tersimpan di perangkat ini.",
+    "load": "Belum dapat dimuat. Tarik ke bawah untuk mencoba lagi."
+  },
+  "thread": {
+    "openFile": "Buka {{name}}",
+    "openImage": "Buka gambar {{name}}",
+    "you": "Anda",
+    "read": "Dibaca",
+    "sent": "Terkirim",
+    "reaction": "{{emoji}} {{count}}",
+    "openSubThread": "Buka thread",
+    "failed": "Belum terkirim",
+    "waiting": "Mengirim…",
+    "retry": "Coba lagi",
+    "discard": "Hapus",
+    "olderMessage": "Pesan sebelumnya",
+    "typing_one": "{{name}} sedang mengetik…",
+    "typing_other": "{{name}} sedang mengetik…",
+    "kind": {
+      "chat": "Pesan pribadi",
+      "group": "Grup",
+      "channel": "Channel"
+    },
+    "members": {
+      "group_one": "Grup · {{count}} anggota",
+      "group_other": "Grup · {{count}} anggota",
+      "channel_one": "Channel · {{count}} anggota",
+      "channel_other": "Channel · {{count}} anggota"
+    },
+    "back": "Kembali ke daftar percakapan",
+    "empty": "Belum ada pesan di sini. Mulailah dengan menyapa.",
+    "pickOne": "Pilih percakapan untuk membacanya di sini."
+  },
+  "composer": {
+    "voiceLength": "Pesan suara · {{length}}",
+    "fileFailed": "{{name}} tidak dapat ditambahkan.",
+    "holdToRecord": "Tahan untuk merekam pesan suara, lepas untuk mengirim.",
+    "replyingTo": "Membalas {{name}}",
+    "cancelReply": "Batalkan balasan",
+    "removeFile": "Hapus {{name}}",
+    "releaseToCancel": "Lepas untuk membatalkan",
+    "slideToCancel": "Geser ke kiri untuk membatalkan",
+    "attach": "Lampirkan",
+    "placeholder": "Tulis pesan",
+    "send": "Kirim",
+    "recordVoice": "Rekam pesan suara",
+    "closeSheet": "Tutup",
+    "attachTitle": "Lampirkan",
+    "source": {
+      "camera": "Kamera",
+      "photos": "Foto & video",
+      "files": "Dokumen"
+    }
+  },
+  "permissions": {
+    "cameraTitle": "Akses kamera tidak aktif",
+    "cameraBody": "Izinkan Kaitech mengakses kamera di Pengaturan agar Anda dapat memotret untuk pesan.",
+    "microphoneTitle": "Akses mikrofon tidak aktif",
+    "microphoneBody": "Izinkan Kaitech mengakses mikrofon di Pengaturan agar Anda dapat merekam pesan suara.",
+    "cancel": "Nanti saja",
+    "openSettings": "Buka Pengaturan"
+  },
+  "voice": {
+    "play": "Putar pesan suara",
+    "pause": "Jeda pesan suara",
+    "label": "Pesan suara",
+    "speed": "Kecepatan putar {{rate}} kali"
+  },
+  "actions": {
+    "reply": "Balas",
+    "thread": "Balas di thread",
+    "copy": "Salin teks",
+    "close": "Tutup",
+    "react": "Beri reaksi {{emoji}}",
+    "readBy_one": "Dibaca {{count}} orang",
+    "readBy_other": "Dibaca {{count}} orang",
+    "notRead": "Belum dibaca"
+  },
+  "push": {
+    "channel": "Pesan"
+  }
+}
