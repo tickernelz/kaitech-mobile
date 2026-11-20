@@ -1,6 +1,106 @@
 {
   "app": {
-    "name": "Kaitech",
-    "greeting": "Welcome"
+    "name": "Kaitech"
+  },
+  "welcome": {
+    "title": "Welcome to Kaitech",
+    "body": "Sign in with your Kaitech account to continue.",
+    "signIn": "Sign in"
+  },
+  "language": {
+    "en": "English",
+    "id": "Bahasa Indonesia",
+    "switchTo": "Switch to {{language}}"
+  },
+  "signIn": {
+    "title": "Sign in",
+    "body": "Enter your server address. You'll sign in on your server's own page, so this app never sees your password.",
+    "serverLabel": "Server address",
+    "serverPlaceholder": "erp.example.com",
+    "databaseLabel": "Database (optional)",
+    "databaseHint": "Leave this empty if your server has only one database.",
+    "continue": "Continue",
+    "continueHint": "Opens your server's sign-in page in the browser",
+    "finishing": "Finishing sign-in…",
+    "back": "Back"
+  },
+  "errors": {
+    "serverRequired": "Enter your server address.",
+    "serverInvalid": "That doesn't look like a server address.",
+    "serverInsecure": "The server must use a secure connection (https).",
+    "network": "Can't reach the server. Check your connection and the address, then try again.",
+    "cancelled": "Sign-in was cancelled.",
+    "accessDenied": "Sign-in on this device was declined.",
+    "stateMismatch": "The sign-in response didn't match this request. Please try again.",
+    "codeExpired": "That sign-in link has expired or was already used. Please sign in again.",
+    "sessionEnded": "Your session has ended. Please sign in again.",
+    "server": "The server ran into a problem. Please try again later.",
+    "unsupported": "This server doesn't support the Kaitech app yet.",
+    "linkNotConfigured": "This build can't finish signing in because its sign-in link domain isn't set up.",
+    "unknown": "Something went wrong. Please try again.",
+    "accountNotTeam": "This account can't use the Kaitech app.",
+    "accountInactive": "This account is no longer active."
+  },
+  "wizard": {
+    "skip": "Skip",
+    "next": "Next",
+    "done": "Done",
+    "step": "Step {{current}} of {{total}}",
+    "languageTitle": "Choose your language",
+    "languageBody": "You can change this any time in Settings.",
+    "lockTitle": "Lock the app",
+    "lockBody": "Ask for {{method}} when you come back to Kaitech after 5 minutes away.",
+    "lockEnable": "Turn on",
+    "lockLater": "Not now",
+    "lockEnabled": "App lock is on."
+  },
+  "lock": {
+    "title": "Kaitech is locked",
+    "unlock": "Unlock",
+    "prompt": "Unlock Kaitech",
+    "failed": "Couldn't confirm it's you. Please try again.",
+    "faceId": "Face ID",
+    "touchId": "Touch ID",
+    "biometric": "biometrics",
+    "unavailable": "Set up a screen lock on this device first."
+  },
+  "tabs": {
+    "chat": "Chat",
+    "discovery": "Discovery",
+    "mom": "MoM",
+    "activity": "Activity",
+    "profile": "Profile and settings",
+    "comingTitle": "Coming in a later update",
+    "comingBody": "This part of the app is still being built."
+  },
+  "settings": {
+    "title": "Settings",
+    "close": "Close",
+    "account": "Account",
+    "server": "Server",
+    "database": "Database",
+    "signedInSince": "Signed in since {{date}}",
+    "accounts": "Accounts on this device",
+    "active": "Active",
+    "switchTo": "Switch to {{name}}",
+    "addAccount": "Add another account",
+    "language": "Language",
+    "languageSystem": "Device language",
+    "languageSystemHint": "Currently {{language}}",
+    "security": "Security",
+    "appLock": "App lock",
+    "appLockHint": "Ask for {{method}} after 5 minutes away",
+    "signOut": "Sign out",
+    "signOutTitle": "Sign out of {{name}}?",
+    "signOutBody": "This device is removed from your account and stops getting its notifications.",
+    "signOutOffline": "You're signed out here. This device may stay listed in your account until you remove it on the web.",
+    "cancel": "Cancel",
+    "version": "Version {{version}} ({{build}})"
+  },
+  "expired": {
+    "title": "Your session has ended",
+    "body": "Sign in again to keep using {{server}}.",
+    "signIn": "Sign in again",
+    "remove": "Remove this account"
   }
 }

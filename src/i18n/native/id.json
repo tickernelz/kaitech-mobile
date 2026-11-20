@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Kaitech",
+    "NSFaceIDUsageDescription": "Kaitech memakai Face ID untuk membuka aplikasi saat kunci aplikasi aktif."
+  },
+  "android": {
+    "app_name": "Kaitech"
+  }
+}

@@ -1,21 +1,21 @@
-import en from './locales/en.json';
-import id from './locales/id.json';
-
 export type Language = 'en' | 'id';
+export type LanguagePreference = 'system' | Language;
 
-export type Strings = typeof en;
+export const languages: readonly Language[] = ['en', 'id'];
 
-const catalogs: Record<Language, Strings> = { en, id };
-
-export function resolveLanguage(localeTag: string | undefined): Language {
+export function resolveLanguage(localeTag: string | null | undefined): Language {
   const primary = (localeTag ?? '').split(/[-_]/)[0].toLowerCase();
   return primary === 'id' || primary === 'in' ? 'id' : 'en';
 }
 
-export function deviceLocaleTag(): string {
-  return Intl.DateTimeFormat().resolvedOptions().locale;
+export function parsePreference(stored: string | null | undefined): LanguagePreference {
+  return stored === 'en' || stored === 'id' ? stored : 'system';
 }
 
-export function stringsFor(language: Language): Strings {
-  return catalogs[language];
+export function effectiveLanguage(preference: LanguagePreference, deviceLocaleTag: string | null | undefined): Language {
+  return preference === 'system' ? resolveLanguage(deviceLocaleTag) : preference;
+}
+
+export function intlLocale(language: Language): string {
+  return language === 'id' ? 'id-ID' : 'en-US';
 }

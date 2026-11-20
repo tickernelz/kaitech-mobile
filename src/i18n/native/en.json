@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Kaitech",
+    "NSFaceIDUsageDescription": "Kaitech uses Face ID to unlock the app when app lock is on."
+  },
+  "android": {
+    "app_name": "Kaitech"
+  }
+}

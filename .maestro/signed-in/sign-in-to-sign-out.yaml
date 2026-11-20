@@ -1,0 +1,87 @@
+appId: io.kaitech.mobile
+name: Sign in on the server page, finish setup, reach the tabs, sign out
+tags:
+  - signed-in
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- takeScreenshot: 01-welcome-${APP_LANGUAGE}
+- tapOn:
+    id: welcome-sign-in
+- tapOn:
+    id: sign-in-server
+- inputText: ${SERVER}
+- hideKeyboard
+- tapOn:
+    id: sign-in-continue
+- extendedWaitUntil:
+    visible:
+      text: (Email|Login|Masuk)
+    timeout: 60000
+- takeScreenshot: 02-server-login-${APP_LANGUAGE}
+- tapOn:
+    text: (Email|Login)
+    index: 0
+- inputText: ${LOGIN}
+- tapOn:
+    text: (Password|Kata Sandi)
+    index: 0
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn:
+    text: (Log in|Masuk)
+    index: 0
+- extendedWaitUntil:
+    visible:
+      text: .*(Kaitech).*
+    timeout: 60000
+- takeScreenshot: 03-confirm-device-${APP_LANGUAGE}
+- tapOn:
+    text: (Sign in|Masuk)
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: setup
+    timeout: 60000
+- takeScreenshot: 04-setup-${APP_LANGUAGE}
+- tapOn:
+    id: setup-next
+- runFlow:
+    when:
+      visible:
+        id: setup-lock-later
+    commands:
+      - tapOn:
+          id: setup-lock-later
+- extendedWaitUntil:
+    visible:
+      id: tab-chat
+    timeout: 30000
+- takeScreenshot: 05-tabs-${APP_LANGUAGE}
+- tapOn:
+    id: open-settings
+- assertVisible:
+    id: settings
+- takeScreenshot: 06-settings-${APP_LANGUAGE}
+- tapOn:
+    id: "language-${APP_LANGUAGE === 'id' ? 'en' : 'id'}"
+- takeScreenshot: 07-settings-switched-${APP_LANGUAGE}
+- tapOn:
+    id: language-system
+- scrollUntilVisible:
+    element:
+      id: settings-sign-out
+- tapOn:
+    id: settings-sign-out
+- tapOn:
+    text: "${APP_LANGUAGE === 'id' ? 'KELUAR|Keluar' : 'SIGN OUT|Sign out'}"
+    index: 1
+- extendedWaitUntil:
+    visible:
+      id: welcome-title
+    timeout: 30000
+- takeScreenshot: 08-signed-out-${APP_LANGUAGE}

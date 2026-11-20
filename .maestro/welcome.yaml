@@ -1,0 +1,30 @@
+appId: io.kaitech.mobile
+name: Welcome follows the device language and keeps the chosen one
+tags:
+  - welcome
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-title
+    timeout: 30000
+- assertVisible:
+    id: welcome-title
+    text: "${APP_LANGUAGE === 'id' ? 'Selamat datang di Kaitech' : 'Welcome to Kaitech'}"
+- assertNotVisible:
+    text: .*(Chat|Discovery|MoM).*
+- takeScreenshot: welcome-${APP_LANGUAGE}
+- tapOn:
+    id: welcome-language
+- assertVisible:
+    id: welcome-title
+    text: "${APP_LANGUAGE === 'id' ? 'Welcome to Kaitech' : 'Selamat datang di Kaitech'}"
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: welcome-title
+      text: "${APP_LANGUAGE === 'id' ? 'Welcome to Kaitech' : 'Selamat datang di Kaitech'}"
+    timeout: 30000
+- takeScreenshot: welcome-switched-kept-${APP_LANGUAGE}

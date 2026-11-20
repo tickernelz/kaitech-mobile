@@ -49,7 +49,7 @@ jobs:
       - run: npm test -- --ci
       - uses: ./.github/actions/setup-maestro
       - name: Maestro flow syntax
-        run: find .maestro -name '*.yaml' -print0 | xargs -0 -n1 maestro check-syntax
+        run: find .maestro -name '*.yaml' ! -name config.yaml -print0 | xargs -0 -n1 maestro check-syntax
 
   build:
     name: build
