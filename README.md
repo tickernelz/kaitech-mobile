@@ -133,7 +133,14 @@ Superapp harus responsif di ponsel dan tablet, Android dan iOS, portrait dan lan
 | Android 15 (API 35) | `tablet` | emulator profil `pixel_tablet` (10 inci) | 800 dp (medium) / 1280 dp (expanded) | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
 | iPadOS (runtime simulator terbaru di runner `xcode-27`) | `tablet` | simulator iPad Pro 13 inci (atau iPad lain bila tidak ada) | lihat `simulator.txt` | portrait, landscape | `en-US`, `id-ID` | percobaan |
 
-Orientasi Android diatur lewat `user_rotation` dengan memperhitungkan orientasi alami panel (tablet alami landscape); iPad memakai `setOrientation` Maestro (`.maestro/shared/portrait.yaml`, `landscape.yaml`). Ukuran panel, density, dan rotasi tiap sel dicatat di `display.txt`. Pemeriksaan status `e2e android en-US` dan `e2e android id-ID` di branch protection hijau hanya bila kedelapan sel Android hijau. Simulator iPad tidak butuh tanda tangan atau akun Apple; perangkat iPad asli belum diuji.
+Orientasi Android diatur lewat `user_rotation` dengan memperhitungkan orientasi alami panel (tablet alami landscape); iPad memakai `setOrientation` Maestro di hook `onFlowStart` (`.maestro/shared/orientation.yaml`), karena runner XCTest Maestro mengembalikan simulator ke portrait setiap sesi baru. Setiap alur baru wajib memuat hook itu:
+
+```yaml
+onFlowStart:
+  - runFlow: shared/orientation.yaml
+```
+
+Di Android hook itu tidak melakukan apa-apa. Ukuran panel, density, dan rotasi tiap sel dicatat di `display.txt`. Pemeriksaan status `e2e android en-US` dan `e2e android id-ID` di branch protection hijau hanya bila kedelapan sel Android hijau. Simulator iPad tidak butuh tanda tangan atau akun Apple; perangkat iPad asli belum diuji.
 
 Screenshot dinamai `<layar>-<ukuran>-<orientasi>-<bahasa>.png`, misalnya `launch-tablet-landscape-id.png`, lewat subflow bersama:
 

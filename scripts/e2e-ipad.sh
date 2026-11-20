@@ -4,7 +4,6 @@ set -euo pipefail
 usage="usage: e2e-ipad.sh <Kaitech.app built for the simulator> <output-dir>"
 app="${1:?$usage}"
 out="${2:?$usage}"
-bundle_id=io.kaitech.mobile
 mkdir -p "$out"
 
 IFS=$'\t' read -r udid device_name runtime_name < <(
@@ -46,6 +45,7 @@ boot() {
 status=0
 for locale in en-US id-ID; do
   language="${locale%%-*}"
+  echo "$(date -u +%T) $locale: boot"
   boot
   xcrun simctl spawn "$udid" defaults write -g AppleLanguages -array "$language"
   xcrun simctl spawn "$udid" defaults write -g AppleLocale "${locale/-/_}"
@@ -57,20 +57,10 @@ for locale in en-US id-ID; do
     cell="tablet-$orientation-$locale"
     dir="$out/$cell"
     mkdir -p "$dir/screenshots"
-    maestro --device "$udid" test ".maestro/shared/$orientation.yaml" > "$dir/rotate.log" 2>&1 || {
-      echo "::error::$cell: setOrientation $orientation failed"
-      cat "$dir/rotate.log"
-      status=1
-      continue
-    }
-
+    echo "$(date -u +%T) $cell: start"
     xcrun simctl io "$udid" recordVideo --codec=h264 --force "$dir/e2e-ipad-$cell.mp4" > /dev/null 2>&1 &
     recorder=$!
     sleep 2
-    xcrun simctl terminate "$udid" "$bundle_id" 2> /dev/null || true
-    xcrun simctl launch "$udid" "$bundle_id" > /dev/null
-    sleep 1
-    xcrun simctl io "$udid" screenshot "$dir/screenshots/start-tablet-$orientation-$language.png" > /dev/null
 
     maestro --device "$udid" test .maestro \
       -e APP_LANGUAGE="$language" \
@@ -84,6 +74,8 @@ for locale in en-US id-ID; do
     wait "$recorder" || true
 
     find "$dir/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$dir/screenshots/" \;
+    find "$dir/maestro" -name device-simulator.log -delete
+    echo "$(date -u +%T) $cell: done"
     node scripts/check-screenshots.mjs "$dir/screenshots" tablet "$orientation" "$language" || status=1
   done
   xcrun simctl shutdown "$udid"
