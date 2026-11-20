@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gitleaks:
+    name: gitleaks
+    if: github.repository == 'tickernelz/kaitech-mobile'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Tag must point at a commit on main
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
+            echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not on main; release only reviewed, merged commits."
+            exit 1
+          }
+      - uses: ./.github/actions/setup-gitleaks
+      - run: gitleaks git --redact --verbose --exit-code 1 .
+
+  build:
+    name: build
+    needs: gitleaks
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+
+  publish:
+    name: publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: kaitech-*
+          path: dist
+          merge-multiple: true
+      - name: Refuse debug-key APK
+        run: |
+          if ls dist/*-debugkey.apk >/dev/null 2>&1; then
+            echo "::error::Release APK must be signed with the release keystore secret."
+            exit 1
+          fi
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          cat dist/SHA256SUMS-*.txt > dist/SHA256SUMS.txt
+          rm dist/SHA256SUMS-*.txt
+          gh release create "$TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Kaitech $TAG" \
+            --notes "Build dari \`$GITHUB_SHA\`. APK ditandatangani keystore non-toko; IPA tanpa tanda tangan (pasang ulang lewat AltStore atau Sideloadly). Cara pasang: lihat README." \
+            --verify-tag

@@ -1,22 +1,39 @@
 {
   "name": "kaitech-mobile",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "index.ts",
   "dependencies": {
     "expo": "~58.0.26",
+    "expo-dev-client": "~58.0.21",
     "expo-status-bar": "~58.0.5",
+    "expo-system-ui": "~58.0.7",
     "react": "19.3.0",
     "react-native": "0.88.1"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^14.1.0",
+    "@types/jest": "30.0.0",
+    "@types/node": "^24.19.2",
     "@types/react": "~19.3.0",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~58.0.4",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.15",
+    "react-test-renderer": "^19.3.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "lint": "expo lint",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "doctor": "expo-doctor",
+    "i18n:check": "jest --ci __tests__/i18n-catalogs.test.ts"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "preset": "jest-expo"
+  }
 }
