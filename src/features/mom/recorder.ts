@@ -17,7 +17,7 @@ import { Platform } from 'react-native';
 import { setMeetingRecording } from '../../audio/meeting';
 import { onAccountForgotten } from '../../auth/session';
 import type { MeetingChoice } from './upload';
-import { documentPath, enqueue, localFile } from './uploads';
+import { documentPath, enqueue, localFile, recordingPrefix } from './uploads';
 
 export const bitRate = 64_000;
 
@@ -174,7 +174,7 @@ export async function start(setup: Setup): Promise<StartResult> {
       interruptionMode: 'doNotMix',
     });
     const key = Crypto.randomUUID();
-    const made = new AudioModule.AudioRecorder(createRecordingOptions({ ...options, fileName: key }));
+    const made = new AudioModule.AudioRecorder(createRecordingOptions({ ...options, fileName: `${recordingPrefix}${key}` }));
     recorder = made;
     subscription = made.addListener('recordingStatusUpdate', onStatus);
     await made.prepareToRecordAsync();

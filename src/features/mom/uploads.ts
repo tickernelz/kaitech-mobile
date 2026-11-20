@@ -1,12 +1,12 @@
 import * as BackgroundTask from 'expo-background-task';
 import * as Crypto from 'expo-crypto';
-import { File, Paths } from 'expo-file-system';
+import { Directory, File, Paths } from 'expo-file-system';
 import { fetch as nativeFetch } from 'expo/fetch';
 import * as Network from 'expo-network';
 import Storage from 'expo-sqlite/kv-store';
 import * as TaskManager from 'expo-task-manager';
 import { useSyncExternalStore } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { ApiError } from '../../api/odoo';
 import { invalidate } from '../../api/resource';
 import { call, headers } from '../../auth/oauth';
@@ -17,6 +17,9 @@ import { advance, isPending, PartRefused, type Upload, type UploadDeps } from '.
 const storageKey = 'mom.uploads.v1';
 const taskName = 'kaitech-mom-uploads';
 const readChunk = 1024 * 1024;
+const hashSlice = 64 * 1024;
+const backgroundBudgetMs = Platform.OS === 'android' ? 9 * 60_000 : 25_000;
+export const recordingPrefix = 'mom-';
 const slowestUplinkBytesPerSecond = 8 * 1024;
 const partGraceMs = 60_000;
 const keepDoneMs = 24 * 60 * 60_000;
@@ -36,15 +39,18 @@ function load(): Upload[] {
 
 let rows: Upload[] = load();
 const listeners = new Set<() => void>();
-const inFlight = new Set<AbortController>();
+const inFlight = new Map<AbortController, string>();
+const forgotten = new Set<string>();
 
 function persist(next: Upload[]) {
   rows = next;
   Storage.setItemSync(storageKey, JSON.stringify(rows));
   listeners.forEach((listener) => listener());
+  void syncBackgroundTask();
 }
 
 function put(row: Upload) {
+  if (forgotten.has(row.key)) return;
   const index = rows.findIndex((existing) => existing.key === row.key);
   persist(index < 0 ? [...rows, row] : rows.map((existing, at) => (at === index ? row : existing)));
 }
@@ -99,6 +105,10 @@ async function read(upload: Upload, offset: number, length: number): Promise<Uin
   }
 }
 
+function yieldToFrames(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 async function fingerprint(upload: Upload): Promise<string> {
   const hash = new Sha256();
   const handle = localFile(upload.file).open();
@@ -106,7 +116,10 @@ async function fingerprint(upload: Upload): Promise<string> {
     for (;;) {
       const chunk = await handle.readBytes(readChunk);
       if (!chunk.length) break;
-      hash.update(chunk);
+      for (let offset = 0; offset < chunk.length; offset += hashSlice) {
+        hash.update(chunk.subarray(offset, offset + hashSlice));
+        await yieldToFrames();
+      }
     }
   } finally {
     handle.close();
@@ -118,10 +131,22 @@ export function partDeadlineMs(bytes: number): number {
   return Math.ceil((bytes / slowestUplinkBytesPerSecond) * 1000) + partGraceMs;
 }
 
-async function sendPart(url: string, bytes: Uint8Array<ArrayBuffer>, checksum: string): Promise<string> {
+let deadline = 0;
+
+function partTimeoutMs(bytes: number): number {
+  const ceiling = partDeadlineMs(bytes);
+  return deadline ? Math.max(0, Math.min(ceiling, deadline - Date.now())) : ceiling;
+}
+
+export function fitsBudget(bytes: number, bytesPerSecond: number | undefined, remainingMs: number): boolean {
+  const rate = Math.max(bytesPerSecond ?? 0, slowestUplinkBytesPerSecond);
+  return remainingMs >= Math.ceil((bytes / rate) * 1500) + 10_000;
+}
+
+async function sendPart(upload: Upload, url: string, bytes: Uint8Array<ArrayBuffer>, checksum: string): Promise<string> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), partDeadlineMs(bytes.length));
-  inFlight.add(controller);
+  const timer = setTimeout(() => controller.abort(), partTimeoutMs(bytes.length));
+  inFlight.set(controller, upload.account);
   try {
     let response;
     try {
@@ -139,8 +164,6 @@ async function sendPart(url: string, bytes: Uint8Array<ArrayBuffer>, checksum: s
   }
 }
 
-let deadline = 0;
-
 const deps: UploadDeps = {
   request,
   exists: (upload) => localFile(upload.file).exists,
@@ -153,7 +176,7 @@ const deps: UploadDeps = {
     const file = localFile(upload.file);
     if (file.exists) file.delete();
   },
-  stopped: () => deadline > 0 && Date.now() > deadline,
+  mayStart: (upload, bytes) => !deadline || fitsBudget(bytes, upload.bytesPerSecond, deadline - Date.now()),
 };
 
 let running: Promise<void> | null = null;
@@ -163,9 +186,12 @@ function signedIn(account: string): boolean {
   return getSession().accounts.some((candidate) => candidate.id === account);
 }
 
+const tried = new Set<string>();
+
 function next(now: number): Upload | undefined {
   return rows.find(
     (row) =>
+      !tried.has(row.key) &&
       signedIn(row.account) &&
       (row.state === 'queued' || (row.state === 'waiting' && (row.retryAt ?? 0) <= now) || row.state === 'signedOut'),
   );
@@ -176,28 +202,32 @@ function schedule() {
   timer = null;
   const soonest = Math.min(...rows.filter((row) => row.state === 'waiting').map((row) => row.retryAt ?? 0));
   if (Number.isFinite(soonest)) timer = setTimeout(() => void drain(), Math.max(1_000, soonest - Date.now()));
-  void syncBackgroundTask();
 }
 
-const tried = new Set<string>();
+let again = false;
 
 export function drain(until = 0): Promise<void> {
-  if (running) return running;
+  if (running) {
+    again = true;
+    return running;
+  }
+  again = false;
   deadline = until;
   running = (async () => {
     tried.clear();
     for (;;) {
       if (deadline && Date.now() > deadline) break;
       const row = next(Date.now());
-      if (!row || tried.has(row.key)) break;
-      if (row.state === 'signedOut') tried.add(row.key);
+      if (!row) break;
+      tried.add(row.key);
       const after = await advance(row, deps);
       if (after.state === 'done') invalidate(`${row.account}:mom.`);
     }
   })().finally(() => {
     running = null;
     deadline = 0;
-    schedule();
+    if (again) void drain();
+    else schedule();
   });
   return running;
 }
@@ -243,13 +273,31 @@ export function uploadsOf(account: string): Upload[] {
 }
 
 onAccountForgotten((account) => {
-  for (const row of rows) if (row.account === account) deps.remove(row);
+  for (const [controller, owner] of inFlight) if (owner === account) controller.abort();
+  for (const row of rows) {
+    if (row.account !== account) continue;
+    forgotten.add(row.key);
+    deps.remove(row);
+  }
   persist(rows.filter((row) => row.account !== account));
 });
 
+export function sweepRecordings() {
+  const referenced = new Set(rows.map((row) => row.file));
+  for (const folder of ['Audio', 'ExpoAudio']) {
+    const directory = new Directory(Paths.document, folder);
+    if (!directory.exists) continue;
+    for (const entry of directory.list()) {
+      if (!(entry instanceof File) || !entry.name.startsWith(recordingPrefix)) continue;
+      if (referenced.has(`${folder}/${entry.name}`)) continue;
+      entry.delete();
+    }
+  }
+}
+
 TaskManager.defineTask(taskName, async () => {
   try {
-    await drain(Date.now() + 25_000);
+    await drain(Date.now() + backgroundBudgetMs);
     return BackgroundTask.BackgroundTaskResult.Success;
   } catch {
     return BackgroundTask.BackgroundTaskResult.Failed;
@@ -259,7 +307,7 @@ TaskManager.defineTask(taskName, async () => {
 let registered: boolean | null = null;
 
 async function syncBackgroundTask() {
-  const wanted = rows.some((row) => row.state === 'queued' || row.state === 'waiting');
+  const wanted = rows.some((row) => row.state === 'queued' || row.state === 'waiting' || row.state === 'sending');
   if (registered === wanted) return;
   registered = wanted;
   try {
@@ -272,7 +320,7 @@ async function syncBackgroundTask() {
 
 Network.addNetworkStateListener((state) => {
   if (state.isConnected === false || state.isInternetReachable === false) {
-    inFlight.forEach((controller) => controller.abort());
+    for (const controller of inFlight.keys()) controller.abort();
     return;
   }
   persist(rows.map((row) => (row.state === 'waiting' ? { ...row, retryAt: undefined } : row)));
@@ -283,4 +331,5 @@ AppState.addEventListener('change', (state) => {
   if (state === 'active') void drain();
 });
 
+sweepRecordings();
 void drain();

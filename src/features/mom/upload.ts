@@ -29,6 +29,7 @@ export type Upload = {
   error?: string;
   retryAt?: number;
   attempts: number;
+  bytesPerSecond?: number;
 };
 
 type Stored = { number: number; etag: string; size: number };
@@ -48,10 +49,10 @@ export type UploadDeps = {
   read(upload: Upload, offset: number, length: number): Promise<Uint8Array<ArrayBuffer>>;
   md5(bytes: Uint8Array<ArrayBuffer>): Promise<string>;
   fingerprint(upload: Upload): Promise<string>;
-  put(url: string, bytes: Uint8Array<ArrayBuffer>, checksum: string): Promise<string>;
+  put(upload: Upload, url: string, bytes: Uint8Array<ArrayBuffer>, checksum: string): Promise<string>;
   save(upload: Upload): void;
   remove(upload: Upload): void;
-  stopped(): boolean;
+  mayStart(upload: Upload, bytes: number): boolean;
 };
 
 const retryDelaysMs = [5_000, 15_000, 30_000, 60_000, 120_000, 300_000];
@@ -137,7 +138,7 @@ async function send(upload: Upload, deps: UploadDeps): Promise<Upload> {
   }
   for (let number = 1; number <= (current.parts ?? 0); number++) {
     if (current.etags[number]) continue;
-    if (deps.stopped()) {
+    if (!deps.mayStart(current, partSize(current, number))) {
       update({ state: 'queued' });
       return current;
     }
@@ -151,8 +152,14 @@ async function send(upload: Upload, deps: UploadDeps): Promise<Upload> {
     );
     const url = signed.parts.find((part) => part.number === number)?.url;
     if (!url) throw new ApiError('parts_invalid', 400);
-    const etag = await deps.put(url, bytes, checksum);
-    update({ etags: { ...current.etags, [number]: etag }, checksums: { ...current.checksums, [number]: checksum } });
+    const started = Date.now();
+    const etag = await deps.put(current, url, bytes, checksum);
+    const elapsed = Math.max(1, Date.now() - started);
+    update({
+      etags: { ...current.etags, [number]: etag },
+      checksums: { ...current.checksums, [number]: checksum },
+      bytesPerSecond: Math.round((bytes.length * 1000) / elapsed),
+    });
   }
   const parts = [];
   for (let number = 1; number <= (current.parts ?? 0); number++) {
