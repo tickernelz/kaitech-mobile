@@ -92,7 +92,8 @@
       "camera": "Kamera",
       "photos": "Foto & video",
       "files": "Dokumen"
-    }
+    },
+    "micBusy": "Rapat sedang direkam. Selesaikan rekaman rapat sebelum merekam pesan suara."
   },
   "permissions": {
     "cameraTitle": "Akses kamera tidak aktif",

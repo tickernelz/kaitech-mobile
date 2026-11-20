@@ -14,6 +14,7 @@ import * as Crypto from 'expo-crypto';
 import { File } from 'expo-file-system';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
+import { setMeetingRecording } from '../../audio/meeting';
 import { onAccountForgotten } from '../../auth/session';
 import type { MeetingChoice } from './upload';
 import { documentPath, enqueue, localFile } from './uploads';
@@ -57,6 +58,7 @@ const listeners = new Set<() => void>();
 
 function set(next: Recording | null) {
   current = next;
+  setMeetingRecording(next !== null);
   listeners.forEach((listener) => listener());
 }
 

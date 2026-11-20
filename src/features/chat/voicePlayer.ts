@@ -1,4 +1,5 @@
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioStatus } from 'expo-audio';
+import { meetingRecording } from '../../audio/meeting';
 import { useSyncExternalStore } from 'react';
 
 export type VoiceState = { id: string | null; playing: boolean; position: number; duration: number; rate: number; loading: boolean };
@@ -48,7 +49,7 @@ export async function toggleVoice(id: string, uri: string, headers?: Record<stri
     else player.play();
     return;
   }
-  await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false });
+  await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: meetingRecording() });
   subscription?.remove();
   player?.remove();
   player = createAudioPlayer({ uri, headers }, { updateInterval: 250 });

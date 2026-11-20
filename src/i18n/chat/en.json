@@ -92,7 +92,8 @@
       "camera": "Camera",
       "photos": "Photos & videos",
       "files": "Document"
-    }
+    },
+    "micBusy": "A meeting is being recorded. Finish it before recording a voice message."
   },
   "permissions": {
     "cameraTitle": "Camera access is off",
