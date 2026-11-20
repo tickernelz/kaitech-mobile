@@ -60,13 +60,40 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 | Workflow | Pemicu | Isi |
 |---|---|---|
 | `CI` (`ci.yml`) | push ke `main`, PR, manual | gitleaks seluruh riwayat dan pohon kerja; lint, typecheck, paritas kunci terjemahan, gerbang konfigurasi tablet, Jest; build APK, IPA, E2E emulator dan simulator iPad |
-| `Build` (`build.yml`) | dipanggil CI dan Release | APK release (Gradle, runner Linux), IPA tanpa tanda tangan (`xcodebuild`, runner macOS `xcode-27`), pindai rahasia di bundle JS, E2E Maestro di emulator Android (ponsel dan tablet, portrait dan landscape, `en-US` dan `id-ID`, paralel), percobaan simulator iPad, rekaman dan screenshot per sel |
+| `Build` (`build.yml`) | dipanggil CI dan Release | APK release x86_64 untuk E2E (setiap run) dan APK release universal empat ABI (hanya `main` dan tag), keduanya bertanda tangan dan diverifikasi sidik jari sertifikatnya; IPA tanpa tanda tangan (`xcodebuild`, runner macOS `xcode-27`), pindai rahasia di bundle JS, gerbang performa, E2E Maestro di emulator Android (ponsel dan tablet, portrait dan landscape, `en-US` dan `id-ID`, paralel), E2E APK universal di tag, percobaan simulator iPad, rekaman dan screenshot per sel |
 | `Release` (`release.yml`) | tag `v*` | tolak tag yang tidak menunjuk commit di `main`, gitleaks, build, lalu GitHub Release berisi APK, IPA, dan `SHA256SUMS.txt` |
 | `gitleaks push` (`gitleaks.yml`) | push ke cabang selain `main` dan setiap tag | gitleaks seluruh riwayat dan pohon kerja |
 
-Artefak E2E hanya diunggah bila gitleaks bersih. APK di PR hanya berisi ABI `arm64-v8a` dan `x86_64` supaya lebih cepat; push ke `main` dan tag membangun keempat ABI.
+Artefak E2E hanya diunggah bila gitleaks bersih.
 
-Artefak per run: `kaitech-android-apk`, `kaitech-ios-ipa`, delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro), dan `e2e-ipad` (satu folder per sel).
+Artefak per run: `e2e-apk-x86_64` (APK yang diuji E2E), `kaitech-android-apk` (APK universal, hanya `main` dan tag), `kaitech-ios-ipa`, `perf-android-x86_64`, `perf-android-universal` dan `perf-ios` (angka gerbang performa), delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro, `cold-start.txt` di sel ponsel portrait `en-US`), dan `e2e-ipad` (satu folder per sel). Tag rilis menambah `e2e-android-universal-phone-portrait-en-US`.
+
+### Jalur cepat dan cache
+
+E2E Android hanya butuh APK x86_64, jadi job `android apk x86_64 (e2e)` membangun satu ABI dan sel E2E mulai begitu job itu selesai. APK yang dirilis tetap APK universal empat ABI dari job `android apk`, yang jalan paralel hanya di `main` dan tag; di PR job itu dilewati (status cek tetap lolos). Akibatnya, di PR kompilasi `arm64-v8a`, `armeabi-v7a`, dan `x86` baru terjadi setelah merge. Tag rilis menjalankan satu sel E2E (ponsel portrait `en-US`) atas APK universal sebelum GitHub Release dibuat.
+
+Cache, semuanya ditulis hanya di luar `pull_request` (push ke `main`, tag, run manual) dan dibaca PR:
+
+| Cache | Isi | Kunci |
+|---|---|---|
+| Gradle (`setup-gradle`) | dependensi, wrapper, build cache Gradle (`--build-cache`) | dikelola action |
+| `ccache-android-<varian>-…` | hasil compile C/C++ NDK lewat `ccache` (`CMAKE_C*_COMPILER_LAUNCHER`) | hash `package-lock.json`, `app.json`, `app.config.ts` |
+| `ios-downloads-…` | unduhan CocoaPods dan artefak prebuilt React Native/Hermes | hash yang sama |
+
+Yang diukur lalu tidak dipakai: cache system image emulator dan snapshot AVD (memulihkannya selama mengunduh dan boot dingin, sementara ukurannya 3 sampai 5 GB dari kuota cache repo 10 GB), ccache iOS (React Native core dan modul Expo sudah prebuilt, jadi tidak ada panggilan compiler C yang bisa di-cache), dan image container prebuilt (yang bisa dimasukkan hanya Maestro dan gitleaks, sekitar 10 detik per job).
+
+### Gerbang performa
+
+`scripts/perf-gate.mjs` membandingkan angka setiap run dengan `perf/baseline.json` dan menggagalkan job bila satu angka naik melewati `maxIncrease`-nya:
+
+| Angka | Diukur di job | Cara |
+|---|---|---|
+| `android.apk_x86_64_bytes`, `android.apk_universal_bytes` | `android apk x86_64 (e2e)`, `android apk` | ukuran berkas APK |
+| `android.js_bundle_bytes` | kedua job APK | `assets/index.android.bundle` |
+| `ios.ipa_bytes`, `ios.js_bundle_bytes` | `ios ipa (unsigned)` | ukuran IPA dan `main.jsbundle` |
+| `android.cold_start_ms` | sel E2E ponsel portrait `en-US` | median `TotalTime` dari 5 kali `adb shell am start -W -S`, setelah satu peluncuran pemanasan |
+
+Ambang ukuran 15 persen: di SHA yang sama ukurannya tidak berubah antar-run, jadi kenaikan berarti perubahan nyata. Ambang cold start lebih lebar karena median antar-run di emulator runner bersama berbeda jauh; angkanya dan run sumbernya tercatat di `source` tiap entri. Perubahan yang memang disengaja memperbarui `perf/baseline.json` di PR yang sama, dengan alasan di deskripsi PR.
 
 Rilis: `git tag v0.1.0 && git push origin v0.1.0`.
 
