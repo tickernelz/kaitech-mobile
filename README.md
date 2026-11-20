@@ -66,7 +66,7 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 
 Artefak E2E hanya diunggah bila gitleaks bersih. APK di PR hanya berisi ABI `arm64-v8a` dan `x86_64` supaya lebih cepat; push ke `main` dan tag membangun keempat ABI.
 
-Artefak per run: `kaitech-android-apk`, `kaitech-ios-ipa`, delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro), dan `e2e-ipad-<locale>` (satu folder per sel, video `simctl`, screenshot awal dari `simctl` dan screenshot Maestro).
+Artefak per run: `kaitech-android-apk`, `kaitech-ios-ipa`, delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro), dan `e2e-ipad-<locale>` (satu folder per sel, video `simctl`, `junit.xml`, keluaran Maestro, dan screenshot Maestro di `screenshots/`).
 
 Rilis: `git tag v0.1.0 && git push origin v0.1.0`.
 
