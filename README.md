@@ -93,7 +93,7 @@ Yang diukur lalu tidak dipakai: cache system image emulator dan snapshot AVD (me
 | `ios.ipa_bytes`, `ios.js_bundle_bytes` | `ios ipa (unsigned)` | ukuran IPA dan `main.jsbundle` |
 | `android.cold_start_ms` | sel E2E ponsel portrait `en-US` | median `TotalTime` dari 5 kali `adb shell am start -W -S`, setelah satu peluncuran pemanasan |
 
-Ambang ukuran 15 persen: di SHA yang sama ukurannya tidak berubah antar-run, jadi kenaikan berarti perubahan nyata. Ambang cold start lebih lebar karena median antar-run di emulator runner bersama berbeda jauh; angkanya dan run sumbernya tercatat di `source` tiap entri. Perubahan yang memang disengaja memperbarui `perf/baseline.json` di PR yang sama, dengan alasan di deskripsi PR.
+Ambang ukuran 15 persen: di SHA yang sama ukurannya tidak berubah antar-run, jadi kenaikan berarti perubahan nyata. Ambang cold start 100 persen karena median antar-run di emulator runner bersama berbeda jauh (965 sampai 1641 ms di sembilan run, termasuk empat run di SHA yang sama), jadi gerbang ini hanya menangkap cold start yang naik sampai dua kali lipat; angkanya dan run sumbernya tercatat di `source` tiap entri. Perubahan yang memang disengaja memperbarui `perf/baseline.json` di PR yang sama, dengan alasan di deskripsi PR.
 
 Rilis: `git tag v0.1.0 && git push origin v0.1.0`.
 
