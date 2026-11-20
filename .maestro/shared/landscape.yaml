@@ -1,0 +1,4 @@
+appId: io.kaitech.mobile
+name: Rotate the device to landscape
+---
+- setOrientation: LANDSCAPE_LEFT
