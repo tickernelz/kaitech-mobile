@@ -159,7 +159,7 @@ export function CoworkerThread({
   const programmePanel = useResource(`discovery.panel.${programme}`, (signedIn) => panel(signedIn, programme));
   const list = useRef<FlatList<Entry | Pending | Card>>(null);
   const input = useRef<ComponentRef<typeof TextInput>>(null);
-  const { windowClass, width, height } = useWindowClass();
+  const { windowClass, width } = useWindowClass();
 
   useEffect(() => {
     if (focusInput) input.current?.focus();
@@ -265,7 +265,7 @@ export function CoworkerThread({
 
   const empty = !conversation && !shownPending.length;
   return (
-    <KeyboardAvoidingView key={`${width}x${height}`} behavior="padding" automaticOffset style={styles.fill} testID={testID}>
+    <KeyboardAvoidingView key={width} behavior="padding" automaticOffset style={styles.fill} testID={testID}>
       {empty ? (
         <StateView empty={{ title: t('discovery.thread.emptyTitle'), body: t('discovery.thread.emptyBody') }} testID={testID} />
       ) : thread.loading && !thread.items.length ? (
