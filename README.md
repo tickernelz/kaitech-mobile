@@ -276,3 +276,13 @@ Alur `signed-in/chat.yaml` masuk bila perlu, membuka percakapan dengan akun web,
 ## Lisensi
 
 MIT, lihat `LICENSE`.
+
+The whole device check is one command once an emulator boots:
+
+```bash
+CALL_SERVER=… CALL_DB=… CALL_LOGIN=… CALL_PASSWORD=… CALL_CHANNEL_ID=… \
+  SERVER=https://… LOGIN=… PASSWORD=… PEER='Uji Chat Web (ZHA-7238)' \
+  bash scripts/e2e-call.sh dist/app-release.apk out emulator-5554 en-US phone portrait
+```
+
+It locks the orientation, installs the APK, records the screen, starts the browser peer, runs `.maestro/signed-in/call.yaml`, leaves the call, and drops the recording, the junit report, the screenshots and the app log in the output folder.
