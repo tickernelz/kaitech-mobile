@@ -19,6 +19,7 @@ export default function RootLayout() {
   const lock = useLock();
   const hasAccount = session.active !== null;
   const signedIn = hasAccount && !session.expired;
+  const home = !hasAccount ? '/welcome' : session.expired ? '/expired' : session.onboarded ? '/' : '/setup';
 
   useEffect(() => {
     SplashScreen.hide();
@@ -37,19 +38,19 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style="auto" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
-        <Stack.Protected guard={signedIn && session.onboarded}>
+        <Stack.Protected guard={signedIn && session.onboarded} redirectTo={home}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
           <Stack.Screen name="add-account" options={{ presentation: 'modal' }} />
         </Stack.Protected>
-        <Stack.Protected guard={signedIn && !session.onboarded}>
+        <Stack.Protected guard={signedIn && !session.onboarded} redirectTo={home}>
           <Stack.Screen name="setup" options={{ animation: 'fade' }} />
         </Stack.Protected>
-        <Stack.Protected guard={hasAccount && session.expired}>
+        <Stack.Protected guard={hasAccount && session.expired} redirectTo={home}>
           <Stack.Screen name="expired" options={{ animation: 'fade' }} />
         </Stack.Protected>
-        <Stack.Protected guard={!hasAccount}>
-          <Stack.Screen name="index" options={{ animation: 'fade' }} />
+        <Stack.Protected guard={!hasAccount} redirectTo={home}>
+          <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
           <Stack.Screen name="sign-in" />
         </Stack.Protected>
       </Stack>

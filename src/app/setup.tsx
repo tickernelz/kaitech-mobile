@@ -56,7 +56,7 @@ export default function Setup() {
       }>
       <View style={styles.top}>
         <Text variant="label" tone="inkSoft" testID="setup-step">
-          {t('wizard.step', { current: index + 1, total: steps.length })}
+          {steps.length > 1 ? t('wizard.step', { current: index + 1, total: steps.length }) : ''}
         </Text>
         <Button kind="plain" label={t('wizard.skip')} onPress={markOnboarded} style={styles.skip} testID="setup-skip" />
       </View>

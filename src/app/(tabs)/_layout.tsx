@@ -17,6 +17,12 @@ const icons = {
 
 type TabName = keyof typeof icons;
 const tabs: TabName[] = ['chat', 'discovery', 'mom', 'activity'];
+const routes: Record<TabName, { name: string; href: '/' | '/discovery' | '/mom' | '/activity' }> = {
+  chat: { name: 'index', href: '/' },
+  discovery: { name: 'discovery', href: '/discovery' },
+  mom: { name: 'mom', href: '/mom' },
+  activity: { name: 'activity', href: '/activity' },
+};
 
 function TabButton({ name, rail, isFocused, ...props }: TabTriggerSlotProps & { name: TabName; rail: boolean }) {
   const { t } = useTranslation();
@@ -59,7 +65,7 @@ export default function TabsLayout() {
             : [styles.bar, { paddingBottom: Math.max(insets.bottom, space.sm) }],
         ]}>
         {tabs.map((name) => (
-          <TabTrigger key={name} name={name} href={`/${name}`} asChild>
+          <TabTrigger key={name} name={routes[name].name} href={routes[name].href} asChild>
             <TabButton name={name} rail={rail} />
           </TabTrigger>
         ))}

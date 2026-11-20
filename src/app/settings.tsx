@@ -47,7 +47,7 @@ export default function Settings() {
   };
 
   return (
-    <Screen scroll edges={['bottom']} testID="settings" contentStyle={styles.content}>
+    <Screen scroll testID="settings" contentStyle={styles.content}>
       <View style={styles.header}>
         <Text variant="title" accessibilityRole="header">
           {t('settings.title')}
