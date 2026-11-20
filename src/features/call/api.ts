@@ -40,9 +40,9 @@ export class CallClient {
     return route(this.account, '/mail/rtc/channel/cancel_call_invitation', { channel_id: channelId });
   }
 
-  invitations(channelId: number | null) {
+  invitations(channelId: number | null, selfChannelIds: number[] = []) {
     return route<Record<string, unknown>>(this.account, '/mail/data', {
-      fetch_params: channelId ? [['discuss.channel', [channelId]]] : ['init_messaging'],
+      fetch_params: channelId ? [['discuss.channel', [channelId]]] : [['discuss.channel', selfChannelIds]],
     });
   }
 }

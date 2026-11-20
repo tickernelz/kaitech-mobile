@@ -1,13 +1,13 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { layoutFor, pagesFor, stageFor, tileGap } from '../grid';
 import { useTheme, space } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../chat/ui/icons';
-import { enterPictureInPicture, flipCamera, hangUp, pictureInPictureSupported, toggleCamera, toggleMute, toggleSpeaker, useCallState } from '../call';
+import { enterPictureInPicture, flipCamera, fullScreenIntentAllowed, hangUp, openFullScreenIntentSettings, pictureInPictureSupported, toggleCamera, toggleMute, toggleSpeaker, useCallState } from '../call';
 import { CallControls, type CallAction } from './CallControls';
 import { CallTile } from './CallTile';
 
@@ -78,6 +78,7 @@ export function CallScreen() {
           <Text variant="footnote" tone="inkSoft" numberOfLines={2} testID="call-status">
             {subtitle}
           </Text>
+          <FullScreenNotice />
         </View>
         {layout.controls === 'rail' ? null : <CallControls vertical={false} video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} onAction={onAction} />}
       </View>
@@ -129,6 +130,22 @@ export function CallScreen() {
         </Pressable>
       ) : null}
     </View>
+  );
+}
+
+function FullScreenNotice() {
+  const { t } = useTranslation('call');
+  const [needed, setNeeded] = useState(false);
+  useEffect(() => {
+    void fullScreenIntentAllowed().then((allowed) => setNeeded(!allowed));
+  }, []);
+  if (!needed) return null;
+  return (
+    <Pressable accessibilityRole="button" onPress={() => void openFullScreenIntentSettings()} testID="call-fullscreen-notice">
+      <Text variant="footnote" tone="warnInk">
+        {t('fullScreen.title')} — {t('fullScreen.body')}. {t('fullScreen.action')}
+      </Text>
+    </Pressable>
   );
 }
 

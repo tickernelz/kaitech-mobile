@@ -60,6 +60,7 @@ export type ChatState = {
   online: boolean;
   realtime: RealtimeState;
   openChannels: number[];
+  invited: number[];
 };
 
 const emptyThread: Thread = { messages: [], loading: false, loaded: false, hasOlder: true, loadingOlder: false, error: null, members: [], typing: [], hasNewer: false, info: null, subChannels: {} };
@@ -81,6 +82,7 @@ let state: ChatState = {
   online: true,
   realtime: 'closed',
   openChannels: [],
+  invited: [],
 };
 
 const listeners = new Set<() => void>();
@@ -198,9 +200,27 @@ export function onRealtimeNotifications(listener: (notification: Notification) =
   return () => realtimeListeners.delete(listener);
 }
 
+function noteInvitations(store: unknown) {
+  const channels = (store as { 'discuss.channel'?: { id?: unknown; invited_member_ids?: unknown }[] } | null)?.['discuss.channel'];
+  if (!Array.isArray(channels)) return;
+  let next = state.invited;
+  for (const channel of channels) {
+    if (typeof channel?.id !== 'number' || !('invited_member_ids' in channel)) continue;
+    const commands = Array.isArray(channel.invited_member_ids) ? channel.invited_member_ids : [];
+    const invited = commands.some((command: unknown) => Array.isArray(command) && command[0] === 'ADD' && Array.isArray(command[1]) && command[1].length > 0);
+    next = invited ? [...new Set([...next, channel.id])] : next.filter((id) => id !== channel.id);
+  }
+  if (next !== state.invited) set({ invited: next });
+}
+
+export function invitedChannels(): number[] {
+  return state.invited;
+}
+
 function onNotifications(notifications: Notification[]) {
   for (const notification of notifications) {
     for (const listener of realtimeListeners) listener(notification);
+    noteInvitations(notification.payload);
     if (notification.type === 'discuss.channel/new_message') {
       const payload = notification.payload as { data?: unknown; id?: unknown };
       const channelId = typeof payload.id === 'number' ? payload.id : 0;
@@ -303,6 +323,7 @@ export function startChat(account: Account) {
     pending,
     delivered: [],
     openChannels: [],
+    invited: [],
   };
   listeners.forEach((listener) => listener());
   const current = client;
@@ -376,7 +397,7 @@ export function startChat(account: Account) {
 
 export function stopChat() {
   stop();
-  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [] });
+  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [] });
 }
 
 onAccountForgotten((id) => {

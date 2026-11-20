@@ -8,12 +8,15 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSession, verifyActiveSession } from '../auth/session';
 import { CallRuntime } from '../features/call/CallRuntime';
-import { ChatRuntime } from '../features/chat/ChatRuntime';
-import { useLock } from '../lock/lock';
 import { setLocked } from '../features/call/call';
+import { registerHeadlessTask } from '../features/call/decline';
+import { ChatRuntime } from '../features/chat/ChatRuntime';
 import { LockScreen } from '../lock/LockScreen';
+import { useLock } from '../lock/lock';
 import { useRecentsGuard } from '../lock/useRecentsGuard';
 import { useTheme } from '../theme';
+
+registerHeadlessTask();
 
 void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 240, fade: true });

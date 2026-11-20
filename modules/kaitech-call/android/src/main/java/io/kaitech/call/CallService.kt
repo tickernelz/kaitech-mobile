@@ -163,6 +163,8 @@ class CallService : Service() {
     const val ACTION_CALL = "io.kaitech.call.CALL"
     const val ACTION_STOP = "io.kaitech.call.STOP"
 
+    fun ringing(context: Context): Boolean = CallNotifications.active(context, CallNotifications.RING_ID)
+
     fun ring(context: Context, ring: Ring) {
       val intent = Intent(context, CallService::class.java)
         .setAction(ACTION_RING)
@@ -186,7 +188,9 @@ class CallService : Service() {
     }
 
     fun stop(context: Context) {
-      start(context, Intent(context, CallService::class.java).setAction(ACTION_STOP))
+      context.stopService(Intent(context, CallService::class.java))
+      CallNotifications.cancel(context, CallNotifications.RING_ID)
+      CallNotifications.cancel(context, CallNotifications.CALL_ID)
     }
 
     fun cancelRing(context: Context, channelId: Int) {

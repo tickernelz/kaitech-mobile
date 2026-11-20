@@ -14,22 +14,24 @@ export type CallAction = {
   system?: boolean;
 };
 
-export type PictureInPicture = { video: boolean; title: string; body: string; channelId: number; muted: boolean; camera: boolean };
+export type RingCall = { title: string; body: string; channelId: number; callId: number; video: boolean; db: string; uid: number };
+export type OngoingCall = { video: boolean; title: string; body: string; channelId: number; muted: boolean; camera: boolean };
 
 type NativeCall = {
   takePending(): Promise<CallAction[]>;
   takeLaunchAction(): Promise<CallAction | null>;
-  ring(action: { title: string; body: string; channelId: number; callId: number; video: boolean; db: string; uid: number }): void;
-  cancelRing(channelId: number): void;
-  startCall(action: { video: boolean; title: string; body: string; channelId: number }): void;
-  updateCall(action: PictureInPicture): void;
-  stopCall(): void;
-  setInCall(value: boolean): void;
-  setLocked(value: boolean): void;
+  ring(title: string, body: string, channelId: number, callId: number, video: boolean, db: string, uid: number): Promise<boolean>;
+  ringing(): Promise<boolean>;
+  cancelRing(channelId: number): Promise<boolean>;
+  startCall(video: boolean, title: string, body: string, channelId: number): Promise<boolean>;
+  updateCall(video: boolean, title: string, body: string, channelId: number, muted: boolean, camera: boolean): Promise<boolean>;
+  stopCall(): Promise<boolean>;
+  setInCall(value: boolean): Promise<boolean>;
+  setLocked(value: boolean): Promise<boolean>;
   enterPictureInPicture(): Promise<boolean>;
-  isPictureInPictureSupported(): boolean;
-  canUseFullScreenIntent(): boolean;
-  openFullScreenIntentSettings(): Promise<void>;
+  isPictureInPictureSupported(): Promise<boolean>;
+  canUseFullScreenIntent(): Promise<boolean>;
+  openFullScreenIntentSettings(): Promise<boolean>;
 };
 
 let held: NativeCall | null | undefined;

@@ -52,6 +52,17 @@ object CallNotifications {
     return PendingIntent.getBroadcast(context, requestCode, intent, flags)
   }
 
+  private fun publicVersion(context: Context, title: String): Notification =
+    NotificationCompat.Builder(context, CALL_CHANNEL)
+      .setSmallIcon(context.applicationInfo.icon)
+      .setContentTitle(title)
+      .setPriority(NotificationCompat.PRIORITY_MIN)
+      .setSilent(true)
+      .build()
+
+  private fun visible(context: Context, title: String): Int =
+    if (CallBridge.locked) Notification.VISIBILITY_PRIVATE else Notification.VISIBILITY_PUBLIC
+
   fun ringing(context: Context, ring: CallService.Ring, timeoutMs: Long): Notification {
     ensureChannels(context)
     val open = pending(context, RING_ID, CallIntents.openIntent(context, answer = false, ring))
@@ -62,7 +73,8 @@ object CallNotifications {
       .setContentText(ring.body)
       .setCategory(NotificationCompat.CATEGORY_CALL)
       .setPriority(NotificationCompat.PRIORITY_MAX)
-      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+      .setVisibility(visible(context, ring.title))
+      .setPublicVersion(publicVersion(context, "Kaitech"))
       .setOngoing(true)
       .setAutoCancel(false)
       .setOnlyAlertOnce(true)
@@ -91,7 +103,8 @@ object CallNotifications {
       .setContentText(call.body)
       .setCategory(NotificationCompat.CATEGORY_CALL)
       .setPriority(NotificationCompat.PRIORITY_LOW)
-      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+      .setVisibility(visible(context, call.title))
+      .setPublicVersion(publicVersion(context, "Kaitech"))
       .setOngoing(true)
       .setShowWhen(true)
       .setWhen(call.startedAt)
@@ -105,6 +118,24 @@ object CallNotifications {
       builder.setStyle(NotificationCompat.CallStyle.forOngoingCall(person(call.title), end))
     }
     return builder.build()
+  }
+
+  fun silent(context: Context, title: String, text: String): Notification {
+    ensureChannels(context)
+    return NotificationCompat.Builder(context, CALL_CHANNEL)
+      .setSmallIcon(context.applicationInfo.icon)
+      .setContentTitle(title)
+      .setContentText(text)
+      .setPriority(NotificationCompat.PRIORITY_MIN)
+      .setSilent(true)
+      .setOngoing(true)
+      .build()
+  }
+
+  fun active(context: Context, id: Int): Boolean {
+    val manager = context.getSystemService(android.app.NotificationManager::class.java) ?: return false
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return false
+    return manager.activeNotifications.any { it.id == id }
   }
 
   fun cancel(context: Context, id: Int) {

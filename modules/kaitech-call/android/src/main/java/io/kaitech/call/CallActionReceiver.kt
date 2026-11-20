@@ -19,7 +19,13 @@ class CallActionReceiver : BroadcastReceiver() {
           "uid" to intent.getIntExtra(CallIntents.EXTRA_UID, 0),
         )
         if (CallBridge.module == null) {
-          CallDeclineTask.enqueue(context, channelId)
+          CallDeclineTask.enqueue(
+            context,
+            channelId,
+            intent.getIntExtra(CallIntents.EXTRA_CALL_ID, 0),
+            intent.getStringExtra(CallIntents.EXTRA_DB) ?: "",
+            intent.getIntExtra(CallIntents.EXTRA_UID, 0),
+          )
         } else {
           CallBridge.send(payload)
         }

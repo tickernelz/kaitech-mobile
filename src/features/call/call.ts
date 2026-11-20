@@ -1,14 +1,15 @@
 import { useSyncExternalStore } from 'react';
-import { AppState, Platform, Vibration } from 'react-native';
+import { AppState, Vibration } from 'react-native';
 import i18n from '../../i18n';
 import { getSession, onAccountForgotten } from '../../auth/session';
 import type { Account } from '../../auth/oauth';
-import { conversationById, getChat } from '../chat/chat';
+import { conversationById, getChat, invitedChannels } from '../chat/chat';
 import { CallClient, type Joined, type SessionValues } from './api';
 import { loadClient, loadLiveKit, type LiveParticipant, type LiveRoom } from './livekit';
 import { callNative, onCallAction, type CallAction } from './native';
 import { invitationChannels, invitationsFrom, sessionIdsFrom, type Invitation } from './odoo';
 import { ensureCamera, ensureMicrophone } from './permissions';
+import { accountFromPush } from './account';
 
 export type CallPhase = 'idle' | 'incoming' | 'outgoing' | 'connecting' | 'active' | 'reconnecting' | 'ended';
 
@@ -70,6 +71,7 @@ let joined: Joined | null = null;
 let known = new Set<number>();
 let pingTimer: ReturnType<typeof setInterval> | null = null;
 let endTimer: ReturnType<typeof setTimeout> | null = null;
+let generation = 0;
 const tracks = new Map<string, unknown>();
 
 export function callState(): CallState {
@@ -90,13 +92,17 @@ function publish(next: Partial<CallState>) {
   listeners.forEach((listener) => listener());
 }
 
+function stale(started: number): boolean {
+  return started !== generation || state.phase === 'ended' || state.phase === 'idle';
+}
+
 export function videoTrack(sid: string, source: 'camera' | 'screen' = 'camera') {
   return tracks.get(`${sid}|${source}`) ?? null;
 }
 
 export function startAccount(account: Account) {
   client = new CallClient(account);
-  if (state.phase === 'idle') void lookForInvitations(null, { ring: true });
+  if (state.phase === 'idle') void lookForInvitations(null);
 }
 
 export function stopAccount() {
@@ -117,6 +123,12 @@ export function callClient(): CallClient | null {
   return client;
 }
 
+function clientFor(account: Account | null): CallClient | null {
+  if (!account) return null;
+  if (client && client.account.id === account.id) return client;
+  return new CallClient(account);
+}
+
 function collectTracks() {
   tracks.clear();
   if (!room) return;
@@ -131,7 +143,7 @@ function collectTracks() {
   for (const participant of room.remoteParticipants.values()) add(participant);
 }
 
-function partnerOf(participant: { name?: string; identity: string }, local: boolean): number | null {
+function partnerOf(participant: LiveParticipant, local: boolean): number | null {
   if (local) return activeAccount()?.partnerId ?? null;
   const conversation = conversationById(getChat(), state.channelId);
   if (conversation?.type !== 'chat') return null;
@@ -158,6 +170,16 @@ function collectPeople() {
   publish({ people: rows, speaking: [...speakers] });
 }
 
+function collectSpeaking() {
+  if (!room) return;
+  const speakers = new Set(room.activeSpeakers.map((participant) => participant.sid));
+  if (!state.people.some((person) => person.speaking !== speakers.has(person.sid))) return;
+  publish({
+    speaking: [...speakers],
+    people: state.people.map((person) => ({ ...person, speaking: speakers.has(person.sid) })),
+  });
+}
+
 function collect() {
   collectTracks();
   collectPeople();
@@ -167,16 +189,23 @@ export async function startCall(input: { channelId: number; channelName: string;
   if (state.phase !== 'idle' && state.phase !== 'ended') return;
   const api = callClient();
   if (!api) return;
+  const started = ++generation;
   if (!(await ensureMicrophone())) {
-    publish({ ...idle, phase: 'ended', endedReason: 'microphone', version: state.version + 1 });
-    scheduleIdle();
+    if (started === generation) {
+      publish({ ...idle, phase: 'ended', endedReason: 'microphone', version: state.version + 1 });
+      scheduleIdle();
+    }
     return;
   }
+  if (stale(started)) return;
   if (input.video && !(await ensureCamera())) {
-    publish({ ...idle, phase: 'ended', endedReason: 'camera', version: state.version + 1 });
-    scheduleIdle();
+    if (started === generation) {
+      publish({ ...idle, phase: 'ended', endedReason: 'camera', version: state.version + 1 });
+      scheduleIdle();
+    }
     return;
   }
+  if (stale(started)) return;
   publish({
     ...idle,
     phase: 'outgoing',
@@ -187,40 +216,49 @@ export async function startCall(input: { channelId: number; channelName: string;
     speaker: true,
     version: state.version + 1,
   });
-  await connect(api, input.channelId, input.video);
+  await connect(api, input.channelId, input.video, started);
 }
 
 export async function answer() {
   if (state.phase !== 'incoming') return;
   const api = callClient();
   if (!api) return;
+  const started = generation;
   stopRinging();
   if (!(await ensureMicrophone())) {
+    if (stale(started)) return;
     publish({ phase: 'ended', endedReason: 'microphone', ringing: false });
     scheduleIdle();
     await api.decline(state.channelId).catch(() => undefined);
     return;
   }
+  if (stale(started)) return;
   const video = state.video && (await ensureCamera());
+  if (stale(started)) return;
   publish({ phase: 'connecting', video, cameraOn: video, ringing: false });
-  await connect(api, state.channelId, video);
+  await connect(api, state.channelId, video, started);
 }
 
 export async function decline() {
   if (state.phase !== 'incoming') return;
   const api = callClient();
   const channelId = state.channelId;
+  generation += 1;
   stopRinging();
   publish({ phase: 'ended', ringing: false, endedReason: 'declined' });
   scheduleIdle();
   await api?.decline(channelId).catch(() => undefined);
 }
 
-async function connect(api: CallClient, channelId: number, video: boolean) {
+async function connect(api: CallClient, channelId: number, video: boolean, started: number) {
   try {
     const sdk = await loadClient();
     const livekit = await loadLiveKit();
     const session = await api.join(channelId, video);
+    if (stale(started)) {
+      await api.leave(session.channelId, session.sessionId).catch(() => undefined);
+      return;
+    }
     joined = session;
     known = new Set([session.sessionId]);
     const instance = new sdk.Room({ adaptiveStream: true, dynacast: true });
@@ -228,18 +266,30 @@ async function connect(api: CallClient, channelId: number, video: boolean) {
     bind(instance, sdk);
     await livekit.AudioSession.startAudioSession();
     await instance.connect(session.url, session.token);
+    if (stale(started)) {
+      await teardown();
+      await api.leave(session.channelId, session.sessionId).catch(() => undefined);
+      return;
+    }
     await instance.localParticipant.setMicrophoneEnabled(true);
     if (video) await instance.localParticipant.setCameraEnabled(true);
     await routeAudio(video);
+    if (stale(started)) {
+      await teardown();
+      await api.leave(session.channelId, session.sessionId).catch(() => undefined);
+      return;
+    }
     collect();
     publish({ phase: 'active', startedAt: Date.now(), muted: false, cameraOn: video, speaker: true });
-    callNative()?.setInCall(true);
-    callNative()?.startCall({ video, title: state.channelName || state.callerName, body: i18n.t('call:inCall'), channelId });
-    startPing(api);
+    void callNative()?.setInCall(true);
+    void callNative()?.startCall(video, state.channelName || state.callerName, i18n.t('call:inCall'), channelId);
+    startPing(api, started);
   } catch (error) {
+    if (started !== generation) return;
     const code = typeof error === 'object' && error !== null && 'code' in error ? String((error as { code: unknown }).code) : 'call_failed';
     const session = joined;
     await teardown();
+    if (started !== generation) return;
     publish({ phase: 'ended', endedReason: code });
     if (session) await api.leave(session.channelId, session.sessionId).catch(() => undefined);
     scheduleIdle();
@@ -257,7 +307,7 @@ function bind(instance: LiveRoom, sdk: Awaited<ReturnType<typeof loadClient>>) {
     [event.TrackUnmuted, collect],
     [event.LocalTrackPublished, collect],
     [event.LocalTrackUnpublished, collect],
-    [event.ActiveSpeakersChanged, collect],
+    [event.ActiveSpeakersChanged, collectSpeaking],
     [event.Reconnecting, () => publish({ phase: 'reconnecting' })],
     [event.Reconnected, () => publish({ phase: 'active' })],
     [event.Disconnected, () => void finish('disconnected')],
@@ -265,10 +315,10 @@ function bind(instance: LiveRoom, sdk: Awaited<ReturnType<typeof loadClient>>) {
   for (const [name, handler] of handlers) instance.on(name as never, handler as never);
 }
 
-function startPing(api: CallClient) {
+function startPing(api: CallClient, started: number) {
   stopPing();
   const tick = async () => {
-    if (!joined || !room) return;
+    if (!joined || !room || started !== generation) return;
     const session = joined;
     try {
       const store = await api.ping(session.channelId, session.sessionId, [...known]);
@@ -301,6 +351,7 @@ export async function hangUp(reason = 'left') {
 
 async function finish(reason: string) {
   if (state.phase === 'ended' || state.phase === 'idle') return;
+  generation += 1;
   const api = client;
   const session = joined;
   stopRinging();
@@ -312,13 +363,18 @@ async function finish(reason: string) {
 }
 
 async function teardown() {
-  callNative()?.setInCall(false);
-  callNative()?.stopCall();
+  void callNative()?.setInCall(false);
+  void callNative()?.stopCall();
   const held = room;
   room = null;
   joined = null;
   tracks.clear();
-  if (held) await held.disconnect().catch(() => undefined);
+  if (held) {
+    for (const participant of [held.localParticipant]) {
+      await participant.setMicrophoneEnabled(false).catch(() => undefined);
+    }
+    await held.disconnect().catch(() => undefined);
+  }
   try {
     const livekit = await loadLiveKit();
     await livekit.AudioSession.stopAudioSession();
@@ -338,7 +394,6 @@ function reset() {
   endTimer = null;
   stopRinging();
   stopPing();
-  tracks.clear();
   state = { ...idle, version: state.version + 1 };
   listeners.forEach((listener) => listener());
 }
@@ -396,14 +451,14 @@ function send(values: SessionValues) {
 
 function presence() {
   if (!joined) return;
-  callNative()?.updateCall({
-    video: state.video,
-    title: state.channelName || state.callerName,
-    body: i18n.t('call:inCall'),
-    channelId: state.channelId,
-    muted: state.muted,
-    camera: state.cameraOn,
-  });
+  void callNative()?.updateCall(
+    state.video,
+    state.channelName || state.callerName,
+    i18n.t('call:inCall'),
+    state.channelId,
+    state.muted,
+    state.cameraOn,
+  );
 }
 
 export function enterPictureInPicture(): Promise<boolean> {
@@ -411,26 +466,36 @@ export function enterPictureInPicture(): Promise<boolean> {
 }
 
 export function pictureInPictureSupported(): boolean {
-  return callNative()?.isPictureInPictureSupported() ?? false;
+  return Boolean(callNative()?.isPictureInPictureSupported());
+}
+
+export async function fullScreenIntentAllowed(): Promise<boolean> {
+  const native = callNative();
+  if (!native) return true;
+  return native.canUseFullScreenIntent().catch(() => true);
+}
+
+export function openFullScreenIntentSettings(): Promise<boolean> {
+  return callNative()?.openFullScreenIntentSettings().catch(() => false) ?? Promise.resolve(false);
 }
 
 export function setLocked(locked: boolean) {
-  callNative()?.setLocked(locked);
+  void callNative()?.setLocked(locked);
 }
 
 function stopRinging() {
   Vibration.cancel();
-  callNative()?.cancelRing(state.channelId);
+  void callNative()?.cancelRing(state.channelId);
   if (state.ringing) publish({ ringing: false });
 }
 
-async function lookForInvitations(channelId: number | null, options: { ring: boolean } = { ring: false }): Promise<Invitation[]> {
-  const api = callClient();
-  const account = activeAccount();
+async function lookForInvitations(channelId: number | null, options: { account?: Account | null; ring?: boolean } = {}): Promise<Invitation[]> {
+  const api = options.account ? clientFor(options.account) : callClient();
+  const account = options.account ?? activeAccount();
   if (!api || !account) return [];
   if (state.phase !== 'idle' && state.phase !== 'ended' && state.phase !== 'incoming') return [];
   try {
-    const store = await api.invitations(channelId);
+    const store = await api.invitations(channelId, channelId ? [] : invitedChannels());
     const found = invitationsFrom(store, account.partnerId);
     if (!found.length) {
       if (state.phase === 'incoming') reset();
@@ -442,7 +507,7 @@ async function lookForInvitations(channelId: number | null, options: { ring: boo
     }
     if (state.phase === 'idle' || state.phase === 'ended') {
       ring(found[0]);
-      if (options.ring) inAppRing();
+      if (options.ring !== false) inAppRing();
     }
     return found;
   } catch {
@@ -451,6 +516,7 @@ async function lookForInvitations(channelId: number | null, options: { ring: boo
 }
 
 function ring(invitation: Invitation) {
+  generation += 1;
   publish({
     ...idle,
     phase: 'incoming',
@@ -465,9 +531,15 @@ function ring(invitation: Invitation) {
 }
 
 function inAppRing() {
-  if (Platform.OS === 'android' && callNative()) return;
   Vibration.cancel();
   Vibration.vibrate([0, 900, 900], true);
+  const native = callNative();
+  if (!native) return;
+  void native.ringing().then((ringing) => {
+    if (ringing) return;
+    const account = activeAccount();
+    void native.ring(state.callerName || state.channelName, i18n.t('call:incoming.voice'), state.channelId, state.callId, state.video, account?.db ?? '', account?.userId ?? 0);
+  });
 }
 
 export function onNotification(type: string, payload: unknown) {
@@ -475,9 +547,14 @@ export function onNotification(type: string, payload: unknown) {
 }
 
 function fromNative(action: CallAction) {
+  const target = action.db || action.uid ? accountFromPush(action) : null;
   if (action.type === 'decline') {
-    if (state.phase === 'incoming' && (!action.channelId || action.channelId === state.channelId)) void decline();
-    else void callClient()?.decline(action.channelId ?? state.channelId).catch(() => undefined);
+    if (state.phase === 'incoming' && (!action.channelId || action.channelId === state.channelId)) {
+      void decline();
+      return;
+    }
+    const api = target ? clientFor(target) : action.db || action.uid ? null : callClient();
+    void api?.decline(action.channelId ?? state.channelId).catch(() => undefined);
     return;
   }
   if (action.type === 'hangup') {
@@ -488,38 +565,34 @@ function fromNative(action: CallAction) {
     if (state.phase === 'incoming' && (!action.channelId || action.channelId === state.channelId)) reset();
     return;
   }
-  void takeLaunch(action);
+  if (action.type === 'incoming' && !target) return;
+  void takeLaunch(action, target);
 }
 
-async function takeLaunch(action: CallAction) {
+async function takeLaunch(action: CallAction, target: Account | null) {
   if (action.type !== 'incoming' && action.type !== 'answer' && action.type !== 'open') return;
   if (!action.channelId) return;
-  const found = await lookForInvitations(action.channelId, { ring: action.type === 'open' });
+  const found = await lookForInvitations(action.channelId, { account: target });
   if (!found.length) return;
   if (action.type === 'answer' && state.phase === 'incoming') await answer();
 }
 
-onCallAction(fromNative);
-
-void (async () => {
+export async function takePendingActions() {
   const native = callNative();
   if (!native) return;
   const pending = await native.takePending().catch(() => []);
   for (const action of pending) fromNative(action);
   const launch = await native.takeLaunchAction().catch(() => null);
   if (launch) fromNative(launch);
-})();
+}
+
+onCallAction(fromNative);
+
+void takePendingActions();
 
 AppState.addEventListener('change', (next) => {
   if (next !== 'active') return;
-  const native = callNative();
-  if (!native) return;
-  void native
-    .takeLaunchAction()
-    .then((launch) => {
-      if (launch) fromNative(launch);
-    })
-    .catch(() => undefined);
+  void takePendingActions();
 });
 
 onAccountForgotten((id) => {

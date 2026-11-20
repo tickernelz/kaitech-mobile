@@ -1,6 +1,5 @@
 package io.kaitech.call
 
-import android.app.Activity
 import android.app.PictureInPictureParams
 import android.content.Intent
 import android.net.Uri
@@ -32,30 +31,39 @@ class KaitechCallModule : Module() {
       CallBridge.foreground = false
     }
 
-    Function("takePending") { CallBridge.takePending() }
+    AsyncFunction("takePending") { CallBridge.takePending() }
 
-    Function("ring") { title: String, body: String, channelId: Int, callId: Int, video: Boolean, db: String, uid: Int ->
+    AsyncFunction("takeLaunchAction") { CallIntents.takeLaunch(appContext) }
+
+    AsyncFunction("ring") { title: String, body: String, channelId: Int, callId: Int, video: Boolean, db: String, uid: Int ->
       CallService.ring(requireContext(), CallService.Ring(title, body, channelId, callId, video, db, uid, system = true))
+      true
     }
 
-    Function("cancelRing") { channelId: Int ->
+    AsyncFunction("ringing") { CallService.ringing(requireContext()) }
+
+    AsyncFunction("cancelRing") { channelId: Int ->
       CallService.cancelRing(requireContext(), channelId)
+      true
     }
 
-    Function("startCall") { video: Boolean, title: String, body: String, channelId: Int ->
+    AsyncFunction("startCall") { video: Boolean, title: String, body: String, channelId: Int ->
       CallService.call(requireContext(), CallService.Ongoing(video, title, body, channelId, muted = false, camera = video))
+      true
     }
 
-    Function("updateCall") { video: Boolean, title: String, body: String, channelId: Int, muted: Boolean, camera: Boolean ->
+    AsyncFunction("updateCall") { video: Boolean, title: String, body: String, channelId: Int, muted: Boolean, camera: Boolean ->
       CallService.call(requireContext(), CallService.Ongoing(video, title, body, channelId, muted, camera))
+      true
     }
 
-    Function("setInCall") { value: Boolean -> CallBridge.setInCall(value) }
+    AsyncFunction("setInCall") { value: Boolean -> CallBridge.setInCall(value) }
 
-    Function("setLocked") { value: Boolean -> CallBridge.setLocked(value) }
+    AsyncFunction("setLocked") { value: Boolean -> CallBridge.setLocked(value) }
 
-    Function("stopCall") {
+    AsyncFunction("stopCall") {
       CallService.stop(requireContext())
+      true
     }
 
     AsyncFunction("enterPictureInPicture") {
@@ -67,21 +75,16 @@ class KaitechCallModule : Module() {
       activity.enterPictureInPictureMode(params)
     }
 
-    Function("isPictureInPictureSupported") {
-      Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && appContext.currentActivity?.packageManager?.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE) == true
+    AsyncFunction("isPictureInPictureSupported") {
+      Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+        appContext.currentActivity?.packageManager?.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE) == true
     }
 
-    Function("canUseFullScreenIntent") {
-      canUseFullScreenIntent()
-    }
+    AsyncFunction("canUseFullScreenIntent") { canUseFullScreenIntent() }
 
-    Function("openFullScreenIntentSettings") {
+    AsyncFunction("openFullScreenIntentSettings") {
       openFullScreenIntentSettings()
       true
-    }
-
-    Function("takeLaunchAction") {
-      CallIntents.takeLaunch(appContext)
     }
   }
 
