@@ -19,6 +19,9 @@ onFlowStart:
     file: shared/screenshot.yaml
     env:
       SCREEN: sign-in
+- scrollUntilVisible:
+    element:
+      id: sign-in-continue
 - tapOn:
     id: sign-in-continue
 - assertVisible:
@@ -58,6 +61,9 @@ onFlowStart:
     file: shared/screenshot.yaml
     env:
       SCREEN: sign-in-error
+- scrollUntilVisible:
+    element:
+      id: sign-in-back
 - tapOn:
     id: sign-in-back
 - assertVisible:

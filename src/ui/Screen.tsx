@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, useWindowDimensions, type ViewStyle } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import { readableWidth } from '../layout/windowClass';
 import { space, useTheme } from '../theme';
+
+const shortWindow = 480;
 
 export function Screen({
   children,
@@ -20,9 +22,13 @@ export function Screen({
   contentStyle?: ViewStyle;
 }) {
   const { colors } = useTheme();
+  const { height } = useWindowDimensions();
+  const footerInside = scroll && height < shortWindow;
+  const footerView = footer ? <View style={[styles.footer, footerInside && styles.footerInside]}>{footer}</View> : null;
   const body = scroll ? (
     <ScrollView contentContainerStyle={[styles.content, styles.grow, contentStyle]} keyboardShouldPersistTaps="handled">
       {children}
+      {footerInside ? footerView : null}
     </ScrollView>
   ) : (
     <View style={[styles.content, styles.fill, contentStyle]}>{children}</View>
@@ -31,7 +37,7 @@ export function Screen({
     <SafeAreaView edges={edges} style={[styles.fill, { backgroundColor: colors.canvas }]} testID={testID}>
       <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {body}
-        {footer ? <View style={styles.footer}>{footer}</View> : null}
+        {footerInside ? null : footerView}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -42,4 +48,5 @@ const styles = StyleSheet.create({
   grow: { flexGrow: 1 },
   content: { paddingHorizontal: space.xl, paddingTop: space.lg, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   footer: { paddingHorizontal: space.xl, paddingBottom: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
+  footerInside: { paddingHorizontal: 0, marginTop: 'auto' },
 });
