@@ -15,6 +15,11 @@ tags:
 - assertNotVisible:
     text: .*(Chat|Discovery|MoM).*
 - takeScreenshot: welcome-${APP_LANGUAGE}
+- setOrientation: LANDSCAPE_LEFT
+- assertVisible:
+    id: welcome-sign-in
+- takeScreenshot: welcome-landscape-${APP_LANGUAGE}
+- setOrientation: PORTRAIT
 - tapOn:
     id: welcome-language
 - assertVisible:

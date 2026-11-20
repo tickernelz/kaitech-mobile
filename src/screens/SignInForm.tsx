@@ -67,7 +67,7 @@ export function SignInForm({ onDone, onBack }: { onDone: () => void; onBack: () 
             onPress={() => void run(() => signIn(server, database, language))}
             testID="sign-in-continue"
           />
-          <Button kind="plain" label={t('signIn.back')} onPress={onBack} disabled={busy} />
+          <Button kind="plain" label={t('signIn.back')} onPress={onBack} disabled={busy} testID="sign-in-back" />
         </View>
       }>
       <Text variant="title" accessibilityRole="header">

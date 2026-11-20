@@ -22,12 +22,22 @@ tags:
     id: sign-in-server
 - inputText: http://erp.example.com
 - hideKeyboard
+- setOrientation: LANDSCAPE_LEFT
+- assertVisible:
+    id: sign-in-server
+    text: http://erp.example.com
+- takeScreenshot: sign-in-landscape-${APP_LANGUAGE}
+- setOrientation: PORTRAIT
+- assertVisible:
+    id: sign-in-server
+    text: http://erp.example.com
 - tapOn:
     id: sign-in-continue
 - assertVisible:
     id: sign-in-server-error
     text: "${APP_LANGUAGE === 'id' ? 'Server harus memakai koneksi aman .https..' : 'The server must use a secure connection .https..'}"
 - takeScreenshot: sign-in-error-${APP_LANGUAGE}
-- back
+- tapOn:
+    id: sign-in-back
 - assertVisible:
     id: welcome-title

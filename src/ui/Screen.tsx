@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import { readableWidth } from '../layout/windowClass';
 import { space, useTheme } from '../theme';
 
 export function Screen({
@@ -38,6 +39,6 @@ export function Screen({
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  content: { paddingHorizontal: space.xl, paddingTop: space.lg, gap: space.lg },
-  footer: { paddingHorizontal: space.xl, paddingBottom: space.lg, gap: space.sm },
+  content: { paddingHorizontal: space.xl, paddingTop: space.lg, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
+  footer: { paddingHorizontal: space.xl, paddingBottom: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
 });
