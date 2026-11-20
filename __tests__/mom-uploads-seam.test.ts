@@ -18,12 +18,6 @@ jest.mock('expo-sqlite/kv-store', () => ({
 }));
 jest.mock('expo-file-system', () => ({
   Paths: { document: { uri: 'file:///doc/' }, cache: { uri: 'file:///cache/' } },
-  UploadType: { BINARY_CONTENT: 0 },
-  Directory: class {
-    get exists() {
-      return false;
-    }
-  },
   File: class {
     path: string;
     constructor(_root: unknown, path: string) {
@@ -38,6 +32,7 @@ jest.mock('expo-file-system', () => ({
   },
 }));
 jest.mock('../src/api/resource', () => ({ invalidate: jest.fn() }));
+jest.mock('expo/fetch', () => ({ fetch: jest.fn() }));
 jest.mock('expo-network', () => ({ addNetworkStateListener: jest.fn() }));
 jest.mock('expo-task-manager', () => ({ defineTask: jest.fn(), isTaskRegisteredAsync: async () => false }));
 jest.mock('expo-background-task', () => ({
@@ -79,4 +74,9 @@ it('signing out deletes that account recordings and their queue rows, and keeps 
   expect(uploads.uploadsOf('u1_a')).toEqual([]);
   expect(uploads.uploadsOf('u2_b').map((upload) => upload.key)).toEqual(['b1']);
   expect(JSON.parse(mockStore.get('mom.uploads.v1') ?? '[]').map((upload: { key: string }) => upload.key)).toEqual(['b1']);
+});
+
+it('gives a 10 MiB part enough time to cross a 64 kbit/s uplink', () => {
+  const uploads: typeof import('../src/features/mom/uploads') = require('../src/features/mom/uploads');
+  expect(uploads.partDeadlineMs(10 * 1024 * 1024)).toBe(1_340_000);
 });
