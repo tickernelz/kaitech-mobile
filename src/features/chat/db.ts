@@ -72,6 +72,10 @@ export function pendingFor(account: string): Pending[] {
   return parse<Pending>(db().getAllSync<{ json: string }>('SELECT json FROM outbox WHERE account = ? ORDER BY created', [account]));
 }
 
+export function allPendingFileUris(): string[] {
+  return parse<Pending>(db().getAllSync<{ json: string }>('SELECT json FROM outbox')).flatMap((item) => item.files.map((file) => file.uri));
+}
+
 export async function savePending(item: Pending) {
   await db().runAsync('INSERT OR REPLACE INTO outbox (key, account, created, json) VALUES (?, ?, ?, ?)', [item.key, item.accountId, item.createdAt, JSON.stringify(item)]);
 }

@@ -5,8 +5,10 @@ import { AppState } from 'react-native';
 import type { Account } from '../../auth/oauth';
 import { onAccountForgotten } from '../../auth/session';
 import { ChatClient, errorCode, sendErrorFrom } from './api';
-import { dropFile } from './files';
-import { cachedConversations, cachedMessages, forgetAccount, pendingFor, removePending, savePending, storeConversations, storeMessages } from './db';
+import { forgetChatAccount } from './cleanup';
+import { forgetDrafts } from './drafts';
+import { clearOpenedFiles, dropFile, sweepStaging } from './files';
+import { allPendingFileUris, cachedConversations, cachedMessages, forgetAccount, pendingFor, removePending, savePending, storeConversations, storeMessages } from './db';
 import { composeBody, mentionsInText, plainText } from './html';
 import {
   channelInfoFromStore,
@@ -278,6 +280,7 @@ export function startChat(account: Account) {
   stop();
   client = new ChatClient(account);
   const pending = pendingFor(account.id);
+  sweepStaging(allPendingFileUris());
   state = {
     ...state,
     accountId: account.id,
@@ -370,7 +373,8 @@ export function stopChat() {
 
 onAccountForgotten((id) => {
   if (state.accountId === id) stopChat();
-  void forgetAccount(id);
+  clearOpenedFiles();
+  void forgetChatAccount(id, { pendingFor, dropFile, forgetDrafts, forgetAccount });
 });
 
 export async function refreshConversations() {

@@ -2,10 +2,12 @@ import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import type { Account } from '../../auth/oauth';
+import { getSession, switchAccount } from '../../auth/session';
 import { useLanguage } from '../../i18n';
 import { routeForPush } from '../discovery/push';
 import { startChat, stopChat } from './chat';
-import { channelFromNotification, refreshPush } from './push';
+import { channelFromNotification, pushData, refreshPush } from './push';
+import { accountForPush } from './pushAccount';
 
 let handled: string | null = null;
 
@@ -28,13 +30,25 @@ export function ChatRuntime({ account }: { account: Account | null }) {
     const id = response.notification.request.identifier;
     if (handled === id) return;
     handled = id;
-    const channel = channelFromNotification(response);
+    const data = pushData(response);
+    const session = getSession();
+    const target = accountForPush(data, session.accounts, session.activeId);
+    if (!target) {
+      router.navigate('/');
+      return;
+    }
+    if (target.switchTo) {
+      switchAccount(target.accountId);
+      handled = null;
+      return;
+    }
+    const channel = channelFromNotification(data);
     if (channel) {
       router.navigate({ pathname: '/', params: { channel: String(channel) } });
       return;
     }
-    const target = routeForPush((response.notification.request.content.data ?? {}) as Record<string, unknown>);
-    if (target) router.push(target);
+    const route = routeForPush(data);
+    if (route) router.push(route);
   }, [account, response, router]);
 
   return null;

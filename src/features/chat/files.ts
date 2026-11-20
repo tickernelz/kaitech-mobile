@@ -1,7 +1,9 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import { newKey } from './chat';
+import { orphanStaging } from './cleanup';
 
 const folder = 'chat-outbox';
+const openedFolder = 'chat-opened';
 
 function stagingDirectory(): Directory {
   const directory = new Directory(Paths.document, folder, newKey());
@@ -39,4 +41,31 @@ export function dropFile(uri: string) {
   } catch {
     return;
   }
+}
+
+export function sweepStaging(referencedUris: string[]) {
+  try {
+    const root = new Directory(Paths.document, folder);
+    if (!root.exists) return;
+    const folders = root.list().filter((entry): entry is Directory => entry instanceof Directory);
+    const orphans = new Set(orphanStaging(folders.map((entry) => entry.uri), referencedUris));
+    for (const entry of folders) if (orphans.has(entry.uri)) entry.delete();
+  } catch {
+    return;
+  }
+}
+
+export function clearOpenedFiles() {
+  try {
+    const directory = new Directory(Paths.cache, openedFolder);
+    if (directory.exists) directory.delete();
+  } catch {
+    return;
+  }
+}
+
+export async function downloadForOpening(url: string, name: string, headers: Record<string, string>): Promise<File> {
+  const directory = new Directory(Paths.cache, openedFolder, newKey());
+  directory.create({ intermediates: true, idempotent: true });
+  return File.downloadFileAsync(url, new File(directory, safeName(name)), { headers, idempotent: true });
 }

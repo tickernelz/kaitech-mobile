@@ -35,6 +35,17 @@ export function clearDraft(account: string, channel: number) {
   writeDraft(account, channel, empty);
 }
 
+export function forgetDrafts(account: string) {
+  const prefix = `${account}:`;
+  for (const [key, timer] of timers) {
+    if (!key.startsWith(prefix)) continue;
+    clearTimeout(timer);
+    timers.delete(key);
+  }
+  for (const key of [...drafts.keys()]) if (key.startsWith(prefix)) drafts.delete(key);
+  for (const key of [...anchors.keys()]) if (key.startsWith(prefix)) anchors.delete(key);
+}
+
 const anchors = new Map<string, number>();
 
 export function readAnchor(account: string, channel: number): number | null {

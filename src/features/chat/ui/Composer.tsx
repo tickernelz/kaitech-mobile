@@ -95,6 +95,12 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     focus: () => input.current?.focus(),
   }));
 
+  const stagedRef = useRef<Staged[]>([]);
+  useEffect(() => {
+    stagedRef.current = files;
+  }, [files]);
+  useEffect(() => () => stagedRef.current.forEach((file) => dropFile(file.uri)), []);
+
   useEffect(() => {
     writeDraft(accountId, channelId, { text, parentId, mentions });
   }, [accountId, channelId, text, parentId, mentions]);
@@ -151,6 +157,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     const startedAt = clock();
     const outgoing: Outgoing = { channelId, text, parentId, mentions, files };
     if (!outgoing.text.trim() && !outgoing.files.length) return;
+    stagedRef.current = [];
     setText('');
     setFiles([]);
     setParentId(null);

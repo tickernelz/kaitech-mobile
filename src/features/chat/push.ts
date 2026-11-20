@@ -2,12 +2,14 @@ import * as Notifications from 'expo-notifications';
 import { AndroidImportance } from 'expo-notifications';
 import Storage from 'expo-sqlite/kv-store';
 import { Platform } from 'react-native';
+import { onAccountForgotten } from '../../auth/session';
 import i18n from '../../i18n';
 import { chatClient, getChat } from './chat';
+import { registeredKey, syncPushToken } from './pushAccount';
 
 export const channelId = 'messages';
 const askedKey = 'chat.pushAsked';
-const registeredKey = 'chat.pushRegistered';
+const store = { get: (key: string) => Storage.getItemSync(key), set: (key: string, value: string) => Storage.setItemSync(key, value) };
 
 export const pushSupported = Platform.OS === 'android';
 
@@ -34,10 +36,13 @@ async function register(accountId: string) {
   await ensureChannel();
   const token = await Notifications.getDevicePushTokenAsync();
   if (typeof token.data !== 'string' || !token.data) return;
-  const marker = `${accountId}|${token.data}|${i18n.language}`;
-  if (Storage.getItemSync(registeredKey) === marker) return;
-  await client.registerPush(token.data, i18n.language === 'id' ? 'id' : 'en');
-  Storage.setItemSync(registeredKey, marker);
+  await syncPushToken({
+    store,
+    account: client.account,
+    token: token.data,
+    language: i18n.language === 'id' ? 'id' : 'en',
+    registerPush: (value, language) => client.registerPush(value, language),
+  });
 }
 
 export async function refreshPush(accountId: string) {
@@ -62,13 +67,16 @@ export async function askForPushOnce(accountId: string) {
   }
 }
 
-export function forgetPushRegistration() {
-  Storage.removeItemSync(registeredKey);
+onAccountForgotten((accountId) => {
+  if (Storage.getItemSync(registeredKey)?.startsWith(`${accountId}|`)) Storage.removeItemSync(registeredKey);
+});
+
+export function pushData(response: Notifications.NotificationResponse | null): Record<string, unknown> {
+  return (response?.notification.request.content.data ?? {}) as Record<string, unknown>;
 }
 
-export function channelFromNotification(response: Notifications.NotificationResponse | null): number | null {
-  const data = response?.notification.request.content.data as Record<string, unknown> | undefined;
-  if (data?.model !== 'discuss.channel') return null;
+export function channelFromNotification(data: Record<string, unknown>): number | null {
+  if (data.model !== 'discuss.channel') return null;
   const id = Number(data.res_id);
   return Number.isInteger(id) && id > 0 ? id : null;
 }
