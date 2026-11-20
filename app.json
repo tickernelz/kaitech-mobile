@@ -53,6 +53,7 @@
           ]
         }
       ],
+      "./plugins/with-livekit-gradle",
       "@livekit/react-native-expo-plugin",
       "@config-plugins/react-native-webrtc",
       "./modules/kaitech-call/plugin",
