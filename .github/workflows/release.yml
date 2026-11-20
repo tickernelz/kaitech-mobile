@@ -22,6 +22,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Tag must point at a commit on main
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
+            echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not on main; release only reviewed, merged commits."
+            exit 1
+          }
       - uses: ./.github/actions/setup-gitleaks
       - run: gitleaks git --redact --verbose --exit-code 1 .
 

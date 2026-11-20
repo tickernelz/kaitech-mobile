@@ -61,7 +61,10 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 |---|---|---|
 | `CI` (`ci.yml`) | push ke `main`, PR, manual | gitleaks seluruh riwayat dan pohon kerja; lint, typecheck, paritas kunci terjemahan, Jest; build APK, IPA, E2E emulator |
 | `Build` (`build.yml`) | dipanggil CI dan Release | APK release (Gradle, runner Linux), IPA tanpa tanda tangan (`xcodebuild`, runner macOS `xcode-27`), pindai rahasia di bundle JS, E2E Maestro di emulator Android dalam locale `en-US` dan `id-ID`, rekaman layar per locale |
-| `Release` (`release.yml`) | tag `v*` | gitleaks, build, lalu GitHub Release berisi APK, IPA, dan `SHA256SUMS.txt` |
+| `Release` (`release.yml`) | tag `v*` | tolak tag yang tidak menunjuk commit di `main`, gitleaks, build, lalu GitHub Release berisi APK, IPA, dan `SHA256SUMS.txt` |
+| `gitleaks push` (`gitleaks.yml`) | push ke cabang selain `main` dan setiap tag | gitleaks seluruh riwayat dan pohon kerja |
+
+Artefak E2E hanya diunggah bila gitleaks bersih. APK di PR hanya berisi ABI `arm64-v8a` dan `x86_64` supaya lebih cepat; push ke `main` dan tag membangun keempat ABI.
 
 Artefak per run: `kaitech-android-apk`, `kaitech-ios-ipa`, `e2e-android-recording-en-US` dan `e2e-android-recording-id-ID` (video `e2e-android-<locale>.mp4`, screenshot Maestro, JUnit, logcat).
 
@@ -76,7 +79,7 @@ Rilis: `git tag v0.1.0 && git push origin v0.1.0`.
 
 Nilai secret tidak pernah ditulis ke repo, log, atau artefak. Berkas kredensial ditolak `.gitignore`.
 
-PR dari fork berjalan tanpa secret (APK bertanda tangan kunci debug, push mati) dan harus disetujui pemilik repo sebelum workflow jalan. Token workflow default hanya baca. Workflow rilis hanya jalan dari tag di repo ini.
+Secret scanning dan push protection GitHub aktif, jadi push yang berisi rahasia dikenal ditolak sebelum masuk. Action pihak ketiga wajib dipin ke SHA commit (aturan repo). PR dari fork berjalan tanpa secret (APK bertanda tangan kunci debug, push mati) dan harus disetujui pemilik repo sebelum workflow jalan. Token workflow default hanya baca. Workflow rilis hanya jalan dari tag di repo ini.
 
 Jangan pernah menulis alamat server lab0 nyata, token, nama database, atau data nyata ke repo. Alamat server dibaca saat runtime dari isian pengguna di layar masuk; contoh dan fixture memakai data karangan.
 

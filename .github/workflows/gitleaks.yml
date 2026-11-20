@@ -1,0 +1,25 @@
+name: gitleaks push
+
+on:
+  push:
+    branches-ignore: [main]
+    tags: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: gitleaks push
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup-gitleaks
+      - name: Scan full git history
+        run: gitleaks git --redact --verbose --exit-code 1 .
+      - name: Scan working tree
+        run: gitleaks dir --redact --verbose --exit-code 1 .
