@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import Storage from 'expo-sqlite/kv-store';
 import { useSyncExternalStore } from 'react';
+import { resetLock } from '../lock/lock';
 import { checkSession, revokeDevice, type Account, type Grant } from './oauth';
 
 export type SessionState = {
@@ -110,6 +111,7 @@ async function forget(id: string) {
     activeId: state.activeId === id ? (remaining[0]?.id ?? null) : state.activeId,
     expired: false,
   });
+  if (remaining.length === 0) resetLock();
 }
 
 export type SignOutResult = 'revoked' | 'local';

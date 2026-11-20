@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { AppState } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSession, verifyActiveSession } from '../auth/session';
 import { useLock } from '../lock/lock';
@@ -19,6 +19,7 @@ export default function RootLayout() {
   const lock = useLock();
   const hasAccount = session.active !== null;
   const signedIn = hasAccount && !session.expired;
+  const locked = signedIn && lock.locked;
   const home = !hasAccount ? '/welcome' : session.expired ? '/expired' : session.onboarded ? '/' : '/setup';
 
   useEffect(() => {
@@ -37,24 +38,30 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <StatusBar style="auto" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
-        <Stack.Protected guard={signedIn && session.onboarded} redirectTo={home}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="add-account" options={{ presentation: 'modal' }} />
-        </Stack.Protected>
-        <Stack.Protected guard={signedIn && !session.onboarded} redirectTo={home}>
-          <Stack.Screen name="setup" options={{ animation: 'fade' }} />
-        </Stack.Protected>
-        <Stack.Protected guard={hasAccount && session.expired} redirectTo={home}>
-          <Stack.Screen name="expired" options={{ animation: 'fade' }} />
-        </Stack.Protected>
-        <Stack.Protected guard={!hasAccount} redirectTo={home}>
-          <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
-          <Stack.Screen name="sign-in" />
-        </Stack.Protected>
-      </Stack>
-      {signedIn && lock.locked ? <LockScreen /> : null}
+      <View style={styles.fill} importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'} pointerEvents={locked ? 'none' : 'auto'}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
+          <Stack.Protected guard={signedIn && session.onboarded} redirectTo={home}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="add-account" options={{ presentation: 'modal' }} />
+          </Stack.Protected>
+          <Stack.Protected guard={signedIn && !session.onboarded} redirectTo={home}>
+            <Stack.Screen name="setup" options={{ animation: 'fade' }} />
+          </Stack.Protected>
+          <Stack.Protected guard={hasAccount && session.expired} redirectTo={home}>
+            <Stack.Screen name="expired" options={{ animation: 'fade' }} />
+          </Stack.Protected>
+          <Stack.Protected guard={!hasAccount} redirectTo={home}>
+            <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
+            <Stack.Screen name="sign-in" />
+          </Stack.Protected>
+        </Stack>
+      </View>
+      {locked ? <LockScreen /> : null}
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+});

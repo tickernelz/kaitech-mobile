@@ -49,7 +49,7 @@
     "languageTitle": "Pilih bahasa",
     "languageBody": "Anda dapat mengubahnya kapan saja di Pengaturan.",
     "lockTitle": "Kunci aplikasi",
-    "lockBody": "Minta {{method}} saat Anda kembali ke Kaitech setelah 5 menit tidak digunakan.",
+    "lockBody": "Minta verifikasi {{method}} saat Anda kembali ke Kaitech setelah 5 menit tidak digunakan.",
     "lockEnable": "Aktifkan",
     "lockLater": "Nanti saja",
     "lockEnabled": "Kunci aplikasi sudah aktif."
@@ -89,7 +89,7 @@
     "languageSystemHint": "Saat ini {{language}}",
     "security": "Keamanan",
     "appLock": "Kunci aplikasi",
-    "appLockHint": "Minta {{method}} setelah 5 menit tidak digunakan",
+    "appLockHint": "Minta verifikasi {{method}} setelah 5 menit tidak digunakan",
     "signOut": "Keluar",
     "signOutTitle": "Keluar dari akun {{name}}?",
     "signOutBody": "Perangkat ini akan dihapus dari akun Anda dan tidak lagi menerima notifikasinya.",
