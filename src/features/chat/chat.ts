@@ -26,6 +26,7 @@ import {
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
 import type { Conversation, Member, Mention, Message, Pending, PendingFile } from './types';
+import { setUploadProgress } from './progress';
 
 export type Typist = { partnerId: number; name: string; until: number };
 
@@ -331,9 +332,11 @@ export function startChat(account: Account) {
     {
       upload: async (item: Pending, file: PendingFile) => {
         try {
-          return await current.upload(item.channelId, file);
+          return await current.upload(item.channelId, file, (fraction) => setUploadProgress(file.key, fraction));
         } catch (error) {
           throw sendErrorFrom(error);
+        } finally {
+          setUploadProgress(file.key, null);
         }
       },
       post: async (item: Pending, files) => {
@@ -671,6 +674,25 @@ export async function toggleReaction(message: Message, content: string) {
 
 export function notifyTyping(channelId: number, typing: boolean) {
   void client?.typing(channelId, typing).catch(() => undefined);
+}
+
+export async function muteConversation(channelId: number, minutes: number): Promise<string | null> {
+  const current = client;
+  const account = state.accountId;
+  if (!current || !account) return 'signedOut';
+  try {
+    const answer = await current.mute(channelId, minutes);
+    if (answer.channel_id !== channelId) return 'answerMismatch';
+    const mutedUntil = typeof answer.muted_until === 'string' ? answer.muted_until : null;
+    if (state.accountId !== account) return null;
+    const conversations = state.conversations.map((item) => (item.id === channelId ? { ...item, mutedUntil } : item));
+    set({ conversations });
+    const changed = conversations.find((item) => item.id === channelId);
+    if (changed) void storeConversations(account, [changed], false);
+    return null;
+  } catch (error) {
+    return errorCode(error);
+  }
 }
 
 export function chatClient(): ChatClient | null {

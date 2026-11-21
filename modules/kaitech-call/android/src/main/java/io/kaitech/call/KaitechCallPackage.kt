@@ -18,20 +18,20 @@ import java.lang.ref.WeakReference
 
 class KaitechCallPackage : Package {
   override fun createReactActivityLifecycleListeners(activityContext: Context?): List<ReactActivityLifecycleListener> {
-    return listOf(CallActivityListener())
+    return listOf(CallActivityListener(activityContext as? Activity))
   }
 }
 
-class CallActivityListener : ReactActivityLifecycleListener {
-  private var host = WeakReference<Activity>(null)
+class CallActivityListener(activity: Activity?) : ReactActivityLifecycleListener {
+  private var owner = WeakReference(activity)
   private val pipWatcher = Consumer<PictureInPictureModeChangedInfo> { info ->
-    host.get()?.let { activity -> activity.window.decorView.post { keepRendering(activity, info.isInPictureInPictureMode) } }
+    owner.get()?.let { held -> held.window.decorView.post { keepRendering(held, info.isInPictureInPictureMode) } }
     CallBridge.setPictureInPicture(info.isInPictureInPictureMode)
   }
 
   override fun onCreate(activity: Activity, savedInstanceState: Bundle?) {
-    host = WeakReference(activity)
-    apply(activity, activity.intent)
+    owner = WeakReference(activity)
+    CallKeyguard.apply(activity)
     (activity as? OnPictureInPictureModeChangedProvider)?.addOnPictureInPictureModeChangedListener(pipWatcher)
     CallPip.apply(activity)
   }
@@ -41,6 +41,15 @@ class CallActivityListener : ReactActivityLifecycleListener {
   }
 
   override fun onNewIntent(intent: Intent): Boolean {
+    if (MessageIntents.isOpen(intent)) {
+      owner.get()?.intent = intent
+      CallBridge.module?.dispatchMessageOpen()
+      return false
+    }
+    if (!CallIntents.isCall(intent)) return false
+    val activity = owner.get() ?: return false
+    activity.intent = intent
+    CallKeyguard.apply(activity)
     return false
   }
 
@@ -49,7 +58,12 @@ class CallActivityListener : ReactActivityLifecycleListener {
   }
 
   override fun onResume(activity: Activity) {
-    apply(activity, activity.intent)
+    CallKeyguard.apply(activity)
+  }
+
+  override fun onPause(activity: Activity) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+    activity.window.decorView.post { if (activity.isInPictureInPictureMode) keepRendering(activity, true) }
   }
 
   private fun keepRendering(activity: Activity, pinned: Boolean) {
@@ -58,16 +72,13 @@ class CallActivityListener : ReactActivityLifecycleListener {
     if (resumed || activity.isFinishing) return
     if (pinned) reactHost.onHostResume(activity, activity as? DefaultHardwareBackBtnHandler) else reactHost.onHostPause(activity)
   }
+}
 
-  override fun onPause(activity: Activity) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-    activity.window.decorView.post { if (activity.isInPictureInPictureMode) keepRendering(activity, true) }
-  }
-
-  private fun apply(activity: Activity, intent: Intent?) {
+object CallKeyguard {
+  fun apply(activity: Activity) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) return
-    val incoming = CallIntents.isCall(intent)
-    activity.setShowWhenLocked(incoming)
-    activity.setTurnScreenOn(incoming)
+    val show = CallIntents.isCall(activity.intent) || CallBridge.callSurface
+    activity.setShowWhenLocked(show)
+    activity.setTurnScreenOn(show)
   }
 }

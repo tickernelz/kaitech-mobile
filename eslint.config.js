@@ -8,9 +8,21 @@ module.exports = defineConfig([
     ignores: ['dist/*'],
   },
   {
-    files: ['src/features/call/livekit.ts'],
+    files: ['src/features/call/livekit.ts', 'index.ts'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.name='require'][arguments.0.value='livekit-client']",
+          message: "require('livekit-client') bundles a second (UMD) copy of livekit-client; import it from src/features/call/liveKitClient instead.",
+        },
+      ],
     },
   },
   {

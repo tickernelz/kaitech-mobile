@@ -15,6 +15,9 @@ object CallBridge {
   @Volatile
   var locked = false
 
+  @Volatile
+  var callSurface = false
+
   private val pending = CopyOnWriteArraySet<Map<String, Any?>>()
 
   fun setInCall(value: Boolean): Boolean {

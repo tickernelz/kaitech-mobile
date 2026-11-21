@@ -30,13 +30,25 @@ type NativeCall = {
   setInCall(value: boolean): Promise<boolean>;
   setLocked(value: boolean): Promise<boolean>;
   readonly pictureInPictureSupported?: boolean;
+  setCallSurface(visible: boolean): Promise<boolean>;
   enterPictureInPicture(): Promise<boolean>;
   leavePictureInPicture(): Promise<boolean>;
   setPictureInPicture(enabled: boolean, width: number, height: number, muted: boolean, camera: boolean, video: boolean, sharing: boolean): Promise<boolean>;
   setPictureInPictureHint(x: number, y: number, width: number, height: number): Promise<boolean>;
   canUseFullScreenIntent(): Promise<boolean>;
   openFullScreenIntentSettings(): Promise<boolean>;
+  setMessagesHidden(value: boolean): Promise<boolean>;
+  setMessageLanguage(value: string): Promise<boolean>;
+  setMutedConversations(db: string, uid: number, channelIds: number[], until: number[]): Promise<boolean>;
+  setOpenConversations(db: string, uid: number, channelIds: number[]): Promise<boolean>;
+  clearConversation(db: string, uid: number, channelId: number): Promise<boolean>;
+  clearAccountMessages(db: string, uid: number): Promise<boolean>;
+  messageResult(db: string, uid: number, channelId: number, sendKey: string, ok: boolean): Promise<boolean>;
+  openBubbleSettings(db: string, uid: number, channelId: number): Promise<boolean>;
+  takeMessageOpen(): Promise<MessageOpen | null>;
 };
+
+export type MessageOpen = { db: string; uid: number; channelId: number };
 
 let held: NativeCall | null | undefined;
 let emitter: InstanceType<typeof EventEmitter> | null | undefined;
@@ -59,6 +71,13 @@ function load(): NativeCall | null {
 
 export function callNative(): NativeCall | null {
   return load();
+}
+
+export function onMessageOpen(listener: () => void): () => void {
+  load();
+  if (!emitter) return () => undefined;
+  const subscription = emitter.addListener('onMessageOpen', listener);
+  return () => subscription.remove();
 }
 
 export function onCallAction(listener: (action: CallAction) => void): () => void {

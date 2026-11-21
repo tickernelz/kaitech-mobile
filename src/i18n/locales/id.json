@@ -166,7 +166,13 @@
       "working": "Coworker sedang bekerja",
       "waitingForYou": "Coworker menunggu jawaban Anda",
       "steps_one": "{{count}} langkah",
-      "steps_other": "{{count}} langkah"
+      "steps_other": "{{count}} langkah",
+      "attach": "Lampirkan berkas",
+      "job": {
+        "running": "Sedang dikerjakan",
+        "done": "Selesai",
+        "failed": "Tidak bisa diselesaikan"
+      }
     },
     "card": {
       "title": "Kartu keputusan",
