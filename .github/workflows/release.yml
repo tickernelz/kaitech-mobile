@@ -37,14 +37,17 @@ jobs:
     uses: ./.github/workflows/build.yml
     secrets: inherit
 
-  publish:
-    name: publish GitHub Release
+  draft:
+    name: draft GitHub Release
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: kaitech-*
@@ -56,16 +59,169 @@ jobs:
             echo "::error::Release APK must be signed with the release keystore secret."
             exit 1
           fi
-      - name: Create release
+      - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          LINK_HOST_SET: ${{ vars.KAITECH_LINK_HOST != '' }}
+          PUSH_SET: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
         run: |
           set -euo pipefail
           cat dist/SHA256SUMS-*.txt > dist/SHA256SUMS.txt
           rm dist/SHA256SUMS-*.txt
-          gh release create "$TAG" dist/* \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "Kaitech $TAG" \
-            --notes "Build dari \`$GITHUB_SHA\`. APK ditandatangani keystore non-toko; IPA tanpa tanda tangan (pasang ulang lewat AltStore atau Sideloadly). Cara pasang: lihat README." \
-            --verify-tag
+          {
+            cat .github/release-notes.md
+            echo
+            if [ "$LINK_HOST_SET" != true ]; then
+              echo "- **Masuk belum bisa di build ini**: dibangun tanpa domain tautan (\`KAITECH_LINK_HOST\`), jadi layar masuk memberi tahu bahwa domain tautan belum diatur."
+            fi
+            if [ "$PUSH_SET" != true ]; then
+              echo "- **Push Android mati di build ini**: dibangun tanpa \`google-services.json\`, jadi pesan dan dering baru tampil hanya saat aplikasi terbuka."
+            fi
+            echo
+            echo "Build dari \`$GITHUB_SHA\`. Run rilis (APK dan IPA, pindai gitleaks, uji pasang dari Release di emulator ponsel dan tablet, rekaman per sel): $RUN_URL"
+          } > "$RUNNER_TEMP/notes.md"
+          draft="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null || echo none)"
+          case "$draft" in
+            none)
+              gh release create "$TAG" dist/* \
+                --repo "$GITHUB_REPOSITORY" \
+                --title "Kaitech $TAG" \
+                --notes-file "$RUNNER_TEMP/notes.md" \
+                --draft \
+                --verify-tag
+              ;;
+            true)
+              gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+              gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/notes.md"
+              ;;
+            *)
+              echo "::error::$TAG is already published; tag a new version instead of replacing its assets."
+              exit 1
+              ;;
+          esac
+
+  release-assets:
+    name: check release assets
+    needs: draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-gitleaks
+      - name: Download the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release
+      - name: Checksums
+        working-directory: release
+        run: sha256sum -c SHA256SUMS.txt
+      - name: Rotation, multi-window and iPad config inside the APK and IPA
+        run: python3 scripts/check-release-artifacts.py release/*.apk release/*.ipa
+      - name: Scan the unpacked APK and IPA for secrets
+        run: |
+          set -euo pipefail
+          mkdir -p unpacked
+          for file in release/*.apk release/*.ipa; do
+            unzip -q "$file" -d "unpacked/$(basename "$file")"
+          done
+          gitleaks dir --redact --verbose --exit-code 1 unpacked
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-apk
+          path: |
+            release/*.apk
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 1
+
+  install-from-release:
+    name: install from release ${{ matrix.size }} ${{ matrix.orientation }} ${{ matrix.locale }}
+    needs: release-assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        size: [phone, tablet]
+        orientation: [portrait, landscape]
+        locale: [en-US, id-ID]
+        include:
+          - size: phone
+            profile: pixel_6
+          - size: tablet
+            profile: pixel_tablet
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-apk
+          path: release
+      - name: APK matches the draft release checksum
+        working-directory: release
+        run: |
+          set -euo pipefail
+          sha256sum -c --ignore-missing SHA256SUMS.txt
+          rm SHA256SUMS.txt
+      - uses: ./.github/actions/setup-maestro
+      - uses: ./.github/actions/setup-gitleaks
+      - name: Install on a clean emulator and run Maestro flows
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: ${{ matrix.profile }}
+          disable-animations: true
+          force-avd-creation: true
+          emulator-options: -no-window -no-snapshot -wipe-data -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash scripts/e2e-android.sh release e2e-output/release-${{ matrix.size }}-${{ matrix.orientation }}-${{ matrix.locale }} ${{ matrix.locale }} ${{ matrix.size }} ${{ matrix.orientation }}
+      - name: Scan E2E output for secrets
+        id: scan-e2e
+        if: always()
+        run: |
+          if [ ! -d e2e-output ]; then
+            echo "no E2E output"
+            exit 0
+          fi
+          gitleaks dir --redact --verbose --exit-code 1 e2e-output
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && steps.scan-e2e.outcome == 'success'
+        with:
+          name: e2e-android-release-${{ matrix.size }}-${{ matrix.orientation }}-${{ matrix.locale }}
+          path: e2e-output/
+          if-no-files-found: warn
+          retention-days: 90
+
+  publish:
+    name: publish GitHub Release
+    needs: install-from-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Publish the checked draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
