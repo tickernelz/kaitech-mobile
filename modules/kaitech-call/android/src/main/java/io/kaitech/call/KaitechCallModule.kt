@@ -81,6 +81,8 @@ class KaitechCallModule : Module() {
 
     Constant("pictureInPictureSupported") { CallPip.supported(appContext.reactContext) }
 
+    Function("isInPictureInPicture") { appContext.currentActivity?.isInPictureInPictureMode == true }
+
     AsyncFunction("enterPictureInPicture") { CallPip.enter(appContext.currentActivity) }.runOnQueue(Queues.MAIN)
 
     AsyncFunction("leavePictureInPicture") {

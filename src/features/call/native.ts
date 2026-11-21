@@ -31,6 +31,7 @@ type NativeCall = {
   setLocked(value: boolean): Promise<boolean>;
   readonly pictureInPictureSupported?: boolean;
   setCallSurface(visible: boolean): Promise<boolean>;
+  isInPictureInPicture(): boolean;
   enterPictureInPicture(): Promise<boolean>;
   leavePictureInPicture(): Promise<boolean>;
   setPictureInPicture(enabled: boolean, width: number, height: number, muted: boolean, camera: boolean, video: boolean, sharing: boolean): Promise<boolean>;
