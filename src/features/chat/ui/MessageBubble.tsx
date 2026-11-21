@@ -224,7 +224,7 @@ export const MessageBubble = memo(function MessageBubble({
     return (
       <View style={styles.notice}>
         <Text variant="footnote" tone="inkSoft" style={[styles.center, styles.noticePill, { backgroundColor: colors.surface2 }]}>
-          {message.author ? `${message.author} ` : ''}
+          {message.author && !text.startsWith(message.author) ? `${message.author} ` : ''}
           {text}
         </Text>
       </View>

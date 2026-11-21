@@ -64,8 +64,9 @@ export function EmojiPicker({ onPick, onClose, selected = [] }: { onPick: (emoji
             numColumns={columns}
             keyExtractor={(item) => item}
             keyboardShouldPersistTaps="handled"
-            renderItem={({ item }) => (
+            renderItem={({ item, index }) => (
               <Pressable
+                testID={`emoji-cell-${index}`}
                 accessibilityRole="button"
                 accessibilityLabel={item}
                 accessibilityState={{ selected: selected.includes(item) }}

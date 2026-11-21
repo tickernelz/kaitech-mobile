@@ -86,8 +86,9 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: a3-emoji
+- runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
-    text: "\U0001F680"
+    id: emoji-cell-0
 - extendedWaitUntil:
     visible:
       text: "\U0001F680 1"
