@@ -2,15 +2,16 @@
 
 Aplikasi mobile Kaitech untuk Android dan iOS, dibangun dengan React Native dan Expo SDK 58 (development build, bukan Expo Go). APK dan IPA hanya dibangun di GitHub Actions, tanpa EAS Build.
 
-Alamat server dan database diisi pengguna saat masuk. Repo ini tidak menyimpan alamat server, kunci, atau token apa pun.
+Alamat server dan database diisi pengguna saat masuk. Repo ini tidak menyimpan alamat server, kunci, atau token apa pun. Satu-satunya nama host di build rilis adalah domain tautan masuk, diisi dari variabel repo saat build (lihat [Masuk](#masuk-login)).
 
 ## Rilis
 
 Unduh dari [Releases](https://github.com/tickernelz/kaitech-mobile/releases/latest): `kaitech-<build>-<sha>-arm64-v8a.apk` untuk Android (hampir semua ponsel Android sekarang; `kaitech-<build>-<sha>.apk` universal untuk ponsel lain), `kaitech-<build>-<sha>-unsigned.ipa` untuk iOS, dan `SHA256SUMS.txt`. Periksa unduhan dengan `sha256sum -c --ignore-missing SHA256SUMS.txt`. Ini rilis uji untuk tim, bukan rilis toko.
 
-Batas build rilis selama domain tautan, Firebase, dan akun Apple Developer belum ada (catatan rilis tiap tag menyebut mana yang berlaku untuk build itu):
+Masuk di Android memakai App Link di domain tautan `lab0.kaitech.io` (variabel repo `KAITECH_LINK_HOST`), tertanam di build rilis mulai v0.2.2. Build tanpa variabel itu, misalnya PR dari fork, memberi tahu di layar masuk bahwa domain tautan belum diatur.
 
-- **Masuk.** Kode masuk kembali ke aplikasi lewat App Link di domain tautan yang ditanam saat build (variabel repo `KAITECH_LINK_HOST`). Tanpa variabel itu layar masuk memberi tahu bahwa domain tautan belum diatur, dan build itu belum bisa masuk ke server. Setelah variabel diisi, tag berikutnya membawanya tanpa perubahan kode.
+Batas build rilis selama Firebase dan akun Apple Developer belum ada (catatan rilis tiap tag menyebut mana yang berlaku untuk build itu):
+
 - **Push Android.** Tanpa secret `GOOGLE_SERVICES_JSON` push mati; pesan dan dering baru tampil hanya saat aplikasi terbuka.
 - **iOS.** Lihat [Pasang IPA](#pasang-ipa-ios): masuk lewat Universal Link, APNs, VoIP push, dan CallKit butuh akun Apple Developer.
 
@@ -92,7 +93,7 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 - Universal Links iOS yang terverifikasi (`apple-app-site-association` dengan Team ID), yang dibutuhkan untuk masuk di iOS.
 - Live Activity untuk panggilan dan rekaman MoM.
 
-Di luar akun toko, dua hal lain masih menunggu Zhafron: domain tautan untuk masuk dari build rilis (variabel repo `KAITECH_LINK_HOST`) dan proyek Firebase untuk push Android (secret `GOOGLE_SERVICES_JSON`).
+Di luar akun toko, proyek Firebase untuk push Android (secret `GOOGLE_SERVICES_JSON`) masih menunggu Zhafron.
 
 ## Calls
 
@@ -232,7 +233,7 @@ Bahasa awal mengikuti perangkat (`id` atau `in` menjadi Indonesia, selain itu In
 
 Aplikasi membuka `/kaitech_mobile/authorize` di server yang diisi pengguna lewat browser sistem dengan PKCE S256, lalu menukar kode di `/kaitech_mobile/token`. Token perangkat disimpan di Keychain/Keystore (`expo-secure-store`, hanya perangkat ini, hanya saat terbuka); data akun yang bukan rahasia disimpan di `kv-store`. Kontrak server: README modul `kaitech_mobile` lab0.
 
-Server mengembalikan kode ke App Link/Universal Link `https://<domain tautan>/kaitech_mobile/callback`; skema kustom tidak dipakai. Domain tautan dibaca saat build dari variabel `KAITECH_LINK_HOST` (bukan dari repo). Build tanpa variabel itu tetap jalan, tetapi layar masuk menampilkan pesan bahwa domain tautan belum diatur. Domain itu harus menyajikan `/.well-known/assetlinks.json` dengan sidik jari sertifikat di atas dan terdaftar di `kaitech_mobile.redirect_uris` server.
+Server mengembalikan kode ke App Link/Universal Link `https://<domain tautan>/kaitech_mobile/callback`; skema kustom tidak dipakai. Domain tautan dibaca saat build dari variabel `KAITECH_LINK_HOST` (bukan dari repo); nilainya `lab0.kaitech.io`, jadi nama host itu terlihat di APK dan IPA publik. Build tanpa variabel itu tetap jalan, tetapi layar masuk menampilkan pesan bahwa domain tautan belum diatur. Domain itu harus menyajikan `/.well-known/assetlinks.json` dengan sidik jari sertifikat di atas dan terdaftar di `kaitech_mobile.redirect_uris` server; lab0 memenuhi keduanya (parameter itu kosong, jadi server memakai `web.base.url` + `/kaitech_mobile/callback`). Server lain yang dimasukkan pengguna tetap mengembalikan kode ke domain tautan ini, jadi server itu harus mendaftarkan `https://lab0.kaitech.io/kaitech_mobile/callback` di `kaitech_mobile.redirect_uris`.
 
 ### Ikon dan splash
 
