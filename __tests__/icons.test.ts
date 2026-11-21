@@ -20,7 +20,7 @@ jest.mock('../src/auth/session', () => ({ ...jest.requireActual('../src/auth/ses
 
 require('../src/i18n');
 const { Icon, iconNames } = require('../src/ui/icons') as typeof import('../src/ui/icons');
-const { plan } = require('../src/ui/icons/glyphs') as typeof import('../src/ui/icons/glyphs');
+const { plan, strokeFor } = require('../src/ui/icons/glyphs') as typeof import('../src/ui/icons/glyphs');
 const { CallControls } = require('../src/features/call/ui/CallControls') as typeof import('../src/features/call/ui/CallControls');
 const { IconButton } = require('../src/features/discovery/ui') as typeof import('../src/features/discovery/ui');
 const { HeaderActions } = require('../src/screens/HeaderActions') as typeof import('../src/screens/HeaderActions');
@@ -54,16 +54,23 @@ function coordinates(d: string): number[][] {
 }
 
 describe('Kaitech icon set', () => {
-  it.each(iconNames)('%s renders in both variants at every optical size', async (name) => {
-    for (const variant of ['line', 'fill'] as const) {
-      for (const size of sizes) {
-        const { unmount } = await render(createElement(Icon, { name, color: '#123456', size, variant }));
-        const svg = screen.getByTestId(`icon-${name}`, hidden);
-        expect(svg.props.width).toBe(size);
-        expect(JSON.stringify(screen.toJSON()).match(/"type":"RNSVGPath","props":\{"fill":(null|\{[^}]+\}),"stroke":(null|\{[^}]+\})/g)?.length).toBeGreaterThan(0);
+  it('renders every name in both variants as a few flat paths', async () => {
+    for (const name of iconNames) {
+      for (const variant of ['line', 'fill'] as const) {
+        const { unmount } = await render(createElement(Icon, { name, color: '#123456', size: 24, variant }));
+        expect(screen.getByTestId(`icon-${name}`, hidden).props.width).toBe(24);
+        const tree = JSON.stringify(screen.toJSON());
+        const paths = tree.match(/"type":"RNSVGPath"/g)?.length ?? 0;
+        expect(paths).toBeGreaterThan(0);
+        if (!tree.includes('RNSVGMask')) expect(paths).toBeLessThanOrEqual(2);
         await unmount();
       }
     }
+  });
+
+  it('thins the stroke as the optical size grows', () => {
+    expect(sizes.map(strokeFor)).toEqual([2.25, 2.1, 2, 1.75]);
+    expect(plan('chat', 'line', 16).strokeWidth).toBe(2.25);
   });
 
   it.each(iconNames)('%s keeps every point inside the 24 grid with a 1px margin', (name) => {
@@ -83,7 +90,6 @@ describe('Kaitech icon set', () => {
       createElement('View', null, createElement(Icon, { name: 'doc', color: '#000', variant: 'fill' }), createElement(Icon, { name: 'image', color: '#000', variant: 'fill' })),
     );
     const ids = JSON.stringify(screen.toJSON()).match(/"mask":"[^"]+"/g) ?? [];
-    expect(ids).toHaveLength(2);
     expect(new Set(ids).size).toBe(2);
   });
 

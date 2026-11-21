@@ -141,5 +141,16 @@ export function plan(name: IconName, variant: IconVariant, size: number): Plan {
       masked.push({ d, fill: filled, stroke: !filled, width });
     }
   }
-  return { strokeWidth: width, rotate: glyph.rotate ?? 0, masked, cutouts, over };
+  return { strokeWidth: width, rotate: glyph.rotate ?? 0, masked: merge(masked), cutouts: merge(cutouts), over };
+}
+
+function merge(paints: Paint[]): Paint[] {
+  const groups = new Map<string, Paint>();
+  for (const p of paints) {
+    const key = `${p.fill}|${p.stroke}|${p.width}`;
+    const found = groups.get(key);
+    if (found) found.d += p.d;
+    else groups.set(key, { ...p });
+  }
+  return [...groups.values()];
 }
