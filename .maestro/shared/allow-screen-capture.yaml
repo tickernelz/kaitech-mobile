@@ -1,0 +1,18 @@
+appId: io.kaitech.mobile
+---
+- extendedWaitUntil:
+    visible:
+      text: (?i).*(recording or casting|merekam atau mentransmisikan|share your screen|bagikan layar).*
+    timeout: 15000
+- runFlow:
+    when:
+      visible:
+        text: (?i)(a single app|satu aplikasi)
+    commands:
+      - tapOn:
+          text: (?i)(a single app|satu aplikasi)
+      - tapOn:
+          text: (?i)(entire screen|seluruh layar|share entire screen|bagikan seluruh layar)
+- tapOn:
+    text: (?i)(start|mulai|share screen|bagikan layar)
+    index: -1

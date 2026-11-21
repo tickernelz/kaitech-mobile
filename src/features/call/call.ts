@@ -10,6 +10,8 @@ import { callNative, onCallAction, type CallAction } from './native';
 import { invitationChannels, invitationsFrom, sessionIdsFrom, type Invitation } from './odoo';
 import { ensureCamera, ensureMicrophone } from './permissions';
 import { accountFromPush } from './account';
+import { pickBroadcast } from './screenShare';
+import { currentRecording, startRecording, stopRecording } from './recording';
 
 export type CallPhase = 'idle' | 'incoming' | 'outgoing' | 'connecting' | 'active' | 'reconnecting' | 'ended';
 
@@ -21,6 +23,7 @@ export type CallPerson = {
   speaking: boolean;
   cameraOn: boolean;
   micOn: boolean;
+  screenOn: boolean;
 };
 
 export type CallState = {
@@ -38,6 +41,11 @@ export type CallState = {
   startedAt: number;
   endedReason: string | null;
   ringing: boolean;
+  screenSharing: boolean;
+  recording: boolean;
+  recordingBy: string | null;
+  recordingBusy: boolean;
+  recordingError: string | null;
   people: CallPerson[];
   speaking: string[];
   version: number;
@@ -58,6 +66,11 @@ const idle: CallState = {
   startedAt: 0,
   endedReason: null,
   ringing: false,
+  screenSharing: false,
+  recording: false,
+  recordingBy: null,
+  recordingBusy: false,
+  recordingError: null,
   people: [],
   speaking: [],
   version: 0,
@@ -73,6 +86,8 @@ let pingTimer: ReturnType<typeof setInterval> | null = null;
 let endTimer: ReturnType<typeof setTimeout> | null = null;
 let generation = 0;
 let callAccount: Account | null = null;
+let sharingBusy = false;
+let shareStarting = false;
 const tracks = new Map<string, unknown>();
 
 export function callState(): CallState {
@@ -171,6 +186,7 @@ function collectPeople() {
     speaking: speakers.has(participant.sid),
     cameraOn: participant.isCameraEnabled,
     micOn: participant.isMicrophoneEnabled,
+    screenOn: participant.isScreenShareEnabled,
   }));
   publish({ people: rows, speaking: [...speakers] });
 }
@@ -188,6 +204,50 @@ function collectSpeaking() {
 function collect() {
   collectTracks();
   collectPeople();
+  syncScreen();
+}
+
+function syncScreen() {
+  const sharing = Boolean(room?.localParticipant.isScreenShareEnabled);
+  if (sharing === state.screenSharing) return;
+  publish({ screenSharing: sharing });
+  void send({ is_screen_sharing_on: sharing });
+  presence();
+}
+
+function syncRecording() {
+  const recording = Boolean(room?.isRecording);
+  if (recording === state.recording) return;
+  publish({ recording, recordingBy: recording ? state.recordingBy : null });
+  if (recording) void lookUpRecorder();
+}
+
+async function lookUpRecorder() {
+  const account = callAccount;
+  const session = joined;
+  if (!account || !session) return;
+  const found = await currentRecording(account, session.channelId).catch(() => null);
+  if (joined === session && state.recording && found) publish({ recordingBy: found.startedBy });
+}
+
+function errorCode(error: unknown): string {
+  return typeof error === 'object' && error !== null && 'code' in error ? String((error as { code: unknown }).code) : 'network';
+}
+
+export async function toggleRecording() {
+  const account = callAccount;
+  const session = joined;
+  if (!account || !session || state.recordingBusy || state.phase !== 'active') return;
+  const stopping = state.recording;
+  publish({ recordingBusy: true, recordingError: null });
+  try {
+    const found = stopping ? await stopRecording(account, session.channelId) : await startRecording(account, session.channelId);
+    if (joined === session && found && !stopping) publish({ recordingBy: found.startedBy });
+  } catch (error) {
+    if (joined === session) publish({ recordingError: errorCode(error) });
+  } finally {
+    if (joined === session) publish({ recordingBusy: false });
+  }
 }
 
 export async function startCall(input: { channelId: number; channelName: string; video: boolean }) {
@@ -286,7 +346,8 @@ async function connect(api: CallClient, channelId: number, video: boolean, start
       return;
     }
     collect();
-    publish({ phase: 'active', startedAt: Date.now(), muted: false, cameraOn: video, speaker: true });
+    publish({ phase: 'active', startedAt: Date.now(), muted: false, cameraOn: video, speaker: true, recording: instance.isRecording });
+    if (instance.isRecording) void lookUpRecorder();
     void callNative()?.setInCall(true);
     void callNative()?.startCall(video, state.channelName || state.callerName, i18n.t('call:inCall'), channelId);
     startPing(api, started);
@@ -314,6 +375,7 @@ function bind(instance: LiveRoom, sdk: Awaited<ReturnType<typeof loadClient>>) {
     [event.LocalTrackPublished, collect],
     [event.LocalTrackUnpublished, collect],
     [event.ActiveSpeakersChanged, collectSpeaking],
+    [event.RecordingStatusChanged, syncRecording],
     [event.Reconnecting, () => publish({ phase: 'reconnecting' })],
     [event.Reconnected, () => publish({ phase: 'active' })],
     [event.Disconnected, () => void finish('disconnected')],
@@ -376,9 +438,9 @@ async function teardown() {
   joined = null;
   tracks.clear();
   if (held) {
-    for (const participant of [held.localParticipant]) {
-      await participant.setMicrophoneEnabled(false).catch(() => undefined);
-    }
+    const local = held.localParticipant;
+    if (local.isScreenShareEnabled) await local.setScreenShareEnabled(false).catch(() => undefined);
+    await local.setMicrophoneEnabled(false).catch(() => undefined);
     await held.disconnect().catch(() => undefined);
   }
   try {
@@ -452,6 +514,32 @@ async function routeAudio(speaker: boolean) {
   }
 }
 
+export function toggleScreenShare(): Promise<void> {
+  return setScreenShare(!state.screenSharing);
+}
+
+async function setScreenShare(on: boolean) {
+  const instance = room;
+  if (!instance || sharingBusy || state.phase !== 'active') return;
+  sharingBusy = true;
+  if (on) {
+    shareStarting = true;
+    presence();
+  }
+  try {
+    if (on && !(await pickBroadcast())) return;
+    if (room !== instance) return;
+    await instance.localParticipant.setScreenShareEnabled(on);
+  } catch {
+    return;
+  } finally {
+    sharingBusy = false;
+    shareStarting = false;
+    if (room === instance) collect();
+    if (on && !state.screenSharing) presence();
+  }
+}
+
 function send(values: SessionValues) {
   const api = sessionClient();
   if (!api || !joined) return Promise.resolve();
@@ -462,11 +550,12 @@ function presence() {
   if (!joined) return;
   void callNative()?.updateCall(
     state.video,
-    state.channelName || state.callerName,
-    i18n.t('call:inCall'),
+    state.screenSharing || shareStarting ? i18n.t('call:sharingTitle') : state.channelName || state.callerName,
+    i18n.t(state.screenSharing ? 'call:sharingScreen' : 'call:inCall'),
     state.channelId,
     state.muted,
     state.cameraOn,
+    state.screenSharing,
   );
 }
 
@@ -572,6 +661,10 @@ function fromNative(action: CallAction) {
   }
   if (action.type === 'hangup') {
     void hangUp('left');
+    return;
+  }
+  if (action.type === 'stopShare') {
+    void setScreenShare(false);
     return;
   }
   if (action.type === 'cancel') {

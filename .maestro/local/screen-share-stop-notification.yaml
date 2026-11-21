@@ -1,0 +1,47 @@
+appId: io.kaitech.mobile
+name: Screen share, part 3 - share again, then stop from the call notification (local only)
+---
+- tapOn:
+    id: call-share
+- runFlow: ../shared/allow-screen-capture.yaml
+- extendedWaitUntil:
+    visible:
+      id: call-screen-share-own
+    timeout: 20000
+- swipe:
+    start: 50%, 0%
+    end: 50%, 60%
+    duration: 600
+- runFlow:
+    when:
+      notVisible:
+        text: (?i)(stop sharing|berhenti berbagi)
+    commands:
+      - longPressOn:
+          text: (?i)(kaitech call|panggilan kaitech)
+      - runFlow:
+          when:
+            notVisible:
+              text: (?i)(stop sharing|berhenti berbagi)
+          commands:
+            - tapOn:
+                point: 89%,44%
+- extendedWaitUntil:
+    visible:
+      text: (?i)(stop sharing|berhenti berbagi)
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: s3-notification
+- tapOn:
+    text: (?i)(stop sharing|berhenti berbagi)
+- pressKey: back
+- extendedWaitUntil:
+    notVisible:
+      id: call-screen-share-own
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: s4-stopped-notification

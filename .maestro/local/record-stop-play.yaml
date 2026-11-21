@@ -1,0 +1,44 @@
+appId: io.kaitech.mobile
+name: Record, part 2 - stop recording, hang up, play the recording from the chat (local only)
+---
+- tapOn:
+    id: call-record
+- extendedWaitUntil:
+    notVisible:
+      id: call-recording
+    timeout: 60000
+- tapOn:
+    id: call-hangup
+- extendedWaitUntil:
+    notVisible:
+      id: call-screen
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: tab-chat
+    commands:
+      - tapOn:
+          id: tab-button-chat
+      - tapOn:
+          text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: recording-card-.*-detail
+      text: .*\d+:\d\d.*
+    timeout: 180000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r2-recording-card
+- tapOn:
+    id: recording-card-.*
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: recording-video
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r3-playing

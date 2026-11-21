@@ -1,0 +1,49 @@
+appId: io.kaitech.mobile
+name: Join the web peer's voice call from the ring or from the chat
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat|incoming-answer)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: sign-in.yaml
+- runFlow:
+    when:
+      visible:
+        id: incoming-answer
+    commands:
+      - tapOn:
+          id: incoming-answer
+- runFlow:
+    when:
+      visible:
+        id: tab-chat
+    commands:
+      - tapOn:
+          id: tab-button-chat
+      - tapOn:
+          text: ${PEER}
+      - extendedWaitUntil:
+          visible:
+            id: (call-voice|incoming-answer)
+          timeout: 30000
+      - runFlow:
+          when:
+            visible:
+              id: incoming-answer
+          commands:
+            - tapOn:
+                id: incoming-answer
+      - runFlow:
+          when:
+            visible:
+              id: call-voice
+          commands:
+            - tapOn:
+                id: call-voice
