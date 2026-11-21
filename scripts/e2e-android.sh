@@ -27,7 +27,18 @@ for _ in $(seq 1 10); do
 done
 is_root || { echo "adb root unavailable on the emulator" >&2; exit 1; }
 adb shell setprop persist.sys.locale "$locale"
-adb shell setprop ctl.restart zygote
+adb reboot
+adb wait-for-disconnect
+adb wait-for-device
+booted=""
+for _ in $(seq 1 150); do
+  if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; then
+    booted=1
+    break
+  fi
+  sleep 2
+done
+[ -n "$booted" ] || { echo "emulator did not finish booting after the locale reboot" >&2; exit 1; }
 
 ready=""
 for _ in $(seq 1 120); do
@@ -40,10 +51,6 @@ for _ in $(seq 1 120); do
 done
 echo "framework config: ${config:-none} (expected $language-r$region)" | tee "$out/locale.txt"
 [ -n "$ready" ] || { echo "framework did not come up in $locale" >&2; exit 1; }
-for _ in $(seq 1 60); do
-  [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ] && break
-  sleep 2
-done
 sleep 5
 
 natural="$(adb shell wm size | tr -d '\r' | sed -n 's/^Physical size: //p')"
