@@ -21,7 +21,7 @@ onFlowStart:
           id: welcome-sign-in
       - extendedWaitUntil:
           visible:
-            text: (Email|Password|Kata Sandi|Masuk ke aplikasi Kaitech di perangkat ini\?|Sign in to the Kaitech app on this device\?)
+            text: .*lab0\.kaitech\.io.*
           timeout: 60000
       - assertNotVisible:
           id: sign-in-server
