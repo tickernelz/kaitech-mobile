@@ -10,15 +10,16 @@ function rpc(path, params, cookie) {
   return { result: body.result, headers: answer.headers };
 }
 
-function sessionCookie() {
-  var signed = rpc('/web/session/authenticate', { db: DB, login: WEB_LOGIN, password: WEB_PASSWORD });
+function sessionCookie(login, password) {
+  var signed = rpc('/web/session/authenticate', { db: DB, login: login, password: password });
   var raw = signed.headers['Set-Cookie'] || signed.headers['set-cookie'] || '';
   var match = /session_id=([^;]+)/.exec(String(raw));
   if (!match) throw new Error('no session cookie');
   return 'session_id=' + match[1];
 }
 
-var cookie = sessionCookie();
+var asPhone = ACTION === 'conversation' || ACTION === 'conversationGone';
+var cookie = asPhone ? sessionCookie(LOGIN, PASSWORD) : sessionCookie(WEB_LOGIN, WEB_PASSWORD);
 var channel = Number(CHANNEL_ID);
 
 if (ACTION === 'read') {
