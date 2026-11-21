@@ -41,6 +41,7 @@ export type CallState = {
   startedAt: number;
   endedReason: string | null;
   ringing: boolean;
+  answering: boolean;
   screenSharing: boolean;
   recording: boolean;
   recordingBy: string | null;
@@ -66,6 +67,7 @@ const idle: CallState = {
   startedAt: 0,
   endedReason: null,
   ringing: false,
+  answering: false,
   screenSharing: false,
   recording: false,
   recordingBy: null,
@@ -291,6 +293,7 @@ export async function answer() {
   if (!api) return;
   const started = generation;
   stopRinging();
+  publish({ answering: true });
   if (!(await ensureMicrophone())) {
     if (stale(started)) return;
     publish({ phase: 'ended', endedReason: 'microphone', ringing: false });
@@ -581,6 +584,10 @@ export function setLocked(locked: boolean) {
   void callNative()?.setLocked(locked);
 }
 
+export function setCallSurface(visible: boolean) {
+  void callNative()?.setCallSurface(visible).catch(() => undefined);
+}
+
 function stopRinging() {
   Vibration.cancel();
   void callNative()?.cancelRing(state.channelId);
@@ -679,7 +686,10 @@ async function takeLaunch(action: CallAction, target: Account | null) {
   if (action.type !== 'incoming' && action.type !== 'answer' && action.type !== 'open') return;
   if (!action.channelId) return;
   const found = await lookForInvitations(action.channelId, { account: target ?? activeAccount() });
-  if (!found.length) return;
+  if (!found.length) {
+    setCallSurface(state.phase === 'incoming');
+    return;
+  }
   if (action.type === 'answer' && state.phase === 'incoming') await answer();
 }
 
