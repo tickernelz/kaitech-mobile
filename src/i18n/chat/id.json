@@ -77,7 +77,8 @@
     "cannotShare": "Perangkat ini tidak bisa membagikan berkas.",
     "close": "Tutup",
     "shareInstead": "Bagikan",
-    "table": "Tabel, {{columns}} kolom dan {{rows}} baris. Geser ke samping untuk melihat semuanya."
+    "table": "Tabel, {{columns}} kolom dan {{rows}} baris. Geser ke samping untuk melihat semuanya.",
+    "background": "Latar chat"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",

@@ -14,6 +14,7 @@ import { LockScreen } from '../lock/LockScreen';
 import { useLock } from '../lock/lock';
 import { useRecentsGuard } from '../lock/useRecentsGuard';
 import { useTheme } from '../theme';
+import { useAppliedTheme } from '../features/appearance/appearance';
 
 void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 240, fade: true });
@@ -27,6 +28,7 @@ export default function RootLayout() {
   const signedIn = hasAccount && !session.expired;
   const locked = signedIn && lock.locked;
   useRecentsGuard(signedIn && lock.enabled);
+  useAppliedTheme(signedIn ? session.activeId : null);
   useEffect(() => {
     setLocked(signedIn && lock.locked);
   }, [signedIn, lock.locked]);

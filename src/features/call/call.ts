@@ -7,7 +7,8 @@ import { conversationById, getChat, invitedChannels } from '../chat/chat';
 import { CallClient, type Joined, type SessionValues } from './api';
 import { loadClient, loadLiveKit, type LiveParticipant, type LiveRoom } from './livekit';
 import { callNative, onCallAction, type CallAction } from './native';
-import { invitationChannels, invitationsFrom, sessionIdsFrom, type Invitation } from './odoo';
+import { invitationChannels, invitationsFrom, peopleFrom, sessionIdsFrom, type Invitation } from './odoo';
+import { notePhotos } from '../people/photos';
 import { ensureCamera, ensureMicrophone } from './permissions';
 import { accountFromPush } from './account';
 import { pickBroadcast } from './screenShare';
@@ -90,6 +91,7 @@ let client: CallClient | null = null;
 let room: LiveRoom | null = null;
 let joined: Joined | null = null;
 let known = new Set<number>();
+let sessionPartners = new Map<number, number>();
 let pingTimer: ReturnType<typeof setInterval> | null = null;
 let endTimer: ReturnType<typeof setTimeout> | null = null;
 let generation = 0;
@@ -177,6 +179,8 @@ function collectTracks() {
 
 function partnerOf(participant: LiveParticipant, local: boolean): number | null {
   if (local) return (callAccount ?? activeAccount())?.partnerId ?? null;
+  const fromSession = sessionPartners.get(Number(participant.identity));
+  if (fromSession) return fromSession;
   const conversation = conversationById(getChat(), state.channelId);
   if (conversation?.type !== 'chat') return null;
   const others = room ? room.remoteParticipants.size : 0;
@@ -340,6 +344,7 @@ async function connect(api: CallClient, channelId: number, video: boolean, start
     }
     joined = session;
     known = new Set([session.sessionId]);
+    sessionPartners = new Map();
     const instance = new sdk.Room({ adaptiveStream: true, dynacast: true, singlePeerConnection: false });
     room = instance;
     bind(instance, sdk);
@@ -404,9 +409,10 @@ function startPing(api: CallClient, started: number) {
     try {
       const store = await api.ping(session.channelId, session.sessionId, [...known]);
       const change = sessionIdsFrom(store, session.channelId);
+      const learned = absorbPeople(store);
       for (const id of change.added) known.add(id);
       for (const id of change.removed) known.delete(id);
-      if (change.added.length || change.removed.length) collectPeople();
+      if (change.added.length || change.removed.length || learned) collectPeople();
       if (change.removed.includes(session.sessionId)) void finish('removed');
     } catch (error) {
       const code = typeof error === 'object' && error !== null && 'code' in error ? String((error as { code: unknown }).code) : '';
@@ -415,6 +421,17 @@ function startPing(api: CallClient, started: number) {
   };
   void tick();
   pingTimer = setInterval(() => void tick(), 30_000);
+}
+
+function absorbPeople(store: unknown): boolean {
+  notePhotos((callAccount ?? activeAccount())?.id ?? null, store);
+  let learned = false;
+  for (const [sessionId, person] of peopleFrom(store)) {
+    if (!person.partnerId || sessionPartners.get(sessionId) === person.partnerId) continue;
+    sessionPartners.set(sessionId, person.partnerId);
+    learned = true;
+  }
+  return learned;
 }
 
 function stopPing() {
@@ -663,13 +680,14 @@ async function lookForInvitations(channelId: number | null, options: { account?:
   if (state.phase !== 'idle' && state.phase !== 'ended' && state.phase !== 'incoming') return [];
   try {
     const store = await api.invitations(channelId, channelId ? [] : invitedChannels());
+    notePhotos(account.id, store);
     const found = invitationsFrom(store, account.partnerId);
     if (!found.length) {
       if (state.phase === 'incoming') reset();
       return [];
     }
     if (state.phase === 'incoming' && found[0].channelId === state.channelId) {
-      publish({ callId: found[0].callId, callerName: found[0].callerName, video: found[0].video });
+      publish({ callId: found[0].callId, callerName: found[0].callerName, callerPartnerId: found[0].callerPartnerId ?? state.callerPartnerId, video: found[0].video });
       return found;
     }
     if (state.phase === 'idle' || state.phase === 'ended') {
@@ -711,6 +729,7 @@ function inAppRing() {
 }
 
 export function onNotification(type: string, payload: unknown) {
+  if (joined && absorbPeople(payload)) collectPeople();
   for (const channelId of invitationChannels(type, payload)) void lookForInvitations(channelId);
 }
 

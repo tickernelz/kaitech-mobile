@@ -17,7 +17,7 @@ export function IncomingCall() {
   return (
     <View style={[styles.fill, { backgroundColor: colors.canvas, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.xl }]} testID="incoming-call">
       <View style={styles.who}>
-        <Avatar name={call.callerName} seed={call.callerPartnerId ?? 0} size={96} />
+        <Avatar name={call.callerName} seed={call.callerPartnerId ?? 0} partnerId={call.callerPartnerId} size={96} />
         <Text variant="title" numberOfLines={2} style={styles.center} testID="incoming-name">
           {call.callerName}
         </Text>

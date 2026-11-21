@@ -1,3 +1,4 @@
+import { photoFrom, type Photo } from '../people/photo';
 import type { Attachment, Conversation, ConversationType, LastMessage, Member, Message, Reaction } from './types';
 
 type Raw = Record<string, unknown>;
@@ -65,7 +66,7 @@ export function conversationFrom(value: unknown): Conversation | null {
     type,
     name: text(value.name),
     partnerId: id(value.partner_id),
-    avatar: text(value.avatar),
+    photo: type === 'chat' ? null : (photoFrom(value.photo) ?? null),
     unread: typeof value.unread === 'number' ? value.unread : 0,
     mutedUntil: typeof value.muted_until === 'string' ? value.muted_until : null,
     activityAt: utc(value.activity_at),
@@ -79,6 +80,22 @@ export function conversationPage(body: unknown): { conversations: Conversation[]
     conversations: body.conversations.map(conversationFrom).filter((item): item is Conversation => item !== null),
     nextCursor: typeof body.next_cursor === 'string' ? body.next_cursor : null,
   };
+}
+
+export function conversationPhotos(body: unknown): [number, Photo | null][] {
+  if (!isRecord(body) || !Array.isArray(body.conversations)) return [];
+  const out: [number, Photo | null][] = [];
+  for (const raw of body.conversations) {
+    if (!isRecord(raw)) continue;
+    const partnerId = raw.type === 'chat' ? id(raw.partner_id) : null;
+    const photo = photoFrom(raw.photo);
+    if (partnerId && photo !== undefined) out.push([partnerId, photo]);
+    const last = isRecord(raw.last_message) ? raw.last_message : null;
+    const authorId = last ? id(last.author_id) : null;
+    const authorPhoto = last ? photoFrom(last.author_photo) : undefined;
+    if (authorId && authorPhoto !== undefined) out.push([authorId, authorPhoto]);
+  }
+  return out;
 }
 
 function attachmentFrom(value: Raw): Attachment | null {

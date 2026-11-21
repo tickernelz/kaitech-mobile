@@ -45,7 +45,7 @@ export function CallTile({
         <VideoTrack trackRef={track as never} style={StyleSheet.absoluteFill} objectFit="cover" mirror={person.local} iosPIP={pipVideo(pip)} />
       ) : (
         <View style={styles.center}>
-          <Avatar name={person.name} seed={person.partnerId ?? person.sid.length} size={Math.max(minAvatar, Math.min(width, height) * 0.42)} />
+          <Avatar name={person.name} seed={person.partnerId ?? person.sid.length} partnerId={person.partnerId} size={Math.max(minAvatar, Math.min(width, height) * 0.42)} />
         </View>
       )}
       {bare ? null : (

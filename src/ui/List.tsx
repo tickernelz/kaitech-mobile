@@ -20,6 +20,7 @@ export function Section({ title, children }: { title?: string; children: ReactNo
 export function Row({
   title,
   detail,
+  leading,
   trailing,
   onPress,
   tone = 'ink',
@@ -28,6 +29,7 @@ export function Row({
 }: {
   title: string;
   detail?: string;
+  leading?: ReactNode;
   trailing?: ReactNode;
   onPress?: () => void;
   tone?: 'ink' | 'dangerInk' | 'link';
@@ -37,6 +39,7 @@ export function Row({
   const { colors } = useTheme();
   const content = (
     <>
+      {leading}
       <View style={styles.rowText}>
         <Text tone={tone}>{title}</Text>
         {detail ? (

@@ -11,6 +11,7 @@ import { startChat, stopChat, useChat } from './chat';
 import { mirrorLanguage, mirrorMuted, mirrorOpen } from './notify';
 import { channelFromNotification, pushData, refreshPush } from './push';
 import { accountForPush } from './pushAccount';
+import { refreshProfile } from '../profile/profile';
 
 let handled: string | null = null;
 let waitingOpen: MessageOpen | null = null;
@@ -27,6 +28,12 @@ export function ChatRuntime({ account }: { account: Account | null }) {
     if (account) startChat(account);
     else stopChat();
   }, [account]);
+
+  const accountId = account?.id ?? null;
+  useEffect(() => {
+    const current = getSession().accounts.find((item) => item.id === accountId);
+    if (current) void refreshProfile(current);
+  }, [accountId]);
 
   useEffect(() => {
     if (account) void refreshPush(account.id);

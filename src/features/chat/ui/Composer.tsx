@@ -15,6 +15,8 @@ import { askForPushOnce } from '../push';
 import type { Mention, Message } from '../types';
 import { pickAttachments, type AttachSource } from './attach';
 import { Avatar } from './Avatar';
+import { photoFrom } from '../../people/photo';
+import { notePhotoList } from '../../people/photos';
 import { authorColor } from './MessageBubble';
 import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
@@ -107,7 +109,11 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
         ?.mentions(channelId, queryText)
         .then((body) => {
           if (!live) return;
-          const people = Array.isArray(body.people) ? (body.people as { id: number; name: string; mention_token?: string | null }[]) : [];
+          const people = Array.isArray(body.people) ? (body.people as { id: number; name: string; mention_token?: string | null; photo?: unknown }[]) : [];
+          notePhotoList(accountId, people.flatMap((person) => {
+            const photo = photoFrom(person.photo);
+            return photo === undefined ? [] : [[person.id, photo] as const];
+          }));
           setSuggestions(people.map((person) => ({ id: person.id, name: person.name, token: person.mention_token ?? null })));
         })
         .catch(() => setSuggestions([]));
@@ -116,7 +122,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
       live = false;
       clearTimeout(timer);
     };
-  }, [channelId, queryText]);
+  }, [accountId, channelId, queryText]);
 
   const pickMention = (person: Mention) => {
     if (!query) return;
@@ -191,7 +197,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
               onPress={() => pickMention(person)}
               style={({ pressed }) => [styles.suggestion, pressed && { backgroundColor: colors.surface2 }]}
               testID={`mention-${person.id}`}>
-              <Avatar name={person.name} seed={person.id} size={32} />
+              <Avatar name={person.name} seed={person.id} partnerId={person.id} size={32} />
               <Text variant="callout" numberOfLines={1} style={styles.flex}>
                 {person.name}
               </Text>
