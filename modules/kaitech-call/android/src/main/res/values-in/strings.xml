@@ -10,4 +10,35 @@
   <string name="kaitech_call_decline">Tolak</string>
   <string name="kaitech_call_answer">Terima</string>
   <string name="kaitech_call_stop_sharing">Berhenti berbagi</string>
+  <string name="kaitech_message_channel">Pesan</string>
+  <string name="kaitech_message_channel_description">Pesan chat baru</string>
+  <string name="kaitech_mention_channel">Sebutan</string>
+  <string name="kaitech_mention_channel_description">Pesan yang menyebut Anda</string>
+  <string name="kaitech_muted_channel">Chat dibisukan</string>
+  <string name="kaitech_muted_channel_description">Pesan dari chat yang Anda bisukan, tampil tanpa suara</string>
+  <string name="kaitech_message_hidden_title">Kaitech</string>
+  <string name="kaitech_message_new">Pesan baru</string>
+  <string name="kaitech_message_you">Anda</string>
+  <string name="kaitech_message_photo">Foto</string>
+  <string name="kaitech_message_video">Video</string>
+  <string name="kaitech_message_voice">Pesan suara</string>
+  <string name="kaitech_message_voice_length">Pesan suara (%1$s)</string>
+  <string name="kaitech_message_file">Berkas</string>
+  <string name="kaitech_message_file_named">Berkas: %1$s</string>
+  <string name="kaitech_message_missed_call">Panggilan tak terjawab</string>
+  <string name="kaitech_message_mention">Menyebut Anda: %1$s</string>
+  <string name="kaitech_message_agent">%1$s · Coworker</string>
+  <string name="kaitech_message_reply">Balas</string>
+  <string name="kaitech_message_reply_hint">Pesan</string>
+  <string name="kaitech_message_mark_read">Tandai dibaca</string>
+  <string name="kaitech_message_failed">Gagal terkirim. Ketuk untuk coba lagi.</string>
+  <string name="kaitech_message_sending_title">Kaitech</string>
+  <string name="kaitech_message_sending_body">Mengirim balasan</string>
+  <string name="kaitech_message_summary">%1$s di %2$s</string>
+  <plurals name="kaitech_message_count">
+    <item quantity="other">%d pesan baru</item>
+  </plurals>
+  <plurals name="kaitech_message_chats">
+    <item quantity="other">%d chat</item>
+  </plurals>
 </resources>

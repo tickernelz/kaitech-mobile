@@ -1,6 +1,5 @@
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import * as Clipboard from 'expo-clipboard';
-import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
@@ -21,6 +20,7 @@ import { useChatFormat } from './format';
 import { Icon } from './icons';
 import { MessageActions } from './MessageActions';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
+import { NotifySheet } from './NotifySheet';
 
 type Row =
   | { kind: 'day'; key: string; date: number }
@@ -48,15 +48,19 @@ export function ThreadView({
   twoPane,
   focusMessage,
   onOpenChannel,
+  onBack,
+  bubble = false,
 }: {
   channelId: number;
   twoPane: boolean;
   focusMessage?: number | null;
   onOpenChannel: (id: number) => void;
+  onBack?: () => void;
+  bubble?: boolean;
 }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
-  const router = useRouter();
+  const [notifying, setNotifying] = useState(false);
   const { dayLabel, sameDay } = useChatFormat();
   const accountId = useChat((state) => state.accountId);
   const partnerId = useChat((state) => state.partnerId);
@@ -198,8 +202,8 @@ export function ThreadView({
 
   const header = (
     <View style={[styles.header, { borderBottomColor: colors.line }]}>
-      {twoPane ? null : (
-        <Pressable accessibilityRole="button" accessibilityLabel={t('thread.back')} onPress={() => router.back()} hitSlop={8} style={styles.headerButton} testID="thread-back">
+      {twoPane || !onBack ? null : (
+        <Pressable accessibilityRole="button" accessibilityLabel={t('thread.back')} onPress={onBack} hitSlop={8} style={styles.headerButton} testID="thread-back">
           <Icon name="back" color={colors.ink} />
         </Pressable>
       )}
@@ -212,7 +216,16 @@ export function ThreadView({
           {subtitle}
         </Text>
       </View>
-      {type === 'chat' || type === 'group' || type === 'channel' ? <CallButtons channelId={channelId} channelName={name} /> : null}
+      {!bubble && (type === 'chat' || type === 'group' || type === 'channel') ? <CallButtons channelId={channelId} channelName={name} /> : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('notify.title')}
+        onPress={() => setNotifying(true)}
+        hitSlop={8}
+        style={styles.headerButton}
+        testID="thread-notify">
+        <Icon name={conversation?.mutedUntil ? 'muted' : 'bell'} color={colors.ink} />
+      </Pressable>
     </View>
   );
 
@@ -276,6 +289,7 @@ export function ThreadView({
         onCopy={(message) => void Clipboard.setStringAsync(plainText(message.body))}
         onThread={(message) => void openSub(message)}
       />
+      {notifying ? <NotifySheet channelId={channelId} mutedUntil={conversation?.mutedUntil ?? null} onClose={() => setNotifying(false)} /> : null}
     </SafeAreaView>
   );
 }

@@ -23,6 +23,24 @@
       android:name="io.kaitech.call.CallActionReceiver"
       android:exported="false" />
 
+    <receiver
+      android:name="io.kaitech.call.MessageActionReceiver"
+      android:exported="false" />
+
+    <service
+      android:name="io.kaitech.call.MessageTask"
+      android:exported="false"
+      android:foregroundServiceType="dataSync" />
+
+    <activity
+      android:name="io.kaitech.call.BubbleActivity"
+      android:exported="false"
+      android:allowEmbedded="true"
+      android:resizeableActivity="true"
+      android:documentLaunchMode="always"
+      android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+      android:windowSoftInputMode="adjustResize" />
+
     <service
       android:name="io.kaitech.call.CallMessagingService"
       android:exported="false"

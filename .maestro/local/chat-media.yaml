@@ -1,0 +1,52 @@
+appId: io.kaitech.mobile
+name: Chat media - send a document and a video with visible upload progress, then share a received file (local only)
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      text: ${PEER}
+    timeout: 60000
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- tapOn:
+    id: composer-attach
+- tapOn:
+    id: attach-files
+- tapOn:
+    text: laporan-lembur.pdf
+- tapOn:
+    id: composer-attach
+- tapOn:
+    id: attach-files
+- tapOn:
+    text: video-besar.mp4
+- takeScreenshot: c1-staged
+- tapOn:
+    id: composer-send
+- extendedWaitUntil:
+    visible:
+      id: pending-progress
+    timeout: 20000
+    optional: true
+- takeScreenshot: c2-uploading
+- extendedWaitUntil:
+    notVisible:
+      id: (pending-queued|pending-sending)
+    timeout: 300000
+- takeScreenshot: c3-sent

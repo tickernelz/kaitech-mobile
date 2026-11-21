@@ -71,7 +71,11 @@
     "empty": "No messages here yet. Say hello.",
     "pickOne": "Pick a conversation to read it here.",
     "queued": "Waiting for connection",
-    "cannotOpen": "No app on this device can open {{name}}."
+    "cannotOpen": "No app on this device can open {{name}}. Share it to an app that can.",
+    "share": "Share {{name}}",
+    "cannotShare": "Sharing isn’t available on this device.",
+    "close": "Close",
+    "shareInstead": "Share"
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",
@@ -93,7 +97,13 @@
       "photos": "Photos & videos",
       "files": "Document"
     },
-    "micBusy": "A meeting is being recorded. Finish it before recording a voice message."
+    "micBusy": "A meeting is being recorded. Finish it before recording a voice message.",
+    "uploading": "Uploading {{name}}",
+    "uploadingPercent": "{{name}} · {{percent}}%",
+    "tooBig_one": "{{names}} is larger than {{limit}}, the most this server accepts.",
+    "tooBig_other": "{{names}} are larger than {{limit}}, the most this server accepts.",
+    "tooMuch_one": "{{names}} would take this message past {{limit}}, the most the Coworker accepts at once. Send it in a separate message.",
+    "tooMuch_other": "{{names}} would take this message past {{limit}}, the most the Coworker accepts at once. Send them in a separate message."
   },
   "permissions": {
     "cameraTitle": "Camera access is off",
@@ -121,5 +131,20 @@
   },
   "push": {
     "channel": "Messages"
+  },
+  "notify": {
+    "title": "Notifications",
+    "mute": {
+      "hours8": "Mute for 8 hours",
+      "week": "Mute for 1 week",
+      "always": "Mute always"
+    },
+    "unmute": "Unmute",
+    "mutedAlways": "Muted",
+    "mutedUntil": "Muted until {{time}}",
+    "bubble": "Bubble",
+    "failed": "Could not change this right now. Try again in a moment.",
+    "bubbleClosed": "Open Kaitech to read this conversation.",
+    "failedNetwork": "Could not change this. Check your connection and try again."
   }
 }

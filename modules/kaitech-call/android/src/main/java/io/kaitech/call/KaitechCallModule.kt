@@ -13,7 +13,7 @@ class KaitechCallModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("KaitechCall")
 
-    Events(EVENT)
+    Events(EVENT, MESSAGE_EVENT)
 
     OnCreate {
       CallBridge.module = this@KaitechCallModule
@@ -62,6 +62,13 @@ class KaitechCallModule : Module() {
 
     AsyncFunction("setLocked") { value: Boolean -> CallBridge.setLocked(value) }
 
+    AsyncFunction("setCallSurface") { visible: Boolean ->
+      CallBridge.callSurface = visible
+      val activity = appContext.currentActivity ?: return@AsyncFunction false
+      activity.runOnUiThread { CallKeyguard.apply(activity) }
+      true
+    }
+
     AsyncFunction("stopCall") {
       CallService.stop(requireContext())
       true
@@ -81,6 +88,52 @@ class KaitechCallModule : Module() {
         appContext.currentActivity?.packageManager?.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE) == true
     }
 
+    AsyncFunction("setMessagesHidden") { value: Boolean ->
+      MessageNotifications.setHidden(requireContext(), value)
+      true
+    }
+
+    AsyncFunction("setMessageLanguage") { value: String ->
+      MessageStore.setLanguage(requireContext(), value)
+      true
+    }
+
+    AsyncFunction("setMutedConversations") { db: String, uid: Int, channelIds: List<Int>, until: List<Double> ->
+      MessageStore.setMuted(requireContext(), MessageKey.account(db, uid), channelIds.zip(until.map { it.toLong() }).toMap())
+      true
+    }
+
+    AsyncFunction("setOpenConversations") { db: String, uid: Int, channelIds: List<Int> ->
+      val keys = channelIds.map { MessageKey.of(db, uid, it) }.toSet()
+      MessageStore.openKeys = keys
+      keys.filter { it != MessageStore.bubbleKey }.forEach { MessageNotifications.clear(requireContext(), it) }
+      true
+    }
+
+    AsyncFunction("clearConversation") { db: String, uid: Int, channelId: Int ->
+      MessageNotifications.clear(requireContext(), MessageKey.of(db, uid, channelId))
+      true
+    }
+
+    AsyncFunction("clearAccountMessages") { db: String, uid: Int ->
+      MessageNotifications.clearAccount(requireContext(), MessageKey.account(db, uid))
+      true
+    }
+
+    AsyncFunction("messageResult") { db: String, uid: Int, channelId: Int, sendKey: String, ok: Boolean ->
+      val context = requireContext()
+      val key = MessageKey.of(db, uid, channelId)
+      if (MessageStore.settle(context, key, sendKey, failed = !ok) != null) MessageNotifications.refresh(context, key, onlyIfShown = ok)
+      true
+    }
+
+    AsyncFunction("openBubbleSettings") { db: String, uid: Int, channelId: Int ->
+      MessageNotifications.openBubbleSettings(requireContext(), MessageKey.of(db, uid, channelId))
+      true
+    }
+
+    AsyncFunction("takeMessageOpen") { MessageIntents.take(appContext.currentActivity) }
+
     AsyncFunction("canUseFullScreenIntent") { canUseFullScreenIntent() }
 
     AsyncFunction("openFullScreenIntentSettings") {
@@ -91,6 +144,10 @@ class KaitechCallModule : Module() {
 
   fun dispatch(action: Map<String, Any?>) {
     sendEvent(EVENT, action)
+  }
+
+  fun dispatchMessageOpen() {
+    sendEvent(MESSAGE_EVENT, emptyMap<String, Any?>())
   }
 
   private fun requireContext() = appContext.reactContext ?: throw IllegalStateException("no react context")
@@ -111,5 +168,6 @@ class KaitechCallModule : Module() {
 
   companion object {
     const val EVENT = "onCallAction"
+    const val MESSAGE_EVENT = "onMessageOpen"
   }
 }

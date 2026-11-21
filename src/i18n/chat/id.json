@@ -71,7 +71,11 @@
     "empty": "Belum ada pesan di sini. Mulailah dengan menyapa.",
     "pickOne": "Pilih percakapan untuk membacanya di sini.",
     "queued": "Menunggu koneksi",
-    "cannotOpen": "Tidak ada aplikasi di perangkat ini yang dapat membuka {{name}}."
+    "cannotOpen": "Tidak ada aplikasi di perangkat ini yang dapat membuka {{name}}. Bagikan ke aplikasi yang bisa.",
+    "share": "Bagikan {{name}}",
+    "cannotShare": "Perangkat ini tidak bisa membagikan berkas.",
+    "close": "Tutup",
+    "shareInstead": "Bagikan"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",
@@ -93,7 +97,13 @@
       "photos": "Foto & video",
       "files": "Dokumen"
     },
-    "micBusy": "Rapat sedang direkam. Selesaikan rekaman rapat sebelum merekam pesan suara."
+    "micBusy": "Rapat sedang direkam. Selesaikan rekaman rapat sebelum merekam pesan suara.",
+    "uploading": "Mengunggah {{name}}",
+    "uploadingPercent": "{{name}} · {{percent}}%",
+    "tooBig_one": "{{names}} lebih besar dari {{limit}}, batas yang diterima server ini.",
+    "tooBig_other": "{{names}} lebih besar dari {{limit}}, batas yang diterima server ini.",
+    "tooMuch_one": "{{names}} membuat pesan ini melebihi {{limit}}, batas sekali kirim ke Coworker. Kirim di pesan terpisah.",
+    "tooMuch_other": "{{names}} membuat pesan ini melebihi {{limit}}, batas sekali kirim ke Coworker. Kirim di pesan terpisah."
   },
   "permissions": {
     "cameraTitle": "Akses kamera tidak aktif",
@@ -121,5 +131,20 @@
   },
   "push": {
     "channel": "Pesan"
+  },
+  "notify": {
+    "title": "Notifikasi",
+    "mute": {
+      "hours8": "Bisukan 8 jam",
+      "week": "Bisukan 1 minggu",
+      "always": "Bisukan selalu"
+    },
+    "unmute": "Aktifkan lagi",
+    "mutedAlways": "Dibisukan",
+    "mutedUntil": "Dibisukan sampai {{time}}",
+    "bubble": "Gelembung",
+    "failed": "Belum bisa diubah saat ini. Coba lagi sebentar lagi.",
+    "bubbleClosed": "Buka Kaitech untuk membaca percakapan ini.",
+    "failedNetwork": "Belum bisa diubah. Periksa koneksi lalu coba lagi."
   }
 }
