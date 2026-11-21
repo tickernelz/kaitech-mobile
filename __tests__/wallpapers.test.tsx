@@ -38,6 +38,18 @@ function dimmed(look: Look, color: Rgb): Rgb {
   return look.scrim ? over(color, look.scrim.color, look.scrim.opacity) : color;
 }
 
+type Node = { type: string; props: Record<string, unknown>; children: Node[] | null };
+
+function flatten(tree: unknown): Node[] {
+  if (!tree || typeof tree !== 'object') return [];
+  if (Array.isArray(tree)) return tree.flatMap(flatten);
+  const node = tree as Node;
+  return [node, ...flatten(node.children)];
+}
+
+const argb = (hex: string) => (0xff000000 + parseInt(hex.slice(1, 7), 16)) >>> 0;
+const pairs = (values: number[]) => values.flatMap((value, index) => (index % 2 ? [] : [[value, values[index + 1] >>> 0]]));
+
 const looks = wallpapers.flatMap((wallpaper) => (['light', 'dark'] as Scheme[]).map((scheme) => [wallpaper.id, scheme, wallpaper[scheme]] as const));
 
 describe('chat wallpapers', () => {
@@ -100,8 +112,32 @@ describe('chat wallpapers', () => {
     }
   });
 
-  it.each(looks)('%s (%s) renders', async (wallpaperId, scheme) => {
-    const screen = await render(<Wallpaper id={wallpaperId} scheme={scheme} />);
-    expect(screen.getByTestId(`wallpaper-${wallpaperId}`)).toBeTruthy();
+  it.each(looks)('%s (%s) paints its field, pattern and scrim', async (wallpaperId, scheme, look) => {
+    const view = await render(<Wallpaper id={wallpaperId} scheme={scheme} />);
+    const nodes = flatten(view.toJSON());
+    const rects = nodes.filter((node) => node.type === 'RNSVGRect');
+    const [field, ...overlays] = rects;
+    if (look.field.kind === 'solid') {
+      expect(field.props.fill).toEqual({ type: 0, payload: argb(look.field.color) });
+    } else {
+      expect(field.props.fill).toEqual({ type: 1, brushRef: 'wallpaperField' });
+      const gradient = nodes.find((node) => node.type === 'RNSVGLinearGradient')!;
+      expect(pairs(gradient.props.gradient as number[])).toEqual(look.field.stops.map(([offset, color]) => [offset, argb(color)]));
+    }
+    const pattern = nodes.find((node) => node.type === 'RNSVGPattern');
+    if (look.pattern) {
+      const tile = tiles[look.pattern.name];
+      expect(overlays[0].props.fill).toEqual({ type: 1, brushRef: 'wallpaperPattern' });
+      expect(pattern!.props).toMatchObject({ width: tile.width, height: tile.height });
+      const inside = flatten(pattern!);
+      expect(inside.find((node) => node.type === 'RNSVGGroup')!.props.opacity).toBe(look.pattern.opacity);
+      expect(inside.filter((node) => node.type === 'RNSVGPath')).toHaveLength(tile.marks.length + (tile.grid ? 1 : 0));
+    } else {
+      expect(pattern).toBeUndefined();
+    }
+    if (look.scrim) {
+      expect(overlays.at(-1)!.props).toMatchObject({ fill: { type: 0, payload: argb(look.scrim.color) }, opacity: look.scrim.opacity });
+    }
+    expect(rects).toHaveLength(1 + (look.pattern ? 1 : 0) + (look.scrim ? 1 : 0));
   });
 });
