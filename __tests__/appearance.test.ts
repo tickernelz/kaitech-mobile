@@ -6,7 +6,8 @@ jest.mock('expo-sqlite/kv-store', () => ({
   setItemSync: (key: string, value: string) => mockStore.set(key, value),
   removeItemSync: (key: string) => mockStore.delete(key),
 }));
-jest.mock('../src/auth/session', () => ({ onAccountForgotten: () => () => undefined }));
+const mockForget: ((id: string) => void)[] = [];
+jest.mock('../src/auth/session', () => ({ onAccountForgotten: (listener: (id: string) => void) => mockForget.push(listener) }));
 jest.mock('../src/api/odoo', () => ({ bearer: (...args: unknown[]) => mockBearer(...args) }));
 jest.mock('../src/features/chat/api', () => ({ errorCode: (error: { code?: string }) => error.code ?? 'unknown' }));
 jest.mock('../src/features/chat/chat', () => ({ chatClient: () => null, onRealtimeNotifications: () => () => undefined }));
@@ -57,6 +58,16 @@ describe('changeAppearance', () => {
     expect(mockBearer).toHaveBeenCalledWith(account, '/kaitech_mobile/appearance', { method: 'POST', body: { theme: 'dark' } });
     expect(appearance.appearanceOf('A').conversations['5']).toEqual({ kind: 'preset', value: 'ink' });
     expect(JSON.parse(mockStore.get('appearance.A') ?? '{}').theme).toBe('dark');
+  });
+
+  it('writes nothing for an account that signed out while the answer was on its way', async () => {
+    let answer: (value: unknown) => void = () => undefined;
+    mockBearer.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+    const pending = appearance.changeAppearance(account, { theme: 'dark' });
+    mockForget.forEach((listener) => listener('A'));
+    answer({ theme: 'dark', background: { kind: 'default' }, conversations: {} });
+    await pending;
+    expect(mockStore.has('appearance.A')).toBe(false);
   });
 
   it('puts the previous look back when the server refuses', async () => {

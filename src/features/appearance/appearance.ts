@@ -67,6 +67,7 @@ export function backgroundFor(appearance: ChatAppearance, channelId: number): { 
 
 const held = new Map<string, ChatAppearance>();
 const queues = new Map<string, Promise<unknown>>();
+const generations = new Map<string, number>();
 const listeners = new Set<() => void>();
 
 function storageKey(accountId: string): string {
@@ -123,9 +124,11 @@ function serial<T>(accountId: string, task: () => Promise<T>): Promise<T> {
 }
 
 export function loadAppearance(account: Account): Promise<void> {
+  const generation = generations.get(account.id) ?? 0;
   return serial(account.id, async () => {
     try {
-      takeAppearance(account.id, await bearer<unknown>(account, '/kaitech_mobile/appearance'));
+      const answer = await bearer<unknown>(account, '/kaitech_mobile/appearance');
+      if ((generations.get(account.id) ?? 0) === generation) takeAppearance(account.id, answer);
     } catch {
       return;
     }
@@ -134,13 +137,16 @@ export function loadAppearance(account: Account): Promise<void> {
 
 export function changeAppearance(account: Account, patch: AppearancePatch): Promise<string | null> {
   const before = read(account.id);
+  const generation = generations.get(account.id) ?? 0;
+  const current = () => (generations.get(account.id) ?? 0) === generation;
   put(account.id, patched(before, patch));
   return serial(account.id, async () => {
     try {
-      takeAppearance(account.id, await bearer<unknown>(account, '/kaitech_mobile/appearance', { method: 'POST', body: patch }));
+      const answer = await bearer<unknown>(account, '/kaitech_mobile/appearance', { method: 'POST', body: patch });
+      if (current()) takeAppearance(account.id, answer);
       return null;
     } catch (error) {
-      put(account.id, before);
+      if (current()) put(account.id, before);
       return errorCode(error);
     }
   });
@@ -153,6 +159,7 @@ onRealtimeNotifications((notification) => {
 });
 
 onAccountForgotten((accountId) => {
+  generations.set(accountId, (generations.get(accountId) ?? 0) + 1);
   held.delete(accountId);
   queues.delete(accountId);
   Storage.removeItemSync(storageKey(accountId));
