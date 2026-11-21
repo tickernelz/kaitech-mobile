@@ -79,6 +79,7 @@ export const glyphs = {
   minutes: { parts: [body(page), cut(fold), cut('M9 13v3M12 11v7M15 13v3')] },
   meeting: { parts: [body(tile(3, 5, 21, 21)), line('M8 3v4M16 3v4'), cut('M3 10h18'), cutDot(square(7, 13, 3))] },
   steps: { parts: [line('M9 6h12M9 12h12M9 18h12'), dot(square(3, 4.5, 3)), dot(square(3, 10.5, 3)), dot(square(3, 16.5, 3))] },
+  more: { parts: [dot(square(3.5, 10.5, 3)), dot(square(10.5, 10.5, 3)), dot(square(17.5, 10.5, 3))] },
   copy: { parts: [body(tile(9, 9, 21, 21)), line('M15 6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v9h3')] },
   share: { parts: [line('M12 3v12'), line('M7.5 7.5 12 3l4.5 4.5'), line('M7 10H5v11h14V10h-2')] },
   sign: { parts: [body('M4 17v-3.5L13.5 4 17 7.5 7.5 17Z'), dot('M12 19h9v2h-9Z')] },

@@ -1,4 +1,4 @@
-import { attachmentUrl, conversationPage, membersFromStore, messagesFromStore, readState, utc } from '../src/features/chat/odoo';
+import { attachmentUrl, conversationPage, lastMessageOf, membersFromStore, messagesFromStore, readState, utc } from '../src/features/chat/odoo';
 
 const store = {
   'mail.message': [
@@ -66,6 +66,22 @@ describe('conversationPage', () => {
     expect(page.nextCursor).toBe('c1');
     expect(page.conversations).toHaveLength(1);
     expect(page.conversations[0]).toMatchObject({ id: 4, partnerId: 7, unread: 2, last: { voice: true, attachments: 1 } });
+  });
+});
+
+describe('call previews', () => {
+  const row = (last: Record<string, unknown>) => conversationPage({ conversations: [{ id: 4, type: 'chat', name: 'Budi', last_message: { id: 12, author_id: 7, author: 'Budi', attachments: 0, date: '2026-11-20 01:02:03', ...last } }] }).conversations[0].last;
+
+  it('marks an empty notification from the server as a call and keeps other notices and comments as text', () => {
+    expect(row({ type: 'notification', text: '' })?.call).toBe(true);
+    expect(row({ type: 'notification', text: 'Budi joined the channel' })?.call).toBe(false);
+    expect(row({ type: 'comment', text: '' })?.call).toBe(false);
+  });
+
+  it('marks a locally received call notice by its body', () => {
+    const base = { id: 9, channelId: 4, authorId: 7, author: 'Budi', date: 1, attachments: [], parentId: null, reactions: [] };
+    expect(lastMessageOf({ ...base, type: 'notification', body: '<div data-oe-type="call" class="o_mail_notification"></div>' }, '').call).toBe(true);
+    expect(lastMessageOf({ ...base, type: 'notification', body: '<div class="o_mail_notification">joined</div>' }, 'joined').call).toBe(false);
   });
 });
 

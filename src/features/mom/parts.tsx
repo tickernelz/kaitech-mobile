@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { useLanguage } from '../../i18n';
 import { intlLocale } from '../../i18n/language';
-import { radius, selectionBar, space, useTheme, type Colors } from '../../theme';
+import { radius, space, useTheme, type Colors } from '../../theme';
 import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
 import { Chip } from '../discovery/ui';
@@ -60,11 +60,45 @@ type ChipTone = 'neutral' | 'select' | 'ok' | 'warn' | 'danger' | 'info';
 const finalTones: Record<string, ChipTone> = { reviewed: 'warn', final: 'ok', distributed: 'ok' };
 const chipTones: Record<string, ChipTone> = { generated: 'info', generating: 'select', failed: 'danger', stale: 'warn', locked: 'ok' };
 
-export function MeetingChip({ row }: { row: Pick<MeetingRow, 'chip' | 'chipLabel'> & { final?: { state: string; status: string } } }) {
+type StatusRow = Pick<MeetingRow, 'chip' | 'chipLabel'> & { final?: { state: string; status: string } };
+
+function finalOf(row: StatusRow) {
+  return row.final && row.final.state !== 'draft' ? row.final : null;
+}
+
+export function useStatusLabel() {
   const { t } = useTranslation();
-  const final = row.final && row.final.state !== 'draft' ? row.final : null;
-  if (final) return <Chip tone={finalTones[final.state] ?? 'neutral'} label={t(`mom.stage.${final.state}` as never, { defaultValue: final.status }) as string} />;
-  return <Chip tone={chipTones[row.chip] ?? 'neutral'} label={t(`mom.chip.${row.chip}` as never, { defaultValue: row.chipLabel }) as string} />;
+  return (row: StatusRow): string => {
+    const final = finalOf(row);
+    if (final) return t(`mom.stage.${final.state}` as never, { defaultValue: final.status }) as string;
+    return t(`mom.chip.${row.chip}` as never, { defaultValue: row.chipLabel }) as string;
+  };
+}
+
+export function MeetingChip({ row }: { row: StatusRow }) {
+  const label = useStatusLabel();
+  const final = finalOf(row);
+  return <Chip tone={final ? (finalTones[final.state] ?? 'neutral') : (chipTones[row.chip] ?? 'neutral')} label={label(row)} />;
+}
+
+const finalIcons: Record<string, IconName> = { reviewed: 'sign', final: 'check', distributed: 'checkDouble' };
+const chipIcons: Record<string, [IconName, keyof Colors]> = {
+  not_ready: ['clock', 'inkFaint'],
+  ready: ['doc', 'infoInk'],
+  generating: ['sparkle', 'selectInk'],
+  generated: ['check', 'okInk'],
+  locked: ['check', 'okInk'],
+};
+
+export function needsAction(row: StatusRow): boolean {
+  return !finalOf(row) && (row.chip === 'failed' || row.chip === 'stale');
+}
+
+export function MeetingStatusIcon({ row }: { row: StatusRow }) {
+  const { colors } = useTheme();
+  const final = finalOf(row);
+  const [icon, tone]: [IconName, keyof Colors] = final ? [finalIcons[final.state] ?? 'check', 'okInk'] : (chipIcons[row.chip] ?? ['clock', 'inkFaint']);
+  return <Icon name={icon} size={16} color={colors[tone]} />;
 }
 
 export function Line({
@@ -72,6 +106,8 @@ export function Line({
   title,
   detail,
   trailing,
+  end,
+  label,
   onPress,
   selected,
   testID,
@@ -80,6 +116,8 @@ export function Line({
   title: string;
   detail?: string;
   trailing?: ReactNode;
+  end?: ReactNode;
+  label?: string;
   onPress?: () => void;
   selected?: boolean;
   testID?: string;
@@ -88,6 +126,7 @@ export function Line({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={selected === undefined ? undefined : { selected }}
       disabled={!onPress}
       onPress={onPress}
@@ -96,7 +135,6 @@ export function Line({
       style={({ pressed }) => [
         styles.line,
         (pressed || selected) && { backgroundColor: selected ? colors.select : colors.surface2 },
-        selected && { borderLeftWidth: selectionBar, borderLeftColor: colors.primary, paddingLeft: space.lg - selectionBar },
       ]}>
       <View style={[styles.lineIcon, { backgroundColor: colors.surface2 }]}>
         <Icon name={icon} size={20} color={colors.selectInk} />
@@ -112,6 +150,7 @@ export function Line({
         ) : null}
         {trailing}
       </View>
+      {end}
     </Pressable>
   );
 }

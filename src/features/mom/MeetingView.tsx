@@ -307,7 +307,6 @@ export function MeetingView({ meeting, back }: { meeting: number; back: boolean 
     <Card>
       <MeetingChip row={data} />
       <Text variant="headline">{t('mom.detail.notYet')}</Text>
-      <Text tone="inkSoft">{t('mom.detail.notYetBody')}</Text>
     </Card>
   );
 

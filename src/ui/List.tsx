@@ -122,7 +122,7 @@ export function Divider() {
 
 const styles = StyleSheet.create({
   section: { gap: space.sm },
-  sectionTitle: { paddingHorizontal: space.lg, textTransform: 'uppercase', letterSpacing: 0.4 },
+  sectionTitle: { paddingHorizontal: space.lg },
   card: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   row: { minHeight: 52, paddingHorizontal: space.lg, paddingVertical: space.md, flexDirection: 'row', alignItems: 'center', gap: space.md },
   rowText: { flex: 1, gap: 2 },

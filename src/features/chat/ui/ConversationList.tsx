@@ -3,7 +3,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { HeaderActions } from '../../../screens/HeaderActions';
-import { radius, selectionBar, space, useTheme } from '../../../theme';
+import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { loadMoreConversations, refreshConversations, useChat } from '../chat';
 import { pushSupported } from '../push';
@@ -29,6 +29,7 @@ function usePreview() {
     (conversation: Conversation): { author: string; text: string } => {
       const last = conversation.last;
       if (!last) return { author: '', text: t('list.noMessages') };
+      if (last.call) return { author: '', text: t('thread.call') };
       const mine = last.authorId === partnerId;
       const author = mine ? t('list.you') : conversation.type === 'chat' ? '' : last.author.split(' ')[0];
       const text = last.text || (last.voice ? t('list.voice') : last.attachments ? t('list.files', { count: last.attachments }) : '');
@@ -74,7 +75,6 @@ const Row = memo(function Row({
       style={({ pressed }) => [
         styles.row,
         { backgroundColor: selected ? colors.select : pressed ? colors.surface2 : 'transparent' },
-        selected && { borderLeftWidth: selectionBar, borderLeftColor: colors.primary, paddingLeft: space.lg - selectionBar },
       ]}>
       <Avatar name={conversation.name} path={conversation.type === 'chat' ? conversation.avatar : undefined} seed={conversation.partnerId ?? conversation.id} icon={icon} />
       <View style={[styles.rowBody, { borderBottomColor: colors.line }]}>
@@ -87,6 +87,7 @@ const Row = memo(function Row({
           </Text>
         </View>
         <View style={styles.rowTop}>
+          {conversation.last?.call ? <Icon name="phone" size={16} color={colors.inkSoft} /> : null}
           <Text variant="callout" tone="inkSoft" numberOfLines={2} style={styles.flex}>
             {pending ? (
               <Text variant="callout" tone="warnInk">
@@ -149,13 +150,20 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
               key={name}
               accessibilityRole="tab"
               accessibilityState={{ selected: on }}
+              accessibilityLabel={name === 'unread' && unreadTotal ? `${t('list.filter.unread')}, ${unreadTotal}` : undefined}
               onPress={() => setFilter(name)}
               testID={`chat-filter-${name}`}
               style={[styles.chip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}>
               <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
                 {t(`list.filter.${name}`)}
-                {name === 'unread' && unreadTotal ? ` ${unreadTotal}` : ''}
               </Text>
+              {name === 'unread' && unreadTotal ? (
+                <View style={[styles.count, { backgroundColor: on ? colors.onPrimary : colors.primary }]}>
+                  <Text variant="label" style={{ color: on ? colors.primary : colors.onPrimary }}>
+                    {unreadTotal}
+                  </Text>
+                </View>
+              ) : null}
             </Pressable>
           );
         })}
@@ -221,7 +229,8 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.sm, gap: space.md },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.xs },
   chips: { gap: space.sm, paddingHorizontal: space.xs },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  count: { minWidth: 18, height: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
   banner: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: radius.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingLeft: space.lg, minHeight: 76 },
   rowBody: { flex: 1, paddingVertical: space.md, paddingRight: space.lg, gap: 2, borderBottomWidth: StyleSheet.hairlineWidth },

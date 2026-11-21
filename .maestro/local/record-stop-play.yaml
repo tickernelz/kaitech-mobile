@@ -2,7 +2,9 @@ appId: io.kaitech.mobile
 name: Record, part 2 - stop recording, hang up, play the recording from the chat (local only)
 ---
 - tapOn:
-    id: call-record
+    id: call-more
+- tapOn:
+    id: call-sheet-record
 - extendedWaitUntil:
     notVisible:
       id: call-recording

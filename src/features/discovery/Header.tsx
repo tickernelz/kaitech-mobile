@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { space } from '../../theme';
 import { Text } from '../../ui/Text';
-import { IconButton } from './ui';
+import { IconButton } from '../../ui/IconButton';
 
 export function Header({
   title,

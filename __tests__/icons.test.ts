@@ -21,8 +21,9 @@ jest.mock('../src/auth/session', () => ({ ...jest.requireActual('../src/auth/ses
 require('../src/i18n');
 const { Icon, iconNames } = require('../src/ui/icons') as typeof import('../src/ui/icons');
 const { plan, strokeFor } = require('../src/ui/icons/glyphs') as typeof import('../src/ui/icons/glyphs');
-const { CallControls } = require('../src/features/call/ui/CallControls') as typeof import('../src/features/call/ui/CallControls');
-const { IconButton } = require('../src/features/discovery/ui') as typeof import('../src/features/discovery/ui');
+const { CallPill } = require('../src/features/call/ui/CallControls') as typeof import('../src/features/call/ui/CallControls');
+const { controlsFor } = require('../src/features/call/controls') as typeof import('../src/features/call/controls');
+const { IconButton } = require('../src/ui/IconButton') as typeof import('../src/ui/IconButton');
 const { HeaderActions } = require('../src/screens/HeaderActions') as typeof import('../src/screens/HeaderActions');
 
 const sizes = [16, 20, 24, 32];
@@ -105,18 +106,17 @@ describe('icon-only controls', () => {
   }
 
   it('labels every call control and shows the icon of its action', async () => {
+    const { pill, more } = controlsFor({ phase: 'active', video: true, cameraOn: true, sharing: false, share: true, record: true, pip: true, wide: true });
     await render(
-      createElement(CallControls, {
+      createElement(CallPill, {
+        actions: [...pill, ...more],
+        state: { muted: true, cameraOn: true, speaker: false, sharing: false, recording: { on: false, busy: false } },
+        onStage: true,
         vertical: false,
-        video: true,
-        muted: true,
-        cameraOn: true,
-        speaker: false,
-        pip: true,
-        share: true,
-        sharing: false,
-        recording: { on: false, busy: false },
+        shown: true,
+        motion: {},
         onAction: () => undefined,
+        onTouch: () => undefined,
       }),
     );
     const expected: Record<string, string> = {
@@ -128,6 +128,7 @@ describe('icon-only controls', () => {
       speaker: 'speaker',
       people: 'people',
       pip: 'pip',
+      more: 'more',
       hangup: 'phoneEnd',
     };
     for (const [action, icon] of Object.entries(expected)) {

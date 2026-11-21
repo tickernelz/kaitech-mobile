@@ -7,6 +7,7 @@ export type LastMessage = {
   text: string;
   attachments: number;
   voice: boolean;
+  call: boolean;
   type: string;
   date: number;
 };

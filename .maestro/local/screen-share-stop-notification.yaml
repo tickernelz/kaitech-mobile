@@ -2,7 +2,9 @@ appId: io.kaitech.mobile
 name: Screen share, part 3 - share again, then stop from the call notification (local only)
 ---
 - tapOn:
-    id: call-share
+    id: call-more
+- tapOn:
+    id: call-sheet-share
 - runFlow: ../shared/allow-screen-capture.yaml
 - extendedWaitUntil:
     visible:

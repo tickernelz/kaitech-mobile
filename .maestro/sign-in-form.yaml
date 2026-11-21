@@ -42,7 +42,7 @@ onFlowStart:
       - extendedWaitUntil:
           visible:
             id: welcome-error
-            text: "${APP_LANGUAGE === 'id' ? 'Proses masuk dibatalkan.' : 'Sign-in was cancelled.'}"
+            text: "${APP_LANGUAGE === 'id' ? 'Masuk dibatalkan.' : 'Sign-in was cancelled.'}"
           timeout: 30000
 - tapOn:
     id: welcome-other-server
@@ -113,7 +113,7 @@ onFlowStart:
     id: sign-in-continue
 - assertVisible:
     id: sign-in-database-error
-    text: "${APP_LANGUAGE === 'id' ? 'Nama basis data tidak valid.' : 'That doesn.t look like a database name.'}"
+    text: "${APP_LANGUAGE === 'id' ? 'Nama basis data belum benar.' : 'That doesn.t look like a database name.'}"
 - runFlow:
     file: shared/screenshot.yaml
     env:
