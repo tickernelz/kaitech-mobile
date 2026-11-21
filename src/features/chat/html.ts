@@ -2,6 +2,7 @@ export type Span = {
   text: string;
   bold?: boolean;
   italic?: boolean;
+  strike?: boolean;
   code?: boolean;
   href?: string;
   mention?: { model: string; id: number };

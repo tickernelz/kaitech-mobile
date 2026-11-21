@@ -2,8 +2,10 @@ import * as Application from 'expo-application';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, Platform, StyleSheet, View } from 'react-native';
 import { signOut, switchAccount, useSession } from '../auth/session';
+import { pictureInPictureSupported } from '../features/call/call';
+import { setPictureInPictureAllowed, usePictureInPictureAllowed } from '../features/call/pipSetting';
 import { useFormatters } from '../i18n';
 import { setLockEnabled, useLock } from '../lock/lock';
 import { useLockLabel } from '../lock/useLockLabel';
@@ -23,7 +25,9 @@ export default function Settings() {
   const { method, label } = useLockLabel();
   const { date } = useFormatters();
   const [busy, setBusy] = useState(false);
+  const pipAllowed = usePictureInPictureAllowed();
   if (!active) return null;
+  const pipShown = Platform.OS === 'ios' || pictureInPictureSupported();
   const others = accounts.filter((account) => account.id !== active.id);
   const host = (origin: string) => origin.replace(/^https:\/\//, '');
   const version = Application.nativeApplicationVersion ?? '';
@@ -81,6 +85,17 @@ export default function Settings() {
         <Row title={t('settings.addAccount')} tone="link" onPress={() => router.push('/add-account')} testID="settings-add-account" />
       </Section>
       <LanguageChoices title={t('settings.language')} />
+      {pipShown ? (
+        <Section title={t('settings.calls')}>
+          <ToggleRow
+            title={t('settings.pictureInPicture')}
+            detail={t('settings.pictureInPictureHint')}
+            value={pipAllowed}
+            onChange={setPictureInPictureAllowed}
+            testID="settings-picture-in-picture"
+          />
+        </Section>
+      ) : null}
       {method ? (
         <Section title={t('settings.security')}>
           <ToggleRow

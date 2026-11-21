@@ -76,7 +76,8 @@
     "share": "Share {{name}}",
     "cannotShare": "Sharing isn’t available on this device.",
     "close": "Close",
-    "shareInstead": "Share"
+    "shareInstead": "Share",
+    "table": "Table, {{columns}} columns and {{rows}} rows. Scroll sideways to see all of it."
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",
@@ -104,7 +105,18 @@
     "tooBig_one": "{{names}} is over the {{limit}} limit.",
     "tooBig_other": "{{names}} are over the {{limit}} limit.",
     "tooMuch_one": "{{names}} takes this message over the Coworker's {{limit}} limit. Send it separately.",
-    "tooMuch_other": "{{names}} take this message over the Coworker's {{limit}} limit. Send them separately."
+    "tooMuch_other": "{{names}} take this message over the Coworker's {{limit}} limit. Send them separately.",
+    "format": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "code": "Code",
+      "link": "Link",
+      "quote": "Quote",
+      "list": "List",
+      "hide": "Hide formatting",
+      "show": "Show formatting",
+      "glyph": "Aa"
+    }
   },
   "permissions": {
     "cameraTitle": "Camera access is off",

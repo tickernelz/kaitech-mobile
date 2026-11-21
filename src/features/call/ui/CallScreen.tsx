@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { AccessibilityInfo, Platform, Pressable, StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { ScreenCapturePickerView } from '@livekit/react-native-webrtc';
@@ -12,13 +12,30 @@ import { useTheme, space } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../../ui/icons';
 import { Avatar } from '../../chat/ui/Avatar';
-import { enterPictureInPicture, flipCamera, fullScreenIntentAllowed, hangUp, openFullScreenIntentSettings, pictureInPictureSupported, toggleCamera, toggleMute, toggleRecording, toggleScreenShare, toggleSpeaker, useCallState, type CallPerson } from '../call';
+import {
+  enterPictureInPicture,
+  flipCamera,
+  fullScreenIntentAllowed,
+  hangUp,
+  openFullScreenIntentSettings,
+  pictureInPictureSpec,
+  pictureInPictureSupported,
+  setPictureInPictureHint,
+  toggleCamera,
+  toggleMute,
+  toggleRecording,
+  toggleScreenShare,
+  toggleSpeaker,
+  useCallState,
+  type CallPerson,
+} from '../call';
+import { usePictureInPictureAllowed } from '../pipSetting';
 import { useElapsed } from '../clock';
 import { controlsFor, type CallAction } from '../controls';
 import { CallPill, MoreSheet, RoundButton, type ControlState } from './CallControls';
 import { CallTile } from './CallTile';
 import { FloatingTile } from './FloatingTile';
-import { ScreenStage } from './ScreenStage';
+import { ScreenStage, type PipTarget } from './ScreenStage';
 import { useAutoHide } from './useAutoHide';
 
 const pillSize = 68;
@@ -35,7 +52,14 @@ export function CallScreen() {
   const call = useCallState();
   const layout = layoutFor(width, height);
   const vertical = layout.controls === 'rail';
-  const presenter = presenterOf(call.people);
+  usePictureInPictureAllowed();
+  const spec = pictureInPictureSpec(call);
+  const pipTarget: PipTarget = spec.enabled && call.focus ? { ...call.focus, size: { width: spec.width, height: spec.height } } : null;
+  const pipFor = (person: CallPerson) => (pipTarget?.source === 'camera' && pipTarget.sid === person.sid ? pipTarget.size : null);
+  const compact = call.pictureInPicture || layout.pip;
+  const stageRef = useRef<ComponentRef<typeof View>>(null);
+  const shared = presenterOf(call.people);
+  const presenter = compact && shared?.local ? null : shared;
   const self = call.people.find((person) => person.local) ?? null;
   const remote = call.people.filter((person) => !person.local);
   const duo = call.video && Boolean(self) && remote.length === 1;
@@ -127,14 +151,14 @@ export function CallScreen() {
   const ink = onStage ? colors.onStage : colors.ink;
   const soft = onStage ? colors.onStage : colors.inkSoft;
 
-  if (layout.pip) {
-    const shown = presenter ?? remote.find((person) => call.speaking.includes(person.sid)) ?? remote[0] ?? self;
+  if (compact) {
+    const focused = call.people.find((person) => person.sid === call.focus?.sid) ?? remote[0] ?? self;
     return (
-      <View style={[styles.fill, { backgroundColor: colors.stage }]} testID="call-screen">
+      <View style={[styles.fill, { backgroundColor: colors.stage }]} testID="call-pip">
         {presenter ? (
-          <ScreenStage presenter={presenter} people={[]} side={false} />
-        ) : shown ? (
-          <CallTile person={shown} width={width} height={height} corner={0} bare />
+          <ScreenStage presenter={presenter} people={[]} side={false} pip={pipTarget} />
+        ) : focused ? (
+          <CallTile person={focused} width={width} height={height} corner={0} bare pip={pipFor(focused)} />
         ) : null}
       </View>
     );
@@ -151,11 +175,11 @@ export function CallScreen() {
   if (presenter) {
     stage = (
       <View style={[styles.fill, framed]}>
-        <ScreenStage presenter={presenter} people={call.people} side={vertical} />
+        <ScreenStage presenter={presenter} people={call.people} side={vertical} pip={pipTarget} />
       </View>
     );
   } else if (big) {
-    stage = <CallTile person={big} width={width} height={height} corner={0} bare />;
+    stage = <CallTile person={big} width={width} height={height} corner={0} bare pip={pipFor(big)} />;
   } else if (call.people.length > 2) {
     stage = (
       <View style={[styles.fill, framed]}>
@@ -166,7 +190,7 @@ export function CallScreen() {
             const columns = grid.stage.columns;
             return (
               <View key={sid} style={{ paddingRight: index % columns === columns - 1 ? 0 : tileGap, paddingBottom: tileGap }}>
-                <CallTile person={person} width={grid.stage.tileWidth} height={grid.stage.tileHeight} corner={call.people.length < 3 ? 18 : 0} />
+                <CallTile person={person} width={grid.stage.tileWidth} height={grid.stage.tileHeight} corner={call.people.length < 3 ? 18 : 0} pip={pipFor(person)} />
               </View>
             );
           })}
@@ -186,7 +210,15 @@ export function CallScreen() {
     <View style={[styles.fill, { backgroundColor: onStage ? colors.stage : colors.canvas }]} testID="call-screen">
       {onStage ? <StatusBar style="light" /> : null}
       <Pressable accessible={false} onPress={hide.toggle} style={styles.fill} testID="call-stage">
-        {stage}
+        <View
+          ref={stageRef}
+          collapsable={false}
+          style={styles.fill}
+          onLayout={() => {
+            if (Platform.OS === 'android') stageRef.current?.measureInWindow(setPictureInPictureHint);
+          }}>
+          {stage}
+        </View>
       </Pressable>
 
       {small ? (
@@ -196,6 +228,7 @@ export function CallScreen() {
           top={insets.top + (hide.shown ? scrimSize : 0) + space.sm}
           bottom={pillBottom + (vertical ? 0 : shownPill)}
           side={(vertical ? insets.right + pillSize + edge : insets.right) + edge}
+          pip={pipFor(small)}
           onSwap={() => setSwapped((current) => !current)}
         />
       ) : null}

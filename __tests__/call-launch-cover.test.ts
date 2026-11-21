@@ -31,6 +31,8 @@ jest.mock('../src/features/call/native', () => ({
     takePending: () => Promise.resolve([]),
     takeLaunchAction: () => Promise.resolve(null),
     cancelRing: () => Promise.resolve(true),
+    setPictureInPicture: () => Promise.resolve(true),
+    leavePictureInPicture: () => Promise.resolve(true),
     setCallSurface: (visible: boolean) => {
       mockSurface.push(visible);
       return Promise.resolve(true);

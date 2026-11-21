@@ -76,7 +76,8 @@
     "share": "Bagikan {{name}}",
     "cannotShare": "Perangkat ini tidak bisa membagikan berkas.",
     "close": "Tutup",
-    "shareInstead": "Bagikan"
+    "shareInstead": "Bagikan",
+    "table": "Tabel, {{columns}} kolom dan {{rows}} baris. Geser ke samping untuk melihat semuanya."
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",
@@ -104,7 +105,18 @@
     "tooBig_one": "{{names}} melebihi batas {{limit}}.",
     "tooBig_other": "{{names}} melebihi batas {{limit}}.",
     "tooMuch_one": "{{names}} membuat pesan melebihi batas {{limit}} untuk Coworker. Kirim terpisah.",
-    "tooMuch_other": "{{names}} membuat pesan melebihi batas {{limit}} untuk Coworker. Kirim terpisah."
+    "tooMuch_other": "{{names}} membuat pesan melebihi batas {{limit}} untuk Coworker. Kirim terpisah.",
+    "format": {
+      "bold": "Tebal",
+      "italic": "Miring",
+      "code": "Kode",
+      "link": "Tautan",
+      "quote": "Kutipan",
+      "list": "Daftar",
+      "hide": "Sembunyikan format",
+      "show": "Tampilkan format",
+      "glyph": "Aa"
+    }
   },
   "permissions": {
     "cameraTitle": "Akses kamera tidak aktif",
