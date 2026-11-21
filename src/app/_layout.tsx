@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { AppState, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSession, verifyActiveSession } from '../auth/session';
@@ -20,6 +20,7 @@ SplashScreen.setOptions({ duration: 240, fade: true });
 
 export default function RootLayout() {
   const { colors } = useTheme();
+  const { width, height } = useWindowDimensions();
   const session = useSession();
   const lock = useLock();
   const hasAccount = session.active !== null;
@@ -49,7 +50,7 @@ export default function RootLayout() {
       <KeyboardProvider>
       <StatusBar style="auto" />
       <ChatRuntime account={signedIn && session.onboarded ? session.active : null} />
-      <View style={styles.fill} importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'} pointerEvents={locked ? 'none' : 'auto'}>
+      <View style={{ width, height }} importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'} pointerEvents={locked ? 'none' : 'auto'}>
         {signedIn && session.onboarded ? <CallStrip /> : null}
         <SafeAreaProvider style={styles.fill}>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>

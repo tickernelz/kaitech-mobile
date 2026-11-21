@@ -54,7 +54,6 @@
         }
       ],
       "./plugins/with-livekit-gradle",
-      "./plugins/with-density-config-change",
       "@livekit/react-native-expo-plugin",
       "@config-plugins/react-native-webrtc",
       "./modules/kaitech-call/plugin",
