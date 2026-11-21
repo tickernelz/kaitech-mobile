@@ -166,6 +166,12 @@
         "failed": "Failed"
       }
     },
+    "block": {
+      "sources": "Sources",
+      "unreadable": "The Coworker sent a part this app cannot show yet.",
+      "moreRows_one": "{{count}} more row not shown",
+      "moreRows_other": "{{count}} more rows not shown"
+    },
     "card": {
       "title": "Decision card",
       "needsYou": "Needs your decision",

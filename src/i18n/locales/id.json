@@ -166,6 +166,12 @@
         "failed": "Gagal"
       }
     },
+    "block": {
+      "sources": "Sumber",
+      "unreadable": "Coworker mengirim bagian yang belum bisa ditampilkan aplikasi ini.",
+      "moreRows_one": "{{count}} baris lagi tidak ditampilkan",
+      "moreRows_other": "{{count}} baris lagi tidak ditampilkan"
+    },
     "card": {
       "title": "Kartu keputusan",
       "needsYou": "Butuh keputusan Anda",
