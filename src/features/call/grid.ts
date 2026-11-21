@@ -50,7 +50,7 @@ export function presenterOf<T extends { local: boolean; screenOn: boolean }>(peo
 
 export function layoutFor(width: number, height: number): CallLayout {
   return {
-    pip: Math.min(width, height) < pipMaxSide,
+    pip: Math.min(width, height) > 0 && Math.min(width, height) < pipMaxSide,
     controls: width > height && height < railMaxHeight ? 'rail' : 'bar',
     people: width >= sidePanelMinWidth ? 'side' : 'sheet',
   };

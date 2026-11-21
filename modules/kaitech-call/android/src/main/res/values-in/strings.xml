@@ -10,6 +10,11 @@
   <string name="kaitech_call_decline">Tolak</string>
   <string name="kaitech_call_answer">Terima</string>
   <string name="kaitech_call_stop_sharing">Berhenti berbagi</string>
+  <string name="kaitech_call_mute">Bisukan</string>
+  <string name="kaitech_call_unmute">Bunyikan</string>
+  <string name="kaitech_call_camera_off">Matikan kamera</string>
+  <string name="kaitech_call_camera_on">Nyalakan kamera</string>
+  <string name="kaitech_call_hang_up">Tutup panggilan</string>
   <string name="kaitech_message_channel">Pesan</string>
   <string name="kaitech_message_channel_description">Pesan chat baru</string>
   <string name="kaitech_mention_channel">Sebutan</string>
