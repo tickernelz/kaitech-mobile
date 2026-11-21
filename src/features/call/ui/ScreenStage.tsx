@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { Icon } from '../../chat/ui/icons';
+import { Icon } from '../../../ui/icons';
 import { loadLiveKit, liveKit } from '../livekit';
 import { videoTrack, type CallPerson } from '../call';
 import { CallTile } from './CallTile';
@@ -28,7 +28,7 @@ export function ScreenStage({ presenter, people, side, onStop }: { presenter: Ca
       <View style={[styles.screen, { backgroundColor: presenter.local ? colors.surface2 : colors.stage }]} testID="call-screen-share">
         {presenter.local ? (
           <View style={styles.center}>
-            <Icon name="screen" size={40} color={colors.primary} />
+            <Icon name="screenShare" size={40} color={colors.primary} />
             <Text variant="body" style={styles.note} testID="call-screen-share-own">
               {t('youAreSharing')}
             </Text>
@@ -42,7 +42,7 @@ export function ScreenStage({ presenter, people, side, onStop }: { presenter: Ca
           <VideoTrack trackRef={track as never} style={StyleSheet.absoluteFill} objectFit="contain" />
         ) : (
           <View style={styles.center}>
-            <Icon name="screen" size={40} color={colors.inkFaint} />
+            <Icon name="screenShare" size={40} color={colors.inkFaint} />
           </View>
         )}
         {presenter.local ? null : (

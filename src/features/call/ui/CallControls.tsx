@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { Icon, type IconName } from '../../chat/ui/icons';
+import { Icon, type IconName } from '../../../ui/icons';
 
 export type CallAction = 'mute' | 'camera' | 'flip' | 'share' | 'record' | 'speaker' | 'people' | 'pip' | 'hangup';
 
@@ -45,17 +45,17 @@ export function CallControls({
 }) {
   const { t } = useTranslation('call');
   const items: { action: CallAction; icon: IconName; label: string; active?: boolean; danger?: boolean; busy?: boolean }[] = [
-    { action: 'mute', icon: muted ? 'muted' : 'mic', label: muted ? t('unmute') : t('mute'), active: muted },
-    ...(video ? [{ action: 'camera' as const, icon: 'camera' as const, label: cameraOn ? t('cameraTurnOff') : t('cameraOn'), active: !cameraOn }] : []),
-    ...(video && cameraOn ? [{ action: 'flip' as const, icon: 'retry' as const, label: t('flip') }] : []),
-    ...(share ? [{ action: 'share' as const, icon: 'screen' as const, label: sharing ? t('stopSharing') : t('shareScreen'), active: sharing }] : []),
+    { action: 'mute', icon: muted ? 'micOff' : 'mic', label: muted ? t('unmute') : t('mute'), active: muted },
+    ...(video ? [{ action: 'camera' as const, icon: cameraOn ? ('video' as const) : ('videoOff' as const), label: cameraOn ? t('cameraTurnOff') : t('cameraOn'), active: !cameraOn }] : []),
+    ...(video && cameraOn ? [{ action: 'flip' as const, icon: 'cameraFlip' as const, label: t('flip') }] : []),
+    ...(share ? [{ action: 'share' as const, icon: 'screenShare' as const, label: sharing ? t('stopSharing') : t('shareScreen'), active: sharing }] : []),
     ...(recording
       ? [{ action: 'record' as const, icon: 'record' as const, label: recording.on ? t('stopRecording') : t('startRecording'), active: recording.on, busy: recording.busy }]
       : []),
-    { action: 'speaker', icon: 'play', label: speaker ? t('earpiece') : t('speaker'), active: speaker },
+    { action: 'speaker', icon: 'speaker', label: speaker ? t('earpiece') : t('speaker'), active: speaker },
     { action: 'people', icon: 'people', label: t('people') },
-    ...(pip ? [{ action: 'pip' as const, icon: 'copy' as const, label: t('pictureInPicture') }] : []),
-    { action: 'hangup', icon: 'close', label: t('hangUp'), danger: true },
+    ...(pip ? [{ action: 'pip' as const, icon: 'pip' as const, label: t('pictureInPicture') }] : []),
+    { action: 'hangup', icon: 'phoneEnd', label: t('hangUp'), danger: true },
   ];
   return (
     <View style={[styles.row, vertical ? styles.column : styles.wrap]} testID="call-controls">

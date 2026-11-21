@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Avatar } from '../../chat/ui/Avatar';
-import { Icon } from '../../chat/ui/icons';
+import { Icon } from '../../../ui/icons';
 import { answer, decline, useCallState } from '../call';
 
 export function IncomingCall() {
@@ -27,10 +27,10 @@ export function IncomingCall() {
       </View>
       <View style={styles.actions}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('decline')} onPress={() => void decline()} style={[styles.round, { backgroundColor: colors.danger }]} testID="incoming-decline">
-          <Icon name="close" size={30} color={colors.onPrimary} />
+          <Icon name="phoneEnd" size={32} color={colors.onPrimary} />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={t('answer')} onPress={() => void answer()} style={[styles.round, { backgroundColor: colors.ok }]} testID="incoming-answer">
-          <Icon name={call.video ? 'camera' : 'mic'} size={30} color={colors.onPrimary} />
+          <Icon name={call.video ? 'video' : 'phone'} size={32} color={colors.onPrimary} />
         </Pressable>
       </View>
     </View>

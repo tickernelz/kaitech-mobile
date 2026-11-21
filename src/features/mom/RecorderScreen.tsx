@@ -7,8 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../layout/windowClass';
 import { radius, space, type as typography, useTheme } from '../../theme';
 import { Text } from '../../ui/Text';
+import { Icon, type IconName } from '../../ui/icons';
 import { Chip, IconButton } from '../discovery/ui';
-import { MomIcon, useMomFormat, Waveform, type MomIconName } from './parts';
+import { useMomFormat, Waveform } from './parts';
 import {
   bitRate,
   clock,
@@ -46,7 +47,7 @@ function RoundButton({
   disabled,
   testID,
 }: {
-  icon: MomIconName;
+  icon: IconName;
   label: string;
   onPress: () => void;
   big?: boolean;
@@ -76,7 +77,7 @@ function RoundButton({
             opacity: disabled ? 0.4 : pressed ? 0.8 : 1,
           },
         ]}>
-        <MomIcon name={icon} size={big ? 30 : 24} color={danger ? colors.onPrimary : colors.ink} />
+        <Icon name={icon} size={big ? 32 : 24} color={danger ? colors.onPrimary : colors.ink} />
       </Pressable>
       <Text variant="footnote" style={styles.roundLabel} maxFontSizeMultiplier={1.6}>
         {label}
@@ -121,7 +122,7 @@ function SmallRound({
   danger,
   testID,
 }: {
-  icon: MomIconName;
+  icon: IconName;
   label: string;
   onPress: () => void;
   disabled?: boolean;
@@ -140,7 +141,7 @@ function SmallRound({
         styles.smallRound,
         { backgroundColor: danger ? colors.danger : pressed ? colors.surface2 : colors.surface, borderColor: colors.line, opacity: disabled ? 0.4 : 1 },
       ]}>
-      <MomIcon name={icon} size={22} color={danger ? colors.onPrimary : colors.ink} />
+      <Icon name={icon} size={24} color={danger ? colors.onPrimary : colors.ink} />
     </Pressable>
   );
 }
@@ -218,7 +219,7 @@ export function RecorderScreen() {
       </Text>
       {recording.consentAt ? (
         <View style={[styles.consent, { backgroundColor: colors.okBand }]}>
-          <MomIcon name="check" size={20} color={colors.okInk} />
+          <Icon name="check" size={20} color={colors.okInk} />
           <Text variant="callout" tone="okInk" style={styles.fill}>
             {t('mom.recorder.consent', { time: format.time(recording.consentAt) })}
           </Text>
@@ -229,7 +230,7 @@ export function RecorderScreen() {
   return (
     <SafeAreaView style={[styles.fill, { backgroundColor: colors.canvas }]} testID="mom-recorder">
       <View style={styles.header}>
-        <IconButton icon="down" label={t('mom.recorder.minimize')} onPress={() => (router.canGoBack() ? router.back() : router.replace('/mom'))} testID="recorder-minimize" />
+        <IconButton icon="chevronDown" label={t('mom.recorder.minimize')} onPress={() => (router.canGoBack() ? router.back() : router.replace('/mom'))} testID="recorder-minimize" />
         <View style={styles.titles}>
           <Text variant="headline" numberOfLines={1} accessibilityRole="header">
             {recording.title}

@@ -239,7 +239,7 @@ Server mengembalikan kode ke App Link/Universal Link `https://<domain tautan>/ka
 
 ### Ikon dan splash
 
-`node scripts/brand-assets.mjs` membuat ulang semua ikon dan gambar splash dari huruf K dan garis gradien logo Kaitech (butuh `inkscape`). Sumber SVG ada di `assets/brand/`. Warna latar splash sama dengan warna kanvas tema (terang `#FAF9FC`, gelap `#110B18`), jadi tidak ada kedipan putih saat JS mengambil alih. Font merek Plus Jakarta Sans (OFL, `assets/fonts/OFL.txt`) ditanam lewat plugin `expo-font`; teks isi memakai font sistem.
+`node scripts/brand-assets.mjs` membuat ulang semua ikon, ikon kecil notifikasi Android, dan gambar splash dari huruf K dan garis gradien logo Kaitech (butuh `inkscape`). Ikon di dalam aplikasi digambar sendiri dan hanya ada di `src/ui/icons` (komponen `Icon`, varian `line` dan `fill`); `node scripts/icon-sheet.mjs <out.png>` membuat contact sheet seluruh set di 16/20/24/32 px, terang dan gelap. Sumber SVG ada di `assets/brand/`. Warna latar splash sama dengan warna kanvas tema (terang `#FAF9FC`, gelap `#110B18`), jadi tidak ada kedipan putih saat JS mengambil alih. Font merek Plus Jakarta Sans (OFL, `assets/fonts/OFL.txt`) ditanam lewat plugin `expo-font`; teks isi memakai font sistem.
 
 ### E2E
 
