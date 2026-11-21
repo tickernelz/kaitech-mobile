@@ -12,7 +12,15 @@ jest.mock('react-native', () => ({
     },
   },
 }));
-jest.mock('../src/features/call/native', () => ({ callNative: () => ({ isInPictureInPicture: () => mockPip }) }));
+const mockCallActions: ((action: { type: string; active?: boolean }) => void)[] = [];
+let mockResumed = true;
+jest.mock('../src/features/call/native', () => ({
+  callNative: () => ({ isInPictureInPicture: () => mockPip, isResumed: () => mockResumed }),
+  onCallAction: (listener: (action: { type: string; active?: boolean }) => void) => {
+    mockCallActions.push(listener);
+    return () => undefined;
+  },
+}));
 jest.mock('../src/auth/session', () => ({ onAccountForgotten: () => () => undefined, markExpired: jest.fn(), tokenFor: jest.fn(async () => null) }));
 jest.mock('../src/api/odoo', () => ({ bearer: jest.fn(), route: jest.fn(), sessionCookie: jest.fn(), onSessionOpened: jest.fn(), ApiError: class extends Error {} }));
 jest.mock('../src/features/chat/db', () => ({
@@ -54,6 +62,12 @@ jest.mock('../src/features/chat/api', () => ({
   sendErrorFrom: (error: unknown) => error,
 }));
 
+function pipEnded(resumed: boolean) {
+  mockPip = false;
+  mockResumed = resumed;
+  mockCallActions.forEach((listener) => listener({ type: 'pip', active: false }));
+}
+
 function emit(state: string, pip: boolean) {
   mockPip = pip;
   mockAppListeners.forEach((listener) => listener(state));
@@ -70,5 +84,16 @@ describe('chat presence while a call sits in picture-in-picture', () => {
     expect(mockRealtime.starts).toBe(1);
     emit('active', false);
     expect(mockRealtime.starts).toBe(2);
+  });
+
+  it('comes back when the window mode ends after the resume was reported', () => {
+    emit('background', false);
+    const stops = mockRealtime.stops;
+    const starts = mockRealtime.starts;
+    expect(stops).toBeGreaterThan(0);
+    emit('active', true);
+    expect(mockRealtime.starts).toBe(starts);
+    pipEnded(true);
+    expect(mockRealtime.starts).toBe(starts + 1);
   });
 });

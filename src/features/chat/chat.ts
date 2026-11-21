@@ -27,7 +27,7 @@ import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
 import type { Conversation, Member, Mention, Message, Pending, PendingFile } from './types';
 import { setUploadProgress } from './progress';
-import { userInApp } from '../call/presence';
+import { onPresenceChange, userInApp } from '../call/presence';
 
 export type Typist = { partnerId: number; name: string; until: number };
 
@@ -377,7 +377,7 @@ export function startChat(account: Account) {
     }
   });
   void getNetworkStateAsync().then((network) => set({ online: network.isConnected !== false && network.isInternetReachable !== false }));
-  const app = AppState.addEventListener('change', (next) => {
+  const stopPresence = onPresenceChange((next) => {
     const nowActive = userInApp(next);
     if (nowActive === active) return;
     active = nowActive;
@@ -393,7 +393,7 @@ export function startChat(account: Account) {
       realtime?.stop();
     }
   });
-  teardown = [() => network.remove(), () => app.remove()];
+  teardown = [() => network.remove(), stopPresence];
 }
 
 export function stopChat() {

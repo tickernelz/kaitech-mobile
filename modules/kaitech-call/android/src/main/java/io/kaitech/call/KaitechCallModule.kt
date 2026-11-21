@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import com.facebook.react.bridge.ReactContext
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
@@ -82,6 +84,10 @@ class KaitechCallModule : Module() {
     Constant("pictureInPictureSupported") { CallPip.supported(appContext.reactContext) }
 
     Function("isInPictureInPicture") { appContext.currentActivity?.isInPictureInPictureMode == true }
+
+    Function("isResumed") {
+      (appContext.currentActivity as? LifecycleOwner)?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.RESUMED) == true
+    }
 
     AsyncFunction("enterPictureInPicture") { CallPip.enter(appContext.currentActivity) }.runOnQueue(Queues.MAIN)
 

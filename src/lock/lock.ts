@@ -1,8 +1,8 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import Storage from 'expo-sqlite/kv-store';
 import { useSyncExternalStore } from 'react';
-import { AppState, Platform } from 'react-native';
-import { userInApp } from '../features/call/presence';
+import { Platform } from 'react-native';
+import { onPresenceChange, userInApp } from '../features/call/presence';
 
 export const lockAfterMs = 5 * 60 * 1000;
 
@@ -26,7 +26,7 @@ export function shouldLock(enabledNow: boolean, leftAt: number | null, now: numb
   return enabledNow && leftAt !== null && now - leftAt >= lockAfterMs;
 }
 
-AppState.addEventListener('change', (next) => {
+onPresenceChange((next) => {
   if (authenticating) return;
   if (next === 'background' && backgroundAt === null) backgroundAt = Date.now();
   if (next === 'active' && userInApp(next)) {
