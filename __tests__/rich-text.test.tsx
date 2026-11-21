@@ -98,6 +98,8 @@ describe('RichText native views', () => {
 
   it('sizes columns for capitals and the font scale', () => {
     expect(textWidth('STATUS', 1)).toBeGreaterThan(55.2);
+    expect(textWidth('mmmmmm', 1)).toBeGreaterThan(65);
+    expect(textWidth('1.250.000', 1)).toBeLessThan(85);
     expect(textWidth('Gudang', 1.15)).toBeGreaterThan(59.6);
     expect(textWidth('Penanggung jawab', 1.15)).toBeGreaterThan(146.4);
   });

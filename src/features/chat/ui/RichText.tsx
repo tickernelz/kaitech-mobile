@@ -93,7 +93,7 @@ function plain(spans: Span[]): string {
 
 export function textWidth(text: string, scale = PixelRatio.getFontScale()): number {
   let width = 0;
-  for (const char of text) width += /[A-Z0-9@#%&MW]/.test(char) ? CAPITAL_WIDTH : CHAR_WIDTH;
+  for (const char of text) width += /[A-Z@#%&mw]/.test(char) ? CAPITAL_WIDTH : CHAR_WIDTH;
   return width * scale;
 }
 
