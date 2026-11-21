@@ -14,7 +14,7 @@ export type AppearancePatch = { theme?: Theme; background?: Background; conversa
 export type Scope = 'all' | number;
 
 export const themes: readonly Theme[] = ['system', 'light', 'dark'];
-export const plainColors = ['#d8cde8', '#d0d4dd', '#cfe3d4', '#f0e6c8', '#eacccc', '#2b2a33', '#1f2a3a', '#3a2433'] as const;
+export const plainColors = ['#c4b8de', '#b8c3d4', '#b4d1bd', '#dccb9c', '#dcb0b0', '#3d4a5c', '#2f4a40', '#4a3346'] as const;
 export const defaultAppearance: ChatAppearance = { theme: 'system', background: { kind: 'default' }, conversations: {} };
 
 const presetName = /^[a-z0-9][a-z0-9_-]{0,31}$/;

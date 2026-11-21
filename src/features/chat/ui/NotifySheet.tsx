@@ -9,7 +9,17 @@ import { muteConversation } from '../chat';
 import { bubbleSettingsAvailable, muteChoices, mutedForever, mutedUntilMs, openBubbleSettings } from '../notify';
 import { Icon, type IconName } from '../../../ui/icons';
 
-export function NotifySheet({ channelId, mutedUntil, onClose }: { channelId: number; mutedUntil: string | null; onClose: () => void }) {
+export function NotifySheet({
+  channelId,
+  mutedUntil,
+  onClose,
+  onBackground,
+}: {
+  channelId: number;
+  mutedUntil: string | null;
+  onClose: () => void;
+  onBackground?: () => void;
+}) {
   const { t, i18n } = useTranslation('chat');
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -38,6 +48,17 @@ export function NotifySheet({ channelId, mutedUntil, onClose }: { channelId: num
         openBubbleSettings(account, channelId);
       },
       testID: 'notify-bubble',
+    });
+  }
+  if (onBackground) {
+    items.push({
+      icon: 'image',
+      label: t('thread.background'),
+      onPress: () => {
+        onClose();
+        onBackground();
+      },
+      testID: 'notify-background',
     });
   }
   const status = until ? (mutedForever(mutedUntil, now) ? t('notify.mutedAlways') : t('notify.mutedUntil', { time: new Intl.DateTimeFormat(i18n.language, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(until) })) : null;

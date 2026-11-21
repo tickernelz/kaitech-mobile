@@ -66,6 +66,23 @@ describe('changeAppearance', () => {
   });
 });
 
+describe('plainColors', () => {
+  const linear = (value: number) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+  const lightness = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((at) => linear(parseInt(hex.slice(at, at + 2), 16) / 255));
+    const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return 116 * (y > 216 / 24389 ? Math.cbrt(y) : ((24389 / 27) * y + 16) / 116) - 16;
+  };
+
+  it('keeps both bubbles apart from every colour in the light and the dark theme', () => {
+    const { colorsFor } = require('../src/theme/tokens') as typeof import('../src/theme/tokens');
+    const bubbles = (['light', 'dark'] as const).flatMap((scheme) => [colorsFor(scheme).surface, colorsFor(scheme).select]).map(lightness);
+    for (const color of appearance.plainColors) {
+      expect(Math.min(...bubbles.map((bubble) => Math.abs(bubble - lightness(color))))).toBeGreaterThanOrEqual(6);
+    }
+  });
+});
+
 describe('fitWithin and sliderValue', () => {
   it('shrinks only images larger than the limit and keeps their shape', () => {
     expect(fitWithin(4000, 3000, 1024)).toEqual({ width: 1024, height: 768 });

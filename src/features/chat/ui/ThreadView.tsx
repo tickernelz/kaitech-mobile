@@ -239,17 +239,6 @@ export function ThreadView({
         testID="thread-notify">
         <Icon name={conversation?.mutedUntil ? 'bellOff' : 'bell'} color={colors.ink} />
       </Pressable>
-      {bubble ? null : (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('thread.background')}
-          onPress={() => router.push({ pathname: '/settings/background', params: { channel: String(channelId) } })}
-          hitSlop={8}
-          style={styles.headerButton}
-          testID="thread-background">
-          <Icon name="image" color={colors.ink} />
-        </Pressable>
-      )}
     </View>
   );
 
@@ -314,7 +303,14 @@ export function ThreadView({
         onCopy={(message) => void Clipboard.setStringAsync(plainText(message.body))}
         onThread={(message) => void openSub(message)}
       />
-      {notifying ? <NotifySheet channelId={channelId} mutedUntil={conversation?.mutedUntil ?? null} onClose={() => setNotifying(false)} /> : null}
+      {notifying ? (
+        <NotifySheet
+          channelId={channelId}
+          mutedUntil={conversation?.mutedUntil ?? null}
+          onClose={() => setNotifying(false)}
+          onBackground={bubble ? undefined : () => router.push({ pathname: '/settings/background', params: { channel: String(channelId) } })}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
