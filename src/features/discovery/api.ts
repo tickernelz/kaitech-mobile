@@ -1,4 +1,4 @@
-import { bearer, rpc } from '../../api/odoo';
+import { bearer, bearerUpload, rpc } from '../../api/odoo';
 import type { Account } from '../../auth/oauth';
 
 export type Programme = {
@@ -35,7 +35,9 @@ export type Panel = {
 
 export type Counts = { evidence: number; findings: number };
 
-export type Attachment = { id: number; name: string; mimetype: string; sizeLabel: string };
+export type Attachment = { id: number; attachmentId?: number; name: string; mimetype: string; size?: number; sizeLabel: string };
+
+export type Document = { name: string; mimetype: string; data: string };
 
 export type Failure = { said: string; help: string; final: boolean; retry: boolean };
 
@@ -49,6 +51,7 @@ export type TranscriptItem = {
   intention?: string;
   attachments?: Attachment[];
   failure?: Failure;
+  state?: string;
   occurredAt: string;
 };
 
@@ -196,18 +199,21 @@ export function transcript(account: Account, conversation: number, cursor?: Curs
   });
 }
 
+type Asked = { conversation_id: number; turn_id: number; replayed: boolean };
+
 export function ask(
   account: Account,
-  question: { key: string; request: string; conversationId?: number; programme: number },
+  question: { key: string; request: string; conversationId?: number; programme: number; documents?: Document[] },
+  onProgress?: (fraction: number) => void,
 ) {
-  return bearer<{ conversation_id: number; turn_id: number; replayed: boolean }>(account, '/kaitech_mobile/discovery/ask', {
-    method: 'POST',
-    body: {
-      key: question.key,
-      request: question.request,
-      ...(question.conversationId ? { conversation_id: question.conversationId } : { engagement_id: question.programme }),
-    },
-  });
+  const body = {
+    key: question.key,
+    request: question.request,
+    ...(question.conversationId ? { conversation_id: question.conversationId } : { engagement_id: question.programme }),
+    ...(question.documents?.length ? { documents: question.documents } : {}),
+  };
+  if (question.documents?.length && onProgress) return bearerUpload<Asked>(account, '/kaitech_mobile/discovery/ask', body, onProgress);
+  return bearer<Asked>(account, '/kaitech_mobile/discovery/ask', { method: 'POST', body });
 }
 
 export function cards(account: Account, ids: number[]) {

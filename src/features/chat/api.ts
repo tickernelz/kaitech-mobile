@@ -1,4 +1,4 @@
-import { UploadType } from 'expo-file-system';
+import { UploadType, type UploadProgress } from 'expo-file-system';
 import { bearer, route, sessionCookie, ApiError } from '../../api/odoo';
 import { AppError } from '../../auth/errors';
 import type { Account } from '../../auth/oauth';
@@ -94,7 +94,7 @@ export class ChatClient {
     return { messageId, data: result?.store_data ?? null };
   }
 
-  async upload(channelId: number, file: PendingFile): Promise<Uploaded> {
+  async upload(channelId: number, file: PendingFile, onProgress?: (fraction: number) => void): Promise<Uploaded> {
     const token = await tokenFor(this.account.id);
     if (!token) {
       markExpired(this.account.id);
@@ -114,6 +114,7 @@ export class ChatClient {
         parameters: { channel_id: String(channelId), key: file.key, ...(file.voice ? { voice: 'true' } : {}) },
         headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(this.account.db ? { 'X-Odoo-Database': this.account.db } : {}) },
         signal: controller.signal,
+        ...(onProgress ? { onProgress: ({ bytesSent, totalBytes }: UploadProgress) => totalBytes > 0 && onProgress(bytesSent / totalBytes) } : {}),
       });
     } catch {
       throw new AppError('network');

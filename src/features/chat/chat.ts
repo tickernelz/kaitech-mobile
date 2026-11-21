@@ -26,6 +26,7 @@ import {
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
 import type { Conversation, Member, Mention, Message, Pending, PendingFile } from './types';
+import { setUploadProgress } from './progress';
 
 export type Typist = { partnerId: number; name: string; until: number };
 
@@ -331,9 +332,11 @@ export function startChat(account: Account) {
     {
       upload: async (item: Pending, file: PendingFile) => {
         try {
-          return await current.upload(item.channelId, file);
+          return await current.upload(item.channelId, file, (fraction) => setUploadProgress(file.key, fraction));
         } catch (error) {
           throw sendErrorFrom(error);
+        } finally {
+          setUploadProgress(file.key, null);
         }
       },
       post: async (item: Pending, files) => {

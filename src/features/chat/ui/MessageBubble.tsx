@@ -6,9 +6,12 @@ import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { parseBody, plainText, type Block } from '../html';
 import { attachmentUrl, type ReadState } from '../odoo';
-import type { Attachment, Message, Pending } from '../types';
+import { useUploadProgress } from '../progress';
+import type { Attachment, Message, Pending, PendingFile } from '../types';
 import { useChatFormat } from './format';
 import { Icon } from './icons';
+import { UploadProgress } from './MediaControls';
+import { useCookie } from './useCookie';
 import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
 import { recordingIdOf } from '../../call/recording';
@@ -47,17 +50,35 @@ function Body({ blocks, mine }: { blocks: Block[]; mine: boolean }) {
   );
 }
 
+function ShareButton({ name, onPress, raised }: { name: string; onPress: () => void; raised?: boolean }) {
+  const { t } = useTranslation('chat');
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t('thread.share', { name })}
+      hitSlop={8}
+      onPress={onPress}
+      testID="attachment-share"
+      style={({ pressed }) => [styles.share, raised && { backgroundColor: colors.surface }, { opacity: pressed ? 0.7 : 1 }]}>
+      <Icon name="share" size={20} color={colors.inkSoft} />
+    </Pressable>
+  );
+}
+
 function FileChip({ attachment, mine }: { attachment: Attachment; mine: boolean }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const { size } = useChatFormat();
-  const { open, opening } = useOpenAttachment();
+  const { open, share, opening } = useOpenAttachment();
   const busy = opening === attachment.id;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t('thread.openFile', { name: attachment.name })}
       accessibilityState={{ busy }}
+      accessibilityActions={[{ name: 'share', label: t('thread.share', { name: attachment.name }) }]}
+      onAccessibilityAction={() => void share(attachment)}
       onPress={() => void open(attachment)}
       style={({ pressed }) => [styles.file, { backgroundColor: mine ? colors.surface : colors.surface2, opacity: pressed ? 0.8 : 1 }]}>
       <View style={[styles.fileIcon, { backgroundColor: colors.dangerBand }]}>
@@ -71,6 +92,7 @@ function FileChip({ attachment, mine }: { attachment: Attachment; mine: boolean 
           {size(attachment.size)}
         </Text>
       </View>
+      <ShareButton name={attachment.name} onPress={() => void share(attachment)} />
     </Pressable>
   );
 }
@@ -79,15 +101,25 @@ function Picture({ attachment, origin }: { attachment: Attachment; origin: strin
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const uri = attachmentUrl(origin, attachment);
-  const { open, opening } = useOpenAttachment();
+  const cookie = useCookie();
+  const { open, share, opening } = useOpenAttachment();
   return (
-    <Pressable accessibilityRole="imagebutton" accessibilityLabel={t('thread.openImage', { name: attachment.name })} accessibilityState={{ busy: opening === attachment.id }} onPress={() => void open(attachment)}>
-      <Image source={{ uri }} style={[styles.picture, { backgroundColor: colors.surface2 }]} resizeMode="cover" />
+    <Pressable
+      accessibilityRole="imagebutton"
+      accessibilityLabel={t('thread.openImage', { name: attachment.name })}
+      accessibilityState={{ busy: opening === attachment.id }}
+      accessibilityActions={[{ name: 'share', label: t('thread.share', { name: attachment.name }) }]}
+      onAccessibilityAction={() => void share(attachment)}
+      onPress={() => void open(attachment)}>
+      <Image source={{ uri, ...(cookie ? { headers: cookie } : {}) }} style={[styles.picture, { backgroundColor: colors.surface2 }]} resizeMode="cover" />
+      <View style={styles.pictureShare}>
+        <ShareButton name={attachment.name} onPress={() => void share(attachment)} raised />
+      </View>
     </Pressable>
   );
 }
 
-function Attachments({ attachments, origin, mine }: { attachments: Attachment[]; origin: string; mine: boolean }) {
+export function Attachments({ attachments, origin, mine }: { attachments: Attachment[]; origin: string; mine: boolean }) {
   if (!attachments.length) return null;
   return (
     <View style={styles.attachments}>
@@ -254,6 +286,28 @@ export const MessageBubble = memo(function MessageBubble({
   );
 });
 
+function PendingFileRow({ file }: { file: PendingFile }) {
+  const { t } = useTranslation('chat');
+  const { colors } = useTheme();
+  const { duration } = useChatFormat();
+  const progress = useUploadProgress(file.key);
+  const name = file.voice ? t('composer.voiceLength', { length: duration(file.durationMs ?? 0) }) : file.name;
+  return (
+    <View style={[styles.file, styles.pendingFile, { backgroundColor: colors.surface }]}>
+      <Icon name={file.voice ? 'mic' : file.mimetype.startsWith('image/') ? 'image' : 'file'} color={colors.inkSoft} />
+      {progress === null ? (
+        <Text variant="callout" numberOfLines={1} style={styles.flex}>
+          {name}
+        </Text>
+      ) : (
+        <View style={styles.flex}>
+          <UploadProgress name={name} sent={progress} testID="pending-progress" />
+        </View>
+      )}
+    </View>
+  );
+}
+
 export const PendingBubble = memo(function PendingBubble({
   pending,
   offline,
@@ -267,7 +321,6 @@ export const PendingBubble = memo(function PendingBubble({
 }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
-  const { duration } = useChatFormat();
   const failed = pending.state === 'failed';
   const status = failed ? t('thread.failed') : offline && pending.state === 'queued' ? t('thread.queued') : t('thread.waiting');
   const label = [pending.text, status].filter(Boolean).join(', ');
@@ -275,12 +328,7 @@ export const PendingBubble = memo(function PendingBubble({
     <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`}>
       <Frame mine label={label} failed={failed}>
         {pending.files.map((file) => (
-          <View key={file.key} style={[styles.file, styles.pendingFile, { backgroundColor: colors.surface }]}>
-            <Icon name={file.voice ? 'mic' : file.mimetype.startsWith('image/') ? 'image' : 'file'} color={colors.inkSoft} />
-            <Text variant="callout" numberOfLines={1} style={styles.flex}>
-              {file.voice ? t('composer.voiceLength', { length: duration(file.durationMs ?? 0) }) : file.name}
-            </Text>
-          </View>
+          <PendingFileRow key={file.key} file={file} />
         ))}
         {pending.text ? (
           <Text variant="body" style={{ color: colors.selectInk }}>
@@ -337,6 +385,8 @@ const styles = StyleSheet.create({
   pendingFile: { minWidth: 200 },
   fileIcon: { width: 40, height: 40, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   picture: { width: 240, maxWidth: '100%', aspectRatio: 4 / 3, borderRadius: radius.md },
+  pictureShare: { position: 'absolute', right: space.xs, bottom: space.xs },
+  share: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   meta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
   time: { fontWeight: '400' },
   under: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },

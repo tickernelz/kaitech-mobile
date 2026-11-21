@@ -30,6 +30,18 @@ describe('transcript', () => {
     expect(entries.map((entry) => entry.kind)).toEqual(['steps', 'steps']);
   });
 
+  it('shows a reply that carries only files the Coworker handed over', () => {
+    const handed = { ...item(1, 2, 'message', ''), attachments: [{ id: 7, attachmentId: 7, name: 'deck.pptx', mimetype: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', size: 10, sizeLabel: '10 B' }] };
+    expect(entriesOf([item(1, 0, 'request', 'Buat slide'), handed]).map((entry) => entry.kind)).toEqual(['request', 'reply']);
+  });
+
+  it('keeps one progress card per background job, showing its latest state where it started', () => {
+    const job = (turnId: number, seq: number, state: string) => ({ ...item(turnId, seq, 'job', state), name: 'render-video', state });
+    const entries = entriesOf([item(1, 0, 'request', 'Render'), job(1, 1, 'running'), item(1, 2, 'message', 'Kukerjakan di latar.'), job(2, 3, 'done')]);
+    expect(entries.map((entry) => entry.kind)).toEqual(['request', 'job', 'reply']);
+    expect(entries[1].kind === 'job' && entries[1].item.state).toBe('done');
+  });
+
   it('merges a later page without repeating what was already shown', () => {
     const merged = mergeItems([item(1, 0, 'request'), item(1, 1, 'tool_call')], [item(1, 1, 'tool_call'), item(1, 2, 'message', 'ok')]);
     expect(merged.map((entry) => `${entry.turnId}:${entry.seq}`)).toEqual(['1:0', '1:1', '1:2']);

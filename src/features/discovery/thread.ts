@@ -4,7 +4,8 @@ export type Entry =
   | { kind: 'request'; id: string; item: TranscriptItem }
   | { kind: 'reply'; id: string; item: TranscriptItem }
   | { kind: 'steps'; id: string; steps: TranscriptItem[] }
-  | { kind: 'failure'; id: string; item: TranscriptItem };
+  | { kind: 'failure'; id: string; item: TranscriptItem }
+  | { kind: 'job'; id: string; item: TranscriptItem };
 
 const stepKinds = new Set(['tool_call', 'tool_result']);
 
@@ -25,7 +26,13 @@ export function entriesOf(items: TranscriptItem[]): Entry[] {
   for (const item of items) {
     if (item.kind === 'request') entries.push({ kind: 'request', id: idOf(item), item });
     else if (item.kind === 'failure') entries.push({ kind: 'failure', id: idOf(item), item });
-    else if (item.kind === 'message' && item.body.trim()) entries.push({ kind: 'reply', id: idOf(item), item });
+    else if (item.kind === 'message' && (item.body.trim() || item.attachments?.length)) entries.push({ kind: 'reply', id: idOf(item), item });
+    else if (item.kind === 'job') {
+      const id = `job:${item.name}`;
+      const at = entries.findIndex((entry) => entry.id === id);
+      if (at < 0) entries.push({ kind: 'job', id, item });
+      else entries[at] = { kind: 'job', id, item };
+    }
     else if (stepKinds.has(item.kind)) {
       const last = entries.at(-1);
       if (last?.kind === 'steps' && last.steps[0].turnId === item.turnId) last.steps.push(item);
