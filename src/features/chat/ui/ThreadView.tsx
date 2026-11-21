@@ -2,7 +2,7 @@ import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import * as Clipboard from 'expo-clipboard';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { readableWidth } from '../../../layout/windowClass';
@@ -211,6 +211,8 @@ export function ThreadView({
       : thread.info?.memberCount
         ? t(`thread.members.${type === 'group' ? 'group' : 'channel'}`, { count: thread.info.memberCount })
         : t(`thread.kind.${type === 'group' ? 'group' : 'channel'}`);
+  const shownStatus = !typing.length && twoPeople && status ? status : null;
+  const readStatus = shownStatus ? () => Alert.alert(name, shownStatus) : undefined;
 
   const header = (
     <View style={[styles.header, { borderBottomColor: colors.line }]}>
@@ -227,7 +229,7 @@ export function ThreadView({
         photo={type === 'chat' ? undefined : (conversation?.photo ?? null)}
         icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined}
       />
-      <View style={styles.flex}>
+      <Pressable style={styles.flex} accessible={false} disabled={!readStatus} onPress={readStatus} testID="thread-heading">
         <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
           {name}
         </Text>
@@ -236,11 +238,13 @@ export function ThreadView({
           tone={typing.length ? 'link' : 'inkSoft'}
           numberOfLines={1}
           accessibilityLiveRegion="polite"
-          accessibilityLabel={!typing.length && twoPeople && status ? t('thread.status', { status }) : undefined}
+          accessibilityLabel={shownStatus ? t('thread.status', { status: shownStatus }) : undefined}
+          accessibilityRole={readStatus ? 'button' : undefined}
+          onPress={readStatus}
           testID="thread-subtitle">
           {subtitle}
         </Text>
-      </View>
+      </Pressable>
       {!bubble && (type === 'chat' || type === 'group' || type === 'channel') ? <CallButtons channelId={channelId} channelName={name} /> : null}
       <Pressable
         accessibilityRole="button"
