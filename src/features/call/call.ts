@@ -685,8 +685,15 @@ function fromNative(action: CallAction) {
 async function takeLaunch(action: CallAction, target: Account | null) {
   if (action.type !== 'incoming' && action.type !== 'answer' && action.type !== 'open') return;
   if (!action.channelId) return;
-  const found = await lookForInvitations(action.channelId, { account: target ?? activeAccount() });
+  const account = target ?? activeAccount();
+  let placed = -1;
+  if (account && (state.phase === 'idle' || state.phase === 'ended')) {
+    ring({ channelId: action.channelId, callId: action.callId ?? 0, callerName: action.title ?? '', callerPartnerId: null, video: Boolean(action.video), channelType: '', channelName: '' }, account);
+    placed = generation;
+  }
+  const found = await lookForInvitations(action.channelId, { account });
   if (!found.length) {
+    if (placed === generation && state.phase === 'incoming') reset();
     setCallSurface(state.phase === 'incoming');
     return;
   }
