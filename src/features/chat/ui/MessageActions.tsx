@@ -45,7 +45,7 @@ export function MessageActions({
   ];
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <Pressable style={styles.scrim} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('actions.close')}>
+      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('actions.close')}>
         <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="message-actions">
           <View style={[styles.reactions, { backgroundColor: colors.surface2 }]}>
             {quick.map((emoji) => {
@@ -90,7 +90,7 @@ export function MessageActions({
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', backgroundColor: 'rgba(17,5,27,0.45)' },
+  scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 560, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.lg, paddingHorizontal: space.lg, gap: space.xs },
   reactions: { flexDirection: 'row', justifyContent: 'space-around', borderRadius: radius.pill, padding: space.xs, marginBottom: space.sm },
   emoji: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },

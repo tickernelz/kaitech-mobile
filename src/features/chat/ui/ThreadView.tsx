@@ -127,8 +127,8 @@ export function ThreadView({
     (message: Message): Quote => {
       if (!message.parentId) return null;
       const parent = byId.get(message.parentId);
-      if (!parent) return { author: '', text: t('thread.olderMessage') };
-      return { author: parent.authorId === partnerId ? t('thread.you') : parent.author, text: plainText(parent.body) || t('list.files', { count: parent.attachments.length }) };
+      if (!parent) return { author: '', authorId: null, text: t('thread.olderMessage') };
+      return { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: plainText(parent.body) || t('list.files', { count: parent.attachments.length }) };
     },
     [byId, partnerId, t],
   );
@@ -207,12 +207,12 @@ export function ThreadView({
           <Icon name="back" color={colors.ink} />
         </Pressable>
       )}
-      <Avatar name={name} seed={channelId} size={40} path={type === 'chat' ? conversation?.avatar : undefined} icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined} />
+      <Avatar name={name} seed={conversation?.partnerId ?? channelId} size={40} path={type === 'chat' ? conversation?.avatar : undefined} icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined} />
       <View style={styles.flex}>
         <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
           {name}
         </Text>
-        <Text variant="footnote" tone={typing.length ? 'primary' : 'inkSoft'} numberOfLines={1} accessibilityLiveRegion="polite">
+        <Text variant="footnote" tone={typing.length ? 'link' : 'inkSoft'} numberOfLines={1} accessibilityLiveRegion="polite">
           {subtitle}
         </Text>
       </View>
