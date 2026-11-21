@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useKeyboardState } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../theme';
 import { Text } from './Text';
@@ -10,10 +11,11 @@ export function Sheet({ title, detail, onClose, children, testID }: { title: str
   const { t } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboard = useKeyboardState((state) => (state.isVisible ? state.height : 0));
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('sheet.close')} testID={testID ? `${testID}-backdrop` : undefined}>
-        <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID={testID}>
+      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim, paddingBottom: keyboard }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('sheet.close')} testID={testID ? `${testID}-backdrop` : undefined}>
+        <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: keyboard ? space.lg : Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID={testID}>
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" bounces={false}>
             <View style={styles.head}>
               <Text variant="headline" accessibilityRole="header">
