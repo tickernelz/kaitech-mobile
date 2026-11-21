@@ -97,7 +97,7 @@ export class ChatClient {
   async upload(channelId: number, file: PendingFile): Promise<Uploaded> {
     const token = await tokenFor(this.account.id);
     if (!token) {
-      markExpired();
+      markExpired(this.account.id);
       throw new AppError('sessionEnded');
     }
     const source = localFile(file.uri);
@@ -128,7 +128,7 @@ export class ChatClient {
       body = null;
     }
     if (answer.status === 401) {
-      markExpired();
+      markExpired(this.account.id);
       throw new AppError('sessionEnded');
     }
     if (answer.status !== 200 || typeof body?.attachment_id !== 'number' || typeof body.ownership_token !== 'string') {
@@ -137,8 +137,12 @@ export class ChatClient {
     return { attachmentId: body.attachment_id, ownershipToken: body.ownership_token };
   }
 
-  registerPush(fcm: string, locale: string) {
-    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/push', { method: 'POST', body: { fcm, locale } });
+  registerPush(fcm: string, locale: string, preview: boolean) {
+    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/push', { method: 'POST', body: { fcm, locale, preview } });
+  }
+
+  setPushPreview(preview: boolean) {
+    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/push', { method: 'POST', body: { preview } });
   }
 
   websocketUrl(): string {
