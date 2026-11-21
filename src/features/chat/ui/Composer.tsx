@@ -15,6 +15,7 @@ import { askForPushOnce } from '../push';
 import type { Mention, Message } from '../types';
 import { pickAttachments, type AttachSource } from './attach';
 import { Avatar } from './Avatar';
+import { authorColor } from './MessageBubble';
 import { useChatFormat } from './format';
 import { Icon, type IconName } from './icons';
 import { AttachSheet, MicButton, RecordingStrip, StagedFile } from './MediaControls';
@@ -57,7 +58,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   ref,
 ) {
   const { t } = useTranslation('chat');
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardState((state) => state.isVisible);
   const { windowClass } = useWindowClass();
@@ -75,6 +76,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const typingAt = useRef(0);
   const hardwareSubmit = windowClass !== 'compact';
   const parent = parentId ? messages.find((message) => message.id === parentId) : null;
+  const replyTint = authorColor(parent?.authorId ?? null, scheme, colors);
 
   useImperativeHandle(ref, () => ({
     reply: (message) => {
@@ -196,9 +198,9 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
         </View>
       ) : null}
       {parentId ? (
-        <View style={[styles.replyBar, { backgroundColor: colors.surface2, borderColor: colors.primary }]} testID="composer-reply">
+        <View style={[styles.replyBar, { backgroundColor: colors.surface2, borderColor: replyTint }]} testID="composer-reply">
           <View style={styles.flex}>
-            <Text variant="footnote" style={[styles.strong, { color: colors.primary }]}>
+            <Text variant="footnote" style={[styles.strong, { color: replyTint }]}>
               {t('composer.replyingTo', { name: parent?.author ?? '' })}
             </Text>
             <Text variant="footnote" tone="inkSoft" numberOfLines={1}>

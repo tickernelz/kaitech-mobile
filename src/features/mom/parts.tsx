@@ -4,7 +4,7 @@ import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useLanguage } from '../../i18n';
 import { intlLocale } from '../../i18n/language';
-import { radius, space, useTheme, type Colors } from '../../theme';
+import { radius, selectionBar, space, useTheme, type Colors } from '../../theme';
 import { Text } from '../../ui/Text';
 import { Chip } from '../discovery/ui';
 import type { MeetingRow } from './api';
@@ -117,7 +117,11 @@ export function Line({
       onPress={onPress}
       testID={testID}
       android_ripple={{ color: colors.select }}
-      style={({ pressed }) => [styles.line, (pressed || selected) && { backgroundColor: selected ? colors.select : colors.surface2 }]}>
+      style={({ pressed }) => [
+        styles.line,
+        (pressed || selected) && { backgroundColor: selected ? colors.select : colors.surface2 },
+        selected && { borderLeftWidth: selectionBar, borderLeftColor: colors.primary, paddingLeft: space.lg - selectionBar },
+      ]}>
       <View style={[styles.lineIcon, { backgroundColor: colors.surface2 }]}>
         <MomIcon name={icon} size={20} color={colors.selectInk} />
       </View>

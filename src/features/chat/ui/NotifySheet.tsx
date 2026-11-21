@@ -43,7 +43,7 @@ export function NotifySheet({ channelId, mutedUntil, onClose }: { channelId: num
   const status = until ? (mutedForever(mutedUntil, now) ? t('notify.mutedAlways') : t('notify.mutedUntil', { time: new Intl.DateTimeFormat(i18n.language, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(until) })) : null;
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <Pressable style={styles.scrim} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('actions.close')}>
+      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('actions.close')}>
         <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="notify-sheet">
           <Text variant="headline" accessibilityRole="header" style={styles.title}>
             {t('notify.title')}
@@ -77,7 +77,7 @@ export function NotifySheet({ channelId, mutedUntil, onClose }: { channelId: num
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', backgroundColor: 'rgba(17,5,27,0.45)' },
+  scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 560, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.lg, paddingHorizontal: space.lg, gap: space.xs },
   title: { paddingHorizontal: space.sm },
   item: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 52, paddingHorizontal: space.sm, borderRadius: radius.md },

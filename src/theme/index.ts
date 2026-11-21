@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Platform, useColorScheme, type TextStyle } from 'react-native';
 import { colorsFor, type Colors, type Scheme } from './tokens';
 
-export { brandGradient, radius, space } from './tokens';
+export { brandGradient, personColors, radius, selectionBar, space } from './tokens';
 export type { Colors, Scheme } from './tokens';
 
 export function useTheme(): { scheme: Scheme; colors: Colors } {
