@@ -1,6 +1,6 @@
 import Storage from 'expo-sqlite/kv-store';
 import { useCallback, useSyncExternalStore } from 'react';
-import { onAccountForgotten } from '../../auth/session';
+import { accountKnown, onAccountForgotten } from '../../auth/session';
 import { photoFrom, photosInStore, settle, type Photo, type PhotoEntry } from './photo';
 
 const saveDelayMs = 2000;
@@ -47,6 +47,7 @@ function save() {
 }
 
 export function notePhotoList(accountId: string, list: Iterable<readonly [number, Photo | null]>) {
+  if (!accountKnown(accountId)) return;
   const book = bookOf(accountId);
   const now = Date.now();
   let changed = false;

@@ -2,7 +2,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import Storage from 'expo-sqlite/kv-store';
 import { useCallback, useSyncExternalStore } from 'react';
-import { onAccountForgotten } from '../../auth/session';
+import { accountKnown, onAccountForgotten } from '../../auth/session';
 import { shrinkToJpeg } from '../media/shrink';
 import type { Scope } from './appearance';
 
@@ -58,6 +58,10 @@ export async function pickDevicePhoto(accountId: string, scope: Scope): Promise<
   const asset = picked.canceled ? null : picked.assets[0];
   if (!asset) return false;
   const shrunk = new File(await shrinkToJpeg(asset.uri, asset.width, asset.height, longestSide));
+  if (!accountKnown(accountId)) {
+    shrunk.delete();
+    return false;
+  }
   const directory = new Directory(Paths.document, folder);
   if (!directory.exists) directory.create({ intermediates: true });
   const name = `${accountId}-${String(scope)}-${Date.now()}.jpg`;
@@ -76,6 +80,7 @@ export function dimOf(accountId: string): number {
 }
 
 export function setDim(accountId: string, value: number) {
+  if (!accountKnown(accountId)) return;
   Storage.setItemSync(dimKey(accountId), String(Math.min(maxDim, Math.max(0, value))));
   notify();
 }

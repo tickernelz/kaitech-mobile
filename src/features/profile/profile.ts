@@ -2,7 +2,7 @@ import { launchCameraAsync, launchImageLibraryAsync, requestCameraPermissionsAsy
 import { bearer, bearerFile } from '../../api/odoo';
 import { load, update, useResource } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
-import { renameAccount } from '../../auth/session';
+import { accountKnown, renameAccount } from '../../auth/session';
 import { takeAppearance } from '../appearance/appearance';
 import { shrinkToJpeg } from '../media/shrink';
 import { photoFrom, type Photo } from '../people/photo';
@@ -36,6 +36,7 @@ export function cleanName(value: string): string {
 function taken(account: Account, body: unknown): Profile {
   const profile = profileFrom(body);
   if (!profile) throw new Error('profile_invalid');
+  if (!accountKnown(account.id)) return profile;
   notePhoto(account.id, profile.partnerId, profile.photo);
   renameAccount(account.id, profile.name);
   if (isRecord(body) && 'appearance' in body) takeAppearance(account.id, body.appearance);

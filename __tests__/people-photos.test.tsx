@@ -8,7 +8,7 @@ jest.mock('expo-sqlite/kv-store', () => ({
   setItemSync: (key: string, value: string) => mockStore.set(key, value),
   removeItemSync: (key: string) => mockStore.delete(key),
 }));
-jest.mock('../src/auth/session', () => ({ onAccountForgotten: () => () => undefined }));
+jest.mock('../src/auth/session', () => ({ onAccountForgotten: () => () => undefined, accountKnown: () => true }));
 jest.mock('../src/features/chat/chat', () => ({ useChat: (select: (state: unknown) => unknown) => select({ origin: 'https://odoo.test', accountId: 'A' }) }));
 jest.mock('../src/features/chat/ui/useCookie', () => ({ useCookie: () => ({ Cookie: 'session_id=s' }) }));
 

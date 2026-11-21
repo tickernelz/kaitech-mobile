@@ -7,7 +7,11 @@ jest.mock('expo-sqlite/kv-store', () => ({
   removeItemSync: (key: string) => mockStore.delete(key),
 }));
 const mockForget: ((id: string) => void)[] = [];
-jest.mock('../src/auth/session', () => ({ onAccountForgotten: (listener: (id: string) => void) => mockForget.push(listener) }));
+const mockGone = new Set<string>();
+jest.mock('../src/auth/session', () => ({
+  onAccountForgotten: (listener: (id: string) => void) => mockForget.push(listener),
+  accountKnown: (id: string) => !mockGone.has(id),
+}));
 jest.mock('../src/api/odoo', () => ({ bearer: (...args: unknown[]) => mockBearer(...args) }));
 jest.mock('../src/features/chat/api', () => ({ errorCode: (error: { code?: string }) => error.code ?? 'unknown' }));
 jest.mock('../src/features/chat/chat', () => ({ chatClient: () => null, onRealtimeNotifications: () => () => undefined }));
@@ -45,6 +49,7 @@ describe('backgroundFor and patched', () => {
 
 describe('changeAppearance', () => {
   beforeEach(() => {
+    mockGone.clear();
     mockStore.clear();
     mockBearer.mockReset();
     appearance.takeAppearance('A', null);
@@ -65,9 +70,23 @@ describe('changeAppearance', () => {
     mockBearer.mockReturnValue(new Promise((resolve) => (answer = resolve)));
     const pending = appearance.changeAppearance(account, { theme: 'dark' });
     mockForget.forEach((listener) => listener('A'));
+    mockGone.add('A');
     answer({ theme: 'dark', background: { kind: 'default' }, conversations: {} });
     await pending;
     expect(mockStore.has('appearance.A')).toBe(false);
+  });
+
+  it('undoes only its own part when it fails while another change is pending', async () => {
+    let refuse: (reason: unknown) => void = () => undefined;
+    mockBearer.mockReturnValueOnce(new Promise((_, reject) => (refuse = reject)));
+    mockBearer.mockResolvedValueOnce({ theme: 'system', background: { kind: 'preset', value: 'mist' }, conversations: {} });
+    const first = appearance.changeAppearance(account, { theme: 'dark' });
+    const second = appearance.changeAppearance(account, { background: { kind: 'preset', value: 'mist' } });
+    expect(appearance.appearanceOf('A')).toMatchObject({ theme: 'dark', background: { kind: 'preset', value: 'mist' } });
+    refuse({ code: 'server' });
+    await expect(first).resolves.toBe('server');
+    expect(appearance.appearanceOf('A')).toMatchObject({ theme: 'system', background: { kind: 'preset', value: 'mist' } });
+    await second;
   });
 
   it('puts the previous look back when the server refuses', async () => {

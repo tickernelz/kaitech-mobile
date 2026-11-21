@@ -3,7 +3,7 @@ import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { Appearance } from 'react-native';
 import { bearer } from '../../api/odoo';
 import type { Account } from '../../auth/oauth';
-import { onAccountForgotten } from '../../auth/session';
+import { accountKnown, onAccountForgotten } from '../../auth/session';
 import { errorCode } from '../chat/api';
 import { chatClient, onRealtimeNotifications } from '../chat/chat';
 
@@ -60,6 +60,14 @@ export function patched(current: ChatAppearance, patch: AppearancePatch): ChatAp
   return { theme: patch.theme ?? current.theme, background: patch.background ?? current.background, conversations };
 }
 
+export function undoOf(before: ChatAppearance, patch: AppearancePatch): AppearancePatch {
+  return {
+    ...(patch.theme ? { theme: before.theme } : {}),
+    ...(patch.background ? { background: before.background } : {}),
+    ...(patch.conversations ? { conversations: Object.fromEntries(Object.keys(patch.conversations).map((id) => [id, before.conversations[id] ?? null])) } : {}),
+  };
+}
+
 export function backgroundFor(appearance: ChatAppearance, channelId: number): { background: Background; scope: Scope } {
   const own = appearance.conversations[String(channelId)];
   return own ? { background: own, scope: channelId } : { background: appearance.background, scope: 'all' };
@@ -67,7 +75,6 @@ export function backgroundFor(appearance: ChatAppearance, channelId: number): { 
 
 const held = new Map<string, ChatAppearance>();
 const queues = new Map<string, Promise<unknown>>();
-const generations = new Map<string, number>();
 const listeners = new Set<() => void>();
 
 function storageKey(accountId: string): string {
@@ -87,6 +94,7 @@ function read(accountId: string): ChatAppearance {
 }
 
 function put(accountId: string, value: ChatAppearance) {
+  if (!accountKnown(accountId)) return;
   held.set(accountId, value);
   Storage.setItemSync(storageKey(accountId), JSON.stringify(value));
   listeners.forEach((listener) => listener());
@@ -124,11 +132,9 @@ function serial<T>(accountId: string, task: () => Promise<T>): Promise<T> {
 }
 
 export function loadAppearance(account: Account): Promise<void> {
-  const generation = generations.get(account.id) ?? 0;
   return serial(account.id, async () => {
     try {
-      const answer = await bearer<unknown>(account, '/kaitech_mobile/appearance');
-      if ((generations.get(account.id) ?? 0) === generation) takeAppearance(account.id, answer);
+      takeAppearance(account.id, await bearer<unknown>(account, '/kaitech_mobile/appearance'));
     } catch {
       return;
     }
@@ -136,17 +142,14 @@ export function loadAppearance(account: Account): Promise<void> {
 }
 
 export function changeAppearance(account: Account, patch: AppearancePatch): Promise<string | null> {
-  const before = read(account.id);
-  const generation = generations.get(account.id) ?? 0;
-  const current = () => (generations.get(account.id) ?? 0) === generation;
-  put(account.id, patched(before, patch));
+  const undo = undoOf(read(account.id), patch);
+  put(account.id, patched(read(account.id), patch));
   return serial(account.id, async () => {
     try {
-      const answer = await bearer<unknown>(account, '/kaitech_mobile/appearance', { method: 'POST', body: patch });
-      if (current()) takeAppearance(account.id, answer);
+      takeAppearance(account.id, await bearer<unknown>(account, '/kaitech_mobile/appearance', { method: 'POST', body: patch }));
       return null;
     } catch (error) {
-      if (current()) put(account.id, before);
+      put(account.id, patched(read(account.id), undo));
       return errorCode(error);
     }
   });
@@ -159,7 +162,6 @@ onRealtimeNotifications((notification) => {
 });
 
 onAccountForgotten((accountId) => {
-  generations.set(accountId, (generations.get(accountId) ?? 0) + 1);
   held.delete(accountId);
   queues.delete(accountId);
   Storage.removeItemSync(storageKey(accountId));
