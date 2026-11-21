@@ -40,7 +40,7 @@ export function BlockTitle({ title, count }: { title: string; count?: string }) 
   return (
     <View style={styles.titleLine}>
       {title ? (
-        <Text variant="headline" style={styles.grow} selectable>
+        <Text variant="headline" style={styles.title} selectable>
           {title}
         </Text>
       ) : (
@@ -135,7 +135,8 @@ export class DrawGuard extends Component<{ fallback: ReactNode; children: ReactN
 }
 
 export const styles = StyleSheet.create({
-  titleLine: { flexDirection: 'row', alignItems: 'baseline', gap: space.sm },
+  titleLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: space.sm, rowGap: 2 },
+  title: { flexGrow: 1, flexShrink: 1, flexBasis: '60%' },
   grow: { flex: 1 },
   tools: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   tool: { minHeight: 36, flexDirection: 'row', alignItems: 'center', gap: space.xs, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md },
