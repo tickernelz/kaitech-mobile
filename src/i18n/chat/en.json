@@ -185,7 +185,12 @@
     "bubble": "Bubble",
     "failed": "Couldn't change this. Try again later.",
     "bubbleClosed": "Open Kaitech to read this conversation.",
-    "failedNetwork": "Could not change this. Check your connection and try again."
+    "failedNetwork": "Could not change this. Check your connection and try again.",
+    "level": {
+      "all": "All messages",
+      "mentions": "Mentions only",
+      "no_notif": "Nothing"
+    }
   },
   "act": {
     "copied": "Text copied",
@@ -285,5 +290,78 @@
     "busy": "Busy then: {{names}}",
     "schedule": "Schedule",
     "done": "Meeting scheduled for {{when}}"
+  },
+  "threadActions": {
+    "more": "More",
+    "notifications": "Notifications",
+    "search": "Search in conversation",
+    "searchHint": "Search messages",
+    "noResults": "No message matches.",
+    "pinned": "Pinned messages",
+    "noPinned": "Nothing is pinned yet.",
+    "files": "Files",
+    "noFiles": "No files here yet.",
+    "threads": "Threads",
+    "noThreads": "No threads yet. Long-press a message to start one.",
+    "members_one": "{{count}} member",
+    "members_other": "{{count}} members",
+    "scheduled": "Scheduled messages",
+    "meeting": "Schedule a meeting",
+    "pinConversation": "Pin conversation",
+    "unpinConversation": "Unpin conversation",
+    "pinnedDone": "Conversation pinned",
+    "unpinned": "Conversation unpinned",
+    "translateOn": "Translate into {{language}} automatically",
+    "translateOff": "Stop translating automatically",
+    "translateStarted": "Messages will be translated",
+    "translateStopped": "Automatic translation is off",
+    "announcementOn": "Make it an announcement channel",
+    "announcementOff": "Let every member write",
+    "announcementChanged": "Channel kind changed",
+    "rename": "Rename",
+    "info": "Name and description",
+    "markRead": "Mark all as read",
+    "leave": "Leave",
+    "leaveTitle": "Leave {{name}}?",
+    "leaveBody": "You will no longer see this conversation unless someone invites you again.",
+    "hide": "Hide conversation",
+    "hideTitle": "Hide this conversation?",
+    "hideBody": "It comes back when a new message arrives.",
+    "delete": "Delete thread",
+    "deleteTitle": "Delete this thread?",
+    "deleteBody": "Its messages are deleted for everyone."
+  },
+  "members": {
+    "title": "Members",
+    "invite": "Invite people",
+    "inviteSearch": "Search people",
+    "inviteSend_one": "Invite {{count}} person",
+    "inviteSend_other": "Invite {{count}} people",
+    "invited_one": "{{count}} person invited",
+    "invited_other": "{{count}} people invited",
+    "roleTitle": "Change role",
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    }
+  },
+  "rename": {
+    "title": "Rename",
+    "titleInfo": "Name and description",
+    "name": "Name",
+    "chatHint": "Only you see this name.",
+    "description": "Description",
+    "save": "Save",
+    "done": "Saved"
+  },
+  "scheduled": {
+    "title": "Scheduled messages",
+    "none": "Nothing scheduled here.",
+    "sendNow": "Send now",
+    "edit": "Edit",
+    "cancel": "Delete",
+    "sent": "Sent",
+    "cancelled": "Scheduled message deleted"
   }
 }

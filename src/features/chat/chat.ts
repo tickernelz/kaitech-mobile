@@ -56,6 +56,7 @@ export type Delivered = { key: string; messageId: number; pending: Pending };
 export type ChatState = {
   accountId: string | null;
   partnerId: number;
+  userId: number;
   origin: string;
   conversations: Conversation[];
   nextCursor: string | null;
@@ -79,6 +80,7 @@ const typingMs = 6000;
 let state: ChatState = {
   accountId: null,
   partnerId: 0,
+  userId: 0,
   origin: '',
   conversations: [],
   nextCursor: null,
@@ -174,6 +176,24 @@ function delivered(sent: Sent) {
   }
   set({ delivered: [...state.delivered.filter((item) => item.key !== pending.key), { key: pending.key, messageId: sent.messageId, pending }] });
   void fetchNewer(pending.channelId);
+}
+
+export function patchInfo(channelId: number, patch: Partial<ChannelInfo>) {
+  const thread = state.threads[channelId];
+  if (!thread?.info) return;
+  patchThread(channelId, { info: { ...thread.info, ...patch } });
+}
+
+export function setFeatures(patch: Partial<ChatFeatures>) {
+  set({ features: { ...state.features, ...patch } });
+}
+
+export function forgetConversation(channelId: number) {
+  set({ conversations: state.conversations.filter((item) => item.id !== channelId) });
+}
+
+export async function reloadThread(channelId: number) {
+  await loadLatest(channelId);
 }
 
 export function patchMessages(patches: Map<number, MessagePatch>) {
@@ -357,6 +377,7 @@ export function startChat(account: Account) {
     ...state,
     accountId: account.id,
     partnerId: account.partnerId,
+    userId: account.userId,
     origin: account.origin,
     conversations: cachedConversations(account.id),
     nextCursor: null,
@@ -518,7 +539,7 @@ async function loadLatest(channelId: number) {
     notePeople(info);
     const fetched = messagesFromStore(page.data, state.partnerId).filter((message) => message.channelId === channelId);
     const members = info ? (membersFromStore(info).get(channelId) ?? []) : threadOf(state, channelId).members;
-    const channelInfo = info ? channelInfoFromStore(info, channelId) : threadOf(state, channelId).info;
+    const channelInfo = info ? channelInfoFromStore(info, channelId, state.partnerId) : threadOf(state, channelId).info;
     patchThread(channelId, (thread) => {
       const oldest = fetched[0]?.id ?? Infinity;
       const newestCached = thread.messages[thread.messages.length - 1]?.id ?? 0;

@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat, type Delivered } from '../chat';
+import { chatClient, refreshConversations, conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat, type Delivered } from '../chat';
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
 import { bodyPreview, bodyShape } from '../markdown';
@@ -30,6 +30,8 @@ import { MeetingSheet } from './actions/MeetingSheet';
 import { ReactionsSheet } from './actions/ReactionsSheet';
 import { ReadersSheet } from './actions/ReadersSheet';
 import { TaskSheet } from './actions/TaskSheet';
+import { ThreadActionsSheet } from './thread/ThreadActionsSheet';
+import { useAutoTranslate } from './useAutoTranslate';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
 import { NotifySheet } from './NotifySheet';
 import { router } from 'expo-router';
@@ -83,6 +85,7 @@ export function ThreadView({
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const [notifying, setNotifying] = useState(false);
+  const [threadMenu, setThreadMenu] = useState(false);
   const { dayLabel, sameDay } = useChatFormat();
   const accountId = useChat((state) => state.accountId);
   const partnerId = useChat((state) => state.partnerId);
@@ -103,6 +106,8 @@ export function ThreadView({
   const [sheet, setSheet] = useState<{ kind: SheetKind; message: Message } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const features = useChat((state) => state.features);
+  const myUserId = useChat((state) => state.userId);
+  const seeTranslations = useAutoTranslate(features.translateAuto && !!features.translateLanguage);
   const [highlight, setHighlight] = useState<number | null>(focusMessage ?? null);
 
   useEffect(() => openThread(channelId), [channelId]);
@@ -110,6 +115,10 @@ export function ThreadView({
   const pending = useMemo(() => allPending.filter((item) => item.channelId === channelId), [allPending, channelId]);
   const delivered = useMemo(() => allDelivered.filter((item) => item.pending.channelId === channelId), [allDelivered, channelId]);
   const rows = useMemo(() => buildRows(thread.messages, pending, delivered, sameDay), [thread.messages, pending, delivered, sameDay]);
+  const subThreads = useMemo(
+    () => Object.entries(thread.subChannels).map(([messageId, id]) => ({ id, name: bodyPreview(thread.messages.find((message) => message.id === Number(messageId))?.body ?? '') || `#${id}` })),
+    [thread.messages, thread.subChannels],
+  );
   const byId = useMemo(() => new Map(thread.messages.map((message) => [message.id, message])), [thread.messages]);
   const name = conversation?.name || thread.info?.name || '';
   const type = conversation?.type ?? (thread.info?.type as 'chat' | 'group' | 'channel' | undefined) ?? 'channel';
@@ -350,14 +359,8 @@ export function ThreadView({
         </Text>
       </View>
       {!bubble && (type === 'chat' || type === 'group' || type === 'channel') ? <CallButtons channelId={channelId} channelName={name} /> : null}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('notify.title')}
-        onPress={() => setNotifying(true)}
-        hitSlop={8}
-        style={styles.headerButton}
-        testID="thread-notify">
-        <Icon name={conversation?.mutedUntil ? 'bellOff' : 'bell'} color={colors.ink} />
+      <Pressable accessibilityRole="button" accessibilityLabel={t('threadActions.more')} onPress={() => setThreadMenu(true)} hitSlop={8} style={styles.headerButton} testID="thread-more">
+        <Icon name="more" color={colors.ink} />
       </Pressable>
     </View>
   );
@@ -397,6 +400,7 @@ export function ThreadView({
               const last = viewableItems[viewableItems.length - 1];
               const atBottom = !last || last.index === null || last.index >= rows.length - 2;
               writeAnchor(accountId, channelId, atBottom || !first || first.item?.kind !== 'message' ? null : first.item.message.id);
+              seeTranslations(viewableItems.flatMap((entry) => (entry.item?.kind === 'message' ? [entry.item.message] : [])));
             }}
             ListHeaderComponent={thread.loadingOlder ? <ActivityIndicator style={styles.older} color={colors.primary} /> : null}
             ListEmptyComponent={empty}
@@ -445,12 +449,38 @@ export function ThreadView({
       {sheet?.kind === 'task' ? <TaskSheet message={sheet.message} onClose={() => setSheet(null)} onDone={(text) => { setSheet(null); setNotice(text); }} /> : null}
       {sheet?.kind === 'activity' ? <ActivitySheet message={sheet.message} onClose={() => setSheet(null)} onDone={(text) => { setSheet(null); setNotice(text); }} /> : null}
       {sheet?.kind === 'meeting' ? <MeetingSheet channelId={channelId} messageId={sheet.message.id} onClose={() => setSheet(null)} onDone={(text) => { setSheet(null); setNotice(text); }} /> : null}
+      {threadMenu ? (
+        <ThreadActionsSheet
+          channelId={channelId}
+          type={type}
+          name={name}
+          info={thread.info}
+          features={features}
+          myUserId={myUserId}
+          muted={!!conversation?.mutedUntil}
+          threads={subThreads}
+          onClose={() => setThreadMenu(false)}
+          onNotify={() => setNotifying(true)}
+          onBackground={bubble ? undefined : () => router.push({ pathname: '/settings/background', params: { channel: String(channelId) } })}
+          onMarkRead={() => {
+            const last = thread.messages[thread.messages.length - 1];
+            if (last) void chatClient()?.markAsRead(channelId, last.id).then(() => refreshConversations()).catch(() => undefined);
+          }}
+          onJump={(message) => jumpTo(message.id)}
+          onOpenChannel={onOpenChannel}
+          onTakeBack={(taken) => composer.current?.restore(taken.body, taken.partnerIds)}
+          onNotice={setNotice}
+          onLeft={() => {
+            if (onBack && !twoPane) onBack();
+          }}
+        />
+      ) : null}
       {notifying ? (
         <NotifySheet
           channelId={channelId}
+          notifications={type === 'chat' ? undefined : (thread.info?.notifications ?? null)}
           mutedUntil={conversation?.mutedUntil ?? null}
           onClose={() => setNotifying(false)}
-          onBackground={bubble ? undefined : () => router.push({ pathname: '/settings/background', params: { channel: String(channelId) } })}
         />
       ) : null}
     </SafeAreaView>

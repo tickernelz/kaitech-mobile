@@ -28,7 +28,7 @@ import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 
 type Staged = Outgoing['files'][number];
 
-export type ComposerHandle = { reply(message: Message): void; edit(message: Message): void; focus(): void };
+export type ComposerHandle = { reply(message: Message): void; edit(message: Message): void; restore(body: string, partnerIds: number[]): void; focus(): void };
 
 const now = () => Date.now();
 const clock = () => performance.now();
@@ -99,6 +99,14 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
       setText(source);
       setCursor(source.length);
       setMentions(mentionsInBody(message.body).map((mention) => ({ ...mention, token: null })));
+      input.current?.focus();
+    },
+    restore: (body, partnerIds) => {
+      const source = editableSource(body);
+      const found = mentionsInBody(body).filter((mention) => partnerIds.includes(mention.id));
+      setText(source);
+      setCursor(source.length);
+      setMentions(found.map((mention) => ({ ...mention, token: null })));
       input.current?.focus();
     },
     focus: () => input.current?.focus(),

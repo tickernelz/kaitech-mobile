@@ -185,7 +185,12 @@
     "bubble": "Gelembung",
     "failed": "Belum bisa diubah. Coba lagi nanti.",
     "bubbleClosed": "Buka Kaitech untuk membaca percakapan ini.",
-    "failedNetwork": "Belum bisa diubah. Periksa koneksi lalu coba lagi."
+    "failedNetwork": "Belum bisa diubah. Periksa koneksi lalu coba lagi.",
+    "level": {
+      "all": "Semua pesan",
+      "mentions": "Hanya saat disebut",
+      "no_notif": "Tidak ada"
+    }
   },
   "act": {
     "copied": "Teks disalin",
@@ -285,5 +290,78 @@
     "busy": "Sedang sibuk: {{names}}",
     "schedule": "Jadwalkan",
     "done": "Rapat dijadwalkan {{when}}"
+  },
+  "threadActions": {
+    "more": "Lainnya",
+    "notifications": "Notifikasi",
+    "search": "Cari di percakapan",
+    "searchHint": "Cari pesan",
+    "noResults": "Tidak ada pesan yang cocok.",
+    "pinned": "Pesan tersemat",
+    "noPinned": "Belum ada yang disematkan.",
+    "files": "Berkas",
+    "noFiles": "Belum ada berkas di sini.",
+    "threads": "Thread",
+    "noThreads": "Belum ada thread. Tahan sebuah pesan untuk memulai.",
+    "members_one": "{{count}} anggota",
+    "members_other": "{{count}} anggota",
+    "scheduled": "Pesan terjadwal",
+    "meeting": "Jadwalkan rapat",
+    "pinConversation": "Sematkan percakapan",
+    "unpinConversation": "Lepas sematan percakapan",
+    "pinnedDone": "Percakapan disematkan",
+    "unpinned": "Sematan percakapan dilepas",
+    "translateOn": "Terjemahkan otomatis ke {{language}}",
+    "translateOff": "Hentikan terjemahan otomatis",
+    "translateStarted": "Pesan akan diterjemahkan",
+    "translateStopped": "Terjemahan otomatis mati",
+    "announcementOn": "Jadikan channel pengumuman",
+    "announcementOff": "Izinkan semua anggota menulis",
+    "announcementChanged": "Jenis channel diubah",
+    "rename": "Ganti nama",
+    "info": "Nama dan deskripsi",
+    "markRead": "Tandai semua sudah dibaca",
+    "leave": "Keluar",
+    "leaveTitle": "Keluar dari {{name}}?",
+    "leaveBody": "Anda tidak akan melihat percakapan ini lagi kecuali diundang kembali.",
+    "hide": "Sembunyikan percakapan",
+    "hideTitle": "Sembunyikan percakapan ini?",
+    "hideBody": "Percakapan muncul lagi saat ada pesan baru.",
+    "delete": "Hapus thread",
+    "deleteTitle": "Hapus thread ini?",
+    "deleteBody": "Pesan di dalamnya terhapus untuk semua orang."
+  },
+  "members": {
+    "title": "Anggota",
+    "invite": "Undang orang",
+    "inviteSearch": "Cari orang",
+    "inviteSend_one": "Undang {{count}} orang",
+    "inviteSend_other": "Undang {{count}} orang",
+    "invited_one": "{{count}} orang diundang",
+    "invited_other": "{{count}} orang diundang",
+    "roleTitle": "Ubah peran",
+    "role": {
+      "owner": "Pemilik",
+      "admin": "Admin",
+      "member": "Anggota"
+    }
+  },
+  "rename": {
+    "title": "Ganti nama",
+    "titleInfo": "Nama dan deskripsi",
+    "name": "Nama",
+    "chatHint": "Hanya Anda yang melihat nama ini.",
+    "description": "Deskripsi",
+    "save": "Simpan",
+    "done": "Tersimpan"
+  },
+  "scheduled": {
+    "title": "Pesan terjadwal",
+    "none": "Belum ada yang dijadwalkan di sini.",
+    "sendNow": "Kirim sekarang",
+    "edit": "Ubah",
+    "cancel": "Hapus",
+    "sent": "Terkirim",
+    "cancelled": "Pesan terjadwal dihapus"
   }
 }
