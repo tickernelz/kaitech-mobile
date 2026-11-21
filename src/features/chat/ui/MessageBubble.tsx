@@ -17,6 +17,10 @@ import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
 import { recordingIdOf } from '../../call/recording';
 import { RecordingCard } from '../../call/ui/RecordingCard';
+import { Avatar } from './Avatar';
+
+export type AuthorFace = 'show' | 'space' | 'none';
+const faceSize = 32;
 
 export const bubbleMaxWidth = Math.round(readableWidth * 0.8);
 
@@ -173,6 +177,7 @@ export const MessageBubble = memo(function MessageBubble({
   message,
   mine,
   showAuthor,
+  face = 'none',
   readState,
   quote,
   origin,
@@ -185,6 +190,7 @@ export const MessageBubble = memo(function MessageBubble({
   message: Message;
   mine: boolean;
   showAuthor: boolean;
+  face?: AuthorFace;
   readState: ReadState | null;
   quote: Quote;
   origin: string;
@@ -203,18 +209,20 @@ export const MessageBubble = memo(function MessageBubble({
   const text = bodyPreview(message.body);
   if (isCallNotice(message)) {
     return (
-      <View style={[styles.notice, styles.callNotice]} accessible accessibilityLabel={`${t('thread.call')}, ${time}`} testID={`call-notice-${message.id}`}>
-        <Icon name="phone" size={16} color={colors.inkSoft} />
-        <Text variant="footnote" tone="inkSoft">
-          {t('thread.call')} · {time}
-        </Text>
+      <View style={styles.notice} accessible accessibilityLabel={`${t('thread.call')}, ${time}`} testID={`call-notice-${message.id}`}>
+        <View style={[styles.noticePill, styles.callNotice, { backgroundColor: colors.surface2 }]}>
+          <Icon name="phone" size={16} color={colors.inkSoft} />
+          <Text variant="footnote" tone="inkSoft">
+            {t('thread.call')} · {time}
+          </Text>
+        </View>
       </View>
     );
   }
   if (notification) {
     return (
       <View style={styles.notice}>
-        <Text variant="footnote" tone="inkSoft" style={styles.center}>
+        <Text variant="footnote" tone="inkSoft" style={[styles.center, styles.noticePill, { backgroundColor: colors.surface2 }]}>
           {message.author ? `${message.author} ` : ''}
           {text}
         </Text>
@@ -224,8 +232,8 @@ export const MessageBubble = memo(function MessageBubble({
   const label = [mine ? t('thread.you') : message.author, text, message.attachments.length ? t('list.files', { count: message.attachments.length }) : '', time, readState === 'read' ? t('thread.read') : readState === 'sent' ? t('thread.sent') : '']
     .filter(Boolean)
     .join(', ');
-  return (
-    <View style={[styles.wrap, mine ? styles.wrapMine : styles.wrapTheirs]} testID={`message-${message.id}`}>
+  const body = (
+    <>
       <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label}>
         {showAuthor && !mine ? (
           <Text variant="footnote" numberOfLines={1} style={[styles.bold, { color: authorColor(message.authorId, scheme, colors) }]}>
@@ -267,6 +275,19 @@ export const MessageBubble = memo(function MessageBubble({
           ) : null}
         </View>
       ) : null}
+    </>
+  );
+  if (face === 'none' || mine) {
+    return (
+      <View style={[styles.wrap, mine ? styles.wrapMine : styles.wrapTheirs]} testID={`message-${message.id}`}>
+        {body}
+      </View>
+    );
+  }
+  return (
+    <View style={[styles.wrap, styles.withFace]} testID={`message-${message.id}`}>
+      {face === 'show' ? <Avatar name={message.author} seed={message.authorId ?? 0} partnerId={message.authorId} size={faceSize} /> : <View style={styles.faceSpace} />}
+      <View style={styles.faceColumn}>{body}</View>
     </View>
   );
 });
@@ -367,6 +388,10 @@ const styles = StyleSheet.create({
   under: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
   reaction: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 32, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
-  notice: { paddingHorizontal: space.xxl, paddingVertical: space.sm },
+  notice: { paddingHorizontal: space.xxl, paddingVertical: space.sm, alignItems: 'center' },
+  noticePill: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.md, overflow: 'hidden' },
   callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs },
+  withFace: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm, paddingLeft: space.sm },
+  faceSpace: { width: faceSize },
+  faceColumn: { flexShrink: 1, alignItems: 'flex-start' },
 });

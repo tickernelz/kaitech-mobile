@@ -14,6 +14,7 @@ import { bodyPreview } from './markdown';
 import {
   channelInfoFromStore,
   conversationPage,
+  conversationPhotos,
   fullMessages,
   lastMessageOf,
   membersFromStore,
@@ -29,6 +30,7 @@ import { Realtime, type Notification, type RealtimeState } from './realtime';
 import type { Conversation, Member, Mention, Message, Pending, PendingFile } from './types';
 import { setUploadProgress } from './progress';
 import { onPresenceChange, userInApp } from '../call/presence';
+import { notePhotoList, notePhotos } from '../people/photos';
 
 export type Typist = { partnerId: number; name: string; until: number };
 
@@ -151,8 +153,13 @@ async function flush() {
   scheduleRetry();
 }
 
+function notePeople(store: unknown) {
+  notePhotos(state.accountId, store);
+}
+
 function delivered(sent: Sent) {
   const { pending } = sent;
+  notePeople(sent.data);
   pending.files.forEach((file) => dropFile(file.uri));
   const message = messagesFromStore(sent.data, state.partnerId).find((item) => item.id === sent.messageId);
   if (message) {
@@ -218,11 +225,13 @@ export function invitedChannels(): number[] {
 
 function onNotifications(notifications: Notification[]) {
   for (const notification of notifications) {
+    notePeople(notification.payload);
     for (const listener of realtimeListeners) listener(notification);
     noteInvitations(notification.payload);
     if (notification.type === 'discuss.channel/new_message') {
       const payload = notification.payload as { data?: unknown; id?: unknown };
       const channelId = typeof payload.id === 'number' ? payload.id : 0;
+      notePeople(payload.data);
       const messages = messagesFromStore(payload.data, state.partnerId).filter((message) => message.channelId === channelId);
       if (!channelId || !messages.length) continue;
       upsertMessages(channelId, messages);
@@ -413,8 +422,10 @@ export async function refreshConversations() {
   if (!current || !account || state.listLoading) return;
   set({ listLoading: true, listError: null });
   try {
-    const page = conversationPage(await current.conversations(null));
+    const body = await current.conversations(null);
     if (client !== current) return;
+    const page = conversationPage(body);
+    notePhotoList(account, conversationPhotos(body));
     set({ conversations: page.conversations, nextCursor: page.nextCursor, listLoaded: true, listLoading: false });
     await storeConversations(account, page.conversations, true);
   } catch (error) {
@@ -428,8 +439,10 @@ export async function loadMoreConversations() {
   if (!current || !account || state.listLoading || !state.nextCursor) return;
   set({ listLoading: true });
   try {
-    const page = conversationPage(await current.conversations(state.nextCursor));
+    const body = await current.conversations(state.nextCursor);
     if (client !== current) return;
+    const page = conversationPage(body);
+    notePhotoList(account, conversationPhotos(body));
     const known = new Set(state.conversations.map((conversation) => conversation.id));
     set({ conversations: [...state.conversations, ...page.conversations.filter((conversation) => !known.has(conversation.id))], nextCursor: page.nextCursor, listLoading: false });
     await storeConversations(account, page.conversations, false);
@@ -463,6 +476,8 @@ async function loadLatest(channelId: number) {
   try {
     const [page, info] = await Promise.all([current.messages(channelId, { limit: pageSize }), current.channel(channelId).catch(() => null)]);
     if (client !== current) return;
+    notePeople(page.data);
+    notePeople(info);
     const fetched = messagesFromStore(page.data, state.partnerId).filter((message) => message.channelId === channelId);
     const members = info ? (membersFromStore(info).get(channelId) ?? []) : threadOf(state, channelId).members;
     const channelInfo = info ? channelInfoFromStore(info, channelId) : threadOf(state, channelId).info;
@@ -499,6 +514,7 @@ export async function fetchNewer(channelId: number) {
   try {
     const page = await current.messages(channelId, { after: newest, limit: newerPage });
     if (client !== current) return;
+    notePeople(page.data);
     const fetched = messagesFromStore(page.data, state.partnerId).filter((message) => message.channelId === channelId);
     upsertMessages(channelId, fetched);
     if (fetched.length < newerPage && state.threads[channelId]?.hasNewer) patchThread(channelId, { hasNewer: false });
@@ -515,6 +531,7 @@ export async function loadAround(channelId: number, messageId: number): Promise<
   try {
     const page = await current.messages(channelId, { around: messageId, limit: pageSize });
     if (client !== current) return false;
+    notePeople(page.data);
     const fetched = messagesFromStore(page.data, state.partnerId).filter((message) => message.channelId === channelId);
     if (!fetched.some((message) => message.id === messageId)) return false;
     patchThread(channelId, (thread) => {
@@ -566,6 +583,7 @@ export async function loadOlder(channelId: number) {
   try {
     const page = await current.messages(channelId, { before: thread.messages[0].id, limit: pageSize });
     if (client !== current) return;
+    notePeople(page.data);
     const fetched = messagesFromStore(page.data, state.partnerId).filter((message) => message.channelId === channelId);
     patchThread(channelId, (latest) => ({ messages: mergeMessages(latest.messages, fetched), hasOlder: fetched.length >= pageSize, loadingOlder: false }));
     if (state.accountId) void storeMessages(state.accountId, channelId, fetched);

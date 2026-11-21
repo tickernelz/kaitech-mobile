@@ -201,7 +201,7 @@ export function CallScreen() {
     const face = remote[0] ?? null;
     stage = (
       <View style={[styles.fill, styles.center]}>
-        <Avatar name={face?.name ?? title} seed={face?.partnerId ?? call.callerPartnerId ?? call.channelId} size={112} />
+        <Avatar name={face?.name ?? title} seed={face?.partnerId ?? call.callerPartnerId ?? call.channelId} partnerId={face ? face.partnerId : call.callerPartnerId} size={112} />
       </View>
     );
   }

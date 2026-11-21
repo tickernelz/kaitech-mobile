@@ -99,7 +99,14 @@
     "signOutBody": "This device is removed from the account and stops getting notifications.",
     "signOutOffline": "Signed out. This device may stay listed on the account until you remove it on the web.",
     "cancel": "Cancel",
-    "version": "Version {{version}} ({{build}})"
+    "version": "Version {{version}} ({{build}})",
+    "back": "Back",
+    "profile": "Profile",
+    "appearance": "Appearance",
+    "notifications": "Notifications",
+    "accountsAndServer": "Accounts and server",
+    "about": "About",
+    "systemNotifications": "Notification settings"
   },
   "expired": {
     "title": "Session ended",
@@ -461,6 +468,40 @@
       "blush": "Blush",
       "midnight": "Midnight",
       "ink": "Ink"
+    },
+    "theme": {
+      "title": "Theme",
+      "system": "Follow device",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "background": "Chat background",
+    "conversationBackground": "Background of this chat",
+    "followDefault": "Same as all chats",
+    "devicePhoto": "Your photo",
+    "color": "Color {{value}}",
+    "dim": "Dim",
+    "sampleTheirs": "See you at nine?",
+    "sampleMine": "Sure, on my way.",
+    "failed": "Could not save. Try again."
+  },
+  "profile": {
+    "name": "Name",
+    "save": "Save",
+    "camera": "Take photo",
+    "library": "Choose photo",
+    "remove": "Remove photo",
+    "removeTitle": "Remove your photo?",
+    "usePhoto": "Use this photo",
+    "cancel": "Cancel",
+    "photo": "Profile photo of {{name}}",
+    "errors": {
+      "name_invalid": "Use 1 to 64 characters.",
+      "photo_type_unsupported": "Use a JPEG or PNG photo.",
+      "photo_too_large": "This photo is too large.",
+      "photo_invalid": "This photo cannot be read.",
+      "network": "No connection. Try again.",
+      "generic": "Could not save. Try again."
     }
   }
 }

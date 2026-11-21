@@ -17,6 +17,7 @@ const mockQueued: Pending = {
   error: null,
 };
 
+jest.mock('../src/features/people/photos', () => ({ notePhotos: jest.fn(), notePhotoList: jest.fn() }));
 jest.mock('../src/auth/session', () => ({
   onAccountForgotten: (listener: (id: string) => void) => {
     mockForgotten.push(listener);

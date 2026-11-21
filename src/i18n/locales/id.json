@@ -99,7 +99,14 @@
     "signOutBody": "Perangkat ini dihapus dari akun dan tidak lagi menerima notifikasi.",
     "signOutOffline": "Sudah keluar. Perangkat ini mungkin masih tercantum di akun sampai dihapus lewat web.",
     "cancel": "Batal",
-    "version": "Versi {{version}} ({{build}})"
+    "version": "Versi {{version}} ({{build}})",
+    "back": "Kembali",
+    "profile": "Profil",
+    "appearance": "Tampilan",
+    "notifications": "Notifikasi",
+    "accountsAndServer": "Akun dan server",
+    "about": "Tentang",
+    "systemNotifications": "Pengaturan notifikasi"
   },
   "expired": {
     "title": "Sesi berakhir",
@@ -461,6 +468,40 @@
       "blush": "Merah jambu",
       "midnight": "Tengah malam",
       "ink": "Tinta"
+    },
+    "theme": {
+      "title": "Tema",
+      "system": "Ikut perangkat",
+      "light": "Terang",
+      "dark": "Gelap"
+    },
+    "background": "Latar chat",
+    "conversationBackground": "Latar percakapan ini",
+    "followDefault": "Sama dengan semua chat",
+    "devicePhoto": "Foto sendiri",
+    "color": "Warna {{value}}",
+    "dim": "Redup",
+    "sampleTheirs": "Ketemu jam sembilan?",
+    "sampleMine": "Siap, otw.",
+    "failed": "Gagal menyimpan. Coba lagi."
+  },
+  "profile": {
+    "name": "Nama",
+    "save": "Simpan",
+    "camera": "Ambil foto",
+    "library": "Pilih foto",
+    "remove": "Hapus foto",
+    "removeTitle": "Hapus foto profil?",
+    "usePhoto": "Pakai foto ini",
+    "cancel": "Batal",
+    "photo": "Foto profil {{name}}",
+    "errors": {
+      "name_invalid": "Pakai 1 sampai 64 karakter.",
+      "photo_type_unsupported": "Pakai foto JPEG atau PNG.",
+      "photo_too_large": "Foto ini terlalu besar.",
+      "photo_invalid": "Foto ini tidak bisa dibaca.",
+      "network": "Tidak ada koneksi. Coba lagi.",
+      "generic": "Gagal menyimpan. Coba lagi."
     }
   }
 }

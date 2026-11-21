@@ -87,6 +87,8 @@ onFlowStart:
     env:
       SCREEN: 06-settings
 - tapOn:
+    id: settings-language
+- tapOn:
     id: "language-${APP_LANGUAGE === 'id' ? 'en' : 'id'}"
 - runFlow:
     file: ../shared/screenshot.yaml
@@ -94,6 +96,8 @@ onFlowStart:
       SCREEN: 07-settings-switched
 - tapOn:
     id: language-system
+- tapOn:
+    id: settings-back
 - scrollUntilVisible:
     element:
       id: settings-sign-out

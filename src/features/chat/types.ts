@@ -1,3 +1,5 @@
+import type { Photo } from '../people/photo';
+
 export type ConversationType = 'chat' | 'group' | 'channel';
 
 export type LastMessage = {
@@ -17,7 +19,7 @@ export type Conversation = {
   type: ConversationType;
   name: string;
   partnerId: number | null;
-  avatar: string;
+  photo: Photo | null;
   unread: number;
   mutedUntil: string | null;
   activityAt: number;
