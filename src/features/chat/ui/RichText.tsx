@@ -9,7 +9,9 @@ const mono = Platform.select({ ios: 'Menlo', default: 'monospace' });
 const CHAR_WIDTH = 9;
 const MIN_COLUMN = 72;
 const MAX_COLUMN = 240;
-const BULLETS = ['\u2022', '\u25e6'];
+const BULLET = '\u2022';
+
+type Paint = { color: string; tint: string; selectable: boolean; colors: Colors };
 
 function open(href: string) {
   void Linking.openURL(href);
@@ -27,14 +29,14 @@ function spanStyle(span: Span, colors: Colors, tint: string): TextStyle[] {
   return style;
 }
 
-function Spans({ spans, colors, tint }: { spans: Span[]; colors: Colors; tint: string }) {
+function Spans({ spans, paint }: { spans: Span[]; paint: Paint }) {
   return (
     <>
       {spans.map((span, index) =>
         span.bold || span.italic || span.strike || span.code || span.href || span.mention ? (
           <NativeText
             key={index}
-            style={spanStyle(span, colors, tint)}
+            style={spanStyle(span, paint.colors, paint.tint)}
             onPress={span.href ? () => open(span.href as string) : undefined}
             accessibilityRole={span.href ? 'link' : undefined}>
             {span.text}
@@ -47,22 +49,33 @@ function Spans({ spans, colors, tint }: { spans: Span[]; colors: Colors; tint: s
   );
 }
 
+function Line({ spans, paint, style }: { spans: Span[]; paint: Paint; style?: TextStyle }) {
+  return (
+    <NativeText selectable={paint.selectable} style={[typography.body, { color: paint.color }, style]}>
+      <Spans spans={spans} paint={paint} />
+    </NativeText>
+  );
+}
+
 function plain(spans: Span[]): string {
   return spans.map((span) => span.text).join('');
 }
 
-function columnWidths(head: Span[][], rows: Span[][][]): number[] {
-  return head.map((cell, column) => {
-    const longest = Math.max(plain(cell).length, ...rows.map((row) => plain(row[column]).length));
+function columnWidths(rows: Span[][][]): number[] {
+  return rows[0].map((_cell, column) => {
+    const longest = Math.max(...rows.map((row) => plain(row[column] ?? []).length));
     return Math.min(MAX_COLUMN, Math.max(MIN_COLUMN, longest * CHAR_WIDTH + space.md * 2));
   });
 }
 
-function Table({ block, color, colors, tint }: { block: Extract<MdBlock, { kind: 'table' }>; color: string; colors: Colors; tint: string }) {
+function Table({ block, paint }: { block: Extract<MdBlock, { kind: 'table' }>; paint: Paint }) {
   const { t } = useTranslation('chat');
-  const widths = columnWidths(block.head, block.rows);
-  const row = (cells: Span[][], header: boolean, key: number) => (
-    <View key={key} style={[styles.row, header ? { backgroundColor: tint } : [styles.divider, { borderColor: colors.line }]]}>
+  const { colors, color, tint } = paint;
+  const all = block.head ? [block.head, ...block.rows] : block.rows;
+  if (!all.length) return null;
+  const widths = columnWidths(all);
+  const row = (cells: Span[][], header: boolean, key: number, divided: boolean) => (
+    <View key={key} style={[styles.row, header && { backgroundColor: tint }, divided && [styles.divider, { borderColor: colors.line }]]}>
       {cells.map((cell, column) => (
         <NativeText
           key={column}
@@ -72,7 +85,7 @@ function Table({ block, color, colors, tint }: { block: Extract<MdBlock, { kind:
             column === cells.length - 1 && styles.lastCell,
             header && styles.bold,
           ]}>
-          <Spans spans={cell} colors={colors} tint={tint} />
+          <Spans spans={cell} paint={paint} />
         </NativeText>
       ))}
     </View>
@@ -84,58 +97,56 @@ function Table({ block, color, colors, tint }: { block: Extract<MdBlock, { kind:
       contentContainerStyle={styles.scrolled}
       nestedScrollEnabled
       showsHorizontalScrollIndicator
-      accessibilityLabel={t('thread.table', { columns: block.head.length, rows: block.rows.length })}
+      accessibilityLabel={t('thread.table', { columns: widths.length, rows: block.rows.length })}
       testID="markdown-table">
       <View style={[styles.table, { borderColor: colors.line }]}>
-        {row(block.head, true, -1)}
-        {block.rows.map((cells, index) => row(cells, false, index))}
+        {block.head ? row(block.head, true, -1, false) : null}
+        {block.rows.map((cells, index) => row(cells, false, index, index > 0 || !!block.head))}
       </View>
     </ScrollView>
   );
 }
 
-function Blocks({ blocks, color, tint, selectable, colors }: { blocks: MdBlock[]; color: string; tint: string; selectable: boolean; colors: Colors }) {
+function List({ block, paint }: { block: Extract<MdBlock, { kind: 'list' }>; paint: Paint }) {
+  return (
+    <View style={styles.list}>
+      {block.items.map((item, position) => (
+        <View key={position} style={styles.item}>
+          <NativeText style={[typography.body, styles.marker, { color: paint.colors.inkSoft }]}>{block.ordered ? `${block.start + position}.` : BULLET}</NativeText>
+          <View style={styles.fill}>
+            {item.spans.length ? <Line spans={item.spans} paint={paint} /> : null}
+            {item.sub.length ? <Blocks blocks={item.sub} paint={paint} /> : null}
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function Blocks({ blocks, paint }: { blocks: MdBlock[]; paint: Paint }) {
   return (
     <>
       {blocks.map((block, index): ReactNode => {
-        if (block.kind === 'text') {
-          return (
-            <NativeText key={index} selectable={selectable} style={[typography.body, { color }, block.heading && styles.bold]}>
-              <Spans spans={block.spans} colors={colors} tint={tint} />
-            </NativeText>
-          );
-        }
-        if (block.kind === 'list') {
-          return (
-            <View key={index} style={styles.list}>
-              {block.items.map((item, position) => (
-                <View key={position} style={[styles.item, { paddingLeft: item.depth * space.lg }]}>
-                  <NativeText style={[typography.body, styles.marker, { color: colors.inkSoft }]}>{item.marker || BULLETS[item.depth ? 1 : 0]}</NativeText>
-                  <NativeText selectable={selectable} style={[typography.body, styles.fill, { color }]}>
-                    <Spans spans={item.spans} colors={colors} tint={tint} />
-                  </NativeText>
-                </View>
-              ))}
-            </View>
-          );
-        }
+        if (block.kind === 'text') return <Line key={index} spans={block.spans} paint={paint} />;
+        if (block.kind === 'list') return <List key={index} block={block} paint={paint} />;
         if (block.kind === 'quote') {
           return (
-            <View key={index} style={[styles.quote, { backgroundColor: tint }]}>
-              <Blocks blocks={block.blocks} color={color} tint={colors.surface} selectable={selectable} colors={colors} />
+            <View key={index} style={[styles.quote, { backgroundColor: paint.tint }]}>
+              <Blocks blocks={block.blocks} paint={{ ...paint, tint: paint.colors.surface }} />
             </View>
           );
         }
         if (block.kind === 'code') {
           return (
-            <View key={index} style={[styles.codeBlock, { backgroundColor: tint }]}>
-              <NativeText selectable={selectable} style={[styles.codeText, { color }]}>
+            <View key={index} style={[styles.codeBlock, { backgroundColor: paint.tint }]}>
+              <NativeText selectable={paint.selectable} style={[styles.codeText, { color: paint.color }]}>
                 {block.text}
               </NativeText>
             </View>
           );
         }
-        return <Table key={index} block={block} color={color} colors={colors} tint={tint} />;
+        if (block.kind === 'rule') return <View key={index} style={[styles.rule, { backgroundColor: paint.colors.line }]} />;
+        return <Table key={index} block={block} paint={paint} />;
       })}
     </>
   );
@@ -155,7 +166,7 @@ export const RichText = memo(function RichText({
   const { colors } = useTheme();
   return (
     <View style={styles.wrap}>
-      <Blocks blocks={blocks} color={color ?? colors.ink} tint={tint ?? colors.surface2} selectable={selectable} colors={colors} />
+      <Blocks blocks={blocks} paint={{ color: color ?? colors.ink, tint: tint ?? colors.surface2, selectable, colors }} />
     </View>
   );
 });
@@ -169,10 +180,11 @@ const styles = StyleSheet.create({
   list: { gap: 2 },
   item: { flexDirection: 'row', gap: space.sm },
   marker: { minWidth: 14, fontVariant: ['tabular-nums'] },
-  fill: { flex: 1, flexShrink: 1 },
+  fill: { flex: 1, flexShrink: 1, gap: 2 },
   quote: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs, gap: space.xs },
   codeBlock: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   codeText: { fontFamily: mono, fontSize: 14, lineHeight: 20 },
+  rule: { height: StyleSheet.hairlineWidth, marginVertical: space.xs },
   scroller: { flexGrow: 0, flexShrink: 0 },
   scrolled: { alignItems: 'flex-start' },
   table: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },

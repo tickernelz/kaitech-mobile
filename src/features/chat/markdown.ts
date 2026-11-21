@@ -1,59 +1,263 @@
 import { decodeEntities, type Span } from './html';
 
-export type Item = { marker: string; depth: number; spans: Span[] };
 export type Align = 'left' | 'center' | 'right';
+export type Item = { spans: Span[]; sub: MdBlock[] };
 export type MdBlock =
-  | { kind: 'text'; spans: Span[]; heading: boolean }
-  | { kind: 'list'; items: Item[] }
+  | { kind: 'text'; spans: Span[] }
+  | { kind: 'list'; ordered: boolean; start: number; items: Item[] }
   | { kind: 'quote'; blocks: MdBlock[] }
   | { kind: 'code'; text: string }
-  | { kind: 'table'; head: Span[][]; rows: Span[][][]; align: Align[] };
+  | { kind: 'rule' }
+  | { kind: 'table'; head: Span[][] | null; rows: Span[][][]; align: Align[] };
 
 type Style = Omit<Span, 'text'>;
-type Context = { atoms: Span[]; tables: boolean };
+type Slot = Span;
+type Context = { tables: boolean; slots: Slot[] };
 
-const ATOM_BASE = 0xe000;
-const ATOM_LIMIT = 0x1900;
-const PRIVATE = /[\ue000-\uf8ff]/g;
-const QUOTE_DEPTH = 4;
+const TEXT_ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\u00a0': '&nbsp;' };
+const ATTRIBUTE_ESCAPES: Record<string, string> = { '&': '&amp;', '"': '&quot;', '\u00a0': '&nbsp;' };
+const LIST_LINE = /^(\s*)([-*+]|[0-9]{1,9}[.)])\s+(.*)$/;
+const HEADING_LINE = /^\s{0,3}(#{1,6})\s+(.*?)(?:\s+#+)?\s*$/;
+const FENCE_LINE = /^\s*(`{3,}|~{3,})\s*([A-Za-z0-9_+-]*)\s*$/;
+const RULE_LINE = /^\s*(-{3,}|\*{3,}|_{3,})\s*$/;
+const QUOTE_LINE = /^\s*>\s?(.*)$/;
+const ROW_LINE = /^\s*\|(.+)\|\s*$/;
+const DIVIDER_LINE = /^\s*\|[\s:|-]+\|\s*$/;
+const KEEP = '\u0000';
+const KEPT = /\u0000(\d+)\u0000/g;
+const SLOT = /\uE000(\d+)\uE001/g;
+const SLOT_ONLY = /^\uE000(\d+)\uE001$/;
+const SLOT_MARKS = /[\uE000\uE001]/g;
+const WORD = '\\p{L}\\p{N}_';
+const CODE_SPAN = /(`+)(?!`)([\s\S]*?[^`])\1(?!`)/g;
+const ESCAPED = /\\([!-/:-@[-`{-~])/g;
+const LINK = /\[([^[\]\n]+)\]\(([^\s()<>]+)(?:\s+"([^"<>\n]*)")?\)/g;
+const BARE_URL = /\bhttps?:\/\/[^\s<>"\u0000\uE000\uE001]+/gi;
+const URL_TAIL = /[.,:;!?'"*_~]$/;
+const STRONG = /\*\*(?=[^\s*])([\s\S]*?[^\s*])\*\*/g;
+const STRONG_UNDERSCORE = new RegExp(`(^|[^${WORD}])__(?=[^\\s_])([\\s\\S]*?[^\\s_])__(?![${WORD}])`, 'gu');
+const STRUCK = /~~(?=[^\s~])([^~\n]*?[^\s~])~~/g;
+const EMPHASIS = new RegExp(`(^|[^*${WORD}])\\*(?=[^\\s*])([^*\\n]*?[^\\s*])\\*(?![*${WORD}])`, 'gu');
+const EMPHASIS_UNDERSCORE = new RegExp(`(^|[^_${WORD}])_(?=[^\\s_])([^_\\n]*?[^\\s_])_(?![_${WORD}])`, 'gu');
+const SAFE_HREF = /^(https?:\/\/|mailto:|tel:)/i;
+const COMPOSED_MARKS = /[*_~`>#|[\]\\]|^\s*(?:[-+]|\d{1,9}[.)])\s/m;
 
-const FENCE = /^ {0,3}(`{3,}|~{3,})/;
-const HEADING = /^ {0,3}#{1,6}[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/;
-const QUOTE = /^ {0,3}>[ \t]?(.*)$/;
-const ITEM = /^([ \t]*)([-*+]|\d{1,9}[.)])[ \t]+(\S.*)$/;
-const DELIMITER = /^[ \t]*\|?[ \t]*:?-+:?[ \t]*(\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/;
-const ESCAPABLE = '\\`*_~[]()#>|-+.!{}';
-const WORD = /[0-9A-Za-z\u00c0-\u024f]/;
-const SPACE = /\s/;
-const URL = /https?:\/\/[^\s<>"'\ue000-\uf8ff]*[^\s<>"'.,;:!?)\]*_~\ue000-\uf8ff]/y;
-const SCHEMES = /^(https?:\/\/|mailto:|tel:)\S+$/i;
-const STYLES: Record<string, Style> = { '**': { bold: true }, '*': { italic: true }, _: { italic: true }, '~~': { strike: true } };
-
-export function parseMarkdown(source: string, options: { tables?: boolean; atoms?: Span[] } = {}): MdBlock[] {
-  const context: Context = { atoms: options.atoms ?? [], tables: !!options.tables };
-  return blocksOf(source.replace(/\r\n?/g, '\n').split('\n'), context, 0);
+function escapeText(text: string): string {
+  return text.replace(/[&<>\u00a0]/g, (character) => TEXT_ESCAPES[character]);
 }
 
-function tableStart(line: string, next: string | undefined): boolean {
-  return next !== undefined && line.includes('|') && next.includes('|') && DELIMITER.test(next);
+function escapeAttribute(text: string): string {
+  return text.replace(/[&"\u00a0]/g, (character) => ATTRIBUTE_ESCAPES[character]);
 }
 
-function startsBlock(lines: string[], index: number, context: Context): boolean {
+function slotsAsText(html: string, slots: Slot[]): string {
+  return html.replace(SLOT, (_whole, index: string) => escapeText(slots[Number(index)]?.text || ''));
+}
+
+function anchor(href: string, inner: string, title?: string): string {
+  const titled = title ? ` title="${escapeAttribute(title)}"` : '';
+  return `<a href="${escapeAttribute(href)}"${titled} target="_blank" rel="noreferrer noopener">${inner}</a>`;
+}
+
+function hrefOf(target: string, slots: Slot[]): string {
+  const slot = SLOT_ONLY.exec(target);
+  if (slot) return slots[Number(slot[1])]?.href || '';
+  return SAFE_HREF.test(target) ? target : '';
+}
+
+function trimUrl(url: string): { link: string; rest: string } {
+  let link = url;
+  while (link) {
+    if (URL_TAIL.test(link)) link = link.slice(0, -1);
+    else if (link.endsWith(')') && link.split('(').length < link.split(')').length) link = link.slice(0, -1);
+    else break;
+  }
+  return { link, rest: url.slice(link.length) };
+}
+
+function emphasize(html: string): string {
+  return html
+    .replace(STRONG, '<strong>$1</strong>')
+    .replace(STRONG_UNDERSCORE, '$1<strong>$2</strong>')
+    .replace(STRUCK, '<del>$1</del>')
+    .replace(EMPHASIS, '$1<em>$2</em>')
+    .replace(EMPHASIS_UNDERSCORE, '$1<em>$2</em>');
+}
+
+function renderInline(text: string, context: Context): string {
+  const kept: string[] = [];
+  const keep = (html: string) => `${KEEP}${kept.push(html) - 1}${KEEP}`;
+  let source = text.replace(CODE_SPAN, (_whole, _ticks, body: string) => keep(`<code>${slotsAsText(escapeText(body.trim()), context.slots)}</code>`));
+  source = source.replace(ESCAPED, (_whole, character: string) => keep(escapeText(character)));
+  source = source.replace(LINK, (whole, label: string, target: string, title?: string) => {
+    const href = hrefOf(target, context.slots);
+    return href ? keep(anchor(href, emphasize(escapeText(label)), title)) : whole;
+  });
+  source = source.replace(BARE_URL, (url) => {
+    const { link, rest } = trimUrl(url);
+    return link ? keep(anchor(link, escapeText(link))) + rest : url;
+  });
+  let html = emphasize(escapeText(source));
+  while (html.includes(KEEP)) html = html.replace(KEPT, (_whole, index: string) => kept[Number(index)]);
+  return html;
+}
+
+function renderParagraphText(text: string, context: Context): string {
+  return text
+    .split('\n')
+    .map((line) => renderInline(line, context))
+    .join('<br>');
+}
+
+function indentWidth(prefix: string): number {
+  return prefix.replace(/\t/g, '    ').length;
+}
+
+function interruptsList(line: string): boolean {
+  return QUOTE_LINE.test(line) || HEADING_LINE.test(line) || FENCE_LINE.test(line) || RULE_LINE.test(line);
+}
+
+type ListLine = { indent: number; ordered: boolean; number: number; text: string };
+
+function collectListItems(lines: string[], start: number): { items: ListLine[]; next: number } {
+  const items: ListLine[] = [];
+  let index = start;
+  while (index < lines.length) {
+    const line = lines[index];
+    if (!line.trim()) {
+      if (index + 1 < lines.length && LIST_LINE.test(lines[index + 1])) {
+        index += 1;
+        continue;
+      }
+      break;
+    }
+    const match = LIST_LINE.exec(line);
+    if (!match) {
+      if (!items.length || interruptsList(line)) break;
+      items[items.length - 1].text += `\n${line.trim()}`;
+      index += 1;
+      continue;
+    }
+    const ordered = /^\d/.test(match[2]);
+    items.push({ indent: indentWidth(match[1]), ordered, number: ordered ? parseInt(match[2], 10) : 0, text: match[3] });
+    index += 1;
+  }
+  return { items, next: index };
+}
+
+function renderListLevel(items: ListLine[], start: number, context: Context): { html: string; next: number } {
+  const indent = items[start].indent;
+  const ordered = items[start].ordered;
+  const cells: string[] = [];
+  let index = start;
+  while (index < items.length && items[index].indent >= indent) {
+    if (items[index].indent > indent) {
+      const nested = renderListLevel(items, index, context);
+      cells[cells.length - 1] += nested.html;
+      index = nested.next;
+      continue;
+    }
+    if (items[index].ordered !== ordered) break;
+    cells.push(renderParagraphText(items[index].text, context));
+    index += 1;
+  }
+  const opening = !ordered ? '<ul>' : items[start].number === 1 ? '<ol>' : `<ol start="${items[start].number}">`;
+  const body = cells.map((cell) => `<li>${cell}</li>`).join('');
+  return { html: opening + body + (ordered ? '</ol>' : '</ul>'), next: index };
+}
+
+function renderList(lines: string[], start: number, context: Context): { html: string; next: number } {
+  const collected = collectListItems(lines, start);
+  let html = '';
+  let index = 0;
+  while (index < collected.items.length) {
+    const level = renderListLevel(collected.items, index, context);
+    html += level.html;
+    index = level.next;
+  }
+  return { html, next: collected.next };
+}
+
+function splitRow(line: string): string[] {
+  return line
+    .replace(/^\s*\|/, '')
+    .replace(/\|\s*$/, '')
+    .split('|')
+    .map((cell) => cell.trim());
+}
+
+function alignmentOf(cell: string): string {
+  const left = cell.startsWith(':');
+  const right = cell.endsWith(':');
+  if (left && right) return ' style="text-align:center"';
+  if (right) return ' style="text-align:right"';
+  return '';
+}
+
+function renderTable(lines: string[], start: number, context: Context): { html: string; next: number } {
+  const headers = splitRow(lines[start]);
+  const alignments = splitRow(lines[start + 1]).map(alignmentOf);
+  let index = start + 2;
+  const rows: string[][] = [];
+  while (index < lines.length && ROW_LINE.test(lines[index])) {
+    rows.push(splitRow(lines[index]));
+    index += 1;
+  }
+  const head = headers.map((cell, position) => `<th${alignments[position] || ''}>${renderInline(cell, context)}</th>`).join('');
+  const body = rows
+    .map((row) => `<tr>${headers.map((_ignored, position) => `<td${alignments[position] || ''}>${renderInline(row[position] || '', context)}</td>`).join('')}</tr>`)
+    .join('');
+  return { html: `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`, next: index };
+}
+
+function renderFence(lines: string[], start: number, context: Context): { html: string; next: number } {
+  const opening = FENCE_LINE.exec(lines[start]) as RegExpExecArray;
+  const collected: string[] = [];
+  let index = start + 1;
+  while (index < lines.length) {
+    const closing = FENCE_LINE.exec(lines[index]);
+    if (closing && closing[1][0] === opening[1][0] && closing[1].length >= opening[1].length) {
+      index += 1;
+      break;
+    }
+    collected.push(lines[index]);
+    index += 1;
+  }
+  return { html: `<pre><code>${slotsAsText(escapeText(collected.join('\n')), context.slots)}</code></pre>`, next: index };
+}
+
+function renderQuote(lines: string[], start: number, context: Context): { html: string; next: number } {
+  const collected: string[] = [];
+  let index = start;
+  while (index < lines.length) {
+    const match = QUOTE_LINE.exec(lines[index]);
+    if (!match) break;
+    collected.push(match[1]);
+    index += 1;
+  }
+  return { html: `<blockquote>${renderBlocks(collected.join('\n'), context)}</blockquote>`, next: index };
+}
+
+function startsTable(lines: string[], index: number, context: Context): boolean {
+  return context.tables && ROW_LINE.test(lines[index]) && index + 1 < lines.length && DIVIDER_LINE.test(lines[index + 1]);
+}
+
+function isBlockStart(lines: string[], index: number, context: Context): boolean {
   const line = lines[index];
-  return FENCE.test(line) || HEADING.test(line) || QUOTE.test(line) || ITEM.test(line) || (context.tables && tableStart(line, lines[index + 1]));
+  return (
+    !line.trim() ||
+    HEADING_LINE.test(line) ||
+    FENCE_LINE.test(line) ||
+    RULE_LINE.test(line) ||
+    QUOTE_LINE.test(line) ||
+    LIST_LINE.test(line) ||
+    startsTable(lines, index, context)
+  );
 }
 
-function closesFence(line: string, mark: string): boolean {
-  const trimmed = line.trim();
-  return trimmed.length >= mark.length && trimmed === mark[0].repeat(trimmed.length) && /^ {0,3}\S/.test(line);
-}
-
-function depthOf(indent: string): number {
-  return Math.min(3, Math.floor(indent.replace(/\t/g, '    ').length / 2));
-}
-
-function blocksOf(lines: string[], context: Context, depth: number): MdBlock[] {
-  const blocks: MdBlock[] = [];
+function renderBlocks(source: string, context: Context): string {
+  const lines = source.replace(/\r\n?/g, '\n').split('\n');
+  let html = '';
   let index = 0;
   while (index < lines.length) {
     const line = lines[index];
@@ -61,118 +265,158 @@ function blocksOf(lines: string[], context: Context, depth: number): MdBlock[] {
       index += 1;
       continue;
     }
-    const fence = FENCE.exec(line);
-    if (fence) {
-      let end = index + 1;
-      while (end < lines.length && !closesFence(lines[end], fence[1])) end += 1;
-      blocks.push({ kind: 'code', text: atomText(lines.slice(index + 1, end).join('\n'), context) });
-      index = end + 1;
+    if (FENCE_LINE.test(line)) {
+      const fence = renderFence(lines, index, context);
+      html += fence.html;
+      index = fence.next;
       continue;
     }
-    if (depth < QUOTE_DEPTH && QUOTE.test(line)) {
-      const inner: string[] = [];
-      while (index < lines.length && QUOTE.test(lines[index])) {
-        inner.push((QUOTE.exec(lines[index]) as RegExpExecArray)[1]);
-        index += 1;
-      }
-      const quoted = blocksOf(inner, context, depth + 1);
-      if (quoted.length) blocks.push({ kind: 'quote', blocks: quoted });
+    if (RULE_LINE.test(line) && !LIST_LINE.test(line)) {
+      html += '<hr>';
+      index += 1;
       continue;
     }
-    const heading = HEADING.exec(line);
+    const heading = HEADING_LINE.exec(line);
     if (heading) {
-      blocks.push({ kind: 'text', heading: true, spans: inline(heading[1], context) });
+      html += `<p><strong>${renderInline(heading[2], context)}</strong></p>`;
       index += 1;
       continue;
     }
-    if (ITEM.test(line)) {
-      const items: { marker: string; depth: number; text: string }[] = [];
-      while (index < lines.length) {
-        const item = ITEM.exec(lines[index]);
-        if (item) {
-          items.push({ marker: /\d/.test(item[2]) ? item[2] : '', depth: depthOf(item[1]), text: item[3].trimEnd() });
-        } else if (/^[ \t]{2,}\S/.test(lines[index]) && !startsBlock(lines, index, context)) {
-          items[items.length - 1].text += `\n${lines[index].trim()}`;
-        } else {
-          break;
-        }
-        index += 1;
-      }
-      blocks.push({ kind: 'list', items: items.map((item) => ({ marker: item.marker, depth: item.depth, spans: inline(item.text, context) })) });
+    if (QUOTE_LINE.test(line)) {
+      const quote = renderQuote(lines, index, context);
+      html += quote.html;
+      index = quote.next;
       continue;
     }
-    if (context.tables && tableStart(line, lines[index + 1])) {
-      const head = cellsOf(line);
-      const align = cellsOf(lines[index + 1]).map(alignOf);
-      index += 2;
-      const rows: string[][] = [];
-      while (index < lines.length && lines[index].trim() && lines[index].includes('|')) {
-        rows.push(cellsOf(lines[index]));
-        index += 1;
-      }
-      const width = head.length;
-      blocks.push({
-        kind: 'table',
-        head: head.map((cell) => inline(cell, context)),
-        rows: rows.map((row) => Array.from({ length: width }, (_, column) => inline(row[column] ?? '', context))),
-        align: Array.from({ length: width }, (_, column) => align[column] ?? 'left'),
-      });
+    if (startsTable(lines, index, context)) {
+      const table = renderTable(lines, index, context);
+      html += table.html;
+      index = table.next;
       continue;
     }
-    const paragraph = [line.trim()];
-    index += 1;
-    while (index < lines.length && lines[index].trim() && !startsBlock(lines, index, context)) {
-      paragraph.push(lines[index].trim());
+    if (LIST_LINE.test(line)) {
+      const list = renderList(lines, index, context);
+      html += list.html;
+      index = list.next;
+      continue;
+    }
+    const paragraph: string[] = [];
+    while (index < lines.length && !isBlockStart(lines, index, context)) {
+      paragraph.push(lines[index]);
       index += 1;
     }
-    blocks.push({ kind: 'text', heading: false, spans: inline(paragraph.join('\n'), context) });
+    html += `<p>${renderParagraphText(paragraph.join('\n'), context)}</p>`;
   }
-  return blocks;
+  return html;
 }
 
-function cellsOf(line: string): string[] {
-  const cells: string[] = [];
-  let cell = '';
-  let ticks = 0;
-  const text = line.trim();
-  for (let index = 0; index < text.length; index++) {
-    const char = text[index];
-    if (char === '\\' && text[index + 1] === '|') {
-      cell += '|';
-      index += 1;
-    } else if (char === '`') {
-      ticks = ticks ? 0 : 1;
-      cell += char;
-    } else if (char === '|' && !ticks) {
-      cells.push(cell);
-      cell = '';
-    } else {
-      cell += char;
+export function markdownToHtml(source: string, { tables = true, slots = [] }: { tables?: boolean; slots?: Slot[] } = {}): string {
+  return renderBlocks(String(source || ''), { tables, slots });
+}
+
+type Element = { tag: string; attrs: string; children: Node[] };
+type Node = Element | string;
+
+const VOID_TAGS = new Set(['br', 'hr', 'img', 'input', 'meta', 'link', 'wbr', 'col', 'source']);
+const HIDDEN_TAGS = new Set(['script', 'style', 'head', 'title', 'template']);
+const CLOSES_PARAGRAPH = new Set(['p', 'div', 'ul', 'ol', 'table', 'pre', 'blockquote', 'hr', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
+
+export function parseTree(html: string): Node[] {
+  const root: Element = { tag: '', attrs: '', children: [] };
+  const stack: Element[] = [root];
+  const pattern = /<!--[\s\S]*?-->|<(\/?)([a-zA-Z][a-zA-Z0-9]*)([^>]*)>|([^<]+)|</g;
+  let hidden: string | null = null;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(html)) !== null) {
+    const [whole, closing, rawTag, attrs, text] = match;
+    const tag = rawTag?.toLowerCase();
+    if (hidden) {
+      if (closing && tag === hidden) hidden = null;
+      continue;
     }
+    const top = stack[stack.length - 1];
+    if (text !== undefined || whole === '<') {
+      top.children.push(decodeEntities(text ?? whole));
+      continue;
+    }
+    if (!tag) continue;
+    if (closing) {
+      const at = stack.map((entry) => entry.tag).lastIndexOf(tag);
+      if (at > 0) stack.length = at;
+      continue;
+    }
+    if (HIDDEN_TAGS.has(tag)) {
+      if (!/\/\s*$/.test(attrs)) hidden = tag;
+      continue;
+    }
+    if (CLOSES_PARAGRAPH.has(tag) && top.tag === 'p') stack.pop();
+    const element: Element = { tag, attrs, children: [] };
+    stack[stack.length - 1].children.push(element);
+    if (!VOID_TAGS.has(tag) && !/\/\s*$/.test(attrs)) stack.push(element);
   }
-  cells.push(cell);
-  if (text.startsWith('|')) cells.shift();
-  if (text.endsWith('|') && !text.endsWith('\\|') && cells.length > 1) cells.pop();
-  return cells.map((value) => value.trim());
+  return root.children;
 }
 
-function alignOf(cell: string): Align {
-  const left = cell.startsWith(':');
-  const right = cell.endsWith(':');
-  return left && right ? 'center' : right ? 'right' : 'left';
+function attribute(attrs: string, name: string): string | null {
+  const match = new RegExp(`(?:^|\\s)${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i').exec(attrs);
+  return match ? decodeEntities(match[2] ?? match[3] ?? match[4] ?? '') : null;
 }
 
-function isAtom(code: number, context: Context): boolean {
-  return code >= ATOM_BASE && code < ATOM_BASE + context.atoms.length;
+function textContent(nodes: Node[]): string {
+  return nodes.map((node) => (typeof node === 'string' ? node : node.tag === 'br' ? '\n' : textContent(node.children))).join('');
 }
 
-function atomText(text: string, context: Context): string {
-  if (!context.atoms.length) return text;
-  return text.replace(PRIVATE, (char) => {
-    const code = char.charCodeAt(0);
-    return isAtom(code, context) ? context.atoms[code - ATOM_BASE].text : char;
-  });
+function linkStyle(attrs: string): Style {
+  const model = attribute(attrs, 'data-oe-model');
+  const id = Number(attribute(attrs, 'data-oe-id'));
+  if (model && Number.isInteger(id) && id > 0) return { mention: { model, id } };
+  const href = attribute(attrs, 'href');
+  return href && SAFE_HREF.test(href) ? { href } : {};
 }
+
+function slotOf(node: Element): Slot {
+  if (node.tag === 'img') return { text: attribute(node.attrs, 'alt') ?? '' };
+  const text = textContent(node.children);
+  if (node.tag !== 'a') return { text };
+  const style = linkStyle(node.attrs);
+  const redirect = /(^|\s)o_mail_redirect(\s|$)/.test(attribute(node.attrs, 'class') ?? '');
+  return redirect && style.href ? { text } : { ...style, text };
+}
+
+function composedText(nodes: Node[], slots: Slot[]): string | null {
+  let source = '';
+  for (const node of nodes) {
+    if (typeof node === 'string') source += node.replace(SLOT_MARKS, '');
+    else if (node.tag === 'br') source += '\n';
+    else if (node.tag === 'a' || node.tag === 'span' || node.tag === 'img') {
+      source += `\uE000${slots.length}\uE001`;
+      slots.push(slotOf(node));
+    } else return null;
+  }
+  return source;
+}
+
+export function composedSource(nodes: Node[]): { source: string; slots: Slot[] } | null {
+  const top = nodes.filter((node) => typeof node !== 'string' || node.trim());
+  const slots: Slot[] = [];
+  const bare = top.length > 0 && top.every((node) => typeof node !== 'string' && node.tag === 'p' && !node.attrs.trim());
+  const parts = bare ? top.map((node) => composedText((node as Element).children, slots)) : [composedText(top, slots)];
+  if (parts.includes(null)) return null;
+  return { source: parts.join('\n\n'), slots };
+}
+
+const INLINE_STYLES: Record<string, Style> = {
+  strong: { bold: true },
+  b: { bold: true },
+  em: { italic: true },
+  i: { italic: true },
+  del: { strike: true },
+  s: { strike: true },
+  strike: { strike: true },
+  code: { code: true },
+};
+const HEADINGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
+const PARAGRAPHS = new Set(['p', 'div', 'section', 'article', 'header', 'footer', 'main', 'aside', 'figure', 'figcaption', 'dl', 'dt', 'dd', 'center', 'address']);
 
 export function sameStyle(a: Style, b: Style): boolean {
   return (
@@ -190,320 +434,190 @@ function add(spans: Span[], span: Span) {
   if (!span.text) return;
   const last = spans[spans.length - 1];
   if (last && sameStyle(last, span)) last.text += span.text;
-  else spans.push(span);
+  else spans.push({ ...span });
 }
 
-function runLength(text: string, from: number, char: string): number {
-  let end = from;
-  while (text[end] === char) end += 1;
-  return end - from;
+function trimSpans(spans: Span[]): Span[] {
+  const out = spans.map((span) => ({ ...span, text: span.text.replace(/ *\n */g, '\n') }));
+  while (out.length && !out[0].text.replace(/^[ \n]+/, '')) out.shift();
+  while (out.length && !out[out.length - 1].text.replace(/[ \n]+$/, '')) out.pop();
+  if (!out.length) return out;
+  out[0] = { ...out[0], text: out[0].text.replace(/^[ \n]+/, '') };
+  const end = out.length - 1;
+  out[end] = { ...out[end], text: out[end].text.replace(/[ \n]+$/, '') };
+  return out;
 }
 
-function findTicks(text: string, from: number, length: number): number {
-  let index = text.indexOf('`', from);
-  while (index >= 0) {
-    const run = runLength(text, index, '`');
-    if (run === length) return index;
-    index = text.indexOf('`', index + run);
+function isPipeTable(text: string): boolean {
+  const rows = text.split('\n').filter((line) => line.trim());
+  return rows.length >= 2 && ROW_LINE.test(rows[0]) && DIVIDER_LINE.test(rows[1]) && rows.every((line) => ROW_LINE.test(line));
+}
+
+function alignOf(attrs: string): Align {
+  const style = (attribute(attrs, 'style') ?? '').replace(/\s/g, '').toLowerCase();
+  return style.includes('text-align:center') ? 'center' : style.includes('text-align:right') ? 'right' : 'left';
+}
+
+class Builder {
+  blocks: MdBlock[] = [];
+  private spans: Span[] = [];
+
+  constructor(private slots: Slot[]) {}
+
+  flush() {
+    const spans = trimSpans(this.spans);
+    this.spans = [];
+    if (spans.length) this.blocks.push({ kind: 'text', spans });
   }
-  return -1;
-}
 
-function delimiterAt(text: string, index: number): string | null {
-  const char = text[index];
-  if (char === '*') return text[index + 1] === '*' ? '**' : '*';
-  if (char === '~') return text[index + 1] === '~' ? '~~' : null;
-  if (char === '_') return '_';
-  return null;
-}
-
-function canOpen(text: string, index: number, mark: string): boolean {
-  if (mark === '_' && (text[index + 1] === '_' || text[index - 1] === '_')) return false;
-  const after = text[index + mark.length];
-  if (after === undefined || SPACE.test(after)) return false;
-  return mark.length > 1 || !WORD.test(text[index - 1] ?? '');
-}
-
-function findCloser(text: string, from: number, mark: string): number {
-  for (let index = from; index < text.length; index++) {
-    const char = text[index];
-    if (char === '\n') return -1;
-    if (char === '\\') {
-      index += 1;
-      continue;
-    }
-    if (char === '`') {
-      const run = runLength(text, index, '`');
-      const close = findTicks(text, index + run, run);
-      index = (close >= 0 ? close : index) + run - 1;
-      continue;
-    }
-    if (!text.startsWith(mark, index)) continue;
-    if (mark === '*' && text[index + 1] === '*') {
-      index += runLength(text, index, '*') - 1;
-      continue;
-    }
-    if (mark === '_' && (text[index + 1] === '_' || text[index - 1] === '_')) {
-      index += runLength(text, index, '_') - 1;
-      continue;
-    }
-    if (index === from || SPACE.test(text[index - 1])) continue;
-    if (mark.length === 1 && WORD.test(text[index + 1] ?? '')) continue;
-    if (mark === '**') while (text[index + 2] === '*') index += 1;
-    return index;
-  }
-  return -1;
-}
-
-function linkAt(text: string, index: number, context: Context): { label: string; href: string; end: number } | null {
-  const close = text.indexOf(']', index + 1);
-  if (close < 0 || text[close + 1] !== '(') return null;
-  const label = text.slice(index + 1, close);
-  if (!label.trim() || label.includes('\n') || label.includes('[')) return null;
-  const end = text.indexOf(')', close + 2);
-  if (end < 0) return null;
-  let target = text.slice(close + 2, end).trim();
-  const code = target.charCodeAt(0);
-  if (target.length === 1 && isAtom(code, context)) target = context.atoms[code - ATOM_BASE].href ?? '';
-  if (!SCHEMES.test(target) || /[\ue000-\uf8ff]/.test(target)) return null;
-  return { label, href: target, end: end + 1 };
-}
-
-function codeText(raw: string, context: Context): string {
-  const text = raw.length > 2 && raw.startsWith(' ') && raw.endsWith(' ') && raw.trim() ? raw.slice(1, -1) : raw;
-  return atomText(text, context);
-}
-
-function inline(text: string, context: Context, base: Style = {}, links = true): Span[] {
-  const spans: Span[] = [];
-  let plain = '';
-  const flush = () => {
-    if (plain) add(spans, { ...base, text: plain });
-    plain = '';
-  };
-  const nest = (inner: Span[]) => {
-    flush();
-    inner.forEach((span) => add(spans, span));
-  };
-  let index = 0;
-  while (index < text.length) {
-    const char = text[index];
-    const code = text.charCodeAt(index);
-    if (char === '\\' && index + 1 < text.length && ESCAPABLE.includes(text[index + 1])) {
-      plain += text[index + 1];
-      index += 2;
-      continue;
-    }
-    if (isAtom(code, context)) {
-      nest([{ ...base, ...context.atoms[code - ATOM_BASE] }]);
-      index += 1;
-      continue;
-    }
-    if (char === '`') {
-      const run = runLength(text, index, '`');
-      const close = findTicks(text, index + run, run);
-      if (close >= 0) {
-        nest([{ ...base, code: true, text: codeText(text.slice(index + run, close), context) }]);
-        index = close + run;
-      } else {
-        plain += text.slice(index, index + run);
-        index += run;
-      }
-      continue;
-    }
-    if (links && char === '[') {
-      const link = linkAt(text, index, context);
-      if (link) {
-        nest(inline(link.label, context, { ...base, href: link.href }, false));
-        index = link.end;
-        continue;
-      }
-    }
-    if (links && char === 'h' && !WORD.test(text[index - 1] ?? '')) {
-      URL.lastIndex = index;
-      const url = URL.exec(text);
-      if (url) {
-        nest([{ ...base, href: url[0], text: url[0] }]);
-        index += url[0].length;
-        continue;
-      }
-    }
-    const mark = delimiterAt(text, index);
-    if (mark && canOpen(text, index, mark)) {
-      const close = findCloser(text, index + mark.length, mark);
-      if (close >= 0) {
-        nest(inline(text.slice(index + mark.length, close), context, { ...base, ...STYLES[mark] }, links));
-        index = close + mark.length;
-        continue;
-      }
-    }
-    if (mark) {
-      plain += mark;
-      index += mark.length;
-      continue;
-    }
-    plain += char;
-    index += 1;
-  }
-  flush();
-  return spans;
-}
-
-type Piece = { text: string; item: boolean; quote: number };
-
-const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'tr', 'ul', 'ol', 'li', 'blockquote', 'pre']);
-const HIDDEN_TAGS = new Set(['script', 'style', 'head', 'title']);
-
-function styleOf(tag: string, attrs: string): Style {
-  if (tag === 'b' || tag === 'strong') return { bold: true };
-  if (tag === 'i' || tag === 'em') return { italic: true };
-  if (tag === 's' || tag === 'del' || tag === 'strike') return { strike: true };
-  if (tag === 'code') return { code: true };
-  if (tag !== 'a') return {};
-  const model = attribute(attrs, 'data-oe-model');
-  const id = Number(attribute(attrs, 'data-oe-id'));
-  if (model && Number.isInteger(id) && id > 0) return { mention: { model, id } };
-  const href = attribute(attrs, 'href');
-  return href && SCHEMES.test(href) ? { href } : {};
-}
-
-function attribute(attrs: string, name: string): string | null {
-  const match = new RegExp(`(?:^|\\s)${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i').exec(attrs);
-  return match ? decodeEntities(match[2] ?? match[3] ?? match[4] ?? '') : null;
-}
-
-function isTable(lines: string[]): boolean {
-  const rows = lines.filter((line) => line.trim());
-  return rows.length >= 2 && rows.every((line) => line.trim().startsWith('|')) && DELIMITER.test(rows[1]);
-}
-
-function fenced(text: string): string {
-  const longest = Math.max(0, ...(text.match(/`+/g) ?? []).map((run) => run.length));
-  const fence = '`'.repeat(Math.max(3, longest + 1));
-  return `${fence}\n${text}\n${fence}`;
-}
-
-export function markdownOfHtml(html: string): { source: string; atoms: Span[]; tables: boolean } {
-  const atoms: Span[] = [];
-  const pieces: Piece[] = [];
-  const stack: { tag: string; style: Style }[] = [];
-  const lists: { ordered: boolean; next: number }[] = [];
-  let buffer = '';
-  let marker = '';
-  let quote = 0;
-  let hidden = 0;
-  let pre = 0;
-  let tables = false;
-
-  const style = (): Style => stack.reduce<Style>((current, entry) => ({ ...current, ...entry.style }), {});
-  const prefixed = (lines: string[], first: string): string => {
-    const quoteMark = '> '.repeat(quote);
-    const hang = ' '.repeat(first.length);
-    return lines.map((line, index) => `${quoteMark}${index ? hang : first}${line}`.trimEnd() || quoteMark.trimEnd()).join('\n');
-  };
-  const flush = () => {
-    const text = buffer.replace(/[ \t]*\n[ \t]*/g, '\n').replace(/^[ \n]+|[ \n]+$/g, '');
-    buffer = '';
-    if (text) pieces.push({ text: prefixed(text.split('\n'), marker), item: !!marker && !marker.startsWith('#'), quote });
-    marker = '';
-  };
-  const flushPre = () => {
-    const lines = buffer.replace(/^\n/, '').replace(/\s+$/, '').split('\n');
-    buffer = '';
-    if (!lines.some((line) => line.trim())) return;
-    const table = isTable(lines);
-    tables = tables || table;
-    pieces.push({ text: prefixed((table ? lines.join('\n') : fenced(lines.join('\n'))).split('\n'), ''), item: false, quote });
-  };
-  const write = (text: string) => {
-    if (!text) return;
-    const current = style();
-    if (pre || !Object.keys(current).length || atoms.length >= ATOM_LIMIT) {
-      buffer += text;
+  text(text: string, style: Style, pre: boolean) {
+    const value = pre ? text : text.replace(/[\t\r\n ]+/g, ' ');
+    if (!this.slots.length || !value.includes('\uE000')) {
+      add(this.spans, { ...style, text: value });
       return;
     }
-    const lastCode = buffer.charCodeAt(buffer.length - 1);
-    const last = atoms[atoms.length - 1];
-    if (last && lastCode === ATOM_BASE + atoms.length - 1 && sameStyle(last, current)) {
-      last.text += text;
-      return;
+    let last = 0;
+    for (const found of value.matchAll(SLOT)) {
+      add(this.spans, { ...style, text: value.slice(last, found.index) });
+      const slot = this.slots[Number(found[1])];
+      if (slot) add(this.spans, { ...style, ...slot });
+      last = (found.index ?? 0) + found[0].length;
     }
-    atoms.push({ ...current, text });
-    buffer += String.fromCharCode(ATOM_BASE + atoms.length - 1);
-  };
+    add(this.spans, { ...style, text: value.slice(last) });
+  }
 
-  const pattern = /<!--[\s\S]*?-->|<(\/?)([a-zA-Z][a-zA-Z0-9]*)([^>]*)>|([^<]+)|</g;
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(html)) !== null) {
-    const [whole, closing, rawTag, attrs, text] = match;
-    if (text !== undefined || whole === '<') {
-      if (hidden) continue;
-      const decoded = decodeEntities(text ?? whole).replace(PRIVATE, '\ufffd');
-      write(pre ? decoded : decoded.replace(/[\t\r\n ]+/g, ' '));
-      continue;
+  walk(nodes: Node[], style: Style) {
+    for (const node of nodes) {
+      if (typeof node === 'string') this.text(node, style, false);
+      else this.element(node, style);
     }
-    if (!rawTag) continue;
-    const tag = rawTag.toLowerCase();
-    if (HIDDEN_TAGS.has(tag)) {
-      hidden = Math.max(0, hidden + (closing ? -1 : 1));
-      continue;
-    }
-    if (hidden) continue;
-    if (tag === 'br') {
-      buffer += '\n';
-      continue;
-    }
-    if (tag === 'td' || tag === 'th') {
-      buffer += ' ';
-      continue;
+  }
+
+  private sub(nodes: Node[], style: Style): MdBlock[] {
+    const builder = new Builder(this.slots);
+    builder.walk(nodes, style);
+    builder.flush();
+    return builder.blocks;
+  }
+
+  private element(node: Element, style: Style) {
+    const { tag } = node;
+    if (tag === 'br') return add(this.spans, { ...style, text: '\n' });
+    if (tag === 'img') return this.text(attribute(node.attrs, 'alt') ?? '', style, false);
+    if (tag === 'a') return this.walk(node.children, { ...style, ...linkStyle(node.attrs) });
+    if (INLINE_STYLES[tag]) return this.walk(node.children, { ...style, ...INLINE_STYLES[tag] });
+    if (tag === 'hr') {
+      this.flush();
+      this.blocks.push({ kind: 'rule' });
+      return;
     }
     if (tag === 'pre') {
-      if (closing) {
-        if (pre) flushPre();
-        pre = Math.max(0, pre - 1);
-      } else {
-        if (!pre) flush();
-        pre += 1;
-      }
-      continue;
+      this.flush();
+      const text = textContent(node.children).replace(/^\n/, '').replace(/\s+$/, '');
+      if (!text.trim()) return;
+      if (isPipeTable(text)) this.blocks.push(...htmlBlocks(markdownToHtml(text, { tables: true })));
+      else this.blocks.push({ kind: 'code', text: slotsAsTextPlain(text, this.slots) });
+      return;
     }
-    if (BLOCK_TAGS.has(tag)) {
-      if (pre) continue;
-      flush();
-      if (tag === 'blockquote') quote = Math.max(0, quote + (closing ? -1 : 1));
-      if (tag === 'ul' || tag === 'ol') {
-        if (closing) lists.pop();
-        else lists.push({ ordered: tag === 'ol', next: Math.max(1, Number(attribute(attrs, 'start')) || 1) });
-      }
-      if (!closing && tag === 'li') {
-        const list = lists[lists.length - 1];
-        const indent = '  '.repeat(Math.max(0, lists.length - 1));
-        marker = `${indent}${list?.ordered ? `${list.next++}. ` : '- '}`;
-      }
-      if (!closing && /^h[1-6]$/.test(tag)) marker = '# ';
-      continue;
+    if (tag === 'blockquote') {
+      this.flush();
+      const blocks = this.sub(node.children, style);
+      if (blocks.length) this.blocks.push({ kind: 'quote', blocks });
+      return;
     }
-    if (closing) {
-      const index = stack.map((entry) => entry.tag).lastIndexOf(tag);
-      if (index >= 0) stack.splice(index);
-      continue;
+    if (tag === 'ul' || tag === 'ol' || tag === 'li') {
+      this.flush();
+      const list = this.list(tag === 'li' ? { tag: 'ul', attrs: '', children: [node] } : node, style);
+      if (list.items.length) this.blocks.push(list);
+      return;
     }
-    if (/\/\s*$/.test(attrs)) continue;
-    stack.push({ tag, style: styleOf(tag, attrs) });
+    if (tag === 'table') {
+      this.flush();
+      const table = this.table(node, style);
+      if (table) this.blocks.push(table);
+      return;
+    }
+    if (HEADINGS.has(tag) || PARAGRAPHS.has(tag)) {
+      this.flush();
+      this.walk(node.children, HEADINGS.has(tag) ? { ...style, bold: true } : style);
+      this.flush();
+      return;
+    }
+    this.walk(node.children, style);
   }
-  if (pre) flushPre();
-  else flush();
 
-  let source = '';
-  pieces.forEach((piece, index) => {
-    if (index) {
-      const previous = pieces[index - 1];
-      const shared = Math.min(previous.quote, piece.quote);
-      source += piece.item && previous.item && previous.quote === piece.quote ? '\n' : `\n${'> '.repeat(shared).trimEnd()}\n`;
+  private list(node: Element, style: Style): Extract<MdBlock, { kind: 'list' }> {
+    const items: Item[] = [];
+    for (const child of node.children) {
+      if (typeof child === 'string') continue;
+      const nodes = child.tag === 'li' ? child.children : [child];
+      const blocks = this.sub(nodes, style);
+      const spans: Span[] = [];
+      const sub: MdBlock[] = [];
+      for (const block of blocks) {
+        if (block.kind === 'text') {
+          if (spans.length) add(spans, { text: '\n' });
+          block.spans.forEach((span) => add(spans, span));
+        } else sub.push(block);
+      }
+      if (spans.length || sub.length) items.push({ spans, sub });
     }
-    source += piece.text;
-  });
-  return { source, atoms, tables };
+    const start = Number(attribute(node.attrs, 'start'));
+    return { kind: 'list', ordered: node.tag === 'ol', start: Number.isInteger(start) && start > 0 ? start : 1, items };
+  }
+
+  private table(node: Element, style: Style): Extract<MdBlock, { kind: 'table' }> | null {
+    const rows: { header: boolean; cells: { spans: Span[]; align: Align; th: boolean }[] }[] = [];
+    const visit = (nodes: Node[], header: boolean) => {
+      for (const child of nodes) {
+        if (typeof child === 'string') continue;
+        if (child.tag === 'tr') {
+          const cells = child.children
+            .filter((cell): cell is Element => typeof cell !== 'string' && (cell.tag === 'td' || cell.tag === 'th'))
+            .map((cell) => {
+              const spans: Span[] = [];
+              this.sub(cell.children, style).forEach((block, index) => {
+                if (index) add(spans, { text: '\n' });
+                if (block.kind === 'text') block.spans.forEach((span) => add(spans, span));
+                else add(spans, { text: plainOf([block]) });
+              });
+              return { spans, align: alignOf(cell.attrs), th: cell.tag === 'th' };
+            });
+          rows.push({ header: header || (cells.length > 0 && cells.every((cell) => cell.th)), cells });
+        } else if (child.tag === 'thead' || child.tag === 'tbody' || child.tag === 'tfoot') visit(child.children, child.tag === 'thead');
+      }
+    };
+    visit(node.children, false);
+    if (!rows.length) return null;
+    const headed = rows[0].header;
+    const head = headed ? rows[0] : null;
+    const body = headed ? rows.slice(1) : rows;
+    const width = Math.max(...rows.map((row) => row.cells.length));
+    if (!width) return null;
+    const pad = (row: (typeof rows)[number]) => Array.from({ length: width }, (_, column) => row.cells[column]?.spans ?? []);
+    const alignFrom = head ?? body[0];
+    return {
+      kind: 'table',
+      head: head ? pad(head) : null,
+      rows: body.map(pad),
+      align: Array.from({ length: width }, (_, column) => alignFrom?.cells[column]?.align ?? 'left'),
+    };
+  }
+}
+
+function slotsAsTextPlain(text: string, slots: Slot[]): string {
+  return slots.length ? text.replace(SLOT, (_whole, index: string) => slots[Number(index)]?.text || '') : text;
+}
+
+function treeBlocks(nodes: Node[], slots: Slot[] = []): MdBlock[] {
+  const builder = new Builder(slots);
+  builder.walk(nodes, {});
+  builder.flush();
+  return builder.blocks;
+}
+
+export function htmlBlocks(html: string, slots: Slot[] = []): MdBlock[] {
+  return treeBlocks(parseTree(html), slots);
 }
 
 const CACHE_LIMIT = 500;
@@ -524,13 +638,15 @@ function cached(key: string, parse: () => MdBlock[]): MdBlock[] {
 
 export function bodyBlocks(html: string): MdBlock[] {
   return cached(`h${html}`, () => {
-    const { source, atoms, tables } = markdownOfHtml(html);
-    return parseMarkdown(source, { atoms, tables });
+    const tree = parseTree(html);
+    const composed = composedSource(tree);
+    if (composed && COMPOSED_MARKS.test(composed.source)) return htmlBlocks(markdownToHtml(composed.source, { tables: false, slots: composed.slots }), composed.slots);
+    return treeBlocks(tree);
   });
 }
 
 export function sourceBlocks(source: string, tables: boolean): MdBlock[] {
-  return cached(`${tables ? 't' : 's'}${source}`, () => parseMarkdown(source, { tables }));
+  return cached(`${tables ? 't' : 's'}${source}`, () => htmlBlocks(markdownToHtml(source.replace(SLOT_MARKS, ''), { tables })));
 }
 
 function spansText(spans: Span[]): string {
@@ -542,10 +658,14 @@ export function plainOf(blocks: MdBlock[]): string {
   const walk = (list: MdBlock[]) => {
     for (const block of list) {
       if (block.kind === 'text') parts.push(spansText(block.spans));
-      else if (block.kind === 'list') block.items.forEach((item) => parts.push(spansText(item.spans)));
+      else if (block.kind === 'list')
+        block.items.forEach((item) => {
+          parts.push(spansText(item.spans));
+          walk(item.sub);
+        });
       else if (block.kind === 'quote') walk(block.blocks);
       else if (block.kind === 'code') parts.push(block.text);
-      else [block.head, ...block.rows].forEach((row) => row.forEach((cell) => parts.push(spansText(cell))));
+      else if (block.kind === 'table') [...(block.head ? [block.head] : []), ...block.rows].forEach((row) => row.forEach((cell) => parts.push(spansText(cell))));
     }
   };
   walk(blocks);

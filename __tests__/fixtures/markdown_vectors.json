@@ -1,0 +1,249 @@
+{
+ "spec": "Kaitech chat bubble Markdown, ZHA-7424. Each vector renders `source` with tables on unless `tables` is false; `html` is the expected output. Compare as element trees (same tags, attributes and text; attribute order does not matter). Web (erp_discovery/static/src/chat/markdown.js), server (kaitech_chat/reply.py) and the app must all produce it.",
+ "vectors": [
+  {
+   "name": "plain text",
+   "source": "Halo, rapat jam 3.",
+   "html": "<p>Halo, rapat jam 3.</p>"
+  },
+  {
+   "name": "bold",
+   "source": "Ini **penting** sekali",
+   "html": "<p>Ini <strong>penting</strong> sekali</p>"
+  },
+  {
+   "name": "italic with stars",
+   "source": "Ini *miring* ya",
+   "html": "<p>Ini <em>miring</em> ya</p>"
+  },
+  {
+   "name": "italic with underscores",
+   "source": "Ini _miring_ ya",
+   "html": "<p>Ini <em>miring</em> ya</p>"
+  },
+  {
+   "name": "strikethrough",
+   "source": "Harga ~~lama~~ baru",
+   "html": "<p>Harga <del>lama</del> baru</p>"
+  },
+  {
+   "name": "inline code",
+   "source": "Jalankan `odoo-bin -u all` dulu",
+   "html": "<p>Jalankan <code>odoo-bin -u all</code> dulu</p>"
+  },
+  {
+   "name": "code keeps marks literal",
+   "source": "`**tidak tebal**` dan `a_b_c`",
+   "html": "<p><code>**tidak tebal**</code> dan <code>a_b_c</code></p>"
+  },
+  {
+   "name": "snake case stays",
+   "source": "Field snake_case_nama dan my_var_x tetap",
+   "html": "<p>Field snake_case_nama dan my_var_x tetap</p>"
+  },
+  {
+   "name": "multiplication stays",
+   "source": "Hitung 2*3*4 lalu 5 * 6 * 7",
+   "html": "<p>Hitung 2*3*4 lalu 5 * 6 * 7</p>"
+  },
+  {
+   "name": "unclosed bold stays",
+   "source": "Ini **belum ditutup",
+   "html": "<p>Ini **belum ditutup</p>"
+  },
+  {
+   "name": "unclosed italic stays",
+   "source": "Catatan *penting untuk besok",
+   "html": "<p>Catatan *penting untuk besok</p>"
+  },
+  {
+   "name": "lone underscore and star stay",
+   "source": "Nilai _ dan * kosong",
+   "html": "<p>Nilai _ dan * kosong</p>"
+  },
+  {
+   "name": "old message with stars",
+   "source": "*) catatan kaki\n**) catatan lain",
+   "html": "<p>*) catatan kaki<br>**) catatan lain</p>"
+  },
+  {
+   "name": "backslash escape",
+   "source": "Tulis \\*bintang\\* apa adanya",
+   "html": "<p>Tulis *bintang* apa adanya</p>"
+  },
+  {
+   "name": "link",
+   "source": "Lihat [panduan](https://kaitech.io/panduan)",
+   "html": "<p>Lihat <a href=\"https://kaitech.io/panduan\" target=\"_blank\" rel=\"noreferrer noopener\">panduan</a></p>"
+  },
+  {
+   "name": "link with bold label",
+   "source": "[**Buka**](https://kaitech.io)",
+   "html": "<p><a href=\"https://kaitech.io\" target=\"_blank\" rel=\"noreferrer noopener\"><strong>Buka</strong></a></p>"
+  },
+  {
+   "name": "mailto and tel links",
+   "source": "[Email](mailto:tim@kaitech.io) atau [telepon](tel:+62211234)",
+   "html": "<p><a href=\"mailto:tim@kaitech.io\" target=\"_blank\" rel=\"noreferrer noopener\">Email</a> atau <a href=\"tel:+62211234\" target=\"_blank\" rel=\"noreferrer noopener\">telepon</a></p>"
+  },
+  {
+   "name": "unsafe link stays text",
+   "source": "[klik](javascript:alert(1))",
+   "html": "<p>[klik](javascript:alert(1))</p>"
+  },
+  {
+   "name": "relative link stays text",
+   "source": "[Program](/odoo/action-1)",
+   "html": "<p>[Program](/odoo/action-1)</p>"
+  },
+  {
+   "name": "bare url",
+   "source": "Buka https://kaitech.io/a_b?x=1&y=2.",
+   "html": "<p>Buka <a href=\"https://kaitech.io/a_b?x=1&amp;y=2\" target=\"_blank\" rel=\"noreferrer noopener\">https://kaitech.io/a_b?x=1&amp;y=2</a>.</p>"
+  },
+  {
+   "name": "bare url in parentheses",
+   "source": "(lihat https://id.wikipedia.org/wiki/ERP_(sistem))",
+   "html": "<p>(lihat <a href=\"https://id.wikipedia.org/wiki/ERP_(sistem)\" target=\"_blank\" rel=\"noreferrer noopener\">https://id.wikipedia.org/wiki/ERP_(sistem)</a>)</p>"
+  },
+  {
+   "name": "bold url",
+   "source": "**https://kaitech.io**",
+   "html": "<p><strong><a href=\"https://kaitech.io\" target=\"_blank\" rel=\"noreferrer noopener\">https://kaitech.io</a></strong></p>"
+  },
+  {
+   "name": "raw html is escaped",
+   "source": "<b>x</b> <img src=x onerror=alert(1)> & \"kutip\" 'satu'",
+   "html": "<p>&lt;b&gt;x&lt;/b&gt; &lt;img src=x onerror=alert(1)&gt; &amp; \"kutip\" 'satu'</p>"
+  },
+  {
+   "name": "line break",
+   "source": "Baris satu\nBaris dua",
+   "html": "<p>Baris satu<br>Baris dua</p>"
+  },
+  {
+   "name": "paragraphs",
+   "source": "Paragraf satu.\n\nParagraf dua.",
+   "html": "<p>Paragraf satu.</p><p>Paragraf dua.</p>"
+  },
+  {
+   "name": "bullet list dash",
+   "source": "Yang perlu:\n- SOP\n- Notulen\n- Data",
+   "html": "<p>Yang perlu:</p><ul><li>SOP</li><li>Notulen</li><li>Data</li></ul>"
+  },
+  {
+   "name": "bullet list star",
+   "source": "* satu\n* dua",
+   "html": "<ul><li>satu</li><li>dua</li></ul>"
+  },
+  {
+   "name": "numbered list",
+   "source": "1. Buka Program\n2. Pilih **Temuan**\n3. Setujui",
+   "html": "<ol><li>Buka Program</li><li>Pilih <strong>Temuan</strong></li><li>Setujui</li></ol>"
+  },
+  {
+   "name": "numbered list keeps its start",
+   "source": "3. Tiga\n4. Empat",
+   "html": "<ol start=\"3\"><li>Tiga</li><li>Empat</li></ol>"
+  },
+  {
+   "name": "nested list",
+   "source": "- Induk\n  - Anak",
+   "html": "<ul><li>Induk<ul><li>Anak</li></ul></li></ul>"
+  },
+  {
+   "name": "quote right after a list",
+   "source": "Langkah:\n1. Buka Program\n2. Setujui\n> kutipan SOP",
+   "html": "<p>Langkah:</p><ol><li>Buka Program</li><li>Setujui</li></ol><blockquote><p>kutipan SOP</p></blockquote>"
+  },
+  {
+   "name": "wrapped list item continues",
+   "source": "- satu\nlanjutan\n- dua",
+   "html": "<ul><li>satu<br>lanjutan</li><li>dua</li></ul>"
+  },
+  {
+   "name": "quote",
+   "source": "> Lembur di atas tiga jam naik ke manajer.\n\nBegitu kata SOP.",
+   "html": "<blockquote><p>Lembur di atas tiga jam naik ke manajer.</p></blockquote><p>Begitu kata SOP.</p>"
+  },
+  {
+   "name": "fenced code",
+   "source": "```python\nprint(\"a<b\")\n**x**\n```",
+   "html": "<pre><code>print(\"a&lt;b\")\n**x**</code></pre>"
+  },
+  {
+   "name": "unclosed fence runs to the end",
+   "source": "```\nkode",
+   "html": "<pre><code>kode</code></pre>"
+  },
+  {
+   "name": "heading is a bold line",
+   "source": "## Ringkasan\nIsi",
+   "html": "<p><strong>Ringkasan</strong></p><p>Isi</p>"
+  },
+  {
+   "name": "hash without space is text",
+   "source": "#1 prioritas",
+   "html": "<p>#1 prioritas</p>"
+  },
+  {
+   "name": "rule",
+   "source": "atas\n\n---\n\nbawah",
+   "html": "<p>atas</p><hr><p>bawah</p>"
+  },
+  {
+   "name": "table for the Coworker",
+   "source": "| Item | Status |\n|---|:---:|\n| SOP | **ada** |",
+   "tables": true,
+   "html": "<table><thead><tr><th>Item</th><th style=\"text-align:center\">Status</th></tr></thead><tbody><tr><td>SOP</td><td style=\"text-align:center\"><strong>ada</strong></td></tr></tbody></table>"
+  },
+  {
+   "name": "table stays text for a person",
+   "source": "| Item | Status |\n|---|---|\n| SOP | ada |",
+   "tables": false,
+   "html": "<p>| Item | Status |<br>|---|---|<br>| SOP | ada |</p>"
+  },
+  {
+   "name": "bold and italic together",
+   "source": "**Tebal** dan *miring* dan ~~coret~~",
+   "html": "<p><strong>Tebal</strong> dan <em>miring</em> dan <del>coret</del></p>"
+  },
+  {
+   "name": "italic inside bold",
+   "source": "**sangat *penting* sekali**",
+   "html": "<p><strong>sangat <em>penting</em> sekali</strong></p>"
+  },
+  {
+   "name": "accented word with underscores stays",
+   "source": "café_crème_x",
+   "html": "<p>café_crème_x</p>"
+  }
+ ],
+ "composed": [
+  {
+   "name": "composer body with a mention",
+   "body": "<a href=\"/odoo/res.partner/7\" class=\"o_mail_redirect\" data-oe-id=\"7\" data-oe-model=\"res.partner\" target=\"_blank\" contenteditable=\"false\">@Budi</a> tolong cek **SOP**<br>- satu<br>- dua",
+   "html": "<p><a href=\"/odoo/res.partner/7\" class=\"o_mail_redirect\" data-oe-id=\"7\" data-oe-model=\"res.partner\" target=\"_blank\" contenteditable=\"false\">@Budi</a> tolong cek <strong>SOP</strong></p><ul><li>satu</li><li>dua</li></ul>"
+  },
+  {
+   "name": "composer body as the server stores it",
+   "body": "<p>Halo **semua**<br><br>- satu<br>- dua</p>",
+   "html": "<p>Halo <strong>semua</strong></p><ul><li>satu</li><li>dua</li></ul>"
+  },
+  {
+   "name": "composer body with a linkified markdown link",
+   "body": "[panduan](<a target=\"_blank\" rel=\"noreferrer noopener\" href=\"https://kaitech.io/p\">https://kaitech.io/p</a>)",
+   "html": "<p><a href=\"https://kaitech.io/p\" target=\"_blank\" rel=\"noreferrer noopener\">panduan</a></p>"
+  },
+  {
+   "name": "composer body without marks is left alone",
+   "body": "Halo semua<br>sampai besok",
+   "html": ""
+  },
+  {
+   "name": "rich body is left alone",
+   "body": "<p>Mockup <strong>tombol</strong> terbaru.</p>",
+   "html": ""
+  }
+ ]
+}

@@ -79,15 +79,17 @@ describe('routeForPush', () => {
 describe('Markdown', () => {
   it('reads bullets, headings and paragraphs the Coworker writes', () => {
     expect(sourceBlocks('Dua jawaban:\n- **Budi**: cukup kasi.\n- Dewi: manajer.\n\nAturan belum ada\ndi sumber.', true)).toEqual([
-      { kind: 'text', heading: false, spans: [{ text: 'Dua jawaban:' }] },
+      { kind: 'text', spans: [{ text: 'Dua jawaban:' }] },
       {
         kind: 'list',
+        ordered: false,
+        start: 1,
         items: [
-          { marker: '', depth: 0, spans: [{ text: 'Budi', bold: true }, { text: ': cukup kasi.' }] },
-          { marker: '', depth: 0, spans: [{ text: 'Dewi: manajer.' }] },
+          { spans: [{ text: 'Budi', bold: true }, { text: ': cukup kasi.' }], sub: [] },
+          { spans: [{ text: 'Dewi: manajer.' }], sub: [] },
         ],
       },
-      { kind: 'text', heading: false, spans: [{ text: 'Aturan belum ada\ndi sumber.' }] },
+      { kind: 'text', spans: [{ text: 'Aturan belum ada\ndi sumber.' }] },
     ]);
   });
 });
