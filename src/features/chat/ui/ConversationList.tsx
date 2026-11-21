@@ -3,7 +3,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { HeaderActions } from '../../../screens/HeaderActions';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, selectionBar, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { loadMoreConversations, refreshConversations, useChat } from '../chat';
 import { pushSupported } from '../push';
@@ -71,14 +71,18 @@ const Row = memo(function Row({
       accessibilityState={{ selected }}
       onPress={() => onOpen(conversation.id)}
       testID={`conversation-${conversation.id}`}
-      style={({ pressed }) => [styles.row, { backgroundColor: selected ? colors.select : pressed ? colors.surface2 : 'transparent' }]}>
+      style={({ pressed }) => [
+        styles.row,
+        { backgroundColor: selected ? colors.select : pressed ? colors.surface2 : 'transparent' },
+        selected && { borderLeftWidth: selectionBar, borderLeftColor: colors.primary, paddingLeft: space.lg - selectionBar },
+      ]}>
       <Avatar name={conversation.name} path={conversation.type === 'chat' ? conversation.avatar : undefined} seed={conversation.id} icon={icon} />
       <View style={[styles.rowBody, { borderBottomColor: colors.line }]}>
         <View style={styles.rowTop}>
           <Text variant="headline" numberOfLines={1} style={styles.flex}>
             {conversation.name}
           </Text>
-          <Text variant="footnote" tone={unread ? 'primary' : 'inkFaint'} style={unread && styles.strong}>
+          <Text variant="footnote" tone={unread ? 'link' : 'inkFaint'} style={unread && styles.strong}>
             {listTime(conversation.last?.date ?? conversation.activityAt)}
           </Text>
         </View>

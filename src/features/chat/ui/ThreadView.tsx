@@ -127,8 +127,8 @@ export function ThreadView({
     (message: Message): Quote => {
       if (!message.parentId) return null;
       const parent = byId.get(message.parentId);
-      if (!parent) return { author: '', text: t('thread.olderMessage') };
-      return { author: parent.authorId === partnerId ? t('thread.you') : parent.author, text: plainText(parent.body) || t('list.files', { count: parent.attachments.length }) };
+      if (!parent) return { author: '', authorId: null, text: t('thread.olderMessage') };
+      return { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: plainText(parent.body) || t('list.files', { count: parent.attachments.length }) };
     },
     [byId, partnerId, t],
   );
@@ -212,7 +212,7 @@ export function ThreadView({
         <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
           {name}
         </Text>
-        <Text variant="footnote" tone={typing.length ? 'primary' : 'inkSoft'} numberOfLines={1} accessibilityLiveRegion="polite">
+        <Text variant="footnote" tone={typing.length ? 'link' : 'inkSoft'} numberOfLines={1} accessibilityLiveRegion="polite">
           {subtitle}
         </Text>
       </View>
