@@ -5,7 +5,7 @@
   <string name="kaitech_call_active_channel">Panggilan berlangsung</string>
   <string name="kaitech_call_active_description">Kontrol panggilan yang sedang berjalan</string>
   <string name="kaitech_call_ending_title">Kaitech</string>
-  <string name="kaitech_call_ending_body">Menutup panggilan</string>
+  <string name="kaitech_call_ending_body">Mengakhiri panggilan</string>
   <string name="kaitech_call_hidden_title">Kaitech</string>
   <string name="kaitech_call_decline">Tolak</string>
   <string name="kaitech_call_answer">Terima</string>
@@ -31,7 +31,7 @@
   <string name="kaitech_message_reply">Balas</string>
   <string name="kaitech_message_reply_hint">Pesan</string>
   <string name="kaitech_message_mark_read">Tandai dibaca</string>
-  <string name="kaitech_message_failed">Gagal terkirim. Ketuk untuk coba lagi.</string>
+  <string name="kaitech_message_failed">Belum terkirim. Ketuk untuk coba lagi.</string>
   <string name="kaitech_message_sending_title">Kaitech</string>
   <string name="kaitech_message_sending_body">Mengirim balasan</string>
   <string name="kaitech_message_summary">%1$s di %2$s</string>

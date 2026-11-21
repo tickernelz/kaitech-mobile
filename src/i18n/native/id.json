@@ -3,8 +3,8 @@
     "CFBundleDisplayName": "Kaitech",
     "NSFaceIDUsageDescription": "Kaitech memakai Face ID untuk membuka aplikasi saat kunci aplikasi aktif.",
     "NSMicrophoneUsageDescription": "Kaitech memakai mikrofon untuk merekam rapat dan pesan suara, serta untuk menelepon.",
-    "NSCameraUsageDescription": "Kaitech memakai kamera untuk mengambil foto dan video yang Anda kirim dalam pesan dan untuk panggilan video.",
-    "NSPhotoLibraryUsageDescription": "Kaitech membuka foto Anda agar dapat dikirim dalam pesan."
+    "NSCameraUsageDescription": "Kaitech memakai kamera untuk foto dan video di pesan serta panggilan video.",
+    "NSPhotoLibraryUsageDescription": "Kaitech membuka galeri foto agar foto bisa dikirim di pesan."
   },
   "android": {
     "app_name": "Kaitech",

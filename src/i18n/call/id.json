@@ -6,15 +6,17 @@
   "calling": "Memanggil…",
   "connecting": "Menyambungkan…",
   "reconnecting": "Menyambung ulang…",
-  "inCall": "Sedang dalam panggilan",
-  "participants": "{{count}} orang",
-  "participants_one": "{{count}} orang",
+  "inCall": "Dalam panggilan",
   "you": "Anda",
   "cameraOff": "Kamera mati",
   "microphoneOff": "Mikrofon mati",
   "answer": "Terima",
   "decline": "Tolak",
   "hangUp": "Akhiri",
+  "more": "Lainnya",
+  "minimize": "Kembali ke chat",
+  "microphoneOn": "Mikrofon menyala",
+  "cameraLive": "Kamera menyala",
   "mute": "Bisukan mikrofon",
   "unmute": "Nyalakan mikrofon",
   "cameraOn": "Nyalakan kamera",
@@ -32,7 +34,7 @@
   "stopSharing": "Berhenti berbagi",
   "sharingScreen": "Sedang membagikan layar",
   "sharingTitle": "Panggilan Kaitech",
-  "youAreSharing": "Layarmu sedang dibagikan. Semua peserta panggilan bisa melihatnya.",
+  "youAreSharing": "Layar sedang dibagikan. Semua peserta bisa melihatnya.",
   "screenOf": "Layar {{name}}",
   "recording": "Sedang direkam",
   "startRecording": "Rekam",
@@ -43,7 +45,7 @@
     "not_recording": "Panggilan ini sudah tidak direkam.",
     "recording_busy": "Server sedang merekam panggilan lain. Coba lagi setelah selesai.",
     "call_unavailable": "Rekaman belum disiapkan di server ini.",
-    "recording_unavailable": "Perekam tidak menjawab, jadi tidak ada yang terekam. Coba lagi sebentar lagi.",
+    "recording_unavailable": "Perekam tidak merespons, tidak ada yang terekam. Coba lagi nanti.",
     "network": "Server tidak bisa dihubungi. Periksa koneksi lalu coba lagi.",
     "other": "Rekaman gagal dimulai. Coba lagi."
   },
@@ -51,9 +53,9 @@
     "video": "Rekaman panggilan",
     "audio": "Rekaman panggilan (suara)",
     "loading": "Memuat rekaman…",
-    "unavailable": "Rekaman gagal dimuat. Ketuk untuk mencoba lagi.",
-    "saving": "Masih disimpan…",
-    "failed": "Rekaman ini gagal",
+    "unavailable": "Gagal memuat. Ketuk untuk coba lagi.",
+    "saving": "Menyimpan…",
+    "failed": "Rekaman gagal",
     "deleted": "Rekaman ini sudah dihapus",
     "deletedOn": "Dihapus pada {{date}}",
     "deletesOn": "Terhapus otomatis pada {{date}}"
@@ -67,14 +69,14 @@
   "ended": {
     "left": "Panggilan berakhir",
     "declined": "Panggilan ditolak",
-    "disconnected": "Koneksi panggilan terputus",
+    "disconnected": "Koneksi terputus",
     "removed": "Anda dikeluarkan dari panggilan",
     "microphone": "Izin mikrofon dibutuhkan untuk menelepon",
     "camera": "Izin kamera dibutuhkan untuk panggilan video",
     "signedOut": "Panggilan berakhir karena keluar akun",
     "call_unavailable": "Panggilan tidak tersedia untuk percakapan ini",
-    "temporarily_unavailable": "Panggilan sedang tidak tersedia, coba lagi nanti",
-    "forbidden": "Anda tidak lagi punya akses ke percakapan ini",
+    "temporarily_unavailable": "Panggilan sedang tidak tersedia. Coba lagi nanti.",
+    "forbidden": "Tidak ada akses lagi ke percakapan ini",
     "not_found": "Percakapan tidak ditemukan",
     "network": "Jaringan terputus",
     "call_failed": "Panggilan gagal disambungkan"
@@ -82,6 +84,6 @@
   "fullScreen": {
     "title": "Izinkan notifikasi layar penuh",
     "body": "Supaya panggilan berdering di layar kunci",
-    "action": "Buka pengaturan"
+    "action": "Buka Pengaturan"
   }
 }
