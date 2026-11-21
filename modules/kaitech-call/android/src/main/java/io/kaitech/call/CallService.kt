@@ -17,7 +17,10 @@ import android.util.Log
 class CallService : Service() {
   private var player: MediaPlayer? = null
   private val main = Handler(Looper.getMainLooper())
-  private val timeout = Runnable { stopEverything() }
+  private val timeout = Runnable {
+    MessageNotifications.missed(this, ringingChannel)
+    stopEverything()
+  }
   private var foreground = false
 
   data class Ring(
@@ -174,6 +177,8 @@ class CallService : Service() {
 
     fun ringing(context: Context): Boolean = CallNotifications.active(context, CallNotifications.RING_ID)
 
+    fun isRinging(channelId: Int): Boolean = channelId > 0 && channelId == ringingChannel
+
     fun ring(context: Context, ring: Ring) {
       ringingChannel = ring.channelId
       val intent = Intent(context, CallService::class.java)
@@ -206,6 +211,7 @@ class CallService : Service() {
 
     fun cancelRing(context: Context, channelId: Int) {
       if (channelId != ringingChannel) return
+      ringingChannel = 0
       CallNotifications.cancel(context, CallNotifications.RING_ID)
       stop(context)
     }

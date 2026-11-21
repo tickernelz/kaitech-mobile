@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getSession } from '../../../auth/session';
+import { useSession } from '../../../auth/session';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { muteConversation } from '../chat';
@@ -25,7 +25,7 @@ export function NotifySheet({ channelId, mutedUntil, onClose }: { channelId: num
     if (ok) onClose();
     else setFailed(true);
   };
-  const account = getSession().active;
+  const account = useSession().active;
   const items: { icon: IconName; label: string; onPress: () => void; testID: string }[] = until
     ? [{ icon: 'bell', label: t('notify.unmute'), onPress: choose(0), testID: 'notify-unmute' }]
     : muteChoices.map((choice) => ({ icon: 'muted', label: t(`notify.mute.${choice.key}`), onPress: choose(choice.minutes), testID: `notify-mute-${choice.key}` }));

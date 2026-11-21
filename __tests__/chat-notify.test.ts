@@ -1,24 +1,18 @@
 jest.mock('react-native', () => ({ Platform: { OS: 'android', Version: 35 }, AppRegistry: { registerHeadlessTask: jest.fn() } }));
 jest.mock('../src/auth/session', () => ({ getSession: () => ({ accounts: [] }) }));
 jest.mock('../src/features/call/native', () => ({ callNative: () => null }));
-jest.mock('../src/features/chat/api', () => {
-  class SendError extends Error {
-    retry: boolean;
-    constructor(code: string, retry: boolean) {
-      super(code);
-      this.retry = retry;
-    }
-  }
-  return { ChatClient: class {}, SendError, sendErrorFrom: (error: unknown) => (error instanceof SendError ? error : new SendError('network', true)) };
-});
+jest.mock('../src/features/chat/api', () => ({
+  ChatClient: class {},
+  sendErrorFrom: (error: { retry?: boolean }) => ({ retry: error.retry ?? true }),
+}));
 
 import type { Account } from '../src/auth/oauth';
-import { SendError } from '../src/features/chat/api';
 import { mutedEntries, mutedForever, mutedUntilMs, runMessageTask } from '../src/features/chat/notify';
 
 const now = Date.UTC(2026, 10, 21, 8, 0, 0);
 const account = { id: 'u7_x', db: 'lab0', userId: 7, origin: 'https://lab0.kaitech.io', partnerId: 70, deviceId: 3, name: 'A', login: 'a', signedInAt: 0 } as Account;
 const other = { ...account, id: 'u7_y', db: 'other' } as Account;
+const refusal = (retry: boolean) => Object.assign(new Error(retry ? 'network' : 'forbidden'), { retry });
 
 function harness(outcomes: (Error | null)[]) {
   const posted: { key: string; channelId: number; body: string }[] = [];
@@ -95,7 +89,7 @@ describe('reply from a notification', () => {
   });
 
   it('retries a lost connection with the same send key so the server keeps one message', async () => {
-    const run = harness([new SendError('network', true), null]);
+    const run = harness([refusal(true), null]);
     await runMessageTask(reply, run.deps);
     expect(run.posted.map((item) => item.key)).toEqual(['k-1', 'k-1']);
     expect(run.waits).toEqual([3000]);
@@ -103,7 +97,7 @@ describe('reply from a notification', () => {
   });
 
   it('stops on a refusal and reports the reply as not sent', async () => {
-    const run = harness([new SendError('forbidden', false)]);
+    const run = harness([refusal(false)]);
     await runMessageTask(reply, run.deps);
     expect(run.posted).toHaveLength(1);
     expect(run.results).toEqual([['lab0', 7, 12, 'k-1', false]]);

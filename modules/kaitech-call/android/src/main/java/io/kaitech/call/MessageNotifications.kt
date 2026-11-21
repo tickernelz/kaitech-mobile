@@ -39,6 +39,8 @@ object MessageNotifications {
   private const val SUMMARY = "io.kaitech.messages.summary"
   private const val ID = 7201
   private const val AVATAR = 128
+  private const val CALL = "call"
+  private const val MISSED_CALL = "call_missed"
   private val palette = intArrayOf(
     0xFF441D65.toInt(),
     0xFF1F6F8B.toInt(),
@@ -74,7 +76,42 @@ object MessageNotifications {
     manager.createNotificationChannels(listOf(messages, mentions, muted))
   }
 
+  private val calls = java.util.concurrent.ConcurrentHashMap<Int, MessagePush>()
+
+  fun rememberCall(data: Map<String, String>) {
+    val target = MessageKey.from(data) ?: return
+    val caller = data["caller"].orEmpty()
+    calls[target.channelId] = MessagePush(
+      db = target.db,
+      uid = target.uid,
+      channelId = target.channelId,
+      channelType = data["channel_type"].orEmpty().ifBlank { "chat" },
+      channelName = data["channel_name"].orEmpty().ifBlank { data["title"].orEmpty().ifBlank { caller } },
+      senderId = data["caller_partner_id"]?.toIntOrNull() ?: 0,
+      senderName = caller,
+      agent = false,
+      messageId = 0,
+      ts = System.currentTimeMillis(),
+      kind = MISSED_CALL,
+      duration = 0,
+      fileName = "",
+      body = "",
+      mention = false,
+      muted = false,
+    )
+  }
+
+  fun missed(context: Context, channelId: Int) {
+    val call = calls.remove(channelId) ?: return
+    show(context, call.copy(ts = System.currentTimeMillis()))
+  }
+
+  fun forgetCall(channelId: Int) {
+    calls.remove(channelId)
+  }
+
   fun show(context: Context, push: MessagePush) {
+    if (push.kind == CALL) return
     if (CallBridge.foreground && push.key in MessageStore.openKeys) return
     val text = localized(context)
     val line = MessageStore.Line(push.messageId, sender(text, push), push.senderId, push.agent, describe(text, push), push.ts)
@@ -118,7 +155,7 @@ object MessageNotifications {
       "video" -> captioned(context.getString(R.string.kaitech_message_video), body)
       "voice" -> if (push.duration > 0) context.getString(R.string.kaitech_message_voice_length, clock(push.duration)) else context.getString(R.string.kaitech_message_voice)
       "file" -> if (push.fileName.isNotBlank()) context.getString(R.string.kaitech_message_file_named, push.fileName) else context.getString(R.string.kaitech_message_file)
-      "call_missed" -> context.getString(R.string.kaitech_message_missed_call)
+      MISSED_CALL -> context.getString(R.string.kaitech_message_missed_call)
       else -> body.ifBlank { context.getString(R.string.kaitech_message_new) }
     }
     return if (push.mention) context.getString(R.string.kaitech_message_mention, base) else base
