@@ -315,6 +315,14 @@ Di jendela expanded daftar di kiri (360 dp) dan percakapan di kanan; di compact 
 
 Alur `signed-in/chat.yaml` masuk bila perlu, membuka percakapan dengan akun web, mengirim 25 pesan, menyalakan mode pesawat, mengirim 25 pesan lagi, mematikan mode pesawat, lalu memeriksa lewat server bahwa ke-50 pesan ada tepat sekali, tanda baca dari web, dan pesan suara dua arah. Variabel tambahan: `-e SERVER=<alamat server> -e DB=<database> -e WEB_LOGIN=<akun web> -e WEB_PASSWORD=<sandi> -e CHANNEL_ID=<id percakapan> -e PEER=<nama akun web> -e RUN=<penanda unik>`. Waktu dari tekan Kirim sampai gelembung tampil dicatat di log sebagai `send_visible_ms`.
 
+### Aksi baris (`src/ui/RowActions.tsx`)
+
+Setiap baris daftar (percakapan Chat, percakapan Coworker, Program, bukti, temuan, Aktivitas, rapat MoM, hasil Cari) dibungkus `RowActions`. Tahan lama membuka lembar Lainnya dengan getaran singkat; geser ke kanan membuka aksi ringan (tandai dibaca atau belum, sematkan, ganti judul, salin, bagikan), geser ke kiri membuka arsip, hapus, atau keluar plus Lainnya. TalkBack mendapat semua aksi lembar sebagai aksi kustom di baris itu, dan tombol Lainnya muncul di ujung baris saat baris difokus dengan keyboard. Arsip, hapus dari daftar, keluar, dan hapus percakapan Coworker langsung hilang dari layar dengan snackbar Urungkan; panggilan server baru dikirim setelah 5 detik, atas nama akun yang memintanya. Hapus rekaman MoM memakai syarat server: hanya pengunggah, dengan mengetik judul dan kata sandi.
+
+Sematkan dan arsip percakapan Chat hanya muncul bila server mengirim `pinned` dan `archived` di daftar percakapan. Hapus dari daftar pada chat pribadi memakai `channel_pin` Odoo, jadi percakapan muncul lagi saat ada pesan baru; keluar dari grup memakai `action_unfollow`.
+
+Alur `signed-in/rows-chat.yaml`, `rows-discovery.yaml`, dan `rows-mom.yaml` membuat data ujinya sendiri lewat akun web (grup baru, percakapan Coworker kosong, rekaman pendek) lalu membuktikan tahan lama, kedua sisi geser, Urungkan, dan efeknya di server. Variabel tambahan selain milik `chat.yaml`: `-e PROGRAMME=<id Program uji> -e SEARCH=<kata>`.
+
 ## Lisensi
 
 MIT, lihat `LICENSE`.
