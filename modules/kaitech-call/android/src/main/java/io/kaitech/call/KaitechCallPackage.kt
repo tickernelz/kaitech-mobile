@@ -5,6 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import androidx.core.app.OnPictureInPictureModeChangedProvider
+import androidx.core.app.PictureInPictureModeChangedInfo
+import androidx.core.util.Consumer
 import expo.modules.core.interfaces.Package
 import expo.modules.core.interfaces.ReactActivityLifecycleListener
 
@@ -15,8 +18,16 @@ class KaitechCallPackage : Package {
 }
 
 class CallActivityListener : ReactActivityLifecycleListener {
+  private val pipWatcher = Consumer<PictureInPictureModeChangedInfo> { info -> CallBridge.setPictureInPicture(info.isInPictureInPictureMode) }
+
   override fun onCreate(activity: Activity, savedInstanceState: Bundle?) {
     apply(activity, activity.intent)
+    (activity as? OnPictureInPictureModeChangedProvider)?.addOnPictureInPictureModeChangedListener(pipWatcher)
+    CallPip.apply(activity)
+  }
+
+  override fun onDestroy(activity: Activity) {
+    (activity as? OnPictureInPictureModeChangedProvider)?.removeOnPictureInPictureModeChangedListener(pipWatcher)
   }
 
   override fun onNewIntent(intent: Intent): Boolean {
@@ -24,11 +35,7 @@ class CallActivityListener : ReactActivityLifecycleListener {
   }
 
   override fun onUserLeaveHint(activity: Activity) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-    if (!CallBridge.inCall || CallBridge.pipRequested) return
-    if (activity.isInPictureInPictureMode) return
-    val params = android.app.PictureInPictureParams.Builder().build()
-    activity.enterPictureInPictureMode(params)
+    CallPip.onLeaving(activity)
   }
 
   override fun onResume(activity: Activity) {

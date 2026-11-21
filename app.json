@@ -26,7 +26,8 @@
       "infoPlist": {
         "CFBundleAllowMixedLocalizations": true,
         "UIBackgroundModes": [
-          "audio"
+          "audio",
+          "voip"
         ]
       }
     },
@@ -54,7 +55,14 @@
         }
       ],
       "./plugins/with-livekit-gradle",
-      "@livekit/react-native-expo-plugin",
+      [
+        "@livekit/react-native-expo-plugin",
+        {
+          "ios": {
+            "enableMultitaskingCameraAccess": true
+          }
+        }
+      ],
       "@config-plugins/react-native-webrtc",
       "./modules/kaitech-call/plugin",
       "./plugins/with-broadcast-extension",

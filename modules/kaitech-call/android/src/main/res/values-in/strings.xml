@@ -10,4 +10,9 @@
   <string name="kaitech_call_decline">Tolak</string>
   <string name="kaitech_call_answer">Terima</string>
   <string name="kaitech_call_stop_sharing">Berhenti berbagi</string>
+  <string name="kaitech_call_mute">Bisukan</string>
+  <string name="kaitech_call_unmute">Bunyikan</string>
+  <string name="kaitech_call_camera_off">Matikan kamera</string>
+  <string name="kaitech_call_camera_on">Nyalakan kamera</string>
+  <string name="kaitech_call_hang_up">Tutup panggilan</string>
 </resources>

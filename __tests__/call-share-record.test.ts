@@ -3,6 +3,8 @@ const mockNotices: boolean[] = [];
 const mockTitles: string[] = [];
 const mockListeners: ((action: unknown) => void)[] = [];
 const mockRooms: MockRoom[] = [];
+const mockPip: { enabled: boolean; width: number; height: number; muted: boolean; camera: boolean; video: boolean; sharing: boolean }[] = [];
+let mockLeftPip = 0;
 
 type Handler = () => void;
 
@@ -114,6 +116,14 @@ jest.mock('../src/features/call/native', () => ({
       mockTitles.push(args[1] as string);
       return Promise.resolve(true);
     },
+    setPictureInPicture: (enabled: boolean, width: number, height: number, muted: boolean, camera: boolean, video: boolean, sharing: boolean) => {
+      mockPip.push({ enabled, width, height, muted, camera, video, sharing });
+      return Promise.resolve(true);
+    },
+    leavePictureInPicture: () => {
+      mockLeftPip += 1;
+      return Promise.resolve(true);
+    },
   }),
   onCallAction: (listener: (action: unknown) => void) => {
     mockListeners.push(listener);
@@ -187,9 +197,9 @@ async function flush() {
   for (let turn = 0; turn < 20; turn += 1) await Promise.resolve();
 }
 
-async function activeCall() {
+async function activeCall(video = false) {
   const call = require('../src/features/call/call');
-  await call.startCall({ channelId: 5, channelName: 'Team', video: false });
+  await call.startCall({ channelId: 5, channelName: 'Team', video });
   await flush();
   expect(call.callState().phase).toBe('active');
   mockUpdates.length = 0;
@@ -272,6 +282,73 @@ describe('screen sharing in a call', () => {
     expect(mockTitles[mockTitles.length - 1]).toBe('Team');
   });
 
+});
+
+describe('picture-in-picture during a call', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    mockUpdates.length = 0;
+    mockListeners.length = 0;
+    mockRooms.length = 0;
+    mockPip.length = 0;
+    mockLeftPip = 0;
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  const lastPip = () => mockPip[mockPip.length - 1];
+
+  it('arms automatic picture-in-picture for a video call', async () => {
+    await activeCall(true);
+    expect(lastPip()).toMatchObject({ enabled: true, video: true, camera: true, muted: false });
+  });
+
+  it('keeps a voice call out of picture-in-picture', async () => {
+    await activeCall(false);
+    expect(lastPip().enabled).toBe(false);
+  });
+
+  it('mutes and turns the camera off from the window actions', async () => {
+    const { call } = await activeCall(true);
+    mockListeners[mockListeners.length - 1]({ type: 'mute' });
+    await flush();
+    mockListeners[mockListeners.length - 1]({ type: 'camera' });
+    await flush();
+    expect(call.callState().muted).toBe(true);
+    expect(call.callState().cameraOn).toBe(false);
+    expect(mockUpdates).toEqual([{ is_muted: true }, { is_camera_on: false }]);
+    expect(lastPip()).toMatchObject({ enabled: true, muted: true, camera: false });
+  });
+
+  it('offers stop sharing in the window while the screen is shared', async () => {
+    const { call } = await activeCall(true);
+    await call.toggleScreenShare();
+    await flush();
+    expect(lastPip()).toMatchObject({ enabled: true, sharing: true });
+  });
+
+  it('turns off when the setting is off', async () => {
+    await activeCall(true);
+    require('../src/features/call/pipSetting').setPictureInPictureAllowed(false);
+    expect(lastPip().enabled).toBe(false);
+  });
+
+  it('closes the window once a call that ended in it goes idle', async () => {
+    const { call } = await activeCall(true);
+    mockListeners[mockListeners.length - 1]({ type: 'pip', active: true });
+    expect(call.callState().pictureInPicture).toBe(true);
+    await call.hangUp('left');
+    await flush();
+    expect(lastPip().enabled).toBe(false);
+    expect(mockLeftPip).toBe(0);
+    jest.advanceTimersByTime(2400);
+    expect(call.callState().phase).toBe('idle');
+    expect(mockLeftPip).toBeGreaterThan(0);
+  });
 });
 
 describe('recording a call', () => {

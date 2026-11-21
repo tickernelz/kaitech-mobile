@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
 import { ScreenCapturePickerView } from '@livekit/react-native-webrtc';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,9 +9,26 @@ import { screenShareSupported, setBroadcastPicker } from '../screenShare';
 import { useTheme, space } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../chat/ui/icons';
-import { enterPictureInPicture, flipCamera, fullScreenIntentAllowed, hangUp, openFullScreenIntentSettings, pictureInPictureSupported, toggleCamera, toggleMute, toggleRecording, toggleScreenShare, toggleSpeaker, useCallState } from '../call';
+import {
+  enterPictureInPicture,
+  flipCamera,
+  fullScreenIntentAllowed,
+  hangUp,
+  openFullScreenIntentSettings,
+  pictureInPictureSpec,
+  pictureInPictureSupported,
+  setPictureInPictureHint,
+  toggleCamera,
+  toggleMute,
+  toggleRecording,
+  toggleScreenShare,
+  toggleSpeaker,
+  useCallState,
+} from '../call';
+import { usePictureInPictureAllowed } from '../pipSetting';
 import { CallControls, type CallAction } from './CallControls';
 import { CallTile } from './CallTile';
+import { PipStage } from './PipStage';
 import { ScreenStage } from './ScreenStage';
 
 export function CallScreen() {
@@ -23,6 +40,11 @@ export function CallScreen() {
   const call = useCallState();
   const layout = layoutFor(width, height);
   const pip = pictureInPictureSupported();
+  usePictureInPictureAllowed();
+  const spec = pictureInPictureSpec(call);
+  const pipTarget = spec.enabled && call.focus ? { ...call.focus, size: { width: spec.width, height: spec.height } } : null;
+  const compact = call.pictureInPicture || layout.pip;
+  const stageRef = useRef<ComponentRef<typeof View>>(null);
   const share = call.phase === 'active' && screenShareSupported();
   const presenter = presenterOf(call.people);
   const recording = call.phase === 'active' ? { on: call.recording, busy: call.recordingBusy } : null;
@@ -31,6 +53,7 @@ export function CallScreen() {
   const onStageLayout = (event: LayoutChangeEvent) => {
     const next = event.nativeEvent.layout;
     setMeasured((current) => (current && current.width === next.width && current.height === next.height ? current : { width: next.width, height: next.height }));
+    if (Platform.OS === 'android') stageRef.current?.measureInWindow(setPictureInPictureHint);
   };
 
   const visible = useMemo(() => {
@@ -77,6 +100,8 @@ export function CallScreen() {
     }
   };
 
+  if (compact) return <PipStage call={call} status={call.phase === 'active' ? null : subtitle} />;
+
   const stage = visible.stage;
   const people = visible.ids
     .map((sid) => call.people.find((person) => person.sid === sid))
@@ -111,9 +136,9 @@ export function CallScreen() {
       </View>
 
       <View style={[styles.body, layout.controls === 'rail' ? styles.bodyRail : null]}>
-        <View style={styles.stage} onLayout={onStageLayout} testID="call-stage">
+        <View ref={stageRef} style={styles.stage} onLayout={onStageLayout} testID="call-stage">
           {presenter ? (
-            <ScreenStage presenter={presenter} people={call.people} side={layout.controls === 'rail'} onStop={() => void toggleScreenShare()} />
+            <ScreenStage presenter={presenter} people={call.people} side={layout.controls === 'rail'} onStop={() => void toggleScreenShare()} pip={pipTarget} />
           ) : call.people.length === 0 ? (
             <View style={styles.center}>
               <Text variant="body" tone="inkSoft">
@@ -125,7 +150,13 @@ export function CallScreen() {
               const columns = stage.columns;
               return (
                 <View key={person.sid} style={{ paddingRight: index % columns === columns - 1 ? 0 : tileGap, paddingBottom: tileGap }}>
-                  <CallTile person={person} width={stage.tileWidth} height={stage.tileHeight} rounded={call.people.length < 3} />
+                  <CallTile
+                    person={person}
+                    width={stage.tileWidth}
+                    height={stage.tileHeight}
+                    rounded={call.people.length < 3}
+                    pip={pipTarget?.source === 'camera' && pipTarget.sid === person.sid ? pipTarget.size : null}
+                  />
                 </View>
               );
             })
