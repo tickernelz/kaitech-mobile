@@ -2,7 +2,7 @@ jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemS
 require('../src/i18n');
 import { act, create, type ReactTestRendererJSON } from 'react-test-renderer';
 import { composeBody } from '../src/features/chat/html';
-import { bodyBlocks, sourceBlocks } from '../src/features/chat/markdown';
+import { bodyBlocks, bodyShape, sourceBlocks } from '../src/features/chat/markdown';
 import { RichText } from '../src/features/chat/ui/RichText';
 
 type Node = ReactTestRendererJSON | string;
@@ -63,5 +63,12 @@ describe('RichText native views', () => {
     const long = 'catatan panjang yang pasti terbungkus di kolom';
     const texts = topTexts(render(sourceBlocks(`| A | B |\n|---|---|\n| 1 | ${long} |\n| 3 | x |`, true)));
     expect(texts).toEqual(['A', 'B', '1', long, '3', 'x']);
+  });
+
+  it('tells FlashList which bubbles share a shape', () => {
+    expect(bodyShape(composeBody('halo **semua**', []))).toBe('plain');
+    expect(bodyShape(composeBody('- satu\n  - anak\n- dua', []))).toBe('plain');
+    expect(bodyShape(composeBody('teks\n\n> kutipan', []))).toBe('rich');
+    expect(bodyShape(coworker)).toBe('table');
   });
 });

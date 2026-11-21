@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Linking, Platform, ScrollView, StyleSheet, Text as NativeText, View, type TextStyle } from 'react-native';
 import { radius, space, type as typography, useTheme, type Colors } from '../../../theme';
 import type { Span } from '../html';
-import type { MdBlock } from '../markdown';
+import { isFlatList, type MdBlock } from '../markdown';
 
 const mono = Platform.select({ ios: 'Menlo', default: 'monospace' });
 const CHAR_WIDTH = 9;
@@ -49,10 +49,6 @@ function spanNodes(spans: Span[], paint: Paint, key: string): ReactNode[] {
       span.text
     ),
   );
-}
-
-export function isFlatList(block: ListBlock): boolean {
-  return block.items.every((item) => item.sub.every((sub) => sub.kind === 'list' && isFlatList(sub)));
 }
 
 function flows(block: MdBlock): boolean {
