@@ -17,7 +17,8 @@ import { CoworkerThread } from './CoworkerThread';
 import { Header } from './Header';
 import { openConversation, rememberProgramme, useLastProgramme, useOpenConversation } from './store';
 import { Icon, type IconName } from '../../ui/icons';
-import { Card, Chip, IconButton, StateView } from './ui';
+import { IconButton } from '../../ui/IconButton';
+import { Card, Chip, StateView } from './ui';
 import { useLatestConversation } from './useLatestConversation';
 
 export function useCurrentProgramme(): { list: ReturnType<typeof useResource<Programme[]>>; current: Programme | null } {

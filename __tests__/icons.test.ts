@@ -23,7 +23,7 @@ const { Icon, iconNames } = require('../src/ui/icons') as typeof import('../src/
 const { plan, strokeFor } = require('../src/ui/icons/glyphs') as typeof import('../src/ui/icons/glyphs');
 const { CallPill } = require('../src/features/call/ui/CallControls') as typeof import('../src/features/call/ui/CallControls');
 const { controlsFor } = require('../src/features/call/controls') as typeof import('../src/features/call/controls');
-const { IconButton } = require('../src/features/discovery/ui') as typeof import('../src/features/discovery/ui');
+const { IconButton } = require('../src/ui/IconButton') as typeof import('../src/ui/IconButton');
 const { HeaderActions } = require('../src/screens/HeaderActions') as typeof import('../src/screens/HeaderActions');
 
 const sizes = [16, 20, 24, 32];

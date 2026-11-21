@@ -11,7 +11,7 @@ import { setLockEnabled, useLock } from '../lock/lock';
 import { useLockLabel } from '../lock/useLockLabel';
 import { LanguageChoices } from '../screens/LanguageChoices';
 import { space } from '../theme';
-import { IconButton } from '../features/discovery/ui';
+import { IconButton } from '../ui/IconButton';
 import { Button } from '../ui/Button';
 import { Check, Divider, Row, Section, ToggleRow } from '../ui/List';
 import { Screen } from '../ui/Screen';

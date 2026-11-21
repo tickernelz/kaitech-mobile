@@ -10,7 +10,8 @@ import { Text } from '../../ui/Text';
 import { search, type SearchHits } from '../discovery/api';
 import { openConversation, rememberProgramme, useLastProgramme } from '../discovery/store';
 import { Icon, type IconName } from '../../ui/icons';
-import { IconButton, Segmented, StateView } from '../discovery/ui';
+import { IconButton } from '../../ui/IconButton';
+import { Segmented, StateView } from '../discovery/ui';
 
 type Filter = 'all' | 'chat' | 'discovery' | 'mom';
 type Hit = { key: string; icon: IconName; title: string; detail: string; open: () => void };
