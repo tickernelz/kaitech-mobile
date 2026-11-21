@@ -14,7 +14,7 @@ export function AttachSheet({ visible, onClose, onPick }: { visible: boolean; on
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <Pressable style={styles.scrim} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button">
+      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button">
         <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} accessibilityViewIsModal onPress={() => undefined}>
           <Text variant="title" accessibilityRole="header">
             {t('composer.attachTitle')}
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   progress: { gap: space.xs, minWidth: 160 },
   track: { height: 4, borderRadius: 2, overflow: 'hidden' },
   fill: { height: 4 },
-  scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', backgroundColor: 'rgba(17,5,27,0.45)' },
+  scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 560, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, padding: space.xl, gap: space.lg },
   sheetGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.lg },
   sheetItem: { width: 88, alignItems: 'center', gap: space.xs },

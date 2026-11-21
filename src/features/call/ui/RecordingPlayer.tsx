@@ -39,29 +39,29 @@ export function RecordingPlayer({ id }: { id: number }) {
   const audioOnly = loaded.status === 'ready' && loaded.playback.recording.audioOnly;
 
   return (
-    <View style={[styles.fill, { backgroundColor: '#000000', paddingTop: insets.top, paddingBottom: insets.bottom }]} testID="recording-player">
+    <View style={[styles.fill, { backgroundColor: colors.stage, paddingTop: insets.top, paddingBottom: insets.bottom }]} testID="recording-player">
       <View style={styles.top}>
-        <Text variant="title" numberOfLines={1} style={styles.title}>
+        <Text variant="title" numberOfLines={1} style={[styles.title, { color: colors.onStage }]}>
           {t('player.title')}
         </Text>
         <Pressable accessibilityRole="button" accessibilityLabel={t('player.close')} onPress={() => router.back()} style={styles.close} testID="recording-close">
-          <Icon name="close" color="#FFFFFF" />
+          <Icon name="close" color={colors.onStage} />
         </Pressable>
       </View>
       <View style={styles.stage}>
         {loaded.status === 'loading' ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color={colors.onStage} />
         ) : url ? (
           <>
             <Player url={url} />
             {audioOnly ? (
-              <Text variant="footnote" style={styles.note}>
+              <Text variant="footnote" style={[styles.note, { color: colors.onStage }]}>
                 {t('player.audioOnly')}
               </Text>
             ) : null}
           </>
         ) : (
-          <Text variant="body" style={[styles.note, { color: colors.onPrimary }]} testID="recording-unavailable">
+          <Text variant="body" style={[styles.note, { color: colors.onStage }]} testID="recording-unavailable">
             {t('player.unavailable')}
           </Text>
         )}
@@ -73,9 +73,9 @@ export function RecordingPlayer({ id }: { id: number }) {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: space.lg, paddingVertical: space.sm, gap: space.sm },
-  title: { flex: 1, color: '#FFFFFF' },
+  title: { flex: 1 },
   close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   stage: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   video: { width: '100%', height: '100%' },
-  note: { color: '#FFFFFF', textAlign: 'center', padding: space.md },
+  note: { textAlign: 'center', padding: space.md },
 });

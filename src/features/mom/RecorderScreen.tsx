@@ -76,7 +76,7 @@ function RoundButton({
             opacity: disabled ? 0.4 : pressed ? 0.8 : 1,
           },
         ]}>
-        <MomIcon name={icon} size={big ? 30 : 24} color={danger ? '#FFFFFF' : colors.ink} />
+        <MomIcon name={icon} size={big ? 30 : 24} color={danger ? colors.onPrimary : colors.ink} />
       </Pressable>
       <Text variant="footnote" style={styles.roundLabel} maxFontSizeMultiplier={1.6}>
         {label}
@@ -140,7 +140,7 @@ function SmallRound({
         styles.smallRound,
         { backgroundColor: danger ? colors.danger : pressed ? colors.surface2 : colors.surface, borderColor: colors.line, opacity: disabled ? 0.4 : 1 },
       ]}>
-      <MomIcon name={icon} size={22} color={danger ? '#FFFFFF' : colors.ink} />
+      <MomIcon name={icon} size={22} color={danger ? colors.onPrimary : colors.ink} />
     </Pressable>
   );
 }

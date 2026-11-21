@@ -27,7 +27,8 @@ const routes: Record<TabName, { name: string; href: '/' | '/discovery' | '/mom' 
 function TabButton({ name, rail, isFocused, ...props }: TabTriggerSlotProps & { name: TabName; rail: boolean }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const ink = isFocused ? colors.selectInk : colors.inkSoft;
+  const glyph = isFocused ? colors.onPrimary : colors.inkSoft;
+  const ink = isFocused ? colors.ink : colors.inkSoft;
   return (
     <Pressable
       {...(props as ComponentProps<typeof Pressable>)}
@@ -36,9 +37,9 @@ function TabButton({ name, rail, isFocused, ...props }: TabTriggerSlotProps & { 
       accessibilityLabel={t(`tabs.${name}`)}
       testID={`tab-button-${name}`}
       style={rail ? styles.railItem : styles.barItem}>
-      <View style={[styles.pill, rail && styles.railPill, isFocused && { backgroundColor: colors.select }]}>
+      <View style={[styles.pill, rail && styles.railPill, isFocused && { backgroundColor: colors.primary }]}>
         <Svg width={24} height={24} viewBox="0 0 24 24">
-          <Path d={icons[name]} fill={ink} />
+          <Path d={icons[name]} fill={glyph} />
         </Svg>
       </View>
       <Text variant="label" maxFontSizeMultiplier={1.5} style={[styles.label, { color: ink }]}>
