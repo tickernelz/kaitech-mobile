@@ -38,7 +38,7 @@ export function CallScreen() {
   const presenter = presenterOf(call.people);
   const self = call.people.find((person) => person.local) ?? null;
   const remote = call.people.filter((person) => !person.local);
-  const duo = Boolean(self) && remote.length === 1;
+  const duo = call.video && Boolean(self) && remote.length === 1;
   const onStage = call.video || Boolean(presenter);
   const remoteVideo = remote.some((person) => person.cameraOn || person.screenOn);
   const [sheet, setSheet] = useState<'more' | 'people' | null>(null);

@@ -80,18 +80,15 @@ function Line({
   icon,
   title,
   detail,
-  badge,
   onPress,
   testID,
 }: {
   icon: IconName;
   title: string;
   detail?: string;
-  badge?: number;
   onPress?: () => void;
   testID?: string;
 }) {
-  const { number } = useFormatters();
   const { colors } = useTheme();
   const body = (
     <>
@@ -108,13 +105,6 @@ function Line({
           </Text>
         ) : null}
       </View>
-      {badge ? (
-        <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-          <Text variant="label" style={{ color: colors.onPrimary }}>
-            {number(badge)}
-          </Text>
-        </View>
-      ) : null}
       {onPress ? <Icon name="forward" size={20} color={colors.inkFaint} /> : null}
     </>
   );
@@ -261,7 +251,7 @@ export function DiscoveryHome() {
                 />
               ))}
               {programmePanel.data.needs_you.map((line) => (
-                <Line key={`agenda-${line.kind}`} icon="bulb" title={line.headline} badge={line.count} />
+                <Line key={`agenda-${line.kind}`} icon="bulb" title={line.headline} />
               ))}
             </Section>
           ) : null}
@@ -286,7 +276,6 @@ export function DiscoveryHome() {
                   key={row.id}
                   icon="bulb"
                   title={row.name}
-                  detail={t('discovery.finding.sides', { count: row.side_ids.length })}
                   onPress={() => router.push({ pathname: '/program/finding/[id]', params: { id: String(row.id), programme: String(programme) } })}
                   testID={`recent-finding-${row.id}`}
                 />
@@ -351,7 +340,6 @@ const styles = StyleSheet.create({
   rowWrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.sm },
   metrics: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.lg, rowGap: space.xs },
   metric: { flexDirection: 'row', alignItems: 'center', gap: space.xs, maxWidth: '100%' },
-  badge: { minWidth: 20, height: 20, borderRadius: radius.pill, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
   track: { height: 6, borderRadius: radius.pill, overflow: 'hidden' },
   bar: { height: 6 },
   ask: {
