@@ -17,12 +17,21 @@ onFlowStart:
     when:
       platform: Android
     commands:
-      - tapOn:
-          id: welcome-sign-in
-      - extendedWaitUntil:
-          visible:
-            text: .*lab0\.kaitech\.io.*
-          timeout: 60000
+      - retry:
+          maxRetries: 2
+          commands:
+            - runFlow:
+                when:
+                  notVisible:
+                    id: welcome-sign-in
+                commands:
+                  - back
+            - tapOn:
+                id: welcome-sign-in
+            - extendedWaitUntil:
+                visible:
+                  text: .*lab0\.kaitech\.io.*
+                timeout: 60000
       - assertNotVisible:
           id: sign-in-server
       - runFlow:
