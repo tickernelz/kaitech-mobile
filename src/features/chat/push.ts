@@ -7,6 +7,7 @@ import i18n from '../../i18n';
 import { lockEnabled, onLockChange } from '../../lock/lock';
 import { ChatClient } from './api';
 import { chatClient, getChat } from './chat';
+import { forgetMessages, mirrorHidden } from './notify';
 import { previewKey, registeredKey, syncPreview, syncPushToken } from './pushAccount';
 
 export const channelId = 'messages';
@@ -40,8 +41,10 @@ function syncPreviews(): Promise<void> {
 }
 
 let previewShown = previewAllowed();
+mirrorHidden(!previewShown);
 onLockChange(() => {
   if (previewAllowed() === previewShown) return;
+  mirrorHidden(!previewAllowed());
   previewShown = previewAllowed();
   void syncPreviews();
 });
@@ -109,7 +112,9 @@ export async function askForPushOnce(accountId: string) {
 onAccountForgotten((accountId) => {
   if (Storage.getItemSync(registeredKey)?.startsWith(`${accountId}|`)) Storage.removeItemSync(registeredKey);
   const account = getSession().accounts.find((candidate) => candidate.id === accountId);
-  if (account) Storage.removeItemSync(previewKey(account));
+  if (!account) return;
+  Storage.removeItemSync(previewKey(account));
+  forgetMessages(account);
 });
 
 export function pushData(response: Notifications.NotificationResponse | null): Record<string, unknown> {

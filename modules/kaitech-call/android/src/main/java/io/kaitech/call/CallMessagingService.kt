@@ -11,6 +11,15 @@ class CallMessagingService : FirebaseMessagingService() {
   override fun onMessageReceived(remoteMessage: RemoteMessage) {
     val data = remoteMessage.data
     val type = data["type"]
+    if (type == MessagePush.MESSAGE) {
+      val push = MessagePush.from(data)
+      if (push == null) forward(remoteMessage) else MessageNotifications.show(this, push)
+      return
+    }
+    if (type == MessagePush.READ) {
+      MessageKey.from(data)?.let { MessageNotifications.clear(this, it.value) }
+      return
+    }
     if ((type != CALL && type != CANCEL) || data["model"] != "discuss.channel") {
       forward(remoteMessage)
       return
@@ -23,6 +32,7 @@ class CallMessagingService : FirebaseMessagingService() {
     val callId = data["call_id"]?.toIntOrNull() ?: 0
     val system = CallBridge.module == null || !CallBridge.foreground || CallBridge.locked
     if (type == CANCEL) {
+      MessageKey.from(data)?.value?.let { key -> if (CallService.isRinging(key)) MessageNotifications.missed(this, key) else MessageNotifications.forgetCall(key) }
       if (system) CallService.cancelRing(this, channelId)
       CallBridge.send(mapOf("type" to "cancel", "channelId" to channelId, "callId" to callId))
       return
@@ -32,7 +42,10 @@ class CallMessagingService : FirebaseMessagingService() {
     val video = data["video"] == "1"
     val db = data["db"].orEmpty()
     val uid = data["uid"]?.toIntOrNull() ?: 0
-    if (system) CallService.ring(this, CallService.Ring(title, body, channelId, callId, video, db, uid, system = true))
+    if (system) {
+      MessageNotifications.rememberCall(data)
+      CallService.ring(this, CallService.Ring(title, body, channelId, callId, video, db, uid, system = true))
+    }
     CallBridge.send(
       mapOf(
         "type" to "incoming",
