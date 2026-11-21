@@ -4,7 +4,7 @@ import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-nat
 import { readableWidth } from '../../../layout/windowClass';
 import { personColors, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { bodyBlocks, bodyPreview } from '../markdown';
+import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
 import { attachmentUrl, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
 import type { Attachment, Message, Pending, PendingFile } from '../types';
@@ -305,11 +305,7 @@ export const PendingBubble = memo(function PendingBubble({
         {pending.files.map((file) => (
           <PendingFileRow key={file.key} file={file} />
         ))}
-        {pending.text ? (
-          <Text variant="body" style={{ color: colors.selectInk }}>
-            {pending.text}
-          </Text>
-        ) : null}
+        {pending.text ? <RichText blocks={sourceBlocks(pending.text, false)} color={colors.selectInk} tint={colors.surface} /> : null}
         <View style={styles.meta}>
           <Text variant="label" tone={failed ? 'dangerInk' : 'inkFaint'}>
             {status}

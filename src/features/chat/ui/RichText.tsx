@@ -1,8 +1,7 @@
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, Platform, ScrollView, StyleSheet, Text as NativeText, View, type TextStyle } from 'react-native';
-import { radius, space, useTheme, type Colors } from '../../../theme';
-import { Text } from '../../../ui/Text';
+import { radius, space, type as typography, useTheme, type Colors } from '../../../theme';
 import type { Span } from '../html';
 import type { MdBlock } from '../markdown';
 
@@ -62,14 +61,19 @@ function columnWidths(head: Span[][], rows: Span[][][]): number[] {
 function Table({ block, color, colors, tint }: { block: Extract<MdBlock, { kind: 'table' }>; color: string; colors: Colors; tint: string }) {
   const { t } = useTranslation('chat');
   const widths = columnWidths(block.head, block.rows);
-  const row = (cells: Span[][], header: boolean) => (
-    <View style={[styles.row, header && { backgroundColor: tint }]}>
+  const row = (cells: Span[][], header: boolean, key: number) => (
+    <View key={key} style={[styles.row, header ? { backgroundColor: tint } : [styles.divider, { borderColor: colors.line }]]}>
       {cells.map((cell, column) => (
-        <View key={column} style={[styles.cell, { width: widths[column], borderColor: colors.line }, column === cells.length - 1 && styles.lastCell]}>
-          <NativeText style={[styles.cellText, { color, textAlign: block.align[column] }, header && styles.bold]}>
-            <Spans spans={cell} colors={colors} tint={tint} />
-          </NativeText>
-        </View>
+        <NativeText
+          key={column}
+          style={[
+            styles.cell,
+            { width: widths[column], borderColor: colors.line, color, textAlign: block.align[column] },
+            column === cells.length - 1 && styles.lastCell,
+            header && styles.bold,
+          ]}>
+          <Spans spans={cell} colors={colors} tint={tint} />
+        </NativeText>
       ))}
     </View>
   );
@@ -81,12 +85,8 @@ function Table({ block, color, colors, tint }: { block: Extract<MdBlock, { kind:
       accessibilityLabel={t('thread.table', { columns: block.head.length, rows: block.rows.length })}
       testID="markdown-table">
       <View style={[styles.table, { borderColor: colors.line }]}>
-        {row(block.head, true)}
-        {block.rows.map((cells, index) => (
-          <View key={index} style={[styles.divider, { borderColor: colors.line }]}>
-            {row(cells, false)}
-          </View>
-        ))}
+        {row(block.head, true, -1)}
+        {block.rows.map((cells, index) => row(cells, false, index))}
       </View>
     </ScrollView>
   );
@@ -98,9 +98,9 @@ function Blocks({ blocks, color, tint, selectable, colors }: { blocks: MdBlock[]
       {blocks.map((block, index): ReactNode => {
         if (block.kind === 'text') {
           return (
-            <Text key={index} variant="body" selectable={selectable} style={[{ color }, block.heading && styles.bold]}>
+            <NativeText key={index} selectable={selectable} style={[typography.body, { color }, block.heading && styles.bold]}>
               <Spans spans={block.spans} colors={colors} tint={tint} />
-            </Text>
+            </NativeText>
           );
         }
         if (block.kind === 'list') {
@@ -108,12 +108,10 @@ function Blocks({ blocks, color, tint, selectable, colors }: { blocks: MdBlock[]
             <View key={index} style={styles.list}>
               {block.items.map((item, position) => (
                 <View key={position} style={[styles.item, { paddingLeft: item.depth * space.lg }]}>
-                  <Text variant="body" style={[styles.marker, { color: colors.inkSoft }]}>
-                    {item.marker || BULLETS[item.depth ? 1 : 0]}
-                  </Text>
-                  <Text variant="body" selectable={selectable} style={[styles.fill, { color }]}>
+                  <NativeText style={[typography.body, styles.marker, { color: colors.inkSoft }]}>{item.marker || BULLETS[item.depth ? 1 : 0]}</NativeText>
+                  <NativeText selectable={selectable} style={[typography.body, styles.fill, { color }]}>
                     <Spans spans={item.spans} colors={colors} tint={tint} />
-                  </Text>
+                  </NativeText>
                 </View>
               ))}
             </View>
@@ -176,7 +174,6 @@ const styles = StyleSheet.create({
   table: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
   row: { flexDirection: 'row' },
   divider: { borderTopWidth: StyleSheet.hairlineWidth },
-  cell: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRightWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  cell: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRightWidth: StyleSheet.hairlineWidth, fontSize: 15, lineHeight: 20 },
   lastCell: { borderRightWidth: 0 },
-  cellText: { fontSize: 15, lineHeight: 20 },
 });
