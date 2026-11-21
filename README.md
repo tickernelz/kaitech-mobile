@@ -4,6 +4,42 @@ Aplikasi mobile Kaitech untuk Android dan iOS, dibangun dengan React Native dan 
 
 Alamat server dan database diisi pengguna saat masuk. Repo ini tidak menyimpan alamat server, kunci, atau token apa pun.
 
+## Rilis
+
+Unduh dari [Releases](https://github.com/tickernelz/kaitech-mobile/releases/latest): `kaitech-<build>-<sha>-arm64-v8a.apk` untuk Android (hampir semua ponsel Android sekarang; `kaitech-<build>-<sha>.apk` universal untuk ponsel lain), `kaitech-<build>-<sha>-unsigned.ipa` untuk iOS, dan `SHA256SUMS.txt`. Periksa unduhan dengan `sha256sum -c --ignore-missing SHA256SUMS.txt`. Ini rilis uji untuk tim, bukan rilis toko.
+
+Batas build rilis selama domain tautan, Firebase, dan akun Apple Developer belum ada (catatan rilis tiap tag menyebut mana yang berlaku untuk build itu):
+
+- **Masuk.** Kode masuk kembali ke aplikasi lewat App Link di domain tautan yang ditanam saat build (variabel repo `KAITECH_LINK_HOST`). Tanpa variabel itu layar masuk memberi tahu bahwa domain tautan belum diatur, dan build itu belum bisa masuk ke server. Setelah variabel diisi, tag berikutnya membawanya tanpa perubahan kode.
+- **Push Android.** Tanpa secret `GOOGLE_SERVICES_JSON` push mati; pesan dan dering baru tampil hanya saat aplikasi terbuka.
+- **iOS.** Lihat [Pasang IPA](#pasang-ipa-ios): masuk lewat Universal Link, APNs, VoIP push, dan CallKit butuh akun Apple Developer.
+
+### Yang terbukti
+
+Semua bukti dari emulator Android atau simulator iPad; belum ada uji di perangkat fisik. Angka dan rekaman dari emulator berlaku untuk emulator.
+
+| Bagian | Platform dan ukuran | Orientasi | Bahasa | Bukti |
+|---|---|---|---|---|
+| Pasang APK dari Release di emulator bersih, layar sambutan, form masuk (tanpa server); di ponsel juga rotasi di tengah form tanpa kehilangan isian | Android 15 ponsel (`pixel_6`) dan tablet 10 inci (`pixel_tablet`) | portrait, landscape | en, id | job `install from release` di run Release tiap tag, rekaman `e2e-android-release-*` |
+| Alur yang sama dengan APK x86_64 | Android 15 ponsel dan tablet | portrait, landscape | en, id | CI tiap push `main`, rekaman `e2e-android-*` |
+| Alur yang sama di iPad (percobaan, tidak memblokir) | simulator iPad di runner macOS | portrait, landscape | en | workflow `iPad trial`; hasil per tag ada di run `iPad trial` tag itu |
+| Masuk ke server lalu keluar (F0) | Android ponsel dan tablet | tidak dicatat | en, id | rekaman lokal dengan build yang membawa domain tautan, tidak dipublikasikan (tracker internal ZHA-7236) |
+| Chat: daftar, thread, antrean kirim offline, lampiran, pesan suara, dua panel di tablet (F1) | Android ponsel dan tablet | portrait, landscape | en, id | rekaman lokal (ZHA-7238) |
+| Panggilan suara dua arah ponsel ke web, dering CallStyle dengan foreground service, landscape, picture-in-picture (F2) | Android ponsel | portrait, landscape | tidak dicatat | rekaman lokal (ZHA-7240) |
+| Discovery: beranda Program, Coworker, kartu keputusan, bukti, Aktivitas, cari (F3) | Android ponsel dan tablet | portrait, landscape | en, id | rekaman 8 sel lokal (ZHA-7242) |
+| MoM: rekam 22 menit dengan layar mati, unggah lanjut setelah proses dimatikan dan di uplink 256 kbit/s, notulen dan butir (F4) | Android ponsel dan tablet | portrait, landscape | en, id | rekaman 8 sel lokal (ZHA-7243) |
+
+### Belum terverifikasi
+
+- iPhone: IPA dibangun di CI, tetapi belum ada uji UI di simulator iPhone atau iPhone asli. iPad asli juga belum diuji.
+- Split-screen Android, Split View dan Slide Over iPad, perangkat lipat, skala font sistem 200%, dan keyboard fisik di tablet. Konfigurasinya diperiksa (orientasi bebas, multi-window aktif, `UIRequiresFullScreen` mati) di APK dan IPA rilis, tetapi perilakunya belum diuji.
+- Masuk di iOS, APNs, VoIP push, CallKit, Universal Link iOS, rekam MoM di latar dan unggah di iOS: butuh akun Apple Developer.
+- Live Activity: belum dibangun; pembaruannya dari server butuh APNs.
+- Push Android sampai ke perangkat, termasuk dering saat aplikasi mati dan Tolak dari notifikasi saat aplikasi mati: butuh Firebase.
+- Layar kunci sungguhan (emulator tanpa keyguard) dan pemakaian baterai.
+- Discovery di iPad: hanya diuji di emulator Android.
+- MoM di ponsel landscape: sekali tercatat "recording couldn't start" di emulator dan belum terulang; galat native-nya kini masuk logcat bila muncul lagi.
+
 ## Identitas aplikasi
 
 | | Nilai |
@@ -29,8 +65,8 @@ CI menolak APK yang sertifikatnya tidak cocok dengan `.github/android-release-ce
 
 ## Pasang APK (Android)
 
-1. Buka run CI yang hijau di tab Actions (atau halaman Releases), unduh artefak `kaitech-android-apk`, lalu ekstrak zip-nya.
-2. Kirim berkas `kaitech-<build>-<sha>.apk` ke ponsel.
+1. Unduh `kaitech-<build>-<sha>-arm64-v8a.apk` dari [Releases](https://github.com/tickernelz/kaitech-mobile/releases/latest) langsung di ponsel, atau unduh di komputer lalu kirim ke ponsel. Bila Android menolak memasangnya ("Aplikasi tidak terpasang" atau "tidak kompatibel"), ponsel itu bukan arm64-v8a: unduh `kaitech-<build>-<sha>.apk` (universal, empat ABI, lebih besar). Keduanya memakai keystore yang sama, jadi saling bisa memperbarui. Build `main` di antara rilis ada sebagai artefak `kaitech-android-apk-arm64-v8a` dan `kaitech-android-apk` di run CI yang hijau.
+2. Bila tidak diunduh langsung, kirim berkas itu ke ponsel.
 3. Saat membuka berkas, Android meminta izin "Pasang aplikasi tak dikenal" untuk aplikasi pembuka (Files, Chrome). Izinkan untuk aplikasi itu saja.
 4. Pasang. Build berikutnya bisa langsung memperbarui aplikasi karena semua build memakai keystore yang sama.
 
@@ -38,7 +74,7 @@ APK berakhiran `-debugkey` hanya muncul bila secret keystore tidak tersedia (mis
 
 ## Pasang IPA (iOS)
 
-IPA dibangun tanpa tanda tangan karena belum ada akun Apple Developer. iOS tidak mau memasang IPA tanpa tanda tangan, jadi tanda tangani ulang dengan Apple ID pribadi:
+Unduh `kaitech-<build>-<sha>-unsigned.ipa` dari [Releases](https://github.com/tickernelz/kaitech-mobile/releases/latest) ke komputer. IPA dibangun tanpa tanda tangan karena belum ada akun Apple Developer. iOS tidak mau memasang IPA tanpa tanda tangan, jadi tanda tangani ulang dengan Apple ID pribadi:
 
 - **AltStore**: pasang AltServer di komputer, pasang AltStore ke iPhone, lalu buka IPA lewat AltStore (My Apps, tombol +).
 - **Sideloadly**: sambungkan iPhone ke komputer, seret IPA ke Sideloadly, masuk dengan Apple ID, lalu Start.
@@ -53,7 +89,10 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 - Apple: TestFlight, App Store, profil provisioning, sertifikat distribusi.
 - APNs (notifikasi iOS) dan VoIP push (PushKit).
 - CallKit yang memakai entitlement push VoIP.
-- Universal Links iOS yang terverifikasi (`apple-app-site-association` dengan Team ID).
+- Universal Links iOS yang terverifikasi (`apple-app-site-association` dengan Team ID), yang dibutuhkan untuk masuk di iOS.
+- Live Activity untuk panggilan dan rekaman MoM.
+
+Di luar akun toko, dua hal lain masih menunggu Zhafron: domain tautan untuk masuk dari build rilis (variabel repo `KAITECH_LINK_HOST`) dan proyek Firebase untuk push Android (secret `GOOGLE_SERVICES_JSON`).
 
 ## Calls
 
@@ -102,18 +141,18 @@ It prints the room, the peer session id and what the peer subscribed to, and kee
 | Workflow | Pemicu | Isi |
 |---|---|---|
 | `CI` (`ci.yml`) | push ke `main`, PR, manual | gitleaks seluruh riwayat dan pohon kerja; lint, typecheck, paritas kunci terjemahan, gerbang konfigurasi tablet, Jest; build APK, IPA, E2E emulator |
-| `Build` (`build.yml`) | dipanggil CI dan Release | APK release x86_64 untuk E2E (setiap run) dan APK release universal empat ABI (hanya `main` dan tag), keduanya bertanda tangan dan diverifikasi sidik jari sertifikatnya; IPA tanpa tanda tangan (`xcodebuild`, runner macOS `xcode-27`), pindai rahasia di bundle JS, gerbang performa, E2E Maestro di emulator Android (ponsel dan tablet, portrait dan landscape, `en-US` dan `id-ID`, paralel), E2E APK universal di tag, rekaman dan screenshot per sel |
+| `Build` (`build.yml`) | dipanggil CI dan Release | APK release x86_64 untuk E2E (setiap run) serta APK release universal empat ABI dan APK release `arm64-v8a` (hanya `main`, tag, dan run manual), semuanya bertanda tangan dan diverifikasi sidik jari sertifikatnya dan dicek isi `lib/<abi>`-nya; IPA tanpa tanda tangan (`xcodebuild`, runner macOS `xcode-27`), pindai rahasia di bundle JS, gerbang performa, E2E Maestro di emulator Android (ponsel dan tablet, portrait dan landscape, `en-US` dan `id-ID`, paralel), E2E APK universal di tag, rekaman dan screenshot per sel |
 | `iPad trial` (`ipad-trial.yml`) | push ke `main`, tag `v*`, manual | percobaan simulator iPad `en-US`, di luar CI utama agar run CI tidak menunggu iPad; run baru pada ref yang sama membatalkan run lama |
-| `Release` (`release.yml`) | tag `v*` | tolak tag yang tidak menunjuk commit di `main`, gitleaks, build, lalu GitHub Release berisi APK, IPA, dan `SHA256SUMS.txt` |
+| `Release` (`release.yml`) | tag `v*` | tolak tag yang tidak menunjuk commit di `main`, gitleaks seluruh riwayat, build, lalu draf GitHub Release berisi APK, IPA, dan `SHA256SUMS.txt`. APK dan IPA diunduh kembali dari draf itu: checksum, konfigurasi rotasi, multi-window, dan iPad di dalam berkasnya (`scripts/check-release-artifacts.py`), gitleaks atas isi APK dan IPA yang dibongkar, lalu APK dipasang di emulator baru (tanpa snapshot) di kedelapan sel ponsel dan tablet. Release baru dibuka bila semuanya lolos; run ulang setelah gagal memakai draf yang sama |
 | `gitleaks push` (`gitleaks.yml`) | push ke cabang selain `main` dan setiap tag | gitleaks seluruh riwayat dan pohon kerja |
 
 Artefak E2E hanya diunggah bila gitleaks bersih.
 
-Artefak per run: `e2e-apk-x86_64` (APK yang diuji E2E), `kaitech-android-apk` (APK universal, hanya `main` dan tag), `kaitech-ios-ipa`, `perf-android-x86_64`, `perf-android-universal` dan `perf-ios` (angka gerbang performa), delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro, `cold-start.txt` di sel ponsel portrait `en-US`). Run `iPad trial` mengunggah `e2e-ipad-en-US` (satu folder per sel, video `simctl`, `junit.xml`, keluaran Maestro, log konsol Maestro `maestro-console.log` (ditambah `maestro-console-attempt1.log` bila sel diulang), dan screenshot Maestro di `screenshots/`). Tag rilis menambah `e2e-android-universal-phone-portrait-en-US`.
+Artefak per run: `e2e-apk-x86_64` (APK yang diuji E2E), `kaitech-android-apk` (APK universal) dan `kaitech-android-apk-arm64-v8a` (APK `arm64-v8a`), keduanya hanya `main`, tag, dan run manual, `kaitech-ios-ipa`, `perf-android-x86_64`, `perf-android-universal`, `perf-android-arm64-v8a` dan `perf-ios` (angka gerbang performa), delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro, `cold-start.txt` di sel ponsel portrait `en-US`). Run `iPad trial` mengunggah `e2e-ipad-en-US` (satu folder per sel, video `simctl`, `junit.xml`, keluaran Maestro, log konsol Maestro `maestro-console.log` (ditambah `maestro-console-attempt1.log` bila sel diulang), dan screenshot Maestro di `screenshots/`). Tag rilis menambah `e2e-android-universal-phone-portrait-en-US` dan delapan `e2e-android-release-<ukuran>-<orientasi>-<locale>` (APK yang diunduh dari draf Release, disimpan 90 hari).
 
 ### Jalur cepat dan cache
 
-E2E Android hanya butuh APK x86_64, jadi job `android apk x86_64 (e2e)` membangun satu ABI dan sel E2E mulai begitu job itu selesai. APK yang dirilis tetap APK universal empat ABI dari job `android apk`, yang jalan paralel hanya di `main` dan tag; di PR job itu dilewati (status cek tetap lolos). Akibatnya, di PR kompilasi `arm64-v8a`, `armeabi-v7a`, dan `x86` baru terjadi setelah merge. Tag rilis menjalankan satu sel E2E (ponsel portrait `en-US`) atas APK universal sebelum GitHub Release dibuat.
+E2E Android hanya butuh APK x86_64, jadi job `android apk x86_64 (e2e)` membangun satu ABI dan sel E2E mulai begitu job itu selesai. APK yang dirilis adalah APK universal empat ABI dari job `android apk` dan APK `arm64-v8a` dari job `android apk arm64-v8a`; keduanya jalan paralel hanya di `main`, tag, dan run manual (`workflow_dispatch`, untuk mengukur ukuran sebelum merge); di PR kedua job itu dilewati (status cek tetap lolos). Akibatnya, di PR kompilasi `arm64-v8a`, `armeabi-v7a`, dan `x86` baru terjadi setelah merge. Tag rilis menjalankan satu sel E2E (ponsel portrait `en-US`) atas APK universal sebelum GitHub Release dibuat. Emulator runner berarsitektur x86_64, jadi APK `arm64-v8a` dibuktikan lewat cek ABI (isi `lib/` hanya `arm64-v8a`), sertifikat, dan checksum yang sama dengan berkas di Release, bukan lewat pemasangan.
 
 Cache, semuanya ditulis hanya di luar `pull_request` (push ke `main`, tag, run manual) dan dibaca PR:
 
@@ -131,14 +170,14 @@ Yang diukur lalu tidak dipakai: cache system image emulator dan snapshot AVD (me
 
 | Angka | Diukur di job | Cara |
 |---|---|---|
-| `android.apk_x86_64_bytes`, `android.apk_universal_bytes` | `android apk x86_64 (e2e)`, `android apk` | ukuran berkas APK |
-| `android.js_bundle_bytes` | kedua job APK | `assets/index.android.bundle` |
+| `android.apk_x86_64_bytes`, `android.apk_universal_bytes`, `android.apk_arm64-v8a_bytes` | `android apk x86_64 (e2e)`, `android apk`, `android apk arm64-v8a` | ukuran berkas APK |
+| `android.js_bundle_bytes` | setiap job APK | `assets/index.android.bundle` |
 | `ios.ipa_bytes`, `ios.js_bundle_bytes` | `ios ipa (unsigned)` | ukuran IPA dan `main.jsbundle` |
 | `android.cold_start_ms` | sel E2E ponsel portrait `en-US` | median `TotalTime` dari 5 kali `adb shell am start -W -S`, setelah satu peluncuran pemanasan |
 
 Ambang ukuran 15 persen: di SHA yang sama ukurannya tidak berubah antar-run, jadi kenaikan berarti perubahan nyata. Ambang cold start 100 persen karena median antar-run di emulator runner bersama berbeda jauh (965 sampai 1641 ms di sembilan run, termasuk empat run di SHA yang sama), jadi gerbang ini hanya menangkap cold start yang naik sampai dua kali lipat; angkanya dan run sumbernya tercatat di `source` tiap entri. Perubahan yang memang disengaja memperbarui `perf/baseline.json` di PR yang sama, dengan alasan di deskripsi PR.
 
-Rilis: `git tag v0.1.0 && git push origin v0.1.0`.
+Rilis: naikkan `version` di `app.json` lewat PR, lalu setelah merge `git tag v<versi> && git push origin v<versi>` di commit `main` itu.
 
 ### Secret GitHub
 

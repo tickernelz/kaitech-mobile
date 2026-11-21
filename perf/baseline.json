@@ -12,6 +12,12 @@
       "unit": "bytes",
       "source": "run 44830443810, SHA b41edfe (main, universal APK job; the CI table printed 152.19 MiB); F2 Calls (ZHA-7240): @livekit/react-native-webrtc 150.2.0 native libraries for all four ABIs, livekit-client, the local Android call module and the call screens; was 104683865 at e011ed8 (F0 app shell)"
     },
+    "android.apk_arm64-v8a_bytes": {
+      "value": 51833123,
+      "maxIncrease": 0.15,
+      "unit": "bytes",
+      "source": "run 44858309277, SHA 57e5846 (exact bytes from the perf artifact): first arm64-v8a-only release APK (ZHA-7362); the universal APK at the same SHA is 159780738"
+    },
     "android.js_bundle_bytes": {
       "value": 6632972,
       "maxIncrease": 0.15,
