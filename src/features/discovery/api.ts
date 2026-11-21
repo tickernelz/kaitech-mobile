@@ -1,5 +1,6 @@
 import { bearer, bearerUpload, rpc } from '../../api/odoo';
 import type { Account } from '../../auth/oauth';
+import type { BlockReads } from './kt/place';
 
 export type Programme = {
   id: number;
@@ -53,6 +54,7 @@ export type TranscriptItem = {
   failure?: Failure;
   state?: string;
   occurredAt: string;
+  blockReads?: BlockReads | null;
 };
 
 export type Cursor = { turn_id: number; seq: number; open: Record<string, number> };

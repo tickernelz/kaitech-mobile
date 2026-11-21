@@ -1,0 +1,224 @@
+{
+ "web": {
+  "source": "erp_discovery origin/main agent/blocks.py BLOCK_KINDS and static/src/blocks/*.js blockKinds.add",
+  "kinds": [
+   "accordion",
+   "artifact",
+   "callout",
+   "chart",
+   "checklist",
+   "code",
+   "compare",
+   "diagram",
+   "form",
+   "gallery",
+   "kpi",
+   "options",
+   "progress",
+   "record",
+   "replies",
+   "table"
+  ],
+  "commit": "d08a365a"
+ },
+ "blocks": [
+  {
+   "kind": "table",
+   "origin": "lab0 ck.turn.event 6378 (nama orang diganti)",
+   "raw": "{\"type\": \"table\", \"title\": \"Pertanyaan wawancara per orang\", \"summary\": \"Jumlah pertanyaan draf yang disusun dari bank untuk tiap orang pihak klien klien, beserta peran bank yang dipakai sebagai acuan; totalnya 85.\", \"columns\": [{\"name\": \"Nama\", \"kind\": \"text\"}, {\"name\": \"Peran menurut catatan\", \"kind\": \"text\"}, {\"name\": \"Acuan bank\", \"kind\": \"text\"}, {\"name\": \"Pertanyaan\", \"kind\": \"number\", \"total\": true}], \"rows\": [[\"Orang 1\", \"Plt Dirut, Project Sponsor\", \"Umum\", 3], [\"Orang 2\", \"Steering\", \"Umum\", 2], [\"Orang 3\", \"Project Director\", \"Umum\", 4], [\"Orang 4\", \"PMO\", \"Umum\", 4], [\"Orang 5\", \"PMO\", \"Umum\", 4], [\"Orang 6\", \"Tim IT\", \"Umum\", 3], [\"Orang 7\", \"Mgr Anggaran\", \"Keuangan\", 7], [\"Orang 8\", \"Mgr Akuntansi dan Pajak\", \"Keuangan\", 7], [\"Orang 9\", \"Mgr Perbendaharaan\", \"Keuangan\", 6], [\"Orang 10\", \"Mgr Niaga, Kontrak Captive\", \"Komersial\", 6], [\"Orang 11\", \"Employee Management\", \"Layanan pendukung\", 5], [\"Orang 12\", \"Payroll\", \"Layanan pendukung\", 5], [\"Orang 13\", \"Hubungan Industrial\", \"Layanan pendukung\", 4], [\"Orang 14\", \"Pengadaan\", \"Komersial\", 5], [\"Orang 15\", \"Logistik/SCM\", \"Operasional\", 4], [\"Orang 16\", \"Pemasaran Non-Captive\", \"Komersial\", 4], [\"Orang 17\", \"EV Ecosystem\", \"Komersial\", 4], [\"Orang 18\", \"Electric Services Enterprise\", \"Komersial\", 4], [\"Orang 19\", \"VP Bisnis Inovatif\", \"Komersial\", 4]], \"sources\": [{\"label\": \"Daftar pertanyaan program (pertanyaan 97-181)\"}, {\"label\": \"Bank pertanyaan pusat Kaitech\"}]}"
+  },
+  {
+   "kind": "replies",
+   "origin": "lab0 ck.turn.event 7297 (nama orang diganti)",
+   "raw": "{\"type\": \"replies\", \"summary\": \"Pilihan balasan cepat untuk menyetujui atau mengoreksi kartu pertanyaan jabatan Pak A.\", \"replies\": [\"Ya\", \"Bukan begitu maksud saya\"], \"sources\": [{\"label\": \"Pertanyaan untuk Pak A tentang jabatan dan tugas\", \"ref\": \"ck.question,28\"}]}"
+  },
+  {
+   "kind": "form",
+   "origin": "lab0 ck.turn.event 7007",
+   "raw": "{\"type\": \"form\", \"summary\": \"Formulir untuk menyebutkan proses bisnis end-to-end yang dicakup programme ini.\", \"title\": \"Proses yang dicakup\", \"fields\": [{\"name\": \"proses_1\", \"label\": \"Proses 1 (dari mana sampai mana)\", \"kind\": \"text\", \"required\": true}, {\"name\": \"proses_2\", \"label\": \"Proses 2\", \"kind\": \"text\"}, {\"name\": \"proses_3\", \"label\": \"Proses 3\", \"kind\": \"text\"}, {\"name\": \"proses_lain\", \"label\": \"Proses lain atau catatan\", \"kind\": \"text\"}], \"submit_label\": \"Kirim daftar proses\", \"sources\": [{\"label\": \"Agenda programme: belum ada proses tercatat\"}]}"
+  },
+  {
+   "kind": "accordion",
+   "origin": "lab0 ck.turn.event 1447",
+   "raw": "{\"type\": \"accordion\", \"title\": \"Checklist persiapan requirement gathering HKR\", \"summary\": \"Dokumen persiapan requirement gathering HKR dikelompokkan menjadi acuan lingkup, proses as-is, organisasi sesi, data dan contoh transaksi, integrasi, serta format kerja.\", \"sources\": [{\"label\": \"KAK implementasi dan lisensi Odoo 19\", \"ref\": \"ck.source.text,1890\"}, {\"label\": \"Kajian Implementasi ERP Fase 2\", \"ref\": \"ck.source.text,1891\"}, {\"label\": \"Penawaran Teknis Kaitech\", \"ref\": \"ck.source.text,1892\"}, {\"label\": \"Mapping Menu HKR10 vs HKR19\", \"ref\": \"ck.source.text,1893\"}, {\"label\": \"Mapping Field HKR10 vs HKR19\", \"ref\": \"ck.source.text,1894\"}, {\"label\": \"Laporan Progres HKR19 per 11 November 2026\", \"ref\": \"ck.source.text,1895\"}, {\"label\": \"Template/report yang masih ditunggu\", \"ref\": \"ck.material.request,63\"}, {\"label\": \"File key Google Sheets E-Sales Leads yang masih ditunggu\", \"ref\": \"ck.material.request,64\"}], \"items\": [{\"title\": \"1. Acuan lingkup dan keputusan dasar\", \"body\": \"Sudah dimiliki: KAK, Kajian Fase 2, dan Penawaran Teknis.\\nMasih perlu disiapkan: keputusan atas empat perbedaan dasar — akuntansi/COA di Odoo atau tetap di SAP; SPM dan aplikasi mobile dalam paket atau paket terpisah; batch Pengembangan Bisnis dan General Affair; dan lisensi 145 user dibandingkan 143 user existing.\\nGuna: mengunci batas lingkup sebelum fit-gap per modul.\", \"open\": true}, {\"title\": \"2. Proses as-is dan SOP\", \"body\": \"Sudah dimiliki sebagai draf: 10 proses dan 85 langkah dari Kajian dan KAK, tetapi aktor/pemilik tiap proses masih kosong.\\nMasih perlu disiapkan: SOP atau dokumen kerja as-is per modul, serta inventarisasi kustomisasi Odoo 10 per modul.\\nPenyiap: HKR melalui pemilik proses/BPO, bersama Kaitech.\\nGuna: bahan konfirmasi as-is per modul dan dasar Custom Module Registry.\"}, {\"title\": \"3. Organisasi dan peserta sesi\", \"body\": \"Masih perlu disiapkan: daftar BPO, key user, dan PMO HKR per modul; serta RACI dan mekanisme komunikasi proyek.\\nPenyiap: HKR menetapkan orang/perannya, Kaitech menyusun RACI untuk disepakati.\\nGuna: menentukan peserta sesi, jalur keputusan, eskalasi, dan siapa yang kelak menandatangani Functional Blueprint.\"}, {\"title\": \"4. Data dan contoh transaksi\", \"body\": \"Sudah dimiliki: mapping menu dan mapping field HKR10 ke HKR19.\\nMasih perlu disiapkan: validasi mapping per modul dan contoh transaksi nyata untuk masing-masing modul.\\nPenyiap: pemilik proses/BPO HKR bersama Kaitech.\\nGuna: menguji langkah as-is dan hasil fit-gap terhadap transaksi yang benar-benar terjadi.\"}, {\"title\": \"5. Integrasi antar-sistem\", \"body\": \"Masih perlu disiapkan: daftar pertukaran data antar-sistem untuk setiap modul.\\nDokumen resmi yang masih ditunggu: file key Google Sheets sinkron E-Sales Leads beserta nama key user Marketing.\\nGuna: membahas integrasi SAP, SPM, E-Sales Leads, dan sistem terkait sejak sesi awal, bukan setelah kebutuhan dikunci.\"}, {\"title\": \"6. Format dan template kerja\", \"body\": \"Sudah ada contoh tetapi belum terkonfirmasi resmi: laporan progres per 11 November 2026 sebagai calon template/format report dari Yolla dan Wulan.\\nMasih perlu disiapkan: template Custom Module Registry, format pencatatan fit-gap, dan template Functional Blueprint per modul.\\nPenyiap: Kaitech; Functional Blueprint akhir membutuhkan sign-off key user HKR.\"}]}"
+  },
+  {
+   "kind": "checklist",
+   "origin": "lab0 ck.turn.event 146",
+   "raw": "{\"type\": \"checklist\", \"title\": \"Status penyusunan pertanyaan wawancara HKR\", \"summary\": \"Bank pertanyaan siap, tetapi belum ada orang yang tercatat, jadi tidak ada satu pun pertanyaan wawancara yang bisa disusun.\", \"items\": [{\"label\": \"Bank pertanyaan\", \"done\": true, \"note\": \"Sudah ada\"}, {\"label\": \"Orang yang akan diwawancarai\", \"done\": false, \"note\": \"Belum ada satu pun\"}, {\"label\": \"Pertanyaan wawancara per orang\", \"done\": false, \"note\": \"Menunggu orang, lalu disusun dan Anda putuskan\"}], \"sources\": [{\"label\": \"Daftar profil program HKR\"}]}"
+  },
+  {
+   "kind": "progress",
+   "origin": "lab0 ck.turn.event 1014",
+   "raw": "{\"type\": \"progress\", \"title\": \"Status bidang di HKR19 per 11 Nov 2026\", \"summary\": \"Dari 17 bidang yang dihitung laporan progres, 13 sudah live di HKR19, 3 sedang dikerjakan (IT, GA, ESS), dan 1 menunggu giliran (Inventaris Management).\", \"sources\": [{\"label\": \"Laporan Progres HKR19 per 11 November 2026\", \"ref\": \"ck.source.text,1895\"}], \"items\": [{\"label\": \"Live di HKR19\", \"value\": 13, \"total\": 17, \"unit\": \"bidang\", \"tone\": \"good\"}, {\"label\": \"Sedang dikerjakan (IT, GA, ESS)\", \"value\": 3, \"total\": 17, \"unit\": \"bidang\", \"tone\": \"warn\"}, {\"label\": \"Menunggu giliran (Inventaris)\", \"value\": 1, \"total\": 17, \"unit\": \"bidang\", \"tone\": \"neutral\"}]}"
+  },
+  {
+   "kind": "chart",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"chart\", \"chart\": \"bar\", \"title\": \"Tiket per bulan\", \"summary\": \"Jumlah tiket layanan per bulan untuk dua cabang selama 2026.\", \"x\": [\"Jan\", \"Feb\", \"Mar\", \"Apr\", \"Mei\", \"Jun\", \"Jul\", \"Agu\", \"Sep\", \"Okt\", \"Nov\", \"Des\"], \"series\": [{\"name\": \"Jakarta\", \"values\": [42, 38, 51, 47, 55, 60, 58, 61, 49, 52, 57, 63]}, {\"name\": \"Surabaya\", \"values\": [30, 28, 35, 31, 40, 38, 36, 41, 39, 37, 42, 44]}], \"unit\": \"tiket\"}"
+  },
+  {
+   "kind": "chart",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"chart\", \"chart\": \"stacked_bar\", \"title\": \"Penjualan per kanal\", \"summary\": \"Penjualan per kuartal dipecah menurut kanal.\", \"x\": [\"K1\", \"K2\", \"K3\", \"K4\"], \"series\": [{\"name\": \"Dealer\", \"values\": [120, 135, 150, 160]}, {\"name\": \"Online\", \"values\": [40, 55, 70, 90]}, {\"name\": \"Korporat\", \"values\": [60, 58, 64, 70]}], \"unit\": \"unit\"}"
+  },
+  {
+   "kind": "chart",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"chart\", \"chart\": \"line\", \"title\": \"Waktu respons\", \"summary\": \"Rata-rata waktu respons dukungan per minggu, dengan satu minggu tanpa data.\", \"x\": [\"M1\", \"M2\", \"M3\", \"M4\", \"M5\", \"M6\", \"M7\", \"M8\", \"M9\", \"M10\"], \"series\": [{\"name\": \"Rata-rata\", \"values\": [4.2, 3.9, 4.5, null, 3.1, 2.8, 3.0, 2.6, 2.4, 2.2]}], \"unit\": \"jam\", \"decimals\": 1}"
+  },
+  {
+   "kind": "chart",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"chart\", \"chart\": \"area\", \"title\": \"Stok gudang\", \"summary\": \"Stok gudang utama per bulan.\", \"x\": [\"Jan\", \"Feb\", \"Mar\", \"Apr\", \"Mei\", \"Jun\", \"Jul\", \"Agu\"], \"series\": [{\"name\": \"Stok\", \"values\": [900, 860, 940, 1010, 980, 1050, 1100, 1080]}], \"unit\": \"unit\"}"
+  },
+  {
+   "kind": "chart",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"chart\", \"chart\": \"stacked_area\", \"title\": \"Pengguna aktif\", \"summary\": \"Pengguna aktif harian per modul.\", \"x\": [\"Jan\", \"Feb\", \"Mar\", \"Apr\", \"Mei\", \"Jun\"], \"series\": [{\"name\": \"Penjualan\", \"values\": [40, 45, 50, 52, 58, 61]}, {\"name\": \"Gudang\", \"values\": [20, 22, 25, 30, 31, 35]}]}"
+  },
+  {
+   "kind": "chart",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"chart\", \"chart\": \"donut\", \"title\": \"Biaya per modul\", \"summary\": \"Pembagian biaya implementasi per modul.\", \"x\": [\"Penjualan\", \"Gudang\", \"Akuntansi\", \"SDM\", \"Lainnya\"], \"series\": [{\"name\": \"Biaya\", \"values\": [320, 210, 280, 120, 70]}], \"unit\": \"juta\"}"
+  },
+  {
+   "kind": "chart",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"chart\", \"chart\": \"gauge\", \"title\": \"Kesiapan go-live\", \"summary\": \"Kesiapan dua tim menjelang go-live dibandingkan target 100%.\", \"series\": [{\"name\": \"Tim keuangan\", \"values\": [72]}, {\"name\": \"Tim gudang\", \"values\": [48]}], \"max\": 100, \"unit\": \"%\"}"
+  },
+  {
+   "kind": "chart",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"chart\", \"chart\": \"funnel\", \"title\": \"Corong prospek\", \"summary\": \"Corong prospek dari kontak sampai kontrak.\", \"x\": [\"Kontak\", \"Rapat\", \"Penawaran\", \"Negosiasi\", \"Kontrak\"], \"series\": [{\"name\": \"Prospek\", \"values\": [240, 120, 64, 30, 12]}]}"
+  },
+  {
+   "kind": "chart",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"chart\", \"chart\": \"heatmap\", \"title\": \"Antrean per jam\", \"summary\": \"Jumlah antrean bengkel per hari dan jam.\", \"x\": [\"08\", \"09\", \"10\", \"11\", \"12\", \"13\", \"14\", \"15\", \"16\"], \"series\": [{\"name\": \"Senin\", \"values\": [3, 8, 12, 10, 4, 6, 9, 11, 7]}, {\"name\": \"Selasa\", \"values\": [2, 6, 9, 11, 5, 7, 8, 10, 6]}, {\"name\": \"Rabu\", \"values\": [4, 7, 10, 13, 6, 8, 9, 12, 8]}, {\"name\": \"Kamis\", \"values\": [1, 5, 8, 9, 3, 5, 7, 9, 5]}, {\"name\": \"Jumat\", \"values\": [5, 9, 11, 8, null, 4, 6, 8, 9]}]}"
+  },
+  {
+   "kind": "chart",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"chart\", \"chart\": \"spark\", \"title\": \"Tren pesanan\", \"summary\": \"Tren pesanan harian dua minggu terakhir.\", \"series\": [{\"name\": \"Pesanan\", \"values\": [12, 15, 14, 18, 21, 19, 24, 22, 25, 27, 26, 30, 29, 33]}]}"
+  },
+  {
+   "kind": "kpi",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"kpi\", \"title\": \"Ringkasan bulan ini\", \"summary\": \"Tiga angka utama bulan ini dibanding bulan lalu.\", \"items\": [{\"label\": \"Pendapatan\", \"value\": 1.84, \"unit\": \"M\", \"decimals\": 2, \"delta\": 0.12, \"better\": \"up\", \"basis\": \"vs Oktober\"}, {\"label\": \"Biaya per unit\", \"value\": 412000, \"unit\": \"Rp\", \"delta\": -18000, \"better\": \"down\", \"basis\": \"vs Oktober\"}, {\"label\": \"Status migrasi\", \"value\": \"Tahap 3\"}]}"
+  },
+  {
+   "kind": "compare",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"compare\", \"title\": \"Sebelum dan sesudah Odoo\", \"summary\": \"Waktu proses tiga pekerjaan hari ini dibanding perkiraan dengan Odoo.\", \"before_label\": \"Hari ini\", \"after_label\": \"Dengan Odoo\", \"items\": [{\"label\": \"Tutup buku bulanan\", \"before\": 10, \"after\": 3, \"unit\": \"hari\", \"better\": \"down\"}, {\"label\": \"Buat faktur\", \"before\": 25, \"after\": 5, \"unit\": \"menit\", \"better\": \"down\"}, {\"label\": \"Akurasi stok\", \"before\": 86, \"after\": 98, \"unit\": \"%\", \"better\": \"up\"}]}"
+  },
+  {
+   "kind": "compare",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"compare\", \"summary\": \"Satu angka sebelum dan sesudah.\", \"items\": [{\"label\": \"Lama persetujuan PO\", \"before\": 4, \"after\": 1, \"unit\": \"hari\", \"better\": \"down\"}]}"
+  },
+  {
+   "kind": "diagram",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"diagram\", \"kind\": \"flow\", \"title\": \"Alur pembelian\", \"summary\": \"Permintaan pembelian dari pemohon sampai pembayaran, dengan satu titik persetujuan.\", \"lanes\": [\"Pemohon\", \"Pembelian\", \"Keuangan\"], \"nodes\": [{\"id\": \"s\", \"label\": \"Mulai\", \"lane\": \"Pemohon\", \"shape\": \"start\"}, {\"id\": \"pr\", \"label\": \"Buat permintaan\", \"lane\": \"Pemohon\"}, {\"id\": \"ok\", \"label\": \"Disetujui?\", \"lane\": \"Pembelian\", \"shape\": \"decision\"}, {\"id\": \"po\", \"label\": \"Terbitkan PO\", \"lane\": \"Pembelian\"}, {\"id\": \"pay\", \"label\": \"Bayar vendor\", \"lane\": \"Keuangan\", \"tone\": \"good\"}, {\"id\": \"e\", \"label\": \"Selesai\", \"lane\": \"Keuangan\", \"shape\": \"end\"}], \"edges\": [{\"from\": \"s\", \"to\": \"pr\"}, {\"from\": \"pr\", \"to\": \"ok\"}, {\"from\": \"ok\", \"to\": \"po\", \"label\": \"ya\"}, {\"from\": \"ok\", \"to\": \"pr\", \"label\": \"tidak\"}, {\"from\": \"po\", \"to\": \"pay\"}, {\"from\": \"pay\", \"to\": \"e\"}]}"
+  },
+  {
+   "kind": "diagram",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"diagram\", \"kind\": \"org\", \"title\": \"Tim proyek\", \"summary\": \"Struktur tim proyek dari sponsor sampai pengguna kunci.\", \"nodes\": [{\"id\": \"a\", \"label\": \"Sponsor\", \"detail\": \"Direktur\"}, {\"id\": \"b\", \"label\": \"Manajer proyek\", \"parent\": \"a\"}, {\"id\": \"c\", \"label\": \"Tim keuangan\", \"parent\": \"b\"}, {\"id\": \"d\", \"label\": \"Tim gudang\", \"parent\": \"b\", \"tone\": \"warn\"}, {\"id\": \"e\", \"label\": \"Pengguna kunci 1\", \"parent\": \"c\"}, {\"id\": \"f\", \"label\": \"Pengguna kunci 2\", \"parent\": \"c\"}]}"
+  },
+  {
+   "kind": "diagram",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"diagram\", \"kind\": \"timeline\", \"title\": \"Tonggak proyek\", \"summary\": \"Empat tonggak proyek dari kickoff sampai go-live.\", \"nodes\": [{\"id\": \"k\", \"label\": \"Kickoff\", \"date\": \"2026-11-03\", \"tone\": \"good\"}, {\"id\": \"b\", \"label\": \"Blueprint disetujui\", \"date\": \"2026-12-15\"}, {\"id\": \"u\", \"label\": \"UAT\", \"date\": \"2027-02-01\", \"detail\": \"dua minggu\"}, {\"id\": \"g\", \"label\": \"Go-live\", \"date\": \"2027-03-01\"}]}"
+  },
+  {
+   "kind": "diagram",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"diagram\", \"kind\": \"gantt\", \"title\": \"Rencana kerja\", \"summary\": \"Tiga tugas utama dengan ketergantungan.\", \"today\": \"2026-11-21\", \"nodes\": [{\"id\": \"a\", \"label\": \"Analisis\", \"start\": \"2026-11-03\", \"end\": \"2026-11-20\", \"tone\": \"good\"}, {\"id\": \"b\", \"label\": \"Konfigurasi\", \"start\": \"2026-11-21\", \"end\": \"2026-12-19\"}, {\"id\": \"c\", \"label\": \"Migrasi data\", \"start\": \"2026-12-08\", \"end\": \"2027-01-09\", \"tone\": \"warn\"}], \"edges\": [{\"from\": \"a\", \"to\": \"b\"}, {\"from\": \"b\", \"to\": \"c\"}]}"
+  },
+  {
+   "kind": "diagram",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"diagram\", \"kind\": \"relation\", \"title\": \"Hubungan modul\", \"summary\": \"Bagaimana modul penjualan berhubungan dengan modul lain.\", \"nodes\": [{\"id\": \"s\", \"label\": \"Penjualan\"}, {\"id\": \"g\", \"label\": \"Gudang\"}, {\"id\": \"a\", \"label\": \"Akuntansi\"}, {\"id\": \"c\", \"label\": \"CRM\"}], \"edges\": [{\"from\": \"c\", \"to\": \"s\", \"label\": \"mengirim prospek\"}, {\"from\": \"s\", \"to\": \"g\", \"label\": \"memesan barang\"}, {\"from\": \"s\", \"to\": \"a\", \"label\": \"menerbitkan faktur\"}]}"
+  },
+  {
+   "kind": "diagram",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"diagram\", \"kind\": \"architecture\", \"title\": \"Arsitektur integrasi\", \"summary\": \"Sistem klien di kiri, Odoo di tengah, layanan luar di kanan.\", \"lanes\": [\"Klien\", \"Odoo\", \"Layanan luar\"], \"nodes\": [{\"id\": \"m\", \"label\": \"Aplikasi seluler\", \"lane\": \"Klien\"}, {\"id\": \"w\", \"label\": \"Peramban\", \"lane\": \"Klien\"}, {\"id\": \"o\", \"label\": \"Odoo 19\", \"lane\": \"Odoo\", \"detail\": \"inti\"}, {\"id\": \"b\", \"label\": \"Bank\", \"lane\": \"Layanan luar\"}, {\"id\": \"p\", \"label\": \"Pajak\", \"lane\": \"Layanan luar\", \"tone\": \"warn\"}], \"edges\": [{\"from\": \"m\", \"to\": \"o\", \"label\": \"API\"}, {\"from\": \"w\", \"to\": \"o\"}, {\"from\": \"o\", \"to\": \"b\", \"label\": \"mutasi\"}, {\"from\": \"o\", \"to\": \"p\"}]}"
+  },
+  {
+   "kind": "artifact",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"artifact\", \"title\": \"Simulator biaya lisensi\", \"summary\": \"Simulator biaya lisensi tahunan yang bisa digeser jumlah penggunanya.\", \"html\": \"<style>body{font:15px system-ui;margin:16px;color:#222}input{width:100%}.row{display:flex;justify-content:space-between}#out{font-size:28px;font-weight:700}</style>\\n<h3>Biaya lisensi per tahun</h3>\\n<label>Jumlah pengguna <span id=\\\"n\\\">145</span></label>\\n<input id=\\\"u\\\" type=\\\"range\\\" min=\\\"50\\\" max=\\\"300\\\" value=\\\"145\\\">\\n<div class=\\\"row\\\"><span>Harga per pengguna</span><span>Rp 4.200.000</span></div>\\n<p id=\\\"out\\\"></p>\\n<svg width=\\\"280\\\" height=\\\"40\\\"><rect id=\\\"bar\\\" x=\\\"0\\\" y=\\\"8\\\" height=\\\"24\\\" fill=\\\"#6669D2\\\" rx=\\\"4\\\"></rect></svg>\\n<h4>Uji segel</h4><ul id=\\\"seal\\\"></ul>\\n<script>\\nconst u=document.getElementById('u');\\nfunction draw(){const n=+u.value;document.getElementById('n').textContent=n;document.getElementById('out').textContent='Rp '+(n*4200000).toLocaleString('id-ID');document.getElementById('bar').setAttribute('width',Math.round(n/300*280));}\\nu.addEventListener('input',draw);draw();\\nconst seal=document.getElementById('seal');\\nconst say=(k,v)=>{const li=document.createElement('li');li.textContent=k+': '+v;seal.appendChild(li);};\\nconst probe=(k,f)=>{try{say(k,f());}catch(e){say(k,'tertutup ('+e.name+')');}};\\nprobe('jembatan aplikasi',()=>typeof window.ReactNativeWebView==='undefined'?'tidak ada':'ADA');\\nprobe('cookie',()=>document.cookie===''?'kosong':'TERBACA');\\nprobe('localStorage',()=>{localStorage.setItem('a','1');return 'TERBUKA';});\\nprobe('jendela baru',()=>window.open('https://example.com/')?'TERBUKA':'diblokir');\\ntry{fetch('https://example.com/').then(()=>say('jaringan','TERBUKA')).catch(()=>say('jaringan','diblokir'));}catch(e){say('jaringan','diblokir');}\\n</script>\"}"
+  },
+  {
+   "kind": "artifact",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"artifact\", \"title\": \"Simulator biaya lisensi\", \"summary\": \"Versi kedua simulator dengan harga baru.\", \"change\": \"Harga per pengguna turun\", \"html\": \"<style>body{font:15px system-ui;margin:16px;color:#222}input{width:100%}.row{display:flex;justify-content:space-between}#out{font-size:28px;font-weight:700}</style>\\n<h3>Biaya lisensi per tahun</h3>\\n<label>Jumlah pengguna <span id=\\\"n\\\">145</span></label>\\n<input id=\\\"u\\\" type=\\\"range\\\" min=\\\"50\\\" max=\\\"300\\\" value=\\\"145\\\">\\n<div class=\\\"row\\\"><span>Harga per pengguna</span><span>Rp 3.900.000</span></div>\\n<p id=\\\"out\\\"></p>\\n<svg width=\\\"280\\\" height=\\\"40\\\"><rect id=\\\"bar\\\" x=\\\"0\\\" y=\\\"8\\\" height=\\\"24\\\" fill=\\\"#6669D2\\\" rx=\\\"4\\\"></rect></svg>\\n<h4>Uji segel</h4><ul id=\\\"seal\\\"></ul>\\n<script>\\nconst u=document.getElementById('u');\\nfunction draw(){const n=+u.value;document.getElementById('n').textContent=n;document.getElementById('out').textContent='Rp '+(n*3900000).toLocaleString('id-ID');document.getElementById('bar').setAttribute('width',Math.round(n/300*280));}\\nu.addEventListener('input',draw);draw();\\nconst seal=document.getElementById('seal');\\nconst say=(k,v)=>{const li=document.createElement('li');li.textContent=k+': '+v;seal.appendChild(li);};\\nconst probe=(k,f)=>{try{say(k,f());}catch(e){say(k,'tertutup ('+e.name+')');}};\\nprobe('jembatan aplikasi',()=>typeof window.ReactNativeWebView==='undefined'?'tidak ada':'ADA');\\nprobe('cookie',()=>document.cookie===''?'kosong':'TERBACA');\\nprobe('localStorage',()=>{localStorage.setItem('a','1');return 'TERBUKA';});\\nprobe('jendela baru',()=>window.open('https://example.com/')?'TERBUKA':'diblokir');\\ntry{fetch('https://example.com/').then(()=>say('jaringan','TERBUKA')).catch(()=>say('jaringan','diblokir'));}catch(e){say('jaringan','diblokir');}\\n</script>\"}"
+  },
+  {
+   "kind": "callout",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"callout\", \"title\": \"Ringkasan untuk sponsor\", \"summary\": \"Tiga hal yang perlu diketahui sponsor minggu ini.\", \"items\": [{\"tone\": \"good\", \"heading\": \"Sesuai rencana\", \"text\": \"Blueprint keuangan sudah disetujui pengguna kunci.\"}, {\"tone\": \"warn\", \"heading\": \"Perlu diawasi\", \"text\": \"Data stok awal belum lengkap untuk dua gudang.\"}, {\"tone\": \"bad\", \"heading\": \"Perlu diputuskan\", \"text\": \"Pilih apakah COA tetap di SAP atau pindah ke Odoo sebelum 1 Desember.\"}, {\"tone\": \"info\", \"heading\": \"Info\", \"text\": \"Pelatihan pengguna dijadwalkan pekan depan.\"}]}"
+  },
+  {
+   "kind": "code",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"code\", \"title\": \"Stok minus per gudang\", \"summary\": \"Kueri SQL untuk mencari stok minus per gudang.\", \"language\": \"sql\", \"code\": \"SELECT w.name AS gudang, p.default_code, SUM(q.quantity) AS stok\\nFROM stock_quant q\\nJOIN stock_location l ON l.id = q.location_id\\nJOIN stock_warehouse w ON w.id = l.warehouse_id\\nJOIN product_product p ON p.id = q.product_id\\nGROUP BY w.name, p.default_code\\nHAVING SUM(q.quantity) < 0\\nORDER BY stok ASC, w.name, p.default_code;\"}"
+  },
+  {
+   "kind": "gallery",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"gallery\", \"title\": \"Lampiran rapat\", \"summary\": \"Dua foto papan tulis dan satu berkas notulen dari rapat kickoff.\", \"items\": [{\"attachment\": 812, \"caption\": \"Papan tulis 1\"}, {\"attachment\": 813}, {\"attachment\": 814, \"caption\": \"Notulen\"}]}"
+  },
+  {
+   "kind": "record",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"record\", \"summary\": \"Kebutuhan yang sedang dibahas.\", \"model\": \"ck.requirement\", \"id\": 41, \"label\": \"REQ-041 Persetujuan PO bertingkat\", \"fields\": [\"state\", \"fit\"]}"
+  },
+  {
+   "kind": "options",
+   "origin": "disusun mengikuti aturan server (lab0 belum pernah memakai jenis ini); lolos agent/blocks.read_block",
+   "raw": "{\"type\": \"options\", \"title\": \"Native atau kustom\", \"summary\": \"Perbandingan tiga cara memenuhi persetujuan PO bertingkat.\", \"options\": [\"Native Odoo\", \"Modul kustom\", \"Studio\"], \"rows\": [{\"label\": \"Biaya\", \"values\": [\"Rendah\", \"Tinggi\", \"Sedang\"], \"tones\": [\"good\", \"bad\", \"warn\"]}, {\"label\": \"Waktu\", \"values\": [\"1 minggu\", \"4 minggu\", \"2 minggu\"]}, {\"label\": \"Risiko upgrade\", \"values\": [\"Kecil\", \"Besar\", null], \"tones\": [\"good\", \"bad\", null]}]}"
+  }
+ ],
+ "edges": [
+  {
+   "name": "wide_columns",
+   "note": "13 kolom: ditolak server, tampil sebagai tabel turunan 12 kolom",
+   "valid": false,
+   "raw": "{\"type\": \"table\", \"title\": \"Tabel lebar\", \"summary\": \"Tabel 13 kolom melebihi batas 12 kolom.\", \"columns\": [{\"name\": \"K0\", \"kind\": \"text\"}, {\"name\": \"K1\", \"kind\": \"text\"}, {\"name\": \"K2\", \"kind\": \"text\"}, {\"name\": \"K3\", \"kind\": \"text\"}, {\"name\": \"K4\", \"kind\": \"text\"}, {\"name\": \"K5\", \"kind\": \"text\"}, {\"name\": \"K6\", \"kind\": \"text\"}, {\"name\": \"K7\", \"kind\": \"text\"}, {\"name\": \"K8\", \"kind\": \"text\"}, {\"name\": \"K9\", \"kind\": \"text\"}, {\"name\": \"K10\", \"kind\": \"text\"}, {\"name\": \"K11\", \"kind\": \"text\"}, {\"name\": \"K12\", \"kind\": \"text\"}], \"rows\": [[\"r0k0\", \"r0k1\", \"r0k2\", \"r0k3\", \"r0k4\", \"r0k5\", \"r0k6\", \"r0k7\", \"r0k8\", \"r0k9\", \"r0k10\", \"r0k11\", \"r0k12\"], [\"r1k0\", \"r1k1\", \"r1k2\", \"r1k3\", \"r1k4\", \"r1k5\", \"r1k6\", \"r1k7\", \"r1k8\", \"r1k9\", \"r1k10\", \"r1k11\", \"r1k12\"], [\"r2k0\", \"r2k1\", \"r2k2\", \"r2k3\", \"r2k4\", \"r2k5\", \"r2k6\", \"r2k7\", \"r2k8\", \"r2k9\", \"r2k10\", \"r2k11\", \"r2k12\"]]}"
+  },
+  {
+   "name": "many_rows",
+   "note": "60 baris, status, spark, total, row_count 75",
+   "valid": true,
+   "raw": "{\"type\": \"table\", \"title\": \"Baris banyak\", \"summary\": \"Tabel 60 baris dengan total.\", \"columns\": [{\"name\": \"Kode\", \"kind\": \"text\"}, {\"name\": \"Status\", \"kind\": \"status\"}, {\"name\": \"Nilai\", \"kind\": \"money\", \"unit\": \"Rp\", \"total\": true}, {\"name\": \"Tren\", \"kind\": \"spark\"}, {\"name\": \"Tanggal\", \"kind\": \"date\"}], \"rows\": [[\"P000\", \"selesai\", 1000, [0, 2, 1, 4], \"2026-11-01\"], [\"P001\", \"menunggu\", 2000, [1, 3, 2, 5], \"2026-11-02\"], [\"P002\", \"terlambat\", 3000, [2, 4, 3, 6], \"2026-11-03\"], [\"P003\", \"selesai\", 4000, [3, 5, 4, 7], \"2026-11-04\"], [\"P004\", \"menunggu\", 5000, [4, 6, 5, 8], \"2026-11-05\"], [\"P005\", \"terlambat\", 6000, [5, 7, 6, 9], \"2026-11-06\"], [\"P006\", \"selesai\", 7000, [6, 8, 7, 10], \"2026-11-07\"], [\"P007\", \"menunggu\", 8000, [7, 9, 8, 11], \"2026-11-08\"], [\"P008\", \"terlambat\", 9000, [8, 10, 9, 12], \"2026-11-09\"], [\"P009\", \"selesai\", 10000, [9, 11, 10, 13], \"2026-11-10\"], [\"P010\", \"menunggu\", 11000, [10, 12, 11, 14], \"2026-11-11\"], [\"P011\", \"terlambat\", 12000, [11, 13, 12, 15], \"2026-11-12\"], [\"P012\", \"selesai\", 13000, [12, 14, 13, 16], \"2026-11-13\"], [\"P013\", \"menunggu\", 14000, [13, 15, 14, 17], \"2026-11-14\"], [\"P014\", \"terlambat\", 15000, [14, 16, 15, 18], \"2026-11-15\"], [\"P015\", \"selesai\", 16000, [15, 17, 16, 19], \"2026-11-16\"], [\"P016\", \"menunggu\", 17000, [16, 18, 17, 20], \"2026-11-17\"], [\"P017\", \"terlambat\", 18000, [17, 19, 18, 21], \"2026-11-18\"], [\"P018\", \"selesai\", 19000, [18, 20, 19, 22], \"2026-11-19\"], [\"P019\", \"menunggu\", 20000, [19, 21, 20, 23], \"2026-11-20\"], [\"P020\", \"terlambat\", 21000, [20, 22, 21, 24], \"2026-11-21\"], [\"P021\", \"selesai\", 22000, [21, 23, 22, 25], \"2026-11-22\"], [\"P022\", \"menunggu\", 23000, [22, 24, 23, 26], \"2026-11-23\"], [\"P023\", \"terlambat\", 24000, [23, 25, 24, 27], \"2026-11-24\"], [\"P024\", \"selesai\", 25000, [24, 26, 25, 28], \"2026-11-25\"], [\"P025\", \"menunggu\", 26000, [25, 27, 26, 29], \"2026-11-26\"], [\"P026\", \"terlambat\", 27000, [26, 28, 27, 30], \"2026-11-27\"], [\"P027\", \"selesai\", 28000, [27, 29, 28, 31], \"2026-11-28\"], [\"P028\", \"menunggu\", 29000, [28, 30, 29, 32], \"2026-11-01\"], [\"P029\", \"terlambat\", 30000, [29, 31, 30, 33], \"2026-11-02\"], [\"P030\", \"selesai\", 31000, [30, 32, 31, 34], \"2026-11-03\"], [\"P031\", \"menunggu\", 32000, [31, 33, 32, 35], \"2026-11-04\"], [\"P032\", \"terlambat\", 33000, [32, 34, 33, 36], \"2026-11-05\"], [\"P033\", \"selesai\", 34000, [33, 35, 34, 37], \"2026-11-06\"], [\"P034\", \"menunggu\", 35000, [34, 36, 35, 38], \"2026-11-07\"], [\"P035\", \"terlambat\", 36000, [35, 37, 36, 39], \"2026-11-08\"], [\"P036\", \"selesai\", 37000, [36, 38, 37, 40], \"2026-11-09\"], [\"P037\", \"menunggu\", 38000, [37, 39, 38, 41], \"2026-11-10\"], [\"P038\", \"terlambat\", 39000, [38, 40, 39, 42], \"2026-11-11\"], [\"P039\", \"selesai\", 40000, [39, 41, 40, 43], \"2026-11-12\"], [\"P040\", \"menunggu\", 41000, [40, 42, 41, 44], \"2026-11-13\"], [\"P041\", \"terlambat\", 42000, [41, 43, 42, 45], \"2026-11-14\"], [\"P042\", \"selesai\", 43000, [42, 44, 43, 46], \"2026-11-15\"], [\"P043\", \"menunggu\", 44000, [43, 45, 44, 47], \"2026-11-16\"], [\"P044\", \"terlambat\", 45000, [44, 46, 45, 48], \"2026-11-17\"], [\"P045\", \"selesai\", 46000, [45, 47, 46, 49], \"2026-11-18\"], [\"P046\", \"menunggu\", 47000, [46, 48, 47, 50], \"2026-11-19\"], [\"P047\", \"terlambat\", 48000, [47, 49, 48, 51], \"2026-11-20\"], [\"P048\", \"selesai\", 49000, [48, 50, 49, 52], \"2026-11-21\"], [\"P049\", \"menunggu\", 50000, [49, 51, 50, 53], \"2026-11-22\"], [\"P050\", \"terlambat\", 51000, [50, 52, 51, 54], \"2026-11-23\"], [\"P051\", \"selesai\", 52000, [51, 53, 52, 55], \"2026-11-24\"], [\"P052\", \"menunggu\", 53000, [52, 54, 53, 56], \"2026-11-25\"], [\"P053\", \"terlambat\", 54000, [53, 55, 54, 57], \"2026-11-26\"], [\"P054\", \"selesai\", 55000, [54, 56, 55, 58], \"2026-11-27\"], [\"P055\", \"menunggu\", 56000, [55, 57, 56, 59], \"2026-11-28\"], [\"P056\", \"terlambat\", 57000, [56, 58, 57, 60], \"2026-11-01\"], [\"P057\", \"selesai\", 58000, [57, 59, 58, 61], \"2026-11-02\"], [\"P058\", \"menunggu\", 59000, [58, 60, 59, 62], \"2026-11-03\"], [\"P059\", \"terlambat\", 60000, [59, 61, 60, 63], \"2026-11-04\"]], \"row_count\": 75}"
+  },
+  {
+   "name": "ten_sources",
+   "note": "10 sumber: batas atas yang masih sah",
+   "valid": true,
+   "raw": "{\"type\": \"checklist\", \"title\": \"Status penyusunan pertanyaan wawancara HKR\", \"summary\": \"Bank pertanyaan siap, tetapi belum ada orang yang tercatat, jadi tidak ada satu pun pertanyaan wawancara yang bisa disusun.\", \"items\": [{\"label\": \"Bank pertanyaan\", \"done\": true, \"note\": \"Sudah ada\"}, {\"label\": \"Orang yang akan diwawancarai\", \"done\": false, \"note\": \"Belum ada satu pun\"}, {\"label\": \"Pertanyaan wawancara per orang\", \"done\": false, \"note\": \"Menunggu orang, lalu disusun dan Anda putuskan\"}], \"sources\": [{\"label\": \"Sumber 1\", \"ref\": \"ir.attachment,801\"}, {\"label\": \"Sumber 2\", \"ref\": \"ir.attachment,802\"}, {\"label\": \"Sumber 3\", \"ref\": \"ir.attachment,803\"}, {\"label\": \"Sumber 4\", \"ref\": \"ir.attachment,804\"}, {\"label\": \"Sumber 5\", \"ref\": \"ir.attachment,805\"}, {\"label\": \"Sumber 6\", \"ref\": \"ir.attachment,806\"}, {\"label\": \"Sumber 7\", \"ref\": \"ir.attachment,807\"}, {\"label\": \"Sumber 8\", \"ref\": \"ir.attachment,808\"}, {\"label\": \"Sumber 9\", \"ref\": \"ir.attachment,809\"}, {\"label\": \"Sumber 10\", \"ref\": \"ir.attachment,810\"}]}"
+  },
+  {
+   "name": "eleven_sources",
+   "note": "11 sumber: ditolak server, tampil generik",
+   "valid": false,
+   "raw": "{\"type\": \"checklist\", \"title\": \"Status penyusunan pertanyaan wawancara HKR\", \"summary\": \"Bank pertanyaan siap, tetapi belum ada orang yang tercatat, jadi tidak ada satu pun pertanyaan wawancara yang bisa disusun.\", \"items\": [{\"label\": \"Bank pertanyaan\", \"done\": true, \"note\": \"Sudah ada\"}, {\"label\": \"Orang yang akan diwawancarai\", \"done\": false, \"note\": \"Belum ada satu pun\"}, {\"label\": \"Pertanyaan wawancara per orang\", \"done\": false, \"note\": \"Menunggu orang, lalu disusun dan Anda putuskan\"}], \"sources\": [{\"label\": \"Sumber 1\"}, {\"label\": \"Sumber 2\"}, {\"label\": \"Sumber 3\"}, {\"label\": \"Sumber 4\"}, {\"label\": \"Sumber 5\"}, {\"label\": \"Sumber 6\"}, {\"label\": \"Sumber 7\"}, {\"label\": \"Sumber 8\"}, {\"label\": \"Sumber 9\"}, {\"label\": \"Sumber 10\"}, {\"label\": \"Sumber 11\"}]}"
+  },
+  {
+   "name": "unknown_kind",
+   "note": "jenis yang belum dikenal aplikasi",
+   "valid": false,
+   "raw": "{\"type\": \"map\", \"title\": \"Peta cabang\", \"summary\": \"Lokasi tiga cabang.\", \"items\": [{\"kota\": \"Jakarta\", \"cabang\": 3}, {\"kota\": \"Surabaya\", \"cabang\": 2}, {\"kota\": \"Medan\", \"cabang\": 1}]}"
+  },
+  {
+   "name": "truncated_json",
+   "note": "JSON terpotong di tengah",
+   "valid": false,
+   "raw": "{\"type\": \"table\", \"title\": \"Pertanyaan wawancara per orang\", \"summary\": \"Jumlah pertanyaan draf yang disusun dari bank untuk tiap orang pihak klien klien, beserta peran bank yang d"
+  }
+ ]
+}

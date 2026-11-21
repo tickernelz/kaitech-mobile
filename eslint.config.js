@@ -8,7 +8,7 @@ module.exports = defineConfig([
     ignores: ['dist/*'],
   },
   {
-    files: ['src/features/call/livekit.ts', 'index.ts'],
+    files: ['src/features/call/livekit.ts', 'src/features/discovery/kt/Artifact.tsx', 'index.ts'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
     },
