@@ -694,6 +694,122 @@
       "name": "Yang harus dikerjakan",
       "detail": "Rincian",
       "save": "Simpan"
+    },
+    "finalTools": {
+      "content": {
+        "title": "Isi notulen"
+      },
+      "rewrite": {
+        "title": "Ubah butir ini"
+      },
+      "header": {
+        "title": "Kepala dokumen",
+        "date": "Tanggal dan jam rapat",
+        "dateHint": "Tahun-bulan-tanggal jam:menit, misalnya 2026-12-31 14:00",
+        "dateWrong": "Tulis sebagai tahun-bulan-tanggal jam:menit",
+        "location": "Tempat",
+        "topic": "Topik",
+        "noteTaker": "Notulis",
+        "attendees": "Peserta ({{count}})"
+      },
+      "recipients": {
+        "title": "Penerima"
+      },
+      "email": {
+        "title": "Email ke penerima"
+      },
+      "narrative": {
+        "title": "Narasi"
+      },
+      "context": {
+        "title": "Sebelum rapat",
+        "openActions": "Tindakan terbuka ({{count}})",
+        "carriedActions": "Bawaan rapat sebelumnya ({{count}})",
+        "openQuestions": "Pertanyaan terbuka ({{count}})",
+        "pendingDecisions": "Keputusan menunggu ({{count}})",
+        "approvedDecisions": "Keputusan disetujui ({{count}})",
+        "recentNotes": "Catatan terbaru ({{count}})",
+        "previousMeetings": "Rapat sebelumnya ({{count}})",
+        "none": "Tidak ada"
+      },
+      "revoke": {
+        "title": "Tarik tanda tangan",
+        "body": "Notulen kembali menjadi draf; notulen final mendapat versi baru.",
+        "reason": "Alasan",
+        "confirm": "Tarik tanda tangan"
+      },
+      "removed": "(dihapus)",
+      "placeholders": "Isi dulu: {{list}}",
+      "apply": "Terapkan",
+      "discard": "Buang",
+      "bulk": "Tulis ulang dengan satu arahan",
+      "contentHint": "Ketuk butir untuk mengubahnya.",
+      "waiting": "Perubahan menunggu",
+      "outdated": "Perubahan yang teksnya sudah tidak ada di notulen",
+      "agreed": "Tindak lanjut yang disetujui, diubah lewat Tindak lanjut",
+      "edited": "Diubah",
+      "emptySection": "Bagian ini kosong",
+      "teamNotes": "Catatan tim, tidak masuk berkas klien",
+      "gone": "Butir ini sudah tidak ada di notulen.",
+      "preview": "Lihat perubahannya",
+      "bulkHint": "Tulis apa yang diubah di seluruh notulen; semua perubahan ditampilkan sebelum diterapkan.",
+      "nothing": "Tidak ada yang cocok dengan arahan itu.",
+      "ai": "Tulis ulang dengan AI",
+      "manual": "Tulis sendiri",
+      "guidance": "Arahan",
+      "comment": "Apa yang perlu diubah",
+      "snippet": "Hanya bagian ini (opsional)",
+      "snippetHint": "Tempel kata yang ditulis ulang; kosongkan untuk seluruh butir",
+      "text": "Teks baru",
+      "textHint": "Kosongkan untuk menghapus butir",
+      "lockedDraft": "Hanya draf yang bisa diubah. Tarik tanda tangan dulu.",
+      "recipientsLocked": "Penerima terkunci setelah notulen final.",
+      "recipientsDefault": "Belum ada yang dipilih; peserta yang menerima. Pilih untuk mengubahnya.",
+      "recipientsHint": "Pilih siapa yang menerima notulen.",
+      "sentTo": "Terkirim ke {{address}}",
+      "noAddress": "Tanpa alamat email",
+      "emailNote": "Catatan untuk draf AI (opsional)",
+      "draftEmail": "Buat draf dengan AI",
+      "subject": "Subjek",
+      "emailBody": "Pesan",
+      "regenerate": "Tulis ulang",
+      "exporting": "Menyiapkan berkas…",
+      "menu": {
+        "title": "Opsi Final MoM",
+        "contentGroup": "Isi",
+        "sendGroup": "Pengiriman",
+        "filesGroup": "Berkas",
+        "moreGroup": "Lainnya",
+        "content": "Isi dan perubahan",
+        "narrative": "Narasi",
+        "header": "Kepala dokumen",
+        "recipients": "Penerima",
+        "email": "Email",
+        "docx": "Unduh Word",
+        "pdf": "Unduh PDF",
+        "complete": "Unduh Word lengkap",
+        "completeDetail": "Dengan catatan tim dan bukti, hanya untuk tim",
+        "context": "Sebelum rapat",
+        "revoke": "Tarik tanda tangan"
+      },
+      "step": {
+        "finalize": "Jadikan final",
+        "finalizeTitle": "Jadikan notulen ini final?",
+        "finalizeBody": "Teks yang ditandatangani dikunci dan berkasnya dibuat.",
+        "distribute": "Kirim ke penerima",
+        "distributeTitle": "Kirim notulen?",
+        "distributeBody": "Email dan berkas dikirim ke setiap penerima yang punya alamat.",
+        "distributeRest": "Kirim ke sisanya",
+        "distributeRestTitle": "Kirim ke sisanya?",
+        "distributeRestBody": "Email dikirim ke penerima yang belum menerimanya."
+      },
+      "blocker": {
+        "problems": "Selesaikan masalah di atas dulu.",
+        "drift": "Teks berubah setelah ditandatangani. Tarik tanda tangan lalu tanda tangani ulang.",
+        "noEmail": "Tulis dan simpan email dulu (Opsi, Email).",
+        "emailProblems": "Email masih punya masalah yang perlu dibereskan.",
+        "noRecipient": "Tidak ada penerima beralamat email yang menunggu."
+      }
     }
   },
   "appearance": {

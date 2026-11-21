@@ -694,6 +694,122 @@
       "name": "What has to be done",
       "detail": "Detail",
       "save": "Save"
+    },
+    "finalTools": {
+      "content": {
+        "title": "Content of the minutes"
+      },
+      "rewrite": {
+        "title": "Change this item"
+      },
+      "header": {
+        "title": "Document header",
+        "date": "Meeting date and time",
+        "dateHint": "Year-month-day hour:minute, for example 2026-12-31 14:00",
+        "dateWrong": "Write it as year-month-day hour:minute",
+        "location": "Place",
+        "topic": "Topic",
+        "noteTaker": "Note taker",
+        "attendees": "Attendees ({{count}})"
+      },
+      "recipients": {
+        "title": "Recipients"
+      },
+      "email": {
+        "title": "Email to recipients"
+      },
+      "narrative": {
+        "title": "Narrative"
+      },
+      "context": {
+        "title": "Before the meeting",
+        "openActions": "Open actions ({{count}})",
+        "carriedActions": "Carried from earlier meetings ({{count}})",
+        "openQuestions": "Open questions ({{count}})",
+        "pendingDecisions": "Decisions waiting ({{count}})",
+        "approvedDecisions": "Decisions approved ({{count}})",
+        "recentNotes": "Recent notes ({{count}})",
+        "previousMeetings": "Earlier meetings ({{count}})",
+        "none": "Nothing here"
+      },
+      "revoke": {
+        "title": "Take the sign-off back",
+        "body": "The minutes become a draft again; final minutes get a new version.",
+        "reason": "Why",
+        "confirm": "Take the sign-off back"
+      },
+      "removed": "(removed)",
+      "placeholders": "Fill these in first: {{list}}",
+      "apply": "Apply",
+      "discard": "Discard",
+      "bulk": "Rewrite with one instruction",
+      "contentHint": "Tap an item to change it.",
+      "waiting": "Changes waiting",
+      "outdated": "Applied changes whose text the minutes no longer hold",
+      "agreed": "Agreed follow-up, changed under Follow-ups",
+      "edited": "Changed",
+      "emptySection": "Nothing in this part",
+      "teamNotes": "Team notes, not in the client's file",
+      "gone": "This item is no longer in the minutes.",
+      "preview": "Show the change",
+      "bulkHint": "Say what to change across the minutes; you see every change before it is applied.",
+      "nothing": "Nothing matched that instruction.",
+      "ai": "Rewrite with AI",
+      "manual": "Write it myself",
+      "guidance": "Instruction",
+      "comment": "What should change",
+      "snippet": "Only this part (optional)",
+      "snippetHint": "Paste the words to rewrite; leave empty for the whole item",
+      "text": "New text",
+      "textHint": "Leave empty to remove the item",
+      "lockedDraft": "Only a draft can be changed. Take the sign-off back first.",
+      "recipientsLocked": "Recipients are fixed once the minutes are final.",
+      "recipientsDefault": "Nobody chosen yet; the attendees receive it. Choose to change that.",
+      "recipientsHint": "Choose who receives the minutes.",
+      "sentTo": "Sent to {{address}}",
+      "noAddress": "No email address",
+      "emailNote": "Note for the AI draft (optional)",
+      "draftEmail": "Draft with AI",
+      "subject": "Subject",
+      "emailBody": "Message",
+      "regenerate": "Write again",
+      "exporting": "Preparing the file…",
+      "menu": {
+        "title": "Final MoM options",
+        "contentGroup": "Content",
+        "sendGroup": "Sending",
+        "filesGroup": "Files",
+        "moreGroup": "More",
+        "content": "Content and changes",
+        "narrative": "Narrative",
+        "header": "Document header",
+        "recipients": "Recipients",
+        "email": "Email",
+        "docx": "Download Word",
+        "pdf": "Download PDF",
+        "complete": "Download complete Word",
+        "completeDetail": "With team notes and evidence, for the team only",
+        "context": "Before the meeting",
+        "revoke": "Take the sign-off back"
+      },
+      "step": {
+        "finalize": "Make final",
+        "finalizeTitle": "Make these minutes final?",
+        "finalizeBody": "The signed text is locked and the files are made.",
+        "distribute": "Send to recipients",
+        "distributeTitle": "Send the minutes?",
+        "distributeBody": "The email and files go to every recipient with an address.",
+        "distributeRest": "Send to the rest",
+        "distributeRestTitle": "Send to the rest?",
+        "distributeRestBody": "The email goes to recipients who have not received it yet."
+      },
+      "blocker": {
+        "problems": "Fix the problems listed above first.",
+        "drift": "The text changed after signing. Take the sign-off back and sign again.",
+        "noEmail": "Write and save the email first (Options, Email).",
+        "emailProblems": "The email has problems to fix first.",
+        "noRecipient": "No recipient with an email address is waiting."
+      }
     }
   },
   "appearance": {

@@ -83,13 +83,49 @@ export type FinalView = {
   stages: { key: string; label: string }[];
   versionLabel: string;
   canChange: boolean;
+  editable: boolean;
+  isClient: boolean;
   readiness: { generated: boolean; stale: boolean; generating: boolean; problems: string[] };
-  paper: { documentTitle: string; meetingDate: string; points: Point[]; decisions: string[]; actionItems: ActionItem[] };
+  paper: { documentTitle: string; meetingDate: string; zone: string; points: Point[]; decisions: string[]; actionItems: ActionItem[] };
   signoff: boolean | string;
   signedBy: string;
   awaitingKnowledge: number;
   drift: boolean;
   profiles: Profile[];
+  header: {
+    meetingDate: string | false;
+    location: string;
+    topic: string;
+    attendees: { profileId: number; name: string }[];
+    noteTaker: string;
+    noteTakerProfileId: number | false;
+  };
+  narrative: { text: string; at: string | false; model: string };
+  sections: { key: string; label: string; items: FinalItem[] }[];
+  edits: Edit[];
+  outdated: { id: number; editId: number; section: string; sectionLabel: string; original_text: string; new_text: string }[];
+  revokeReasons: string;
+  distribution: Recipient[];
+  distributionIsDefault: boolean;
+  email: { subject: string; body: string; note: string; draftedAt: string | false; problems: string[] };
+  teamNotes?: { title: string; content: string; sourceOwner: string; savedAt: string | false }[];
+};
+
+export type FinalItem = { section: string; index: number; base: string; text: string; edited: boolean; removed: boolean; lineId: number | false; agreed?: boolean };
+
+export type EditLine = { id: number; section: string; sectionLabel: string; index: number; before: string; after: string; removed: boolean };
+
+export type Edit = { id: number; mode: string; modeLabel: string; comment: string; state: string; stateLabel: string; proposedBy: string; lines: EditLine[]; placeholders: string[]; message?: string };
+
+export type Recipient = {
+  profileId: number;
+  name: string;
+  role: string;
+  organization: string;
+  address: string;
+  sentAt: string | false;
+  mailState: string;
+  mailFailure: string;
 };
 
 const pageSize = 40;
