@@ -133,7 +133,8 @@
     "mutedAlways": "Muted",
     "mutedUntil": "Muted until {{time}}",
     "bubble": "Bubble",
-    "failed": "Could not change this. Check your connection and try again.",
-    "bubbleClosed": "Open Kaitech to read this conversation."
+    "failed": "Could not change this right now. Try again in a moment.",
+    "bubbleClosed": "Open Kaitech to read this conversation.",
+    "failedNetwork": "Could not change this. Check your connection and try again."
   }
 }

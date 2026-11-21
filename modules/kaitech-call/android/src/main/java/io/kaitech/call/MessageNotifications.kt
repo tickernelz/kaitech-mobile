@@ -39,6 +39,7 @@ object MessageNotifications {
   private const val SUMMARY = "io.kaitech.messages.summary"
   private const val ID = 7201
   private const val AVATAR = 128
+  private const val ACTION_SCHEME = "kaitech-message"
   private const val CALL = "call"
   private const val MISSED_CALL = "call_missed"
   private val palette = intArrayOf(
@@ -76,12 +77,12 @@ object MessageNotifications {
     manager.createNotificationChannels(listOf(messages, mentions, muted))
   }
 
-  private val calls = java.util.concurrent.ConcurrentHashMap<Int, MessagePush>()
+  private val calls = java.util.concurrent.ConcurrentHashMap<String, MessagePush>()
 
   fun rememberCall(data: Map<String, String>) {
     val target = MessageKey.from(data) ?: return
     val caller = data["caller"].orEmpty()
-    calls[target.channelId] = MessagePush(
+    calls[target.value] = MessagePush(
       db = target.db,
       uid = target.uid,
       channelId = target.channelId,
@@ -101,13 +102,20 @@ object MessageNotifications {
     )
   }
 
-  fun missed(context: Context, channelId: Int) {
-    val call = calls.remove(channelId) ?: return
+  fun missed(context: Context, key: String) {
+    val call = calls.remove(key) ?: return
     show(context, call.copy(ts = System.currentTimeMillis()))
   }
 
-  fun forgetCall(channelId: Int) {
-    calls.remove(channelId)
+  fun forgetCall(key: String) {
+    calls.remove(key)
+  }
+
+  fun setHidden(context: Context, hidden: Boolean) {
+    if (MessageStore.hidden(context) == hidden) return
+    MessageStore.setHidden(context, hidden)
+    MessageStore.keys(context).forEach { refresh(context, it, onlyIfShown = true) }
+    summary(context)
   }
 
   fun show(context: Context, push: MessagePush) {
@@ -261,10 +269,10 @@ object MessageNotifications {
 
   private fun reply(text: Context, context: Context, key: String): NotificationCompat.Action {
     val input = RemoteInput.Builder(REPLY_KEY).setLabel(text.getString(R.string.kaitech_message_reply_hint)).build()
-    val intent = Intent(context, MessageActionReceiver::class.java).setAction(ACTION_REPLY).putExtra(EXTRA_KEY, key)
+    val intent = actionIntent(context, ACTION_REPLY, key, 1)
     var flags = PendingIntent.FLAG_UPDATE_CURRENT
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) flags = flags or PendingIntent.FLAG_MUTABLE
-    val pending = PendingIntent.getBroadcast(context, requestCode(key, 1), intent, flags)
+    val pending = PendingIntent.getBroadcast(context, 0, intent, flags)
     return NotificationCompat.Action.Builder(0, text.getString(R.string.kaitech_message_reply), pending)
       .addRemoteInput(input)
       .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
@@ -282,7 +290,7 @@ object MessageNotifications {
       .putExtra(BubbleActivity.EXTRA_CHANNEL, target.channelId)
     var flags = PendingIntent.FLAG_UPDATE_CURRENT
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) flags = flags or PendingIntent.FLAG_MUTABLE
-    val pending = PendingIntent.getActivity(context, requestCode(target.value, 5), intent, flags)
+    val pending = PendingIntent.getActivity(context, requestCode(target.value), intent, flags)
     val icon = IconCompat.createWithAdaptiveBitmap(avatar(thread.title, target.channelId, adaptive = true))
     return NotificationCompat.BubbleMetadata.Builder(pending, icon).setDesiredHeight(640).build()
   }
@@ -339,22 +347,30 @@ object MessageNotifications {
       .setComponent(launch.component ?: ComponentName(context.packageName, "${context.packageName}.MainActivity"))
       .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
       .putExtra(EXTRA_KEY, target.value)
+      .also { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) it.setIdentifier(target.value) }
   }
 
   private fun open(context: Context, target: MessageKey): PendingIntent {
     var flags = PendingIntent.FLAG_UPDATE_CURRENT
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags = flags or PendingIntent.FLAG_IMMUTABLE
-    return PendingIntent.getActivity(context, requestCode(target.value, 0), openIntent(context, target), flags)
+    return PendingIntent.getActivity(context, requestCode(target.value), openIntent(context, target), flags)
   }
 
   private fun broadcast(context: Context, action: String, key: String, slot: Int, sendKey: String = ""): PendingIntent {
-    val intent = Intent(context, MessageActionReceiver::class.java).setAction(action).putExtra(EXTRA_KEY, key).putExtra(EXTRA_SEND_KEY, sendKey)
+    val intent = actionIntent(context, action, key, slot).putExtra(EXTRA_SEND_KEY, sendKey)
     var flags = PendingIntent.FLAG_UPDATE_CURRENT
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags = flags or PendingIntent.FLAG_IMMUTABLE
-    return PendingIntent.getBroadcast(context, requestCode(key, slot), intent, flags)
+    return PendingIntent.getBroadcast(context, 0, intent, flags)
   }
 
-  private fun requestCode(key: String, slot: Int) = key.hashCode() * 8 + slot
+  private fun actionIntent(context: Context, action: String, key: String, slot: Int): Intent =
+    Intent(context, MessageActionReceiver::class.java)
+      .setAction(action)
+      .setData(Uri.Builder().scheme(ACTION_SCHEME).authority(slot.toString()).appendPath(key).build())
+
+  fun keyOf(intent: Intent): String? = intent.data?.takeIf { it.scheme == ACTION_SCHEME }?.pathSegments?.firstOrNull()
+
+  private fun requestCode(key: String) = key.hashCode()
 
   fun openBubbleSettings(context: Context, key: String) {
     val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

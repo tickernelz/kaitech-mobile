@@ -14,16 +14,16 @@ export function NotifySheet({ channelId, mutedUntil, onClose }: { channelId: num
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const [now] = useState(() => Date.now());
   const until = mutedUntilMs(mutedUntil, now);
   const choose = (minutes: number) => async () => {
     setBusy(true);
-    setFailed(false);
-    const ok = await muteConversation(channelId, minutes);
+    setFailed(null);
+    const failure = await muteConversation(channelId, minutes);
     setBusy(false);
-    if (ok) onClose();
-    else setFailed(true);
+    if (failure) setFailed(failure);
+    else onClose();
   };
   const account = useSession().active;
   const items: { icon: IconName; label: string; onPress: () => void; testID: string }[] = until
@@ -64,8 +64,8 @@ export function NotifySheet({ channelId, mutedUntil, onClose }: { channelId: num
           <View style={styles.foot}>
             {busy ? <ActivityIndicator color={colors.primary} /> : null}
             {failed ? (
-              <Text variant="footnote" tone="dangerInk" accessibilityLiveRegion="polite">
-                {t('notify.failed')}
+              <Text variant="footnote" tone="dangerInk" accessibilityLiveRegion="polite" testID={`notify-failed-${failed}`}>
+                {t(failed === 'network' ? 'notify.failedNetwork' : 'notify.failed')}
               </Text>
             ) : null}
           </View>

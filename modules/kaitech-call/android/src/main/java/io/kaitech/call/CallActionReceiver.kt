@@ -10,7 +10,7 @@ class CallActionReceiver : BroadcastReceiver() {
     val channelId = intent.getIntExtra(CallIntents.EXTRA_CHANNEL_ID, 0)
     when (intent.action) {
       CallNotifications.ACTION_DECLINE -> {
-        MessageNotifications.forgetCall(channelId)
+        MessageNotifications.forgetCall(MessageKey.of(intent.getStringExtra(CallIntents.EXTRA_DB).orEmpty(), intent.getIntExtra(CallIntents.EXTRA_UID, 0), channelId))
         CallService.cancelRing(context, channelId)
         val payload = mapOf<String, Any?>(
           "type" to "decline",

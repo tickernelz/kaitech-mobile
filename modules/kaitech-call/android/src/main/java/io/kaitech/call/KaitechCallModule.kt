@@ -82,7 +82,7 @@ class KaitechCallModule : Module() {
     }
 
     AsyncFunction("setMessagesHidden") { value: Boolean ->
-      MessageStore.setHidden(requireContext(), value)
+      MessageNotifications.setHidden(requireContext(), value)
       true
     }
 

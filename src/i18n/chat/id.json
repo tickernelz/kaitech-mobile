@@ -133,7 +133,8 @@
     "mutedAlways": "Dibisukan",
     "mutedUntil": "Dibisukan sampai {{time}}",
     "bubble": "Gelembung",
-    "failed": "Belum bisa diubah. Periksa koneksi lalu coba lagi.",
-    "bubbleClosed": "Buka Kaitech untuk membaca percakapan ini."
+    "failed": "Belum bisa diubah saat ini. Coba lagi sebentar lagi.",
+    "bubbleClosed": "Buka Kaitech untuk membaca percakapan ini.",
+    "failedNetwork": "Belum bisa diubah. Periksa koneksi lalu coba lagi."
   }
 }

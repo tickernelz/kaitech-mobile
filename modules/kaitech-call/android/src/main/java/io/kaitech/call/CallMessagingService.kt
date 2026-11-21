@@ -32,7 +32,7 @@ class CallMessagingService : FirebaseMessagingService() {
     val callId = data["call_id"]?.toIntOrNull() ?: 0
     val system = CallBridge.module == null || !CallBridge.foreground || CallBridge.locked
     if (type == CANCEL) {
-      if (CallService.isRinging(channelId)) MessageNotifications.missed(this, channelId) else MessageNotifications.forgetCall(channelId)
+      MessageKey.from(data)?.value?.let { key -> if (CallService.isRinging(key)) MessageNotifications.missed(this, key) else MessageNotifications.forgetCall(key) }
       if (system) CallService.cancelRing(this, channelId)
       CallBridge.send(mapOf("type" to "cancel", "channelId" to channelId, "callId" to callId))
       return

@@ -8,8 +8,13 @@ import java.util.UUID
 
 class MessageActionReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
-    val key = intent.getStringExtra(MessageNotifications.EXTRA_KEY) ?: return
+    val key = MessageNotifications.keyOf(intent) ?: return
     val target = MessageKey.parse(key) ?: return
+    val sends = intent.action == MessageNotifications.ACTION_REPLY || intent.action == MessageNotifications.ACTION_RETRY
+    if (sends && MessageStore.hidden(context)) {
+      MessageNotifications.refresh(context, key, onlyIfShown = false)
+      return
+    }
     when (intent.action) {
       MessageNotifications.ACTION_REPLY -> {
         val text = RemoteInput.getResultsFromIntent(intent)?.getCharSequence(MessageNotifications.REPLY_KEY)?.toString()?.trim().orEmpty()
