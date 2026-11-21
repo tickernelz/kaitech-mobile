@@ -19,14 +19,14 @@ class CallActivityListener(activity: Activity?) : ReactActivityLifecycleListener
   private val owner = WeakReference(activity)
 
   override fun onCreate(activity: Activity, savedInstanceState: Bundle?) {
-    apply(activity, activity.intent)
+    CallKeyguard.apply(activity)
   }
 
   override fun onNewIntent(intent: Intent): Boolean {
     if (!CallIntents.isCall(intent)) return false
     val activity = owner.get() ?: return false
     activity.intent = intent
-    apply(activity, intent)
+    CallKeyguard.apply(activity)
     return false
   }
 
@@ -39,13 +39,15 @@ class CallActivityListener(activity: Activity?) : ReactActivityLifecycleListener
   }
 
   override fun onResume(activity: Activity) {
-    apply(activity, activity.intent)
+    CallKeyguard.apply(activity)
   }
+}
 
-  private fun apply(activity: Activity, intent: Intent?) {
+object CallKeyguard {
+  fun apply(activity: Activity) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) return
-    val incoming = CallIntents.isCall(intent)
-    activity.setShowWhenLocked(incoming)
-    activity.setTurnScreenOn(incoming)
+    val show = CallIntents.isCall(activity.intent) || CallBridge.callSurface
+    activity.setShowWhenLocked(show)
+    activity.setTurnScreenOn(show)
   }
 }
