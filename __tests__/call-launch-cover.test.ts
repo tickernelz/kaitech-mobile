@@ -43,7 +43,7 @@ jest.mock('../src/features/call/native', () => ({
 }));
 
 jest.mock('../src/features/call/livekit', () => ({
-  loadClient: () => Promise.reject(new Error('no sdk')),
+  loadClient: () => new Promise(() => undefined),
   loadLiveKit: () => Promise.reject(new Error('no sdk')),
 }));
 
@@ -102,6 +102,20 @@ describe('a call launch over the keyguard covers the app until the call is confi
     await flush();
     expect(call.callState().phase).toBe('idle');
     expect(mockSurface[mockSurface.length - 1]).toBe(false);
+  });
+
+  it('keeps the call screen over the keyguard when another call launch arrives during a call', async () => {
+    const call = launch();
+    mockLookups[0].resolve(ringing);
+    await flush();
+    void call.answer();
+    await flush();
+    expect(call.callState().phase).toBe('connecting');
+    call.setCallSurface(true);
+    mockListeners[mockListeners.length - 1]({ type: 'incoming', channelId: 88, callId: 6, title: 'Sari', db: 'dbA', uid: 1 });
+    await flush();
+    expect(call.callState().phase).toBe('connecting');
+    expect(mockSurface[mockSurface.length - 1]).toBe(true);
   });
 
   it('drops the card and releases the keyguard when the server cannot be reached', async () => {

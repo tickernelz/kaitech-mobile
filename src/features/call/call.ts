@@ -584,8 +584,15 @@ export function setLocked(locked: boolean) {
   void callNative()?.setLocked(locked);
 }
 
-export function setCallSurface(visible: boolean) {
+let screenSurface = false;
+
+function sendCallSurface(visible: boolean) {
   void callNative()?.setCallSurface(visible).catch(() => undefined);
+}
+
+export function setCallSurface(visible: boolean) {
+  screenSurface = visible;
+  sendCallSurface(visible);
 }
 
 function stopRinging() {
@@ -694,7 +701,7 @@ async function takeLaunch(action: CallAction, target: Account | null) {
   const found = await lookForInvitations(action.channelId, { account });
   if (!found.length) {
     if (placed === generation && state.phase === 'incoming') reset();
-    setCallSurface(state.phase === 'incoming');
+    sendCallSurface(state.phase === 'incoming' || (screenSurface && state.phase !== 'idle'));
     return;
   }
   if (action.type === 'answer' && state.phase === 'incoming') await answer();
