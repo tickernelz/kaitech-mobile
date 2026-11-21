@@ -234,19 +234,25 @@ export const KtTable = memo(function KtTable({ block, place, exportable = true, 
             <View key={row.position} style={[styles.row, { borderTopColor: colors.line }, styles.divided]}>
               {columns.map((column) => {
                 const value = row.cells[column.position];
-                const summed = SUMMED.includes(column.kind);
-                return (
-                  <View key={column.position} style={[styles.cell, { width: widths[column.position] }, summed ? styles.end : null]}>
-                    {column.kind === 'status' && value !== null ? (
+                const width = { width: widths[column.position] };
+                if (column.kind === 'status' && value !== null) {
+                  return (
+                    <View key={column.position} style={[styles.cell, width]}>
                       <Status tone={statusTone(column, value)} text={String(value)} />
-                    ) : column.kind === 'spark' && Array.isArray(value) ? (
+                    </View>
+                  );
+                }
+                if (column.kind === 'spark' && Array.isArray(value)) {
+                  return (
+                    <View key={column.position} style={[styles.cell, width]}>
                       <Spark values={value} said={cellText(numbers, column, value)} />
-                    ) : (
-                      <Text variant="footnote" selectable style={summed ? styles.right : null}>
-                        {cellText(numbers, column, value)}
-                      </Text>
-                    )}
-                  </View>
+                    </View>
+                  );
+                }
+                return (
+                  <Text key={column.position} variant="footnote" selectable style={[styles.textCell, width, SUMMED.includes(column.kind) ? styles.right : null]}>
+                    {cellText(numbers, column, value)}
+                  </Text>
                 );
               })}
             </View>
@@ -289,6 +295,7 @@ const styles = StyleSheet.create({
   divided: { borderTopWidth: StyleSheet.hairlineWidth },
   head: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: space.sm, paddingVertical: space.sm, minHeight: 40 },
   cell: { paddingHorizontal: space.sm, paddingVertical: space.sm, justifyContent: 'center' },
+  textCell: { paddingHorizontal: space.sm, paddingVertical: space.sm, alignSelf: 'center' },
   end: { justifyContent: 'flex-end', alignItems: 'flex-end' },
   right: { textAlign: 'right' },
   bold: { fontWeight: '700' },
