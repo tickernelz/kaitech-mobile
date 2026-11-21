@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
 import { ScreenCapturePickerView } from '@livekit/react-native-webrtc';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { layoutFor, pagesFor, presenterOf, stageFor, tileGap } from '../grid';
@@ -27,14 +27,20 @@ export function CallScreen() {
   const presenter = presenterOf(call.people);
   const recording = call.phase === 'active' ? { on: call.recording, busy: call.recordingBusy } : null;
 
+  const [measured, setMeasured] = useState<{ width: number; height: number } | null>(null);
+  const onStageLayout = (event: LayoutChangeEvent) => {
+    const next = event.nativeEvent.layout;
+    setMeasured((current) => (current && current.width === next.width && current.height === next.height ? current : { width: next.width, height: next.height }));
+  };
+
   const visible = useMemo(() => {
     const ids = call.people.map((person) => person.sid);
-    const stageWidth = Math.max(240, width - (layout.controls === 'rail' ? 120 : 2 * space.md));
-    const stageHeight = Math.max(180, height - (layout.people === 'side' ? 260 : 220));
+    const stageWidth = measured?.width ?? Math.max(240, width - (layout.controls === 'rail' ? 120 : 2 * space.md));
+    const stageHeight = measured ? measured.height - tileGap : Math.max(180, height - (layout.people === 'side' ? 260 : 220));
     const stage = stageFor(call.people.length, stageWidth, stageHeight);
     const pages = pagesFor(ids, call.speaking, stage.perPage);
     return { stage, ids: pages[0] ?? [] };
-  }, [call.people, call.speaking, width, height, layout.controls, layout.people]);
+  }, [call.people, call.speaking, width, height, layout.controls, layout.people, measured]);
 
   const live = useRef(call.phase !== 'idle');
   useEffect(() => {
@@ -105,7 +111,7 @@ export function CallScreen() {
       </View>
 
       <View style={[styles.body, layout.controls === 'rail' ? styles.bodyRail : null]}>
-        <View style={styles.stage} testID="call-stage">
+        <View style={styles.stage} onLayout={onStageLayout} testID="call-stage">
           {presenter ? (
             <ScreenStage presenter={presenter} people={call.people} side={layout.controls === 'rail'} onStop={() => void toggleScreenShare()} />
           ) : call.people.length === 0 ? (
@@ -214,7 +220,7 @@ const styles = StyleSheet.create({
   picker: { width: 1, height: 1, opacity: 0, position: 'absolute' },
   body: { flex: 1, paddingHorizontal: space.md },
   bodyRail: { flexDirection: 'row' },
-  stage: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignContent: 'center' },
+  stage: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignContent: 'center', overflow: 'hidden' },
   rail: { justifyContent: 'center', paddingLeft: space.sm },
   side: { maxHeight: 132, borderTopWidth: StyleSheet.hairlineWidth },
   sideInner: { paddingHorizontal: space.lg, paddingVertical: space.sm, gap: space.xs },

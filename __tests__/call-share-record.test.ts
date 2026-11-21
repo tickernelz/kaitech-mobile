@@ -1,5 +1,6 @@
 const mockUpdates: Record<string, boolean>[] = [];
 const mockNotices: boolean[] = [];
+const mockTitles: string[] = [];
 const mockListeners: ((action: unknown) => void)[] = [];
 const mockRooms: MockRoom[] = [];
 
@@ -110,6 +111,7 @@ jest.mock('../src/features/call/native', () => ({
     stopCall: () => Promise.resolve(true),
     updateCall: (...args: unknown[]) => {
       mockNotices.push(args[6] as boolean);
+      mockTitles.push(args[1] as string);
       return Promise.resolve(true);
     },
   }),
@@ -220,6 +222,7 @@ describe('screen sharing in a call', () => {
     expect(call.callState().screenSharing).toBe(true);
     expect(mockUpdates).toContainEqual({ is_screen_sharing_on: true });
     expect(mockNotices[mockNotices.length - 1]).toBe(true);
+    expect(mockTitles[mockTitles.length - 1]).toBe('call:sharingTitle');
   });
 
   it('stops sharing from the notification action', async () => {
@@ -232,6 +235,7 @@ describe('screen sharing in a call', () => {
     expect(call.callState().screenSharing).toBe(false);
     expect(mockUpdates[mockUpdates.length - 1]).toEqual({ is_screen_sharing_on: false });
     expect(mockNotices[mockNotices.length - 1]).toBe(false);
+    expect(mockTitles[mockTitles.length - 1]).toBe('Team');
   });
 
   it('follows a stop that came from the system bar', async () => {
@@ -245,6 +249,19 @@ describe('screen sharing in a call', () => {
     expect(mockUpdates[mockUpdates.length - 1]).toEqual({ is_screen_sharing_on: false });
   });
 
+  it('hides the conversation name from the notification before the capture starts', async () => {
+    const { call, room } = await activeCall();
+    let titleAtCapture = '';
+    const share = room.localParticipant.setScreenShareEnabled.bind(room.localParticipant);
+    room.localParticipant.setScreenShareEnabled = (on: boolean) => {
+      titleAtCapture = mockTitles[mockTitles.length - 1];
+      return share(on);
+    };
+    await call.toggleScreenShare();
+    await flush();
+    expect(titleAtCapture).toBe('call:sharingTitle');
+  });
+
   it('negative control: a refused system prompt leaves the call unchanged', async () => {
     const { call, room } = await activeCall();
     room.localParticipant.refuse = true;
@@ -252,6 +269,7 @@ describe('screen sharing in a call', () => {
     await flush();
     expect(call.callState().screenSharing).toBe(false);
     expect(mockUpdates).toEqual([]);
+    expect(mockTitles[mockTitles.length - 1]).toBe('Team');
   });
 
 });

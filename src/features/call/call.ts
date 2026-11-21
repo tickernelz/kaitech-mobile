@@ -87,6 +87,7 @@ let endTimer: ReturnType<typeof setTimeout> | null = null;
 let generation = 0;
 let callAccount: Account | null = null;
 let sharingBusy = false;
+let shareStarting = false;
 const tracks = new Map<string, unknown>();
 
 export function callState(): CallState {
@@ -521,6 +522,10 @@ async function setScreenShare(on: boolean) {
   const instance = room;
   if (!instance || sharingBusy || state.phase !== 'active') return;
   sharingBusy = true;
+  if (on) {
+    shareStarting = true;
+    presence();
+  }
   try {
     if (on && !(await pickBroadcast())) return;
     if (room !== instance) return;
@@ -529,7 +534,9 @@ async function setScreenShare(on: boolean) {
     return;
   } finally {
     sharingBusy = false;
+    shareStarting = false;
     if (room === instance) collect();
+    if (on && !state.screenSharing) presence();
   }
 }
 
@@ -543,7 +550,7 @@ function presence() {
   if (!joined) return;
   void callNative()?.updateCall(
     state.video,
-    state.channelName || state.callerName,
+    state.screenSharing || shareStarting ? i18n.t('call:sharingTitle') : state.channelName || state.callerName,
     i18n.t(state.screenSharing ? 'call:sharingScreen' : 'call:inCall'),
     state.channelId,
     state.muted,

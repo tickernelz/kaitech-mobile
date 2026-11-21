@@ -291,6 +291,9 @@ function serve() {
     sessions.cookie = await login(cfg);
     sessions.room = await joinRoom(cfg, sessions.cookie);
     sessions.sessionId = sessions.room.sessionId;
+    setInterval(() => {
+      rpc(cfg.origin, '/discuss/channel/ping', { channel_id: cfg.channelId, rtc_session_id: sessions.sessionId, check_rtc_session_ids: [] }, sessions.cookie).catch(() => undefined);
+    }, 20_000);
     const binary = process.env.CHROME_BIN ?? 'google-chrome';
     chrome = spawn(binary, [
       '--headless=new',
@@ -338,8 +341,8 @@ function serve() {
     rpc(cfg.origin, '/mail/rtc/channel/leave_call', { channel_id: cfg.channelId, session_id: sessions.sessionId }, sessions.cookie)
       .catch(() => undefined)
       .finally(() => {
+        writeState({ ok: true, pid: sessions.pid, port, sessionId: sessions.sessionId, logs: sessions.logs, state: sessions.state });
         try { process.kill(-process.pid, 'SIGKILL'); } catch { /* the group is gone */ }
-        finish({ ok: true, pid: sessions.pid, port, sessionId: sessions.sessionId, logs: sessions.logs, state: sessions.state });
       });
   });
 }
