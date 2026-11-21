@@ -1,0 +1,102 @@
+appId: io.kaitech.mobile
+name: Coworker media - voice note, video and a document to the Coworker, then open and share what it hands back (local only)
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-discovery
+- extendedWaitUntil:
+    visible:
+      id: programme-summary
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: discovery-ask
+- tapOn:
+    id: discovery-ask
+- extendedWaitUntil:
+    visible:
+      id: coworker-mic
+    timeout: 10000
+- takeScreenshot: m1-composer
+- longPressOn:
+    id: coworker-mic
+- extendedWaitUntil:
+    visible:
+      id: voice-a[0-9]+
+    timeout: 60000
+- takeScreenshot: m2-voice-sent
+- tapOn:
+    id: coworker-attach
+- takeScreenshot: m3-attach-sheet
+- tapOn:
+    id: attach-files
+- runFlow:
+    when:
+      notVisible:
+        text: laporan-lembur.pdf
+    commands:
+      - tapOn:
+          id: com.google.android.documentsui:id/toolbar
+          optional: true
+      - tapOn:
+          text: Show roots
+          optional: true
+      - tapOn:
+          text: Downloads
+- tapOn:
+    text: laporan-lembur.pdf
+- tapOn:
+    id: coworker-attach
+- tapOn:
+    id: attach-files
+- runFlow:
+    when:
+      notVisible:
+        text: rekaman-gudang.mp4
+    commands:
+      - tapOn:
+          text: Show roots
+          optional: true
+      - tapOn:
+          text: Downloads
+- tapOn:
+    text: rekaman-gudang.mp4
+- extendedWaitUntil:
+    visible:
+      id: coworker-staged
+    timeout: 10000
+- tapOn:
+    id: coworker-input
+- inputText: ${QUESTION}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- takeScreenshot: m4-staged
+- tapOn:
+    id: coworker-send
+- extendedWaitUntil:
+    visible:
+      id: coworker-upload-progress
+    timeout: 10000
+    optional: true
+- takeScreenshot: m5-uploading
+- extendedWaitUntil:
+    visible:
+      text: laporan-lembur.pdf
+    timeout: 120000
+- extendedWaitUntil:
+    notVisible:
+      id: coworker-working
+    timeout: 600000
+- takeScreenshot: m6-reply
+- scrollUntilVisible:
+    element:
+      id: attachment-share
+      index: -1
+    timeout: 20000
+    optional: true
+- takeScreenshot: m7-handed-over
