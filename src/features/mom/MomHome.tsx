@@ -150,6 +150,10 @@ export function MomHome() {
           title={t('mom.menu.title')}
           groups={[
             {
+              key: 'work',
+              actions: [{ key: 'followups', icon: 'steps', label: t('mom.followups.title'), detail: t('mom.followups.menuDetail'), onPress: () => router.push('/mom/followups') }],
+            },
+            {
               key: 'lists',
               title: t('mom.menu.lists'),
               actions: [

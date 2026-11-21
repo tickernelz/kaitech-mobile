@@ -1,0 +1,128 @@
+appId: io.kaitech.mobile
+name: MoM follow-ups - board views, add one, record progress, mark done and archive the test follow-up
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-mom
+- extendedWaitUntil:
+    visible:
+      id: mom-more
+    timeout: 60000
+- tapOn:
+    id: mom-more
+- tapOn:
+    id: mom-more-followups
+- extendedWaitUntil:
+    visible:
+      id: followups-summary
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f1-board
+- tapOn:
+    id: followups-view-team
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f2-team
+- tapOn:
+    id: followups-view-meetings
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f3-meetings
+- tapOn:
+    id: followups-view-updates
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f4-updates
+- tapOn:
+    id: followups-view-list
+- tapOn:
+    id: followups-more
+- tapOn:
+    id: mom-more-add
+- extendedWaitUntil:
+    visible:
+      id: followup-meeting
+    timeout: 30000
+- tapOn:
+    id: followup-meeting
+- tapOn:
+    id: mom-more-meeting-[0-9]+
+    index: 0
+- tapOn:
+    id: followup-name-field
+- inputText: ${'E2E follow-up ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: followup-owner
+- tapOn:
+    id: mom-more-owner-[0-9]+
+    index: 0
+- scrollUntilVisible:
+    element:
+      id: followup-due-quick-.*
+- tapOn:
+    id: followup-due-quick-.*
+    index: 2
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f5-add
+- tapOn:
+    id: followup-save
+- extendedWaitUntil:
+    visible:
+      id: followup-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: followup-note
+- tapOn:
+    id: followup-note
+- inputText: E2E progress
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: followup-save-progress
+- tapOn:
+    id: followup-save-progress
+- scrollUntilVisible:
+    element:
+      text: E2E progress.*
+    direction: DOWN
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f6-item
+- scrollUntilVisible:
+    element:
+      id: followup-done
+    direction: UP
+- tapOn:
+    id: followup-done
+- extendedWaitUntil:
+    notVisible:
+      id: followup-done
+    timeout: 30000
+- tapOn:
+    id: followup-more
+- tapOn:
+    id: mom-more-archive
+- extendedWaitUntil:
+    visible:
+      text: (?i)(archived|diarsipkan)
+    timeout: 30000
