@@ -65,6 +65,23 @@ describe('RichText native views', () => {
     expect(texts).toEqual(['A', 'B', '1', long, '3', 'x']);
   });
 
+  it('falls back to one text per cell when a column wraps on the device', () => {
+    const table = sourceBlocks('| Modul | STATUS |\n|---|---|\n| sale | WH-STOCK |\n| stock | siap |', true);
+    let tree: ReturnType<typeof create> | undefined;
+    act(() => {
+      tree = create(<RichText blocks={table} />);
+    });
+    const columns = tree!.root.findAll((node) => typeof node.type === 'string' && typeof node.props.onTextLayout === 'function');
+    expect(columns).toHaveLength(2);
+    act(() => columns[0].props.onTextLayout({ nativeEvent: { lines: [{}, {}, {}] } }));
+    expect(topTexts(tree!.toJSON() as ReactTestRendererJSON)).toEqual(['Modul\nsale\nstock', 'STATUS\nWH-STOCK\nsiap']);
+    act(() => columns[1].props.onTextLayout({ nativeEvent: { lines: [{}, {}, {}, {}] } }));
+    expect(topTexts(tree!.toJSON() as ReactTestRendererJSON)).toEqual(['Modul', 'STATUS', 'sale', 'WH-STOCK', 'stock', 'siap']);
+    const other = sourceBlocks('| A | B |\n|---|---|\n| 1 | 2 |', true);
+    act(() => tree!.update(<RichText blocks={other} />));
+    expect(topTexts(tree!.toJSON() as ReactTestRendererJSON)).toEqual(['A\n1', 'B\n2']);
+  });
+
   it('tells FlashList which bubbles share a shape', () => {
     expect(bodyShape(composeBody('halo **semua**', []))).toBe('plain');
     expect(bodyShape(composeBody('- satu\n  - anak\n- dua', []))).toBe('plain');

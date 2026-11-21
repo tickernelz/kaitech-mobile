@@ -1,6 +1,6 @@
-import { memo, type ReactNode } from 'react';
+import { memo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, Platform, ScrollView, StyleSheet, Text as NativeText, View, type TextStyle } from 'react-native';
+import { Linking, Platform, ScrollView, StyleSheet, Text as NativeText, View, type TextLayoutEvent, type TextStyle } from 'react-native';
 import { radius, space, type as typography, useTheme, type Colors } from '../../../theme';
 import type { Span } from '../html';
 import { isFlatList, type MdBlock } from '../markdown';
@@ -110,8 +110,13 @@ export function fitsColumns(rows: Span[][][]): boolean {
 function Table({ block, paint }: { block: TableBlock; paint: Paint }) {
   const { t } = useTranslation('chat');
   const { colors, color, tint } = paint;
+  const [wrapped, setWrapped] = useState<TableBlock | null>(null);
   const all = block.head ? [block.head, ...block.rows] : block.rows;
   if (!all.length) return null;
+  const lines = all.length;
+  const measure = (event: TextLayoutEvent) => {
+    if (event.nativeEvent.lines.length !== lines) setWrapped(block);
+  };
   const widths = columnWidths(all);
   const cellStyle = (column: number, header: boolean) => [
     styles.cell,
@@ -128,11 +133,11 @@ function Table({ block, paint }: { block: TableBlock; paint: Paint }) {
       ))}
     </View>
   );
-  const columns = fitsColumns(all) ? (
+  const columns = wrapped !== block && fitsColumns(all) ? (
     <View style={styles.row}>
       {block.head ? <View style={[styles.headBand, { backgroundColor: tint, borderColor: colors.line }]} /> : null}
       {widths.map((_width, column) => (
-        <NativeText key={column} style={[cellStyle(column, false), styles.column]}>
+        <NativeText key={column} style={[cellStyle(column, false), styles.column]} onTextLayout={measure}>
           {block.head ? <NativeText style={styles.bold}>{spanNodes(block.head[column] ?? [], paint, `h${column}`)}</NativeText> : null}
           {block.rows.flatMap((cells, index) => [index || block.head ? '\n' : '', ...spanNodes(cells[column] ?? [], paint, `r${index}.${column}`)])}
         </NativeText>
