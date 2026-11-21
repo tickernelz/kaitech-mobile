@@ -1,15 +1,15 @@
 import { memo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, Platform, ScrollView, StyleSheet, Text as NativeText, View, type TextLayoutEvent, type TextStyle } from 'react-native';
+import { Linking, PixelRatio, Platform, ScrollView, StyleSheet, Text as NativeText, View, type TextLayoutEvent, type TextStyle } from 'react-native';
 import { radius, space, type as typography, useTheme, type Colors } from '../../../theme';
 import type { Span } from '../html';
 import { isFlatList, type MdBlock } from '../markdown';
 
 const mono = Platform.select({ ios: 'Menlo', default: 'monospace' });
 const CHAR_WIDTH = 9;
+const CAPITAL_WIDTH = 11;
 const MIN_COLUMN = 72;
 const MAX_COLUMN = 240;
-const COLUMN_FIT = Math.floor((MAX_COLUMN - space.md * 2) / CHAR_WIDTH) - 2;
 const COLUMN_LINE = 30;
 const BULLET = '\u2022';
 const MARKER_GAP = '\u2002';
@@ -91,10 +91,16 @@ function plain(spans: Span[]): string {
   return spans.map((span) => span.text).join('');
 }
 
+export function textWidth(text: string, scale = PixelRatio.getFontScale()): number {
+  let width = 0;
+  for (const char of text) width += /[A-Z0-9@#%&MW]/.test(char) ? CAPITAL_WIDTH : CHAR_WIDTH;
+  return width * scale;
+}
+
 function columnWidths(rows: Span[][][]): number[] {
   return rows[0].map((_cell, column) => {
-    const longest = Math.max(...rows.map((row) => plain(row[column] ?? []).length));
-    return Math.min(MAX_COLUMN, Math.max(MIN_COLUMN, longest * CHAR_WIDTH + space.md * 2));
+    const widest = Math.max(...rows.map((row) => textWidth(plain(row[column] ?? []))));
+    return Math.min(MAX_COLUMN, Math.max(MIN_COLUMN, Math.ceil(widest + space.md * 2)));
   });
 }
 
@@ -102,7 +108,7 @@ export function fitsColumns(rows: Span[][][]): boolean {
   return rows.every((row) =>
     row.every((cell) => {
       const text = plain(cell);
-      return text.length <= COLUMN_FIT && !text.includes('\n');
+      return textWidth(text) <= MAX_COLUMN - space.md * 2 && !text.includes('\n');
     }),
   );
 }

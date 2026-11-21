@@ -1,9 +1,10 @@
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined } }));
 require('../src/i18n');
+import { PixelRatio } from 'react-native';
 import { act, create, type ReactTestRendererJSON } from 'react-test-renderer';
 import { composeBody } from '../src/features/chat/html';
 import { bodyBlocks, bodyShape, sourceBlocks } from '../src/features/chat/markdown';
-import { RichText } from '../src/features/chat/ui/RichText';
+import { RichText, textWidth } from '../src/features/chat/ui/RichText';
 
 type Node = ReactTestRendererJSON | string;
 
@@ -43,6 +44,19 @@ const coworker =
   '<p>Langkah berikut:</p><ol><li>Jadwalkan opname</li><li>Kirim laporan ke <a href="https://kaitech.io">tim</a></li></ol>';
 
 describe('RichText native views', () => {
+  beforeEach(() => {
+    jest.spyOn(PixelRatio, 'getFontScale').mockReturnValue(1);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('falls back to one text per cell at a large font scale', () => {
+    jest.spyOn(PixelRatio, 'getFontScale').mockReturnValue(2);
+    expect(topTexts(render(sourceBlocks('| KODE | STATUS |\n|---|---|\n| WH-TRANSIT-UTARA | SIAP |', true)))).toEqual(['KODE', 'STATUS', 'WH-TRANSIT-UTARA', 'SIAP']);
+  });
+
   it('draws paragraphs and lists that follow each other as one text', () => {
     const tree = render(sourceBlocks('Daftar cek:\n- rak A\n  - rak A1\n- kirim `PO/1`\n\n3. tiga\n4. empat', false));
     expect(topTexts(tree)).toEqual(['Daftar cek:\n\n\u2022\u2002rak A\n\u2003\u2003\u2022\u2002rak A1\n\u2022\u2002kirim PO/1\n\n3.\u2002tiga\n4.\u2002empat']);
@@ -80,6 +94,12 @@ describe('RichText native views', () => {
     const other = sourceBlocks('| A | B |\n|---|---|\n| 1 | 2 |', true);
     act(() => tree!.update(<RichText blocks={other} />));
     expect(topTexts(tree!.toJSON() as ReactTestRendererJSON)).toEqual(['A\n1', 'B\n2']);
+  });
+
+  it('sizes columns for capitals and the font scale', () => {
+    expect(textWidth('STATUS', 1)).toBeGreaterThan(55.2);
+    expect(textWidth('Gudang', 1.15)).toBeGreaterThan(59.6);
+    expect(textWidth('Penanggung jawab', 1.15)).toBeGreaterThan(146.4);
   });
 
   it('tells FlashList which bubbles share a shape', () => {
