@@ -1,5 +1,5 @@
 appId: io.kaitech.mobile
-name: Sign-in form checks the server address before opening the browser
+name: Sign-in opens the default server without fields and checks another server before the browser
 tags:
   - sign-in
 onFlowStart:
@@ -11,8 +11,41 @@ onFlowStart:
     visible:
       id: welcome-sign-in
     timeout: 30000
+- assertNotVisible:
+    id: sign-in-server
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - retry:
+          maxRetries: 2
+          commands:
+            - runFlow:
+                when:
+                  notVisible:
+                    id: welcome-sign-in
+                commands:
+                  - back
+            - tapOn:
+                id: welcome-sign-in
+            - extendedWaitUntil:
+                visible:
+                  text: .*lab0\.kaitech\.io.*
+                timeout: 60000
+      - assertNotVisible:
+          id: sign-in-server
+      - runFlow:
+          file: shared/screenshot.yaml
+          env:
+            SCREEN: sign-in-default-browser
+      - back
+      - extendedWaitUntil:
+          visible:
+            id: welcome-error
+            text: "${APP_LANGUAGE === 'id' ? 'Proses masuk dibatalkan.' : 'Sign-in was cancelled.'}"
+          timeout: 30000
 - tapOn:
-    id: welcome-sign-in
+    id: welcome-other-server
 - assertVisible:
     id: sign-in-server
 - runFlow:
@@ -52,6 +85,9 @@ onFlowStart:
 - assertVisible:
     id: sign-in-server
     text: http://erp.example.com
+- scrollUntilVisible:
+    element:
+      id: sign-in-continue
 - tapOn:
     id: sign-in-continue
 - assertVisible:
@@ -61,6 +97,36 @@ onFlowStart:
     file: shared/screenshot.yaml
     env:
       SCREEN: sign-in-error
+- tapOn:
+    id: sign-in-server
+- eraseText: 40
+- inputText: erp.example.com
+- runFlow: shared/dismiss-keyboard.yaml
+- tapOn:
+    id: sign-in-database
+- inputText: erp main
+- runFlow: shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: sign-in-continue
+- tapOn:
+    id: sign-in-continue
+- assertVisible:
+    id: sign-in-database-error
+    text: "${APP_LANGUAGE === 'id' ? 'Nama basis data tidak valid.' : 'That doesn.t look like a database name.'}"
+- runFlow:
+    file: shared/screenshot.yaml
+    env:
+      SCREEN: sign-in-database-error
+- scrollUntilVisible:
+    element:
+      id: sign-in-use-default
+- tapOn:
+    id: sign-in-use-default
+- assertVisible:
+    id: sign-in-default
+- assertNotVisible:
+    id: sign-in-server
 - scrollUntilVisible:
     element:
       id: sign-in-back

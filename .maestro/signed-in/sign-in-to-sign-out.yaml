@@ -17,12 +17,6 @@ onFlowStart:
       SCREEN: 01-welcome
 - tapOn:
     id: welcome-sign-in
-- tapOn:
-    id: sign-in-server
-- inputText: ${SERVER}
-- runFlow: ../shared/dismiss-keyboard.yaml
-- tapOn:
-    id: sign-in-continue
 - extendedWaitUntil:
     visible:
       text: (Email|Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)

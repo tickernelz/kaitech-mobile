@@ -9,6 +9,7 @@ permissions:
 env:
   SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
   KAITECH_LINK_HOST: ${{ vars.KAITECH_LINK_HOST }}
+  KAITECH_DEFAULT_DB: ${{ vars.KAITECH_DEFAULT_DB }}
 
 jobs:
   android-e2e:

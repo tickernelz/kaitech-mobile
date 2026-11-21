@@ -1,53 +1,43 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { errorCodeOf, type ErrorCode } from '../auth/errors';
-import { completeSignIn, signIn, takeStashedCallback } from '../auth/signIn';
-import { useLanguage } from '../i18n';
+import type { ErrorCode } from '../auth/errors';
+import { completeSignIn, defaultServer, takeStashedCallback } from '../auth/signIn';
+import { useSignIn } from '../auth/useSignIn';
 import { space } from '../theme';
 import { Button } from '../ui/Button';
 import { Screen } from '../ui/Screen';
 import { Text } from '../ui/Text';
 import { TextField, type TextFieldRef } from '../ui/TextField';
 
-const fieldErrors: ErrorCode[] = ['serverRequired', 'serverInvalid', 'serverInsecure'];
+const serverErrors: ErrorCode[] = ['serverRequired', 'serverInvalid', 'serverInsecure'];
+const databaseErrors: ErrorCode[] = ['databaseInvalid'];
 
-export function SignInForm({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
+export function SignInForm({ onDone, onBack, custom = false }: { onDone: () => void; onBack: () => void; custom?: boolean }) {
   const { t } = useTranslation();
-  const { language } = useLanguage();
+  const [preset] = useState(defaultServer);
+  const [other, setOther] = useState(custom || preset === null);
   const [server, setServer] = useState('');
   const [database, setDatabase] = useState('');
   const [stashed] = useState(takeStashedCallback);
-  const [busy, setBusy] = useState(stashed !== null);
-  const [error, setError] = useState<ErrorCode | null>(null);
+  const { busy, error, setError, run, start } = useSignIn(onDone, stashed !== null);
   const databaseRef = useRef<TextFieldRef>(null);
 
-  const run = useCallback(
-    async (attempt: () => Promise<unknown>) => {
-      setBusy(true);
-      setError(null);
-      try {
-        await attempt();
-        onDone();
-      } catch (caught) {
-        setError(errorCodeOf(caught));
-      } finally {
-        setBusy(false);
-      }
-    },
-    [onDone],
-  );
-
   useEffect(() => {
-    if (!stashed) return;
-    completeSignIn(stashed)
-      .then(onDone)
-      .catch((caught: unknown) => setError(errorCodeOf(caught)))
-      .finally(() => setBusy(false));
-  }, [stashed, onDone]);
+    if (stashed) void run(() => completeSignIn(stashed));
+  }, [stashed, run]);
 
-  const fieldError = error && fieldErrors.includes(error) ? t(`errors.${error}`) : null;
-  const formError = error && !fieldErrors.includes(error) ? t(`errors.${error}`) : null;
+  const submit = () => void (other || !preset ? start(server, database) : start(preset.server, preset.database));
+  const backToDefault = () => {
+    setOther(false);
+    setError(null);
+  };
+  const shown = (codes: ErrorCode[]) => (error && codes.includes(error) ? t(`errors.${error}`) : null);
+  const formError = error && !serverErrors.includes(error) && !databaseErrors.includes(error) ? t(`errors.${error}`) : null;
+  const edit = (set: (next: string) => void) => (next: string) => {
+    set(next);
+    if (error) setError(null);
+  };
 
   return (
     <Screen
@@ -64,48 +54,66 @@ export function SignInForm({ onDone, onBack }: { onDone: () => void; onBack: () 
             label={busy ? t('signIn.finishing') : t('signIn.continue')}
             accessibilityHint={t('signIn.continueHint')}
             busy={busy}
-            onPress={() => void run(() => signIn(server, database, language))}
+            onPress={submit}
             testID="sign-in-continue"
           />
+          {preset && other ? (
+            <Button
+              kind="plain"
+              label={t('signIn.useDefault', { server: preset.server })}
+              onPress={backToDefault}
+              disabled={busy}
+              testID="sign-in-use-default"
+            />
+          ) : null}
+          {preset && !other ? (
+            <Button kind="plain" label={t('signIn.otherServer')} onPress={() => setOther(true)} disabled={busy} testID="sign-in-other-server" />
+          ) : null}
           <Button kind="plain" label={t('signIn.back')} onPress={onBack} disabled={busy} testID="sign-in-back" />
         </View>
       }>
       <Text variant="title" accessibilityRole="header" testID="sign-in-title">
         {t('signIn.title')}
       </Text>
-      <Text tone="inkSoft">{t('signIn.body')}</Text>
-      <TextField
-        label={t('signIn.serverLabel')}
-        placeholder={t('signIn.serverPlaceholder')}
-        value={server}
-        onChangeText={(next) => {
-          setServer(next);
-          if (error) setError(null);
-        }}
-        error={fieldError}
-        autoCapitalize="none"
-        autoCorrect={false}
-        autoComplete="url"
-        keyboardType="url"
-        textContentType="URL"
-        returnKeyType="next"
-        onSubmitEditing={() => databaseRef.current?.focus()}
-        editable={!busy}
-        testID="sign-in-server"
-      />
-      <TextField
-        ref={databaseRef}
-        label={t('signIn.databaseLabel')}
-        hint={t('signIn.databaseHint')}
-        value={database}
-        onChangeText={setDatabase}
-        autoCapitalize="none"
-        autoCorrect={false}
-        returnKeyType="go"
-        onSubmitEditing={() => void run(() => signIn(server, database, language))}
-        editable={!busy}
-        testID="sign-in-database"
-      />
+      {other || !preset ? (
+        <>
+          <Text tone="inkSoft">{t('signIn.body')}</Text>
+          <TextField
+            label={t('signIn.serverLabel')}
+            placeholder={t('signIn.serverPlaceholder')}
+            value={server}
+            onChangeText={edit(setServer)}
+            error={shown(serverErrors)}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="url"
+            keyboardType="url"
+            textContentType="URL"
+            returnKeyType="next"
+            onSubmitEditing={() => databaseRef.current?.focus()}
+            editable={!busy}
+            testID="sign-in-server"
+          />
+          <TextField
+            ref={databaseRef}
+            label={t('signIn.databaseLabel')}
+            hint={t('signIn.databaseHint')}
+            value={database}
+            onChangeText={edit(setDatabase)}
+            error={shown(databaseErrors)}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="go"
+            onSubmitEditing={submit}
+            editable={!busy}
+            testID="sign-in-database"
+          />
+        </>
+      ) : (
+        <Text tone="inkSoft" testID="sign-in-default">
+          {t('signIn.defaultBody', { server: preset.server })}
+        </Text>
+      )}
     </Screen>
   );
 }
