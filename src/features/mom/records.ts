@@ -1,0 +1,163 @@
+import { rpc } from '../../api/odoo';
+import type { Account } from '../../auth/oauth';
+
+type Named = { id: number; name: string };
+
+export type RecordingCard = {
+  id: number;
+  name: string;
+  engagement: Named;
+  meeting: Named & { start: string | false };
+  department: Named | false;
+  state: string;
+  stateLabel: string;
+  sourceLabel: string;
+  isDocument: boolean;
+  hasDocument: boolean;
+  filename: string;
+  sizeLabel: string;
+  uploadedBy: string;
+  uploadedAt: string | false;
+  isUploader: boolean;
+  failureNote: string;
+  larkUrl: string | false;
+  transcription: { hasMedia: boolean; reviewed: boolean; job: { state: string }; comparison: { state: string } };
+};
+
+export type MeetingRecordings = { recordings: RecordingCard[]; total: number; canChange: boolean; isClient: boolean };
+
+export type StatusItem = {
+  id: number;
+  title: string;
+  programme: string;
+  meeting: string;
+  status: string;
+  steps: string[];
+  failures: { step: string; note: string }[];
+};
+
+export type ProcessingSummary = { processing: number; failed: number; working: StatusItem[]; failing: StatusItem[] };
+
+export type RemovalPreview = { withdrawn: string[]; held: string };
+
+export type RemovalResult = { ok: boolean; message?: string };
+
+export type RecordKind = 'recordings' | 'minutes' | 'removals';
+
+export type RecordLine = { id: number; title: string; detail: string; state: string; meetingId: number | false };
+
+export type RecordPage = { lines: RecordLine[]; total: number };
+
+export function meetingRecordings(account: Account, meeting: number): Promise<MeetingRecordings> {
+  return rpc<MeetingRecordings>(account, 'ck.mom.recording', 'board', [], { meeting_id: meeting, limit: 50 });
+}
+
+export function processingSummary(account: Account): Promise<ProcessingSummary> {
+  return rpc<ProcessingSummary>(account, 'ck.mom.recording', 'processing_summary', []);
+}
+
+export async function meetingOfRecording(account: Account, recording: number): Promise<number | null> {
+  const rows = await rpc<{ meeting_id: number | false }[]>(account, 'ck.mom.recording', 'web_read', [[recording]], { specification: { meeting_id: {} } });
+  return rows[0]?.meeting_id || null;
+}
+
+export function transcribe(account: Account, recording: number): Promise<unknown> {
+  return rpc(account, 'ck.mom.recording', 'transcribe', [[recording]]);
+}
+
+export function compareWithElevenLabs(account: Account, recording: number): Promise<unknown> {
+  return rpc(account, 'ck.mom.recording', 'compare_with_elevenlabs', [[recording]]);
+}
+
+export function removalPreview(account: Account, recording: number): Promise<RemovalPreview> {
+  return rpc<RemovalPreview>(account, 'ck.mom.recording', 'removal_preview', [[recording]]);
+}
+
+export function removeRecording(account: Account, recording: number, typedTitle: string, password: string): Promise<RemovalResult> {
+  return rpc<RemovalResult>(account, 'ck.mom.recording', 'remove_by_uploader', [[recording], typedTitle, password]);
+}
+
+type Many2one = { id: number; display_name: string } | false;
+
+const named = { fields: { display_name: {} } };
+
+const listed: Record<RecordKind, { model: string; specification: Record<string, unknown>; order: string; search: string }> = {
+  recordings: {
+    model: 'ck.mom.recording',
+    specification: { name: {}, engagement_id: named, meeting_id: named, state: {}, size_label: {}, uploaded_by_id: named },
+    order: 'create_date desc, id desc',
+    search: 'name',
+  },
+  minutes: {
+    model: 'ck.mom.document',
+    specification: { meeting_id: named, engagement_id: named, version: {}, state: {} },
+    order: 'id desc',
+    search: 'meeting_id.name',
+  },
+  removals: {
+    model: 'ck.mom.removal',
+    specification: { create_date: {}, user_id: named, title: {}, engagement_id: named, meeting_id: named, outcome: {}, reason: {} },
+    order: 'create_date desc, id desc',
+    search: 'title',
+  },
+};
+
+type Raw = {
+  id: number;
+  name?: string;
+  title?: string;
+  engagement_id?: Many2one;
+  meeting_id?: Many2one;
+  uploaded_by_id?: Many2one;
+  user_id?: Many2one;
+  size_label?: string;
+  version?: number;
+  state?: string;
+  outcome?: string;
+  reason?: string | false;
+  create_date?: string;
+};
+
+const label = (value: Many2one | undefined) => (value ? value.display_name : '');
+
+function lineOf(kind: RecordKind, row: Raw): RecordLine {
+  const meetingId = row.meeting_id ? row.meeting_id.id : false;
+  if (kind === 'recordings') {
+    return { id: row.id, title: row.name ?? '', detail: [label(row.meeting_id), label(row.engagement_id), row.size_label, label(row.uploaded_by_id)].filter(Boolean).join(' · '), state: row.state ?? '', meetingId };
+  }
+  if (kind === 'minutes') {
+    return { id: row.id, title: label(row.meeting_id), detail: [label(row.engagement_id), row.version ? `v${row.version}` : ''].filter(Boolean).join(' · '), state: row.state ?? '', meetingId };
+  }
+  return { id: row.id, title: row.title ?? '', detail: [label(row.user_id), label(row.meeting_id), row.reason || ''].filter(Boolean).join(' · '), state: row.outcome ?? '', meetingId };
+}
+
+type Views = { models: Record<string, { fields: Record<string, { selection?: [string, string][] }> }> };
+
+async function stateLabels(account: Account, model: string, field: string): Promise<Map<string, string>> {
+  const views = await rpc<Views>(account, model, 'get_views', [[[false, 'list']]], {});
+  return new Map(views.models[model]?.fields[field]?.selection ?? []);
+}
+
+export async function recordPage(account: Account, kind: RecordKind, search: string, limit: number): Promise<RecordPage> {
+  const shape = listed[kind];
+  const said = search.trim();
+  const domain = said ? [[shape.search, 'ilike', said]] : [];
+  const [page, labels] = await Promise.all([
+    rpc<{ length: number; records: Raw[] }>(account, shape.model, 'web_search_read', [], {
+      domain,
+      specification: shape.specification,
+      offset: 0,
+      limit,
+      order: shape.order,
+      count_limit: 10001,
+    }),
+    stateLabels(account, shape.model, kind === 'removals' ? 'outcome' : 'state'),
+  ]);
+  return {
+    lines: page.records.map((row) => {
+      const line = lineOf(kind, row);
+      return { ...line, state: labels.get(line.state) ?? line.state };
+    }),
+    total: page.length,
+  };
+}

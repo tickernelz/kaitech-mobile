@@ -85,7 +85,10 @@ export function errorKey(error: unknown): string {
 
 export function useErrorText() {
   const { t } = useTranslation();
-  return (error: unknown) => t(errorKey(error) as never, { defaultValue: t('errors.unknown') }) as string;
+  return (error: unknown) => {
+    if (error instanceof ApiError && error.reason) return error.reason;
+    return t(errorKey(error) as never, { defaultValue: t('errors.unknown') }) as string;
+  };
 }
 
 export function StateView({

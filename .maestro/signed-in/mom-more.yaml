@@ -1,0 +1,108 @@
+appId: io.kaitech.mobile
+name: MoM More - lists, processing status, recording menu, and removing the test recording this flow uploaded
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/record-meeting.yaml
+- tapOn:
+    id: recorder-stop
+- tapOn:
+    text: (?i)(finish|selesai)
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: upload-done
+    timeout: 180000
+- runFlow:
+    when:
+      visible:
+        id: mom-status
+    commands:
+      - tapOn:
+          id: mom-status
+      - extendedWaitUntil:
+          visible:
+            id: mom-status-sheet
+          timeout: 10000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: m6-status
+      - back
+- tapOn:
+    id: mom-more
+- extendedWaitUntil:
+    visible:
+      id: mom-more-sheet
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m5-more
+- tapOn:
+    id: mom-more-recordings
+- extendedWaitUntil:
+    visible:
+      id: mom-record-[0-9]+
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m7-all-recordings
+- tapOn:
+    id: header-back
+- tapOn:
+    id: meeting-[0-9]+
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: meeting-more
+    timeout: 30000
+- tapOn:
+    id: meeting-more
+- extendedWaitUntil:
+    visible:
+      id: meeting-more-sheet
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m8-meeting-more
+- tapOn:
+    id: mom-more-remove-[0-9]+
+- extendedWaitUntil:
+    visible:
+      id: mom-remove-name
+    timeout: 30000
+- copyTextFrom:
+    id: mom-remove-name
+- tapOn:
+    id: mom-remove-title
+- inputText: ${maestro.copiedText}
+- tapOn:
+    id: mom-remove-password
+- inputText: ${PASSWORD}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m9-remove
+- tapOn:
+    id: mom-remove-confirm
+- extendedWaitUntil:
+    notVisible:
+      id: mom-remove
+    timeout: 30000
+- extendedWaitUntil:
+    notVisible:
+      id: meeting-more
+    timeout: 30000

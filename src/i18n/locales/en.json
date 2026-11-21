@@ -562,6 +562,56 @@
       "version": "Version {{version}}",
       "empty": "The final minutes aren't ready yet.",
       "close": "Close"
+    },
+    "menu": {
+      "title": "More",
+      "close": "Close",
+      "lists": "Lists"
+    },
+    "status": {
+      "processing": "Processing: {{count}}",
+      "failed": "Failed: {{count}}",
+      "hint": "Shows which recordings are processing or failed",
+      "title": "MoM processing",
+      "noMeeting": "This recording isn't filed under a meeting yet."
+    },
+    "records": {
+      "recordings": "All recordings",
+      "minutes": "All minutes",
+      "removals": "Removed recordings",
+      "count": "{{count}} in total",
+      "search": "Search",
+      "none": "Nothing here yet",
+      "untitled": "Untitled"
+    },
+    "recordingMenu": {
+      "groupOne": "Recording",
+      "group": "Recording: {{title}}",
+      "transcribe": "Transcribe",
+      "transcribeAgain": "Transcribe again",
+      "importLark": "Import from Lark",
+      "compare": "Compare with ElevenLabs",
+      "remove": "Remove recording",
+      "confirm": {
+        "transcribe": "Transcribe this recording?",
+        "transcribeAgain": "Transcribe this recording again?",
+        "importLark": "Import this recording from Lark?",
+        "compare": "Have ElevenLabs hear this recording again?"
+      },
+      "started": {
+        "transcribe": "{{title}} is being transcribed.",
+        "compare": "ElevenLabs is listening to {{title}}."
+      }
+    },
+    "remove": {
+      "title": "Remove this recording for good",
+      "warning": "This deletes the recording and its file from storage. It can't be undone.",
+      "withdrawn": "Withdrawn with it, so nothing stands on it any more:",
+      "typeTitle": "Type the title of the recording",
+      "password": "Your account password",
+      "confirm": "Remove for good",
+      "keep": "Keep it",
+      "gone": "This recording is no longer here."
     }
   },
   "appearance": {

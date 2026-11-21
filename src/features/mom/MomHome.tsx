@@ -1,6 +1,9 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconButton } from '../../ui/IconButton';
+import { MoreSheet } from './MoreSheet';
+import { StatusRow } from './StatusRow';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
@@ -36,6 +39,7 @@ export function MomHome() {
   const expanded = windowClass === 'expanded';
   const [limit, setLimit] = useState(pageSize);
   const [selection, setSelection] = useState<{ account: string; meeting: number } | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
   const selected = selection && selection.account === active?.id ? selection.meeting : null;
   const meetings = useResource(`mom.board.${limit}`, (account) => board(account, limit));
   const uploads = useUploads(active?.id ?? null);
@@ -73,8 +77,10 @@ export function MomHome() {
         <Text variant="display" accessibilityRole="header" style={styles.fill}>
           {t('tabs.mom')}
         </Text>
+        <IconButton icon="more" label={t('mom.menu.title')} onPress={() => setMoreOpen(true)} testID="mom-more" />
         <HeaderActions />
       </View>
+      <StatusRow onOpenMeeting={open} />
       {ownRecording ? (
         <RecordingCard recording={ownRecording} onOpen={() => router.push('/mom/record')} />
       ) : (
@@ -139,6 +145,23 @@ export function MomHome() {
   return (
     <SafeAreaView edges={expanded ? ['top', 'right', 'bottom'] : ['top', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-mom">
       <Panes list={list} detail={detail} />
+      {moreOpen ? (
+        <MoreSheet
+          title={t('mom.menu.title')}
+          groups={[
+            {
+              key: 'lists',
+              title: t('mom.menu.lists'),
+              actions: [
+                { key: 'recordings', icon: 'wave', label: t('mom.records.recordings'), onPress: () => router.push({ pathname: '/mom/list/[kind]', params: { kind: 'recordings' } }) },
+                { key: 'minutes', icon: 'minutes', label: t('mom.records.minutes'), onPress: () => router.push({ pathname: '/mom/list/[kind]', params: { kind: 'minutes' } }) },
+                { key: 'removals', icon: 'trash', label: t('mom.records.removals'), onPress: () => router.push({ pathname: '/mom/list/[kind]', params: { kind: 'removals' } }) },
+              ],
+            },
+          ]}
+          onClose={() => setMoreOpen(false)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

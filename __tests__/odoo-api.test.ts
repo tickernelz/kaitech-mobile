@@ -77,6 +77,18 @@ describe('rpc', () => {
     expect(failure).toBeInstanceOf(ApiError);
     expect((failure as ApiError).code).toBe('forbidden');
   });
+
+  it('keeps the words of a user error and drops those of an access error', async () => {
+    serve([
+      session('s1'),
+      () => ({ body: { error: { code: 200, data: { name: 'odoo.exceptions.UserError', message: 'Rekaman ini masih diunggah.' } } } }),
+      () => ({ body: { error: { code: 200, data: { name: 'odoo.exceptions.AccessError', message: 'ck.mom.recording (id=4) rule' } } } }),
+    ]);
+    const refused = (await rpc(account, 'ck.mom.recording', 'transcribe').catch((error: unknown) => error)) as ApiError;
+    expect([refused.code, refused.reason]).toEqual(['refused', 'Rekaman ini masih diunggah.']);
+    const forbidden = (await rpc(account, 'ck.mom.recording', 'transcribe').catch((error: unknown) => error)) as ApiError;
+    expect([forbidden.code, forbidden.reason]).toEqual(['forbidden', '']);
+  });
 });
 
 describe('bearer', () => {

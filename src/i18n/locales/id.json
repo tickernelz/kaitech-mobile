@@ -562,6 +562,56 @@
       "version": "Versi {{version}}",
       "empty": "Notulen final belum siap.",
       "close": "Tutup"
+    },
+    "menu": {
+      "title": "Lainnya",
+      "close": "Tutup",
+      "lists": "Daftar"
+    },
+    "status": {
+      "processing": "Diproses: {{count}}",
+      "failed": "Gagal: {{count}}",
+      "hint": "Menampilkan rekaman yang sedang diproses atau gagal",
+      "title": "Pemrosesan MoM",
+      "noMeeting": "Rekaman ini belum masuk ke rapat mana pun."
+    },
+    "records": {
+      "recordings": "Semua rekaman",
+      "minutes": "Semua notulen",
+      "removals": "Rekaman yang dihapus",
+      "count": "Total {{count}}",
+      "search": "Cari",
+      "none": "Belum ada isi",
+      "untitled": "Tanpa judul"
+    },
+    "recordingMenu": {
+      "groupOne": "Rekaman",
+      "group": "Rekaman: {{title}}",
+      "transcribe": "Transkripsikan",
+      "transcribeAgain": "Transkripsikan ulang",
+      "importLark": "Impor dari Lark",
+      "compare": "Bandingkan dengan ElevenLabs",
+      "remove": "Hapus rekaman",
+      "confirm": {
+        "transcribe": "Transkripsikan rekaman ini?",
+        "transcribeAgain": "Transkripsikan ulang rekaman ini?",
+        "importLark": "Impor rekaman ini dari Lark?",
+        "compare": "Minta ElevenLabs mendengarkan ulang rekaman ini?"
+      },
+      "started": {
+        "transcribe": "{{title}} sedang ditranskripsikan.",
+        "compare": "ElevenLabs sedang mendengarkan {{title}}."
+      }
+    },
+    "remove": {
+      "title": "Hapus rekaman ini permanen",
+      "warning": "Ini menghapus rekaman beserta berkasnya dari penyimpanan. Tidak bisa dibatalkan.",
+      "withdrawn": "Ikut ditarik, supaya tidak ada lagi yang bersandar padanya:",
+      "typeTitle": "Ketik judul rekaman",
+      "password": "Kata sandi akun Anda",
+      "confirm": "Hapus permanen",
+      "keep": "Simpan saja",
+      "gone": "Rekaman ini sudah tidak ada."
     }
   },
   "appearance": {

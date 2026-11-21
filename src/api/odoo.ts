@@ -8,6 +8,7 @@ export class ApiError extends Error {
   constructor(
     readonly code: string,
     readonly status: number,
+    readonly reason = '',
   ) {
     super(code);
     this.name = 'ApiError';
@@ -158,7 +159,12 @@ async function sessionFor(account: Account, renew: boolean): Promise<Session> {
 
 onAccountForgotten((accountId) => sessions.delete(accountId));
 
-type RpcFailure = { code?: unknown; data?: { name?: unknown } };
+type RpcFailure = { code?: unknown; data?: { name?: unknown; message?: unknown } };
+
+function failed(failure: RpcFailure, code: string, status: number): ApiError {
+  const said = code === 'refused' && typeof failure.data?.message === 'string' ? failure.data.message.trim() : '';
+  return new ApiError(code, status, said);
+}
 
 function rpcCode(name: string): string {
   if (/\.(AccessError|AccessDenied)$/.test(name)) return 'forbidden';
@@ -197,7 +203,7 @@ export async function rpc<T>(
     const failure = body?.error as RpcFailure | undefined;
     if (!failure) return body?.result as T;
     if (attempt === 0 && expired(failure)) continue;
-    throw new ApiError(rpcCode(typeof failure.data?.name === 'string' ? failure.data.name : ''), status);
+    throw failed(failure, rpcCode(typeof failure.data?.name === 'string' ? failure.data.name : ''), status);
   }
 }
 
@@ -220,7 +226,7 @@ export async function route<T>(account: Account, path: string, params: Record<st
     if (!failure) return body?.result as T;
     if (attempt === 0 && expired(failure)) continue;
     const name = typeof failure.data?.name === 'string' ? failure.data.name : '';
-    throw new ApiError(failure.code === 404 || /NotFound$/.test(name) ? 'not_found' : rpcCode(name), status);
+    throw failed(failure, failure.code === 404 || /NotFound$/.test(name) ? 'not_found' : rpcCode(name), status);
   }
 }
 

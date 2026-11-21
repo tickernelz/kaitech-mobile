@@ -13,6 +13,7 @@ import { Header } from '../discovery/Header';
 import { Card, Chip, Segmented, StateView } from '../discovery/ui';
 import { minutesDetail, playbackUrl, secondsOf, transcript, type Detail, type Item } from './api';
 import { FinalPanel } from './FinalPanel';
+import { MeetingMenu } from './MeetingMenu';
 import { MeetingChip, useMomFormat } from './parts';
 import { clock, useRecording } from './recorder';
 
@@ -280,7 +281,12 @@ export function MeetingView({ meeting, back }: { meeting: number; back: boolean 
   ];
   const top = (
     <>
-      <Header title={data.meeting} subtitle={t('mom.meetingLine', { day: format.day(data.day), programme: data.programme })} back={back} />
+      <Header
+        title={data.meeting}
+        subtitle={t('mom.meetingLine', { day: format.day(data.day), programme: data.programme })}
+        back={back}
+        actions={<MeetingMenu meeting={meeting} />}
+      />
       <View style={styles.tabs}>
         <Segmented options={tabs} value={tab} onChange={setTab} testID="meeting-tab" />
         {recordings.length > 1 && (tab === 'transcript' || tab === 'notes') ? (

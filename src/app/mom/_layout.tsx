@@ -9,6 +9,8 @@ export default function MomLayout() {
       <Stack.Screen name="new" />
       <Stack.Screen name="record" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
       <Stack.Screen name="sign" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="remove" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="list/[kind]" />
     </Stack>
   );
 }
