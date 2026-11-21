@@ -9,7 +9,8 @@ import { forgetChatAccount } from './cleanup';
 import { forgetDrafts } from './drafts';
 import { clearOpenedFiles, dropFile, sweepStaging } from './files';
 import { allPendingFileUris, cachedConversations, cachedMessages, forgetAccount, pendingFor, removePending, savePending, storeConversations, storeMessages } from './db';
-import { composeBody, mentionsInText, plainText } from './html';
+import { composeBody, mentionsInText } from './html';
+import { bodyPreview } from './markdown';
 import {
   channelInfoFromStore,
   conversationPage,
@@ -184,7 +185,7 @@ function touchConversation(channelId: number, message: Message): boolean {
   const updated: Conversation = {
     ...current,
     activityAt: Math.max(current.activityAt, message.date),
-    last: lastMessageOf(message, plainText(message.body)),
+    last: lastMessageOf(message, bodyPreview(message.body)),
     unread: mine || visible ? current.unread : current.unread + 1,
   };
   const rest = state.conversations.filter((conversation) => conversation.id !== channelId);

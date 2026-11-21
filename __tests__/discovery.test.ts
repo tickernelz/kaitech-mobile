@@ -1,6 +1,6 @@
 import type { TranscriptItem } from '../src/features/discovery/api';
 import { parseServerDate } from '../src/features/discovery/dates';
-import { blocksOf, spansOf } from '../src/features/discovery/Markdown';
+import { sourceBlocks } from '../src/features/chat/markdown';
 import { routeForPush } from '../src/features/discovery/push';
 import { entriesOf, mergeItems, stepCount } from '../src/features/discovery/thread';
 
@@ -78,15 +78,16 @@ describe('routeForPush', () => {
 
 describe('Markdown', () => {
   it('reads bullets, headings and paragraphs the Coworker writes', () => {
-    expect(blocksOf('Dua jawaban:\n- **Budi**: cukup kasi.\n- Dewi: manajer.\n\nAturan belum ada\ndi sumber.')).toEqual([
-      { kind: 'paragraph', text: 'Dua jawaban:' },
-      { kind: 'bullet', text: '**Budi**: cukup kasi.' },
-      { kind: 'bullet', text: 'Dewi: manajer.' },
-      { kind: 'paragraph', text: 'Aturan belum ada\ndi sumber.' },
-    ]);
-    expect(spansOf('**Budi**: cukup')).toEqual([
-      { text: 'Budi', strong: true },
-      { text: ': cukup', strong: false },
+    expect(sourceBlocks('Dua jawaban:\n- **Budi**: cukup kasi.\n- Dewi: manajer.\n\nAturan belum ada\ndi sumber.', true)).toEqual([
+      { kind: 'text', heading: false, spans: [{ text: 'Dua jawaban:' }] },
+      {
+        kind: 'list',
+        items: [
+          { marker: '', depth: 0, spans: [{ text: 'Budi', bold: true }, { text: ': cukup kasi.' }] },
+          { marker: '', depth: 0, spans: [{ text: 'Dewi: manajer.' }] },
+        ],
+      },
+      { kind: 'text', heading: false, spans: [{ text: 'Aturan belum ada\ndi sumber.' }] },
     ]);
   });
 });
