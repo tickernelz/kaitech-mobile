@@ -29,12 +29,15 @@ export function useCurrentProgramme(): { list: ReturnType<typeof useResource<Pro
   return { list, current };
 }
 
-function Metric({ value, label }: { value: string; label: string }) {
+function Metric({ icon, value, label }: { icon: IconName; value: string; label: string }) {
   const { colors } = useTheme();
   return (
-    <View style={[styles.metric, { backgroundColor: colors.surface2 }]}>
-      <Text variant="title">{value}</Text>
-      <Text variant="footnote" tone="inkSoft">
+    <View style={[styles.metric, { backgroundColor: colors.surface2 }]} accessible accessibilityLabel={`${value} ${label}`}>
+      <View style={styles.metricValue}>
+        <Icon name={icon} size={20} color={colors.inkSoft} />
+        <Text variant="title">{value}</Text>
+      </View>
+      <Text variant="footnote" tone="inkSoft" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
         {label}
       </Text>
     </View>
@@ -51,28 +54,21 @@ function Summary({ data, programme }: { data: Panel; programme: number }) {
   return (
     <Card testID="programme-summary">
       <View style={styles.rowWrap}>
-        <Chip tone="select" label={data.state_label || data.state} />
+        {data.state === 'discovery' ? null : <Chip tone="select" label={data.state_label || data.state} />}
         {gates ? (
           <Text variant="footnote" tone="inkSoft">
             {t('discovery.home.gates', { signed: number(signed), total: number(gates) })}
           </Text>
         ) : null}
       </View>
-      <Text variant="title">{data.name}</Text>
-      {data.client ? <Text tone="inkSoft">{data.client}</Text> : null}
       <View style={styles.metrics}>
-        <Metric value={tally.data ? number(tally.data.evidence) : '–'} label={t('discovery.home.evidence')} />
-        <Metric value={tally.data ? number(tally.data.findings) : '–'} label={t('discovery.home.findings')} />
-        <Metric value={number(data.sources)} label={t('discovery.home.sources')} />
+        <Metric icon="thread" value={tally.data ? number(tally.data.evidence) : '–'} label={t('discovery.home.evidence')} />
+        <Metric icon="bulb" value={tally.data ? number(tally.data.findings) : '–'} label={t('discovery.home.findings')} />
+        <Metric icon="doc" value={number(data.sources)} label={t('discovery.home.sources')} />
       </View>
-      <View style={styles.rowBetween}>
-        <Text variant="footnote" tone="inkSoft">
-          {t('discovery.home.questions')}
-        </Text>
-        <Text variant="footnote" style={styles.strong}>
-          {t('discovery.home.answered', { answered: number(answered), total: number(total) })}
-        </Text>
-      </View>
+      <Text variant="footnote" tone="inkSoft">
+        {t('discovery.home.questions')} · <Text variant="footnote" style={styles.strong}>{t('discovery.home.answered', { answered: number(answered), total: number(total) })}</Text>
+      </Text>
       <View
         style={[styles.track, { backgroundColor: colors.line }]}
         accessibilityRole="progressbar"
@@ -87,15 +83,18 @@ function Line({
   icon,
   title,
   detail,
+  badge,
   onPress,
   testID,
 }: {
   icon: IconName;
   title: string;
   detail?: string;
+  badge?: number;
   onPress?: () => void;
   testID?: string;
 }) {
+  const { number } = useFormatters();
   const { colors } = useTheme();
   const body = (
     <>
@@ -112,6 +111,13 @@ function Line({
           </Text>
         ) : null}
       </View>
+      {badge ? (
+        <View style={[styles.badge, { backgroundColor: colors.primary }]}>
+          <Text variant="label" style={{ color: colors.onPrimary }}>
+            {number(badge)}
+          </Text>
+        </View>
+      ) : null}
       {onPress ? <Icon name="forward" size={20} color={colors.inkFaint} /> : null}
     </>
   );
@@ -142,8 +148,8 @@ function AskBar({ name, onPress }: { name: string; onPress: () => void }) {
       testID="discovery-ask"
       style={({ pressed }) => [styles.ask, { backgroundColor: pressed ? colors.select : colors.surface2, borderColor: colors.line }]}>
       <Icon name="sparkle" color={colors.selectInk} />
-      <Text tone="selectInk" style={styles.fill} numberOfLines={2}>
-        {t('discovery.home.ask', { name })}
+      <Text tone="selectInk" style={styles.fill} numberOfLines={1}>
+        {t('discovery.home.askShort')}
       </Text>
     </Pressable>
   );
@@ -238,7 +244,7 @@ export function DiscoveryHome() {
         <StateView
           loading={list.loading && !list.data}
           error={list.data ? undefined : list.error}
-          empty={{ title: t('discovery.home.noneTitle'), body: t('discovery.home.noneBody') }}
+          empty={{ title: t('discovery.home.noneTitle'), icon: 'compass' }}
           onRetry={() => void list.refresh()}
           testID="discovery-programmes"
         />
@@ -259,15 +265,14 @@ export function DiscoveryHome() {
                 />
               ))}
               {programmePanel.data.needs_you.map((line) => (
-                <Line key={`agenda-${line.kind}`} icon="bulb" title={line.headline} />
+                <Line key={`agenda-${line.kind}`} icon="bulb" title={line.headline} badge={line.count} />
               ))}
             </Section>
           ) : null}
-          <Section title={t('discovery.home.explore')}>
+          <Section>
             <Line
               icon="doc"
               title={t('discovery.home.evidenceAndFindings')}
-              detail={t('discovery.home.evidenceAndFindingsBody')}
               onPress={() => router.push(`/program/${programme}/evidence`)}
               testID="open-evidence"
             />
@@ -348,9 +353,10 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   rowWrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.sm },
-  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', gap: space.sm, flexWrap: 'wrap' },
-  metrics: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
-  metric: { flexGrow: 1, flexBasis: 88, borderRadius: radius.md, padding: space.md, gap: 2 },
+  metrics: { flexDirection: 'row', gap: space.sm },
+  metric: { flex: 1, minWidth: 0, borderRadius: radius.md, padding: space.md, gap: 2 },
+  metricValue: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  badge: { minWidth: 20, height: 20, borderRadius: radius.pill, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
   track: { height: 6, borderRadius: radius.pill, overflow: 'hidden' },
   bar: { height: 6 },
   ask: {

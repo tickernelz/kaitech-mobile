@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../../ui/icons';
@@ -10,7 +10,7 @@ import { CallTile } from './CallTile';
 
 const stripTile = { width: 112, height: 84 };
 
-export function ScreenStage({ presenter, people, side, onStop }: { presenter: CallPerson; people: CallPerson[]; side: boolean; onStop: () => void }) {
+export function ScreenStage({ presenter, people, side }: { presenter: CallPerson; people: CallPerson[]; side: boolean }) {
   const { t } = useTranslation('call');
   const { colors } = useTheme();
   const [ready, setReady] = useState(liveKit() !== null);
@@ -32,11 +32,6 @@ export function ScreenStage({ presenter, people, side, onStop }: { presenter: Ca
             <Text variant="body" style={styles.note} testID="call-screen-share-own">
               {t('youAreSharing')}
             </Text>
-            <Pressable accessibilityRole="button" onPress={onStop} style={[styles.stop, { backgroundColor: colors.danger }]} testID="call-screen-share-stop">
-              <Text variant="callout" style={{ color: colors.onPrimary }}>
-                {t('stopSharing')}
-              </Text>
-            </Pressable>
           </View>
         ) : track && VideoTrack ? (
           <VideoTrack trackRef={track as never} style={StyleSheet.absoluteFill} objectFit="contain" />
@@ -55,7 +50,7 @@ export function ScreenStage({ presenter, people, side, onStop }: { presenter: Ca
       </View>
       <ScrollView horizontal={!side} style={side ? styles.sideStrip : styles.strip} contentContainerStyle={styles.stripInner} testID="call-screen-share-people">
         {people.map((person) => (
-          <CallTile key={person.sid} person={person} width={stripTile.width} height={stripTile.height} rounded />
+          <CallTile key={person.sid} person={person} width={stripTile.width} height={stripTile.height} corner={18} />
         ))}
       </ScrollView>
     </View>
@@ -68,7 +63,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, borderRadius: 16, overflow: 'hidden', justifyContent: 'flex-end' },
   center: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.lg },
   note: { textAlign: 'center' },
-  stop: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: 24, minHeight: 44, justifyContent: 'center' },
   label: { paddingHorizontal: space.sm, paddingVertical: space.xs },
   strip: { flexGrow: 0 },
   sideStrip: { flexGrow: 0, width: 120 },

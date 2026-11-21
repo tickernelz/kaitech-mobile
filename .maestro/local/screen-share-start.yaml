@@ -4,10 +4,12 @@ name: Screen share, part 1 - join the web peer's voice call and share the phone 
 - runFlow: ../shared/join-peer-call.yaml
 - extendedWaitUntil:
     visible:
-      id: call-share
+      id: call-more
     timeout: 60000
 - tapOn:
-    id: call-share
+    id: call-more
+- tapOn:
+    id: call-sheet-share
 - runFlow: ../shared/allow-screen-capture.yaml
 - extendedWaitUntil:
     visible:

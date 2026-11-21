@@ -149,13 +149,20 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
               key={name}
               accessibilityRole="tab"
               accessibilityState={{ selected: on }}
+              accessibilityLabel={name === 'unread' && unreadTotal ? `${t('list.filter.unread')}, ${unreadTotal}` : undefined}
               onPress={() => setFilter(name)}
               testID={`chat-filter-${name}`}
               style={[styles.chip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}>
               <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
                 {t(`list.filter.${name}`)}
-                {name === 'unread' && unreadTotal ? ` ${unreadTotal}` : ''}
               </Text>
+              {name === 'unread' && unreadTotal ? (
+                <View style={[styles.count, { backgroundColor: on ? colors.onPrimary : colors.primary }]}>
+                  <Text variant="label" style={{ color: on ? colors.primary : colors.onPrimary }}>
+                    {unreadTotal}
+                  </Text>
+                </View>
+              ) : null}
             </Pressable>
           );
         })}
@@ -221,7 +228,8 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.sm, gap: space.md },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.xs },
   chips: { gap: space.sm, paddingHorizontal: space.xs },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  count: { minWidth: 18, height: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
   banner: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: radius.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingLeft: space.lg, minHeight: 76 },
   rowBody: { flex: 1, paddingVertical: space.md, paddingRight: space.lg, gap: 2, borderBottomWidth: StyleSheet.hairlineWidth },

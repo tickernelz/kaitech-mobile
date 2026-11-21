@@ -47,7 +47,7 @@ export function PickScreen() {
           <StateView
             loading={list.loading}
             error={list.error}
-            empty={{ title: t('discovery.home.noneTitle'), body: t('discovery.home.noneBody') }}
+            empty={{ title: t('discovery.home.noneTitle'), icon: 'compass' }}
             onRetry={() => void list.refresh()}
           />
         }

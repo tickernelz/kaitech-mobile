@@ -195,7 +195,7 @@ export function SearchScreen() {
               testID="search-results"
             />
           ) : (
-            <StateView empty={{ title: t('search.hintTitle'), body: t('search.hintBody') }} testID="search-hint" />
+            <StateView empty={{ title: t('search.hintTitle'), icon: 'search' }} testID="search-hint" />
           )
         }
       />

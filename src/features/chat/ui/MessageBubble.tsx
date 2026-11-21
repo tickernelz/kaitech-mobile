@@ -199,6 +199,10 @@ function QuoteBlock({ quote, mine, onPress }: { quote: Quote; mine: boolean; onP
   );
 }
 
+export function isCallNotice(message: Pick<Message, 'type' | 'body'>): boolean {
+  return message.type === 'notification' && message.body.includes('data-oe-type="call"');
+}
+
 export const MessageBubble = memo(function MessageBubble({
   message,
   mine,
@@ -231,6 +235,16 @@ export const MessageBubble = memo(function MessageBubble({
   const notification = message.type === 'notification';
   const time = clock(message.date);
   const text = plainText(message.body);
+  if (isCallNotice(message)) {
+    return (
+      <View style={[styles.notice, styles.callNotice]} accessible accessibilityLabel={`${t('thread.call')}, ${time}`} testID={`call-notice-${message.id}`}>
+        <Icon name="phone" size={16} color={colors.inkSoft} />
+        <Text variant="footnote" tone="inkSoft">
+          {t('thread.call')} · {time}
+        </Text>
+      </View>
+    );
+  }
   if (notification) {
     return (
       <View style={styles.notice}>
@@ -398,4 +412,5 @@ const styles = StyleSheet.create({
   reaction: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 32, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   notice: { paddingHorizontal: space.xxl, paddingVertical: space.sm },
+  callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs },
 });

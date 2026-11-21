@@ -1,4 +1,4 @@
-import Constants from 'expo-constants';
+import * as Application from 'expo-application';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { setLockEnabled, useLock } from '../lock/lock';
 import { useLockLabel } from '../lock/useLockLabel';
 import { LanguageChoices } from '../screens/LanguageChoices';
 import { space } from '../theme';
+import { IconButton } from '../features/discovery/ui';
 import { Button } from '../ui/Button';
 import { Check, Divider, Row, Section, ToggleRow } from '../ui/List';
 import { Screen } from '../ui/Screen';
@@ -25,8 +26,8 @@ export default function Settings() {
   if (!active) return null;
   const others = accounts.filter((account) => account.id !== active.id);
   const host = (origin: string) => origin.replace(/^https:\/\//, '');
-  const version = Constants.expoConfig?.version ?? '';
-  const build = Constants.expoConfig?.ios?.buildNumber ?? String(Constants.expoConfig?.android?.versionCode ?? '');
+  const version = Application.nativeApplicationVersion ?? '';
+  const build = Application.nativeBuildVersion ?? '';
 
   const confirmSignOut = () => {
     Alert.alert(t('settings.signOutTitle', { name: active.name }), t('settings.signOutBody'), [
@@ -52,7 +53,7 @@ export default function Settings() {
         <Text variant="title" accessibilityRole="header">
           {t('settings.title')}
         </Text>
-        <Button kind="plain" label={t('settings.close')} onPress={() => router.back()} style={styles.close} testID="settings-close" />
+        <IconButton icon="close" label={t('settings.close')} onPress={() => router.back()} testID="settings-close" />
       </View>
       <Section title={t('settings.account')}>
         <Row title={active.name} detail={active.login} />
@@ -102,6 +103,5 @@ export default function Settings() {
 const styles = StyleSheet.create({
   content: { paddingBottom: space.xxxl, gap: space.xl },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  close: { minHeight: 44, paddingHorizontal: space.sm },
   version: { textAlign: 'center' },
 });

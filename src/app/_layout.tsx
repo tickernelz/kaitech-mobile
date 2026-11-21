@@ -7,7 +7,7 @@ import { AppState, StyleSheet, View } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSession, verifyActiveSession } from '../auth/session';
-import { CallRuntime } from '../features/call/CallRuntime';
+import { CallRuntime, CallStrip } from '../features/call/CallRuntime';
 import { setLocked } from '../features/call/call';
 import { ChatRuntime } from '../features/chat/ChatRuntime';
 import { LockScreen } from '../lock/LockScreen';
@@ -50,6 +50,8 @@ export default function RootLayout() {
       <StatusBar style="auto" />
       <ChatRuntime account={signedIn && session.onboarded ? session.active : null} />
       <View style={styles.fill} importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'} pointerEvents={locked ? 'none' : 'auto'}>
+        {signedIn && session.onboarded ? <CallStrip /> : null}
+        <SafeAreaProvider style={styles.fill}>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
           <Stack.Protected guard={signedIn && session.onboarded} redirectTo={home}>
             <Stack.Screen name="(tabs)" />
@@ -73,6 +75,7 @@ export default function RootLayout() {
             <Stack.Screen name="sign-in" />
           </Stack.Protected>
         </Stack>
+        </SafeAreaProvider>
       </View>
       <CallRuntime account={signedIn && session.onboarded ? session.active : null} />
       {locked ? <LockScreen /> : null}

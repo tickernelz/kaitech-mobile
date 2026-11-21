@@ -59,7 +59,8 @@ export function SetupScreen() {
   const options = useResource(programme ? `mom.options.${programme}` : null, (account) => uploadOptions(account, programme));
   const [mode, setMode] = useState<Mode>('new');
   const [meetingId, setMeetingId] = useState<number | null>(null);
-  const [name, setName] = useState(() => t('mom.setup.defaultName', { date: format.day(new Date()) }));
+  const [name, setName] = useState('');
+  const [openedAt] = useState(() => new Date());
   const [title, setTitle] = useState('');
   const [consent, setConsent] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -69,11 +70,12 @@ export function SetupScreen() {
   const meetings = (options.data?.meetings ?? []).filter((meeting) => !meeting.signed);
   const chosen = mode === 'held' ? meetings.find((meeting) => meeting.id === meetingId) ?? null : null;
   const needsConsent = mode === 'new' || !chosen?.consent;
-  const meetingName = mode === 'new' ? name.trim() : (chosen?.name ?? '');
+  const fallbackName = current ? `${current.name} ${format.time(openedAt)}` : '';
+  const meetingName = mode === 'new' ? name.trim() || fallbackName : (chosen?.name ?? '');
 
   const begin = async () => {
     if (!active || !current) return;
-    if (!meetingName) return setProblem(mode === 'new' ? t('mom.setup.nameNeeded') : t('mom.setup.meeting'));
+    if (!meetingName) return setProblem(t('mom.setup.meeting'));
     if (needsConsent && !consent) return setProblem(t('mom.setup.consentNeeded'));
     setProblem(null);
     setBusy(true);
@@ -154,7 +156,7 @@ export function SetupScreen() {
         />
       </View>
       {mode === 'new' ? (
-        <TextField label={t('mom.setup.meetingName')} value={name} onChangeText={setName} testID="setup-name" returnKeyType="next" />
+        <TextField label={t('mom.setup.meetingName')} value={name} onChangeText={setName} placeholder={fallbackName} testID="setup-name" returnKeyType="next" />
       ) : options.data ? (
         meetings.length ? (
           <Section>

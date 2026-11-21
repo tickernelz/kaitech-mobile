@@ -15,7 +15,8 @@ import { Text } from '../../ui/Text';
 import { StateView } from '../discovery/ui';
 import { board } from './api';
 import { MeetingView } from './MeetingView';
-import { Line, MeetingChip, RecordingCard, SmallButton, UploadCard, useMomFormat } from './parts';
+import { useCurrentProgramme } from '../discovery/Home';
+import { Line, MeetingChip, MeetingStatusIcon, needsAction, RecordingCard, SmallButton, UploadCard, useMomFormat, useStatusLabel } from './parts';
 import { RecorderBar } from './RecorderScreen';
 import { useRecording } from './recorder';
 import { useUploads } from './uploads';
@@ -24,9 +25,12 @@ const pageSize = 40;
 
 export function MomHome() {
   const { t } = useTranslation();
+  const { t: tChat } = useTranslation('chat');
   const { colors } = useTheme();
   const router = useRouter();
   const format = useMomFormat();
+  const statusLabel = useStatusLabel();
+  const { current } = useCurrentProgramme();
   const { active } = useSession();
   const { windowClass } = useWindowClass();
   const expanded = windowClass === 'expanded';
@@ -54,6 +58,12 @@ export function MomHome() {
   };
 
   const rows = meetings.data?.meetings ?? [];
+  const days = groupByDay(rows);
+  const dayTitle = (day: string) => {
+    if (day === localDay(0)) return tChat('time.today');
+    if (day === localDay(-1)) return tChat('time.yesterday');
+    return format.day(day);
+  };
   const list = (
     <ScrollView
       contentContainerStyle={styles.content}
@@ -74,25 +84,33 @@ export function MomHome() {
         <UploadCard key={upload.key} upload={upload} />
       ))}
       {rows.length ? (
-        <Section title={t('mom.meetings')}>
-          {rows.map((row) => (
-            <Line
-              key={row.id}
-              icon={row.generatedAt ? 'minutes' : 'wave'}
-              title={row.name}
-              detail={t('mom.meetingLine', { day: format.day(row.day), programme: row.programme.name })}
-              trailing={<MeetingChip row={row} />}
-              selected={expanded ? selected === row.id : undefined}
-              onPress={() => open(row.id)}
-              testID={`meeting-${row.id}`}
-            />
-          ))}
-        </Section>
+        days.map(([day, group]) => (
+          <Section key={day} title={dayTitle(day)}>
+            {group.map((row) => {
+              const programme = row.programme.id === current?.id ? undefined : row.programme.name;
+              const status = statusLabel(row);
+              return (
+                <Line
+                  key={row.id}
+                  icon={row.generatedAt ? 'minutes' : 'wave'}
+                  title={row.name}
+                  detail={programme}
+                  trailing={needsAction(row) ? <MeetingChip row={row} /> : undefined}
+                  end={needsAction(row) ? undefined : <MeetingStatusIcon row={row} />}
+                  label={[row.name, programme, status].filter(Boolean).join(', ')}
+                  selected={expanded ? selected === row.id : undefined}
+                  onPress={() => open(row.id)}
+                  testID={`meeting-${row.id}`}
+                />
+              );
+            })}
+          </Section>
+        ))
       ) : (
         <StateView
           loading={meetings.loading && !meetings.data}
           error={meetings.data ? undefined : meetings.error}
-          empty={{ title: t('mom.noneTitle'), body: t('mom.noneBody') }}
+          empty={{ title: t('mom.noneTitle'), icon: 'minutes' }}
           onRetry={() => void meetings.refresh()}
           testID="mom-meetings"
         />
@@ -123,6 +141,23 @@ export function MomHome() {
       <Panes list={list} detail={detail} />
     </SafeAreaView>
   );
+}
+
+function localDay(offset: number): string {
+  const at = new Date();
+  at.setDate(at.getDate() + offset);
+  const two = (value: number) => String(value).padStart(2, '0');
+  return `${at.getFullYear()}-${two(at.getMonth() + 1)}-${two(at.getDate())}`;
+}
+
+function groupByDay<T extends { day: string }>(rows: T[]): [string, T[]][] {
+  const groups = new Map<string, T[]>();
+  for (const row of rows) {
+    const group = groups.get(row.day);
+    if (group) group.push(row);
+    else groups.set(row.day, [row]);
+  }
+  return [...groups];
 }
 
 const styles = StyleSheet.create({

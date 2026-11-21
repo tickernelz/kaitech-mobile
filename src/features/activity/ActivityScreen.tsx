@@ -113,7 +113,7 @@ export function ActivityScreen() {
           <StateView
             loading={items.loading}
             error={items.error}
-            empty={{ title: t('activity.noneTitle'), body: t('activity.noneBody') }}
+            empty={{ title: t('activity.noneTitle'), icon: 'bell' }}
             onRetry={() => void items.refresh()}
             testID="activity"
           />

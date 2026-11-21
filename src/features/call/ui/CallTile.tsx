@@ -8,7 +8,7 @@ import { Icon } from '../../../ui/icons';
 import { loadLiveKit, liveKit } from '../livekit';
 import { videoTrack, type CallPerson } from '../call';
 
-export function CallTile({ person, width, height, rounded }: { person: CallPerson; width: number; height: number; rounded: boolean }) {
+export function CallTile({ person, width, height, corner, bare = false }: { person: CallPerson; width: number; height: number; corner: number; bare?: boolean }) {
   const { t } = useTranslation('call');
   const { colors } = useTheme();
   const [ready, setReady] = useState(liveKit() !== null);
@@ -20,7 +20,7 @@ export function CallTile({ person, width, height, rounded }: { person: CallPerso
 
   const track = ready && person.cameraOn ? videoTrack(person.sid) : null;
   const VideoTrack = ready ? liveKit()?.VideoTrack : undefined;
-  const frame = { width, height, borderRadius: rounded ? 18 : 0 };
+  const frame = { width, height, borderRadius: corner, borderWidth: bare ? 0 : 2 };
 
   return (
     <View style={[styles.frame, frame, { backgroundColor: colors.surface2, borderColor: person.speaking ? colors.primary : 'transparent' }]} testID={`call-tile-${person.sid}`}>
@@ -31,18 +31,20 @@ export function CallTile({ person, width, height, rounded }: { person: CallPerso
           <Avatar name={person.name} seed={person.partnerId ?? person.sid.length} size={Math.min(width, height) * 0.42} />
         </View>
       )}
-      <View style={[styles.label, { backgroundColor: colors.stageScrim }]}>
-        <Text variant="footnote" numberOfLines={1} style={[styles.name, { color: colors.onStage }]}>
-          {person.local ? t('you') : person.name}
-        </Text>
-        {person.micOn ? null : <Icon name="micOff" size={16} color={colors.onStage} />}
-      </View>
+      {bare ? null : (
+        <View style={[styles.label, { backgroundColor: colors.stageScrim }]}>
+          <Text variant="footnote" numberOfLines={1} style={[styles.name, { color: colors.onStage }]}>
+            {person.local ? t('you') : person.name}
+          </Text>
+          {person.micOn ? null : <Icon name="micOff" size={16} color={colors.onStage} />}
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  frame: { overflow: 'hidden', borderWidth: 2, justifyContent: 'flex-end' },
+  frame: { overflow: 'hidden', justifyContent: 'flex-end' },
   center: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
   label: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.sm, paddingVertical: space.xs },
   name: { flexShrink: 1 },

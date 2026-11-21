@@ -131,11 +131,12 @@ export function StateView({
 }: {
   loading?: boolean;
   error?: unknown;
-  empty?: { title: string; body?: string };
+  empty?: { title: string; body?: string; icon?: IconName };
   onRetry?: () => void;
   testID?: string;
 }) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const errorText = useErrorText();
   if (loading) {
     return (
@@ -157,6 +158,7 @@ export function StateView({
   if (empty) {
     return (
       <View style={styles.state} testID={testID ? `${testID}-empty` : undefined}>
+        {empty.icon ? <Icon name={empty.icon} size={48} color={colors.inkFaint} /> : null}
         <Text variant="headline" style={styles.center}>
           {empty.title}
         </Text>
