@@ -1,0 +1,45 @@
+appId: io.kaitech.mobile
+name: Coworker quick replies - a kt-block reply is drawn as buttons and a tap sends its text (local only)
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-discovery
+- extendedWaitUntil:
+    visible:
+      id: programme-summary
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: discovery-ask
+- tapOn:
+    id: discovery-ask
+- extendedWaitUntil:
+    visible:
+      id: coworker-input
+    timeout: 10000
+- tapOn:
+    id: coworker-input
+- inputText: ${QUESTION}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: coworker-send
+- extendedWaitUntil:
+    visible:
+      id: kt-reply-0
+    timeout: 600000
+- assertNotVisible:
+    text: .*"replies".*
+- takeScreenshot: r1-replies
+- tapOn:
+    id: kt-reply-0
+- extendedWaitUntil:
+    visible:
+      id: coworker-working
+    timeout: 30000
+- takeScreenshot: r2-reply-sent

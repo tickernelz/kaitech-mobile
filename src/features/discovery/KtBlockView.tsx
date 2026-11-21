@@ -125,8 +125,8 @@ export function KtBlockView({ raw, onReply }: { raw: string; onReply?: (text: st
 
 const styles = StyleSheet.create({
   block: { gap: space.sm, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm },
-  replies: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  reply: { minHeight: 44, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: space.lg, justifyContent: 'center' },
+  replies: { gap: space.sm },
+  reply: { minHeight: 44, borderRadius: radius.field, borderWidth: 1, paddingHorizontal: space.lg, paddingVertical: space.sm, justifyContent: 'center' },
   sources: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.xs },
   source: { borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 3 },
   tableWrap: { gap: space.xs },
