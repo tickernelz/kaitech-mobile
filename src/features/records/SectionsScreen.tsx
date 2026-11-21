@@ -11,9 +11,11 @@ import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 import { Header } from '../discovery/Header';
 import { StateView } from '../discovery/ui';
-import { sectionGroups, type SectionGroup } from './api';
+import { useSession } from '../../auth/session';
+import { loadAction, sectionGroups, type SectionGroup, type SectionLink } from './api';
+import { useFailureAlert } from './Chatter';
 import { stash } from './stash';
-import type { RecordStash } from './useRunAction';
+import { useRunAction, type RecordStash } from './useRunAction';
 
 export function SectionsScreen({ programme, name }: { programme: number; name?: string }) {
   const { t } = useTranslation();
@@ -23,6 +25,20 @@ export function SectionsScreen({ programme, name }: { programme: number; name?: 
   const [open, setOpen] = useState<Set<number>>(new Set());
   const [query, setQuery] = useState('');
   const id = String(programme);
+  const account = useSession().active;
+  const run = useRunAction(programme);
+  const fail = useFailureAlert();
+
+  const openSection = (section: SectionLink) => {
+    if (section.actionModel === 'ir.actions.act_window') {
+      router.push({ pathname: '/program/[id]/list', params: { id, action: String(section.actionId) } });
+      return;
+    }
+    if (!account) return;
+    loadAction(account, section.actionId, { default_engagement_id: programme })
+      .then((action) => run(action))
+      .catch(fail);
+  };
 
   const shown: SectionGroup[] = useMemo(() => {
     const said = query.trim().toLowerCase();
@@ -86,7 +102,7 @@ export function SectionsScreen({ programme, name }: { programme: number; name?: 
                       <Row
                         key={section.menuId}
                         title={section.name}
-                        onPress={() => router.push({ pathname: '/program/[id]/list', params: { id, action: String(section.actionId) } })}
+                        onPress={() => openSection(section)}
                         testID={`section-${section.menuId}`}
                       />
                     ))

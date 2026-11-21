@@ -1,0 +1,188 @@
+appId: io.kaitech.mobile
+name: Every web Discovery group reached from the programme, its lists, records and actions, plus knowledge and creating a glossary term
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat|tab-discovery)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-discovery
+- extendedWaitUntil:
+    visible:
+      id: programme-summary
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: open-sections
+- tapOn:
+    id: open-sections
+- extendedWaitUntil:
+    visible:
+      id: sections-group-[0-9]+
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g1-sections
+- tapOn:
+    id: sections-group-[0-9]+
+    index: 1
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g2-group-open
+- tapOn:
+    id: sections-programme
+- extendedWaitUntil:
+    visible:
+      id: record-screen
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g3-programme
+- runFlow:
+    when:
+      visible:
+        id: record-more
+    commands:
+      - tapOn:
+          id: record-more
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: g4-programme-more
+      - back
+- tapOn:
+    id: header-back
+- tapOn:
+    id: sections-knowledge
+- extendedWaitUntil:
+    visible:
+      id: (knowledge-reindex|knowledge-error)
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g5-knowledge
+- tapOn:
+    id: header-back
+- runFlow:
+    file: ../shared/open-section.yaml
+    env:
+      SECTION: Questions
+      SHOT: s01-interviews
+- runFlow:
+    file: ../shared/open-section.yaml
+    env:
+      SECTION: Departments
+      SHOT: s02-people
+- runFlow:
+    file: ../shared/open-section.yaml
+    env:
+      SECTION: Meetings
+      SHOT: s03-evidence
+- runFlow:
+    file: ../shared/open-section.yaml
+    env:
+      SECTION: Pain Points
+      SHOT: s04-analysis
+- runFlow:
+    file: ../shared/open-section.yaml
+    env:
+      SECTION: Fit-Gap & RICEFW
+      SHOT: s05-requirements
+- runFlow:
+    file: ../shared/open-section.yaml
+    env:
+      SECTION: Approval Packets
+      SHOT: s06-approvals
+- runFlow:
+    file: ../shared/open-section.yaml
+    env:
+      SECTION: Stages & Gates
+      SHOT: s07-delivery
+- runFlow:
+    file: ../shared/open-section.yaml
+    env:
+      SECTION: Answer Summaries
+      SHOT: s08-review
+- runFlow:
+    file: ../shared/open-section.yaml
+    env:
+      SECTION: Question Bank
+      SHOT: s09-config
+- tapOn:
+    id: sections-search
+- eraseText: 40
+- inputText: Glossary
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    text: Glossary
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: list-screen
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: list-add
+    commands:
+      - tapOn:
+          id: list-add
+      - extendedWaitUntil:
+          visible:
+            id: record-save
+          timeout: 30000
+      - tapOn:
+          id: field-term
+      - inputText: ${TERM}
+      - runFlow: ../shared/dismiss-keyboard.yaml
+      - scrollUntilVisible:
+          element:
+            id: field-definition
+      - tapOn:
+          id: field-definition
+      - inputText: ${TERM}
+      - runFlow: ../shared/dismiss-keyboard.yaml
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: c1-create
+      - tapOn:
+          id: record-save
+      - extendedWaitUntil:
+          notVisible:
+            id: record-save
+          timeout: 30000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: c2-created
+      - runFlow:
+          when:
+            visible:
+              id: button-action_accept
+          commands:
+            - tapOn:
+                id: button-action_accept
+            - extendedWaitUntil:
+                notVisible:
+                  id: button-action_accept
+                timeout: 30000
+            - runFlow:
+                file: ../shared/screenshot.yaml
+                env:
+                  SCREEN: c3-accepted

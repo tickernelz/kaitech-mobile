@@ -48,7 +48,7 @@ function serverDateTime(text: string): string | false | null {
   return at.toISOString().slice(0, 19).replace('T', ' ');
 }
 
-function TextEditor({ info, label, value, onChange, required, testID, widget }: Props & { widget?: string }) {
+function TextEditor({ field, info, label, value, onChange, required, testID, widget }: Props & { widget?: string }) {
   const { t } = useTranslation();
   const numeric = info.type === 'integer' || info.type === 'float' || info.type === 'monetary';
   const initial =
@@ -106,7 +106,7 @@ function TextEditor({ info, label, value, onChange, required, testID, widget }: 
       onChangeText={commit}
       multiline={multiline}
       keyboardType={numeric ? 'decimal-pad' : 'default'}
-      placeholder={info.type === 'date' ? t('records.dateShape') : info.type === 'datetime' ? t('records.dateTimeShape') : undefined}
+      placeholder={info.type === 'date' ? t('records.dateShape') : info.type === 'datetime' ? t('records.dateTimeShape') : field.placeholder}
       hint={info.help}
       error={error}
       autoCapitalize={info.type === 'char' || multiline ? 'sentences' : 'none'}

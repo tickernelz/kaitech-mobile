@@ -371,6 +371,7 @@ export function RecordScreen({ programme, model, rid, stashKey }: { programme: n
               {canEdit && primary.length < 2 ? <Button kind="secondary" label={t('records.edit')} onPress={() => setDraft({ ...record })} style={styles.grow} testID="record-edit" /> : null}
             </View>
           ) : null}
+          {editing && form.title.length ? <Section>{form.title.map(renderField)}</Section> : null}
           {form.blocks.map((block) => {
             if (!visible(block.invisible, scope)) return null;
             const notes = block.items.filter((item): item is TextSpec => item.kind === 'text' && visible(item.invisible, scope));

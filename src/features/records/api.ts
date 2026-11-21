@@ -49,39 +49,55 @@ export type Action =
   | { type: 'ir.actions.report'; report_name: string; report_type: string; context?: unknown; data?: unknown; name?: string }
   | { type: 'ir.actions.server'; id: number };
 
-export type WebMenu = { id: number | 'root'; name: string; children: number[]; actionID: number | false; actionModel: string | false; xmlid: string };
+export type MenuRow = { id: number; name: string; parent_id: [number, string] | false; action: string | false };
 
 export type SectionLink = { menuId: number; name: string; actionId: number; actionModel: string };
 
 export type SectionGroup = { id: number; name: string; sections: SectionLink[] };
 
-export const discoveryRoot = 'erp_discovery.menu_discovery_root';
-
-export function groupsOfMenus(menus: Record<string, WebMenu>, rootXmlid = discoveryRoot): SectionGroup[] {
-  const root = Object.values(menus).find((menu) => menu.xmlid === rootXmlid);
-  if (!root) return [];
+export function groupsOfMenus(root: MenuRow, rows: MenuRow[]): SectionGroup[] {
+  const children = new Map<number, MenuRow[]>();
+  for (const row of rows) {
+    if (!row.parent_id) continue;
+    children.set(row.parent_id[0], [...(children.get(row.parent_id[0]) ?? []), row]);
+  }
+  const linkOf = (menu: MenuRow): SectionLink | null => {
+    const [actionModel, id] = typeof menu.action === 'string' ? menu.action.split(',') : [];
+    const actionId = Number(id);
+    return actionModel && Number.isInteger(actionId) && actionId > 0 ? { menuId: menu.id, name: menu.name, actionId, actionModel } : null;
+  };
   const loose: SectionLink[] = [];
   const groups: SectionGroup[] = [];
-  const linkOf = (menu: WebMenu): SectionLink | null =>
-    menu.actionID && menu.actionModel && typeof menu.id === 'number'
-      ? { menuId: menu.id, name: menu.name, actionId: menu.actionID, actionModel: menu.actionModel }
-      : null;
-  for (const childId of root.children) {
-    const child = menus[String(childId)];
-    if (!child || typeof child.id !== 'number') continue;
-    if (child.children.length) {
-      const sections = child.children.map((id) => menus[String(id)]).flatMap((menu) => (menu ? (linkOf(menu) ? [linkOf(menu)!] : []) : []));
+  for (const child of children.get(root.id) ?? []) {
+    const below = children.get(child.id) ?? [];
+    if (below.length) {
+      const sections = below.flatMap((menu) => {
+        const link = linkOf(menu);
+        return link ? [link] : [];
+      });
       if (sections.length) groups.push({ id: child.id, name: child.name, sections });
     } else {
       const link = linkOf(child);
       if (link) loose.push(link);
     }
   }
-  return loose.length ? [{ id: root.id as number, name: root.name, sections: loose }, ...groups] : groups;
+  return loose.length ? [{ id: root.id, name: root.name, sections: loose }, ...groups] : groups;
 }
 
 export async function sectionGroups(account: Account): Promise<SectionGroup[]> {
-  return groupsOfMenus(await rpc<Record<string, WebMenu>>(account, 'ir.ui.menu', 'load_web_menus', [false]));
+  const roots = await rpc<MenuRow[]>(account, 'ir.ui.menu', 'search_read', [[['parent_id', '=', false], ['web_icon', '=like', 'erp_discovery,%']]], {
+    fields: ['name', 'parent_id', 'action'],
+    limit: 1,
+  });
+  if (!roots.length) return [];
+  const rows = await rpc<MenuRow[]>(
+    account,
+    'ir.ui.menu',
+    'search_read',
+    [[['id', 'child_of', roots[0].id], '|', ['group_ids', '=', false], ['group_ids.all_user_ids', 'in', [account.userId]]]],
+    { fields: ['name', 'parent_id', 'action'], order: 'sequence, id' },
+  );
+  return groupsOfMenus(roots[0], rows);
 }
 
 function withLang(context: Record<string, unknown> = {}): Record<string, unknown> {

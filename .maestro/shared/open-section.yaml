@@ -1,0 +1,63 @@
+appId: io.kaitech.mobile
+name: Find a Discovery section by its web menu name, open its list and its first record
+---
+- tapOn:
+    id: sections-search
+- eraseText: 40
+- inputText: ${SECTION}
+- runFlow: dismiss-keyboard.yaml
+- tapOn:
+    text: ${SECTION}
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: (list-row-[0-9]+|list-rows-empty)
+    timeout: 30000
+- runFlow:
+    file: screenshot.yaml
+    env:
+      SCREEN: ${SHOT}-list
+- runFlow:
+    when:
+      visible:
+        id: list-row-[0-9]+
+    commands:
+      - tapOn:
+          id: list-row-[0-9]+
+          index: 0
+      - extendedWaitUntil:
+          visible:
+            id: record-screen
+          timeout: 30000
+      - extendedWaitUntil:
+          notVisible:
+            id: record-loading
+          timeout: 30000
+      - runFlow:
+          file: screenshot.yaml
+          env:
+            SCREEN: ${SHOT}-record
+      - runFlow:
+          when:
+            visible:
+              id: record-more
+          commands:
+            - tapOn:
+                id: record-more
+            - extendedWaitUntil:
+                visible:
+                  id: record-more-sheet
+                timeout: 5000
+            - runFlow:
+                file: screenshot.yaml
+                env:
+                  SCREEN: ${SHOT}-more
+            - back
+      - tapOn:
+          id: header-back
+- tapOn:
+    id: header-back
+- extendedWaitUntil:
+    visible:
+      id: sections-screen
+    timeout: 10000

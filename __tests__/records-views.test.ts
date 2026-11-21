@@ -1,4 +1,4 @@
-import { groupsOfMenus, specOf, type Fields, type WebMenu } from '../src/features/records/api';
+import { groupsOfMenus, specOf, type Fields, type MenuRow } from '../src/features/records/api';
 import { andDomains, defaultFilters, filtersDomain, normalize, orDomains, textDomain } from '../src/features/records/domain';
 import { changedValues, scopeOf, textOfValue, visible } from '../src/features/records/model';
 import { architectureBlock, processBlock } from '../src/features/records/shapes';
@@ -139,15 +139,16 @@ describe('record values', () => {
 
 describe('discovery menus', () => {
   it('groups the web menu tree under the Discovery root, keeping loose screens first', () => {
-    const menus: Record<string, WebMenu> = {
-      root: { id: 'root', name: 'root', children: [1], actionID: false, actionModel: false, xmlid: '' },
-      '1': { id: 1, name: 'Discovery', children: [2, 3], actionID: 50, actionModel: 'ir.actions.act_window', xmlid: 'erp_discovery.menu_discovery_root' },
-      '2': { id: 2, name: 'Programs', children: [], actionID: 50, actionModel: 'ir.actions.act_window', xmlid: 'erp_discovery.menu_ck_programs' },
-      '3': { id: 3, name: 'People', children: [4, 5], actionID: false, actionModel: false, xmlid: 'erp_discovery.menu_ck_g_people' },
-      '4': { id: 4, name: 'Departments', children: [], actionID: 61, actionModel: 'ir.actions.act_window', xmlid: '' },
-      '5': { id: 5, name: 'Empty', children: [], actionID: false, actionModel: false, xmlid: '' },
-    };
-    expect(groupsOfMenus(menus)).toEqual([
+    const root: MenuRow = { id: 1, name: 'Discovery', parent_id: false, action: false };
+    const rows: MenuRow[] = [
+      root,
+      { id: 2, name: 'Programs', parent_id: [1, 'Discovery'], action: 'ir.actions.act_window,50' },
+      { id: 3, name: 'People', parent_id: [1, 'Discovery'], action: false },
+      { id: 4, name: 'Departments', parent_id: [3, 'People'], action: 'ir.actions.act_window,61' },
+      { id: 5, name: 'Empty', parent_id: [3, 'People'], action: false },
+      { id: 6, name: 'Hidden folder child', parent_id: [9, 'Not visible'], action: 'ir.actions.act_window,70' },
+    ];
+    expect(groupsOfMenus(root, rows)).toEqual([
       { id: 1, name: 'Discovery', sections: [{ menuId: 2, name: 'Programs', actionId: 50, actionModel: 'ir.actions.act_window' }] },
       { id: 3, name: 'People', sections: [{ menuId: 4, name: 'Departments', actionId: 61, actionModel: 'ir.actions.act_window' }] },
     ]);
