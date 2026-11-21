@@ -43,7 +43,9 @@ class MockRoom {
   remoteParticipants = new Map();
   activeSpeakers = [];
   isRecording = false;
-  constructor() {
+  options: Record<string, unknown>;
+  constructor(options: Record<string, unknown> = {}) {
+    this.options = options;
     mockRooms.push(this);
   }
   on(name: string, handler: Handler) {
@@ -212,6 +214,11 @@ describe('screen sharing in a call', () => {
   afterEach(() => {
     jest.clearAllTimers();
     jest.useRealTimers();
+  });
+
+  it('receives remote video on its own peer connection, so publishing the camera or a screen cannot renegotiate it', async () => {
+    const { room } = await activeCall();
+    expect(room.options).toMatchObject({ singlePeerConnection: false });
   });
 
   it('starts sharing, tells Odoo and shows the stop action in the call notification', async () => {
