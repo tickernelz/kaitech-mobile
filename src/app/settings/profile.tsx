@@ -4,7 +4,7 @@ import { ActivityIndicator, Alert, Image, StyleSheet, View } from 'react-native'
 import { useSession } from '../../auth/session';
 import { errorCode } from '../../features/chat/api';
 import { Avatar } from '../../features/chat/ui/Avatar';
-import { cleanName, nameLimit, pickProfilePhoto, removeProfilePhoto, statusLimit, updateProfile, uploadProfilePhoto, useProfile, type PhotoSource } from '../../features/profile/profile';
+import { cleanName, nameLimit, pickProfilePhoto, removeProfilePhoto, renameProfile, uploadProfilePhoto, useProfile, type PhotoSource } from '../../features/profile/profile';
 import { SettingsPage } from '../../screens/SettingsPage';
 import { space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
@@ -13,7 +13,7 @@ import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 
 const photoSize = 128;
-const knownErrors = ['name_invalid', 'status_invalid', 'photo_type_unsupported', 'photo_too_large', 'photo_invalid', 'network'];
+const knownErrors = ['name_invalid', 'photo_type_unsupported', 'photo_too_large', 'photo_invalid', 'network'];
 
 export default function ProfileSettings() {
   const { t } = useTranslation();
@@ -21,7 +21,6 @@ export default function ProfileSettings() {
   const { active } = useSession();
   const profile = useProfile();
   const [name, setName] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
   const [staged, setStaged] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,15 +29,6 @@ export default function ProfileSettings() {
   const typed = name ?? current;
   const cleaned = cleanName(typed);
   const nameChanged = cleaned !== current && cleaned.length > 0 && cleaned.length <= nameLimit;
-  const currentStatus = profile.data?.status ?? '';
-  const typedStatus = status ?? currentStatus;
-  const statusChanged = typedStatus.trim() !== currentStatus;
-  const save = () =>
-    void run(() => updateProfile(active, { ...(nameChanged ? { name: cleaned } : {}), ...(statusChanged ? { status: typedStatus } : {}) })).then((done) => {
-      if (!done) return;
-      setName(null);
-      setStatus(null);
-    });
   const hasPhoto = !!profile.data?.photo;
 
   const run = async (task: () => Promise<unknown>) => {
@@ -108,15 +98,6 @@ export default function ProfileSettings() {
         returnKeyType="done"
         testID="profile-name"
       />
-      <TextField
-        label={t('profile.status')}
-        hint={t('profile.statusHint')}
-        value={typedStatus}
-        onChangeText={setStatus}
-        maxLength={statusLimit}
-        returnKeyType="done"
-        testID="profile-status"
-      />
       <Text variant="footnote" tone="inkSoft">
         {active.login}
       </Text>
@@ -127,8 +108,8 @@ export default function ProfileSettings() {
       ) : null}
       <Button
         label={t('profile.save')}
-        disabled={busy || !(nameChanged || statusChanged) || cleaned.length === 0 || cleaned.length > nameLimit}
-        onPress={save}
+        disabled={!nameChanged || busy}
+        onPress={() => void run(() => renameProfile(active, cleaned)).then((done) => done && setName(null))}
         testID="profile-save"
       />
     </SettingsPage>

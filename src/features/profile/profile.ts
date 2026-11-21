@@ -8,12 +8,11 @@ import { shrinkToJpeg } from '../media/shrink';
 import { photoFrom, type Photo } from '../people/photo';
 import { notePhoto } from '../people/photos';
 
-export type Profile = { userId: number; partnerId: number; name: string; login: string; status: string | null; photo: Photo | null };
+export type Profile = { userId: number; partnerId: number; name: string; login: string; photo: Photo | null };
 
 const path = 'profile';
 const photoSide = 1024;
 export const nameLimit = 64;
-export const statusLimit = 80;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -26,7 +25,6 @@ export function profileFrom(body: unknown): Profile | null {
     partnerId: body.partner_id,
     name: body.name,
     login: typeof body.login === 'string' ? body.login : '',
-    status: typeof body.status === 'string' && body.status ? body.status : null,
     photo: photoFrom(body.photo) ?? null,
   };
 }
@@ -58,11 +56,8 @@ export function refreshProfile(account: Account): Promise<void> {
   return load(`${account.id}:${path}`, () => fetchProfile(account));
 }
 
-export async function updateProfile(account: Account, change: { name?: string; status?: string }): Promise<Profile> {
-  const body: Record<string, string | null> = {};
-  if (change.name !== undefined) body.name = cleanName(change.name);
-  if (change.status !== undefined) body.status = change.status.trim() || null;
-  return taken(account, await bearer<unknown>(account, '/kaitech_mobile/profile', { method: 'POST', body }));
+export async function renameProfile(account: Account, name: string): Promise<Profile> {
+  return taken(account, await bearer<unknown>(account, '/kaitech_mobile/profile', { method: 'POST', body: { name: cleanName(name) } }));
 }
 
 export async function removeProfilePhoto(account: Account): Promise<Profile> {
