@@ -1,10 +1,10 @@
-import { Fragment } from 'react';
+import { Fragment, memo, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { space } from '../../theme';
 import { Text } from '../../ui/Text';
 import { splitBlocks } from './blocks';
 import { KtBlockView } from './KtBlockView';
-import type { Place } from './kt/place';
+import type { BlockReads } from './kt/place';
 
 type Block = { kind: 'paragraph' | 'bullet' | 'heading'; text: string };
 
@@ -61,20 +61,21 @@ function Prose({ text }: { text: string }) {
   );
 }
 
-export function Markdown({ text, place = null }: { text: string; place?: Omit<Place, 'index'> | null }) {
+export const Markdown = memo(function Markdown({ text, turnId = null, seq = null, reads = null }: { text: string; turnId?: number | null; seq?: number | null; reads?: BlockReads | null }) {
+  const segments = useMemo(() => splitBlocks(text), [text]);
   let block = 0;
   return (
     <View style={styles.wrap}>
-      {splitBlocks(text).map((segment, index) =>
+      {segments.map((segment, index) =>
         segment.kind === 'block' ? (
-          <KtBlockView key={index} raw={segment.raw} index={block++} place={place} />
+          <KtBlockView key={index} raw={segment.raw} index={block++} turnId={turnId} seq={seq} reads={reads} />
         ) : (
           <Prose key={index} text={segment.text} />
         ),
       )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   wrap: { gap: space.sm },

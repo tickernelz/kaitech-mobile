@@ -32,12 +32,13 @@ import { useVoiceHold, type Voice } from '../chat/ui/useVoiceHold';
 import { ask, cards as readCards, panel, transcript, type Card, type Cursor, type Document, type TranscriptItem } from './api';
 import { DecisionCard } from './DecisionCard';
 import { chatAttachments } from './files';
-import { ItemsContext, ThreadContext, type Place, type Thread } from './kt/place';
+import { ItemsContext, ThreadContext, type Thread } from './kt/place';
 import { Markdown } from './Markdown';
 import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
 import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread';
 import { IconButton, StateView, useErrorText } from './ui';
 
+const bottomSlack = 48;
 const pollMs = 2500;
 
 type Staged = Picked | Voice;
@@ -84,14 +85,10 @@ function JobCard({ item, origin, testID }: { item: TranscriptItem; origin: strin
           {t(`discovery.thread.job.${state}`)}
         </Text>
       </View>
-      {item.body ? <Markdown text={item.body} place={placeOf(item)} /> : null}
+      {item.body ? <Markdown text={item.body} turnId={item.turnId} seq={item.seq} reads={item.blockReads ?? null} /> : null}
       <Attachments attachments={chatAttachments(item.attachments)} origin={origin} mine={false} />
     </View>
   );
-}
-
-function placeOf(item: TranscriptItem): Omit<Place, 'index'> {
-  return { turnId: item.turnId, seq: item.seq, reads: item.blockReads ?? null };
 }
 
 function useTranscript(conversation: number | null) {
@@ -315,6 +312,7 @@ export function CoworkerThread({
   const onReply = useCallback((text: string) => replyRef.current(text), []);
   const threadContext = useMemo<Thread>(() => ({ account: active, origin: active?.origin ?? '', onReply }), [active, onReply]);
   const shownCount = useRef(0);
+  const atBottom = useRef(true);
   const submit = () => {
     const text = draft.trim();
     if ((!text && !files.length) || !active) return;
@@ -371,7 +369,7 @@ export function CoworkerThread({
     if (item.kind === 'reply') {
       return (
         <Bubble mine={false} testID={`${testID}-reply`}>
-          {item.item.body.trim() ? <Markdown text={item.item.body} place={placeOf(item.item)} /> : null}
+          {item.item.body.trim() ? <Markdown text={item.item.body} turnId={item.item.turnId} seq={item.item.seq} reads={item.item.blockReads ?? null} /> : null}
           <Attachments attachments={chatAttachments(item.item.attachments)} origin={active?.origin ?? ''} mine={false} />
         </Bubble>
       );
@@ -411,8 +409,13 @@ export function CoworkerThread({
           keyExtractor={(item) => ('title' in item ? `card-${item.id}` : 'key' in item ? item.key : item.id)}
           renderItem={render}
           contentContainerStyle={styles.list}
+          onScroll={(event) => {
+            const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+            atBottom.current = contentOffset.y + layoutMeasurement.height >= contentSize.height - bottomSlack;
+          }}
+          scrollEventThrottle={100}
           onContentSizeChange={() => {
-            if (shownCount.current === data.length) return;
+            if (shownCount.current === data.length && !atBottom.current) return;
             shownCount.current = data.length;
             list.current?.scrollToEnd({ animated: false });
           }}

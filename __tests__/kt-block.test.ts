@@ -1,12 +1,14 @@
 import { createElement, type ReactNode } from 'react';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
+import { Linking, Platform } from 'react-native';
+import { createOnShouldStartLoadWithRequest } from 'react-native-webview/lib/WebViewShared';
 import * as Clipboard from 'expo-clipboard';
 import fixtures from './fixtures/kt-blocks.json';
 import en from '../src/i18n/locales/en.json';
 import id from '../src/i18n/locales/id.json';
 import { splitBlocks } from '../src/features/discovery/blocks';
 import { Markdown } from '../src/features/discovery/Markdown';
-import { allowsLoad, sealed, versionsOf } from '../src/features/discovery/kt/Artifact';
+import { allowsLoad, sealed, SEALED_ORIGINS, versionsOf } from '../src/features/discovery/kt/Artifact';
 import { drawnOf, figureOf, niceTicks, squeezed } from '../src/features/discovery/kt/chartShape';
 import { pictureOf } from '../src/features/discovery/kt/Diagram';
 import { numbersFor } from '../src/features/discovery/kt/format';
@@ -15,11 +17,22 @@ import { parseBlock, readArtifact, readChart, readDiagram, type Obj } from '../s
 import { blockKinds, knownKinds } from '../src/features/discovery/kt/registry';
 import { formMessage } from '../src/features/discovery/kt/Saying';
 import i18n from '../src/i18n';
-import { Platform } from 'react-native';
 
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn(() => Promise.resolve(true)) }));
 const webViews: Record<string, unknown>[] = [];
+let chartRenders = 0;
+jest.mock('../src/features/discovery/kt/Chart', () => {
+  const actual = jest.requireActual('../src/features/discovery/kt/Chart');
+  const { createElement: make } = jest.requireActual('react');
+  return {
+    ...actual,
+    KtChart: (props: object) => {
+      chartRenders += 1;
+      return make(actual.KtChart, props);
+    },
+  };
+});
 jest.mock('react-native-webview', () => ({
   WebView: (props: Record<string, unknown>) => {
     webViews.push(props);
@@ -44,7 +57,7 @@ function inThread(children: ReactNode, thread: Partial<Thread> = {}) {
 }
 
 async function draw(raw: string, thread: Partial<Thread> = {}) {
-  return render(inThread(createElement(Markdown, { text: fenced(raw), place: { turnId: 7, seq: 3, reads: null } }), thread));
+  return render(inThread(createElement(Markdown, { text: fenced(raw), turnId: 7, seq: 3 }), thread));
 }
 
 beforeAll(async () => {
@@ -246,6 +259,33 @@ describe('artifact sandbox', () => {
     expect((props.source as { html: string }).html).toContain("connect-src 'none'");
   });
 
+  it('lets the page load only itself; every other address is refused without leaving the app', () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    const canOpenURL = jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
+    const decide = (url: string) => {
+      const loadRequest = jest.fn();
+      createOnShouldStartLoadWithRequest(loadRequest, SEALED_ORIGINS, (request: { url: string }) => allowsLoad(request.url))({ nativeEvent: { url, lockIdentifier: 1 } } as never);
+      return loadRequest.mock.calls[0][0] as boolean;
+    };
+    expect(decide('about:blank')).toBe(true);
+    for (const url of ['https://attacker.example/?leak=1', 'tel:+620000', 'intent://x#Intent;scheme=x;end', 'data:text/html,<script>fetch(1)</script>', 'javascript:alert(1)', 'file:///data/x']) {
+      expect([url, decide(url)]).toEqual([url, false]);
+    }
+    expect(canOpenURL).not.toHaveBeenCalled();
+    expect(openURL).not.toHaveBeenCalled();
+    openURL.mockRestore();
+    canOpenURL.mockRestore();
+  });
+
+  it('negative control: a narrower origin list hands refused addresses to the system browser', async () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    const canOpenURL = jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
+    createOnShouldStartLoadWithRequest(jest.fn(), ['about:*'], () => true)({ nativeEvent: { url: 'https://attacker.example/', lockIdentifier: 1 } } as never);
+    await waitFor(() => expect(openURL).toHaveBeenCalledWith('https://attacker.example/'));
+    openURL.mockRestore();
+    canOpenURL.mockRestore();
+  });
+
   it('numbers versions of one artifact across the thread', () => {
     const [first, second] = blocks.filter((block) => block.kind === 'artifact');
     const items = [first, second].map((block, index) => ({ turnId: 10 + index, seq: 1, kind: 'message', author: 'c', name: '', body: fenced(block.raw), occurredAt: '' }));
@@ -255,7 +295,21 @@ describe('artifact sandbox', () => {
     expect(versions.map((version) => version.number)).toEqual([1, 2]);
     expect(own.number).toBe(2);
     expect(allowsLoad('javascript:alert(1)')).toBe(false);
+    expect(allowsLoad('data:text/html,x')).toBe(false);
     expect(sealed('<p>x</p>').indexOf('Content-Security-Policy')).toBeLessThan(sealed('<p>x</p>').indexOf('<p>x</p>'));
+  });
+});
+
+describe('render cost', () => {
+  it('does not redraw a chart when the thread re-renders with the same message', async () => {
+    const raw = blocks.find((block) => block.kind === 'chart')!.raw;
+    const view = (draft: string) => inThread(createElement('View', null, createElement('Text', null, draft), createElement(Markdown, { text: fenced(raw), turnId: 7, seq: 3, reads: null })));
+    chartRenders = 0;
+    const screenView = await render(view(''));
+    const first = chartRenders;
+    for (const draft of ['a', 'ab', 'abc', 'abcd', 'abcde']) await screenView.rerender(view(draft));
+    expect(first).toBeGreaterThan(0);
+    expect(chartRenders).toBe(first);
   });
 });
 

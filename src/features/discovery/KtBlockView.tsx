@@ -1,12 +1,12 @@
 import * as Clipboard from 'expo-clipboard';
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { radius, space, useTheme } from '../../theme';
 import { Icon } from '../../ui/icons';
 import { Text } from '../../ui/Text';
 import { MONO } from './kt/Catalog';
-import { useThread, webChatUrl, type Place } from './kt/place';
+import { useThread, webChatUrl, type BlockReads, type Place } from './kt/place';
 import { fallbackTable, frameIsSound, parseBlock, type Frame, type Source } from './kt/read';
 import { kindOf } from './kt/registry';
 import { KtTable } from './kt/Table';
@@ -80,13 +80,25 @@ function RawBlock({ raw }: { raw: string }) {
   );
 }
 
-export function KtBlockView({ raw, index = 0, place = null }: { raw: string; index?: number; place?: Omit<Place, 'index'> | null }) {
+export const KtBlockView = memo(function KtBlockView({
+  raw,
+  index = 0,
+  turnId = null,
+  seq = null,
+  reads = null,
+}: {
+  raw: string;
+  index?: number;
+  turnId?: number | null;
+  seq?: number | null;
+  reads?: BlockReads | null;
+}) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const parsed = useMemo(() => parseBlock(raw), [raw]);
   const kind = parsed.state === 'read' ? kindOf(parsed.frame.type) : null;
   const block = useMemo(() => (parsed.state === 'read' && kind && frameIsSound(parsed.data) ? kind.read(parsed.data) : null), [parsed, kind]);
-  const at = useMemo<Place | null>(() => (place ? { ...place, index } : null), [place, index]);
+  const at = useMemo<Place>(() => ({ turnId, seq, index, reads }), [turnId, seq, index, reads]);
   if (parsed.state === 'broken') {
     return (
       <View style={[styles.block, { borderColor: colors.line }]}>
@@ -116,7 +128,7 @@ export function KtBlockView({ raw, index = 0, place = null }: { raw: string; ind
       </DrawGuard>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   block: { gap: space.sm, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm },

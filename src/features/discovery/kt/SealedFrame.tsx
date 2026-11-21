@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
-import { allowsLoad, sealed } from './Artifact';
+import { allowsLoad, sealed, SEALED_ORIGINS } from './Artifact';
 
 export default function SealedFrame({ html, testID }: { html: string; testID?: string }) {
   const source = useMemo(() => ({ html: sealed(html), baseUrl: 'about:blank' }), [html]);
   return (
     <WebView
       source={source}
-      originWhitelist={['about:*', 'data:*']}
+      originWhitelist={SEALED_ORIGINS}
       onShouldStartLoadWithRequest={(request: WebViewNavigation) => allowsLoad(request.url)}
       javaScriptEnabled
       domStorageEnabled={false}

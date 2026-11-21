@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { rpc } from '../../../api/odoo';
+import { onAccountForgotten } from '../../../auth/session';
 import { randomUUID } from 'expo-crypto';
 import { radius, space, useTheme } from '../../../theme';
 import { Icon } from '../../../ui/icons';
@@ -17,6 +18,7 @@ import { isDate, isNumber, SUMMED, type Cell, type Column, type TableBlock, type
 import { BlockTitle, seriesColor, Status, Tool, styles as shared } from './ui';
 
 const FIRST_ROWS = 20;
+const exportFolder = 'kt-export';
 const TONE_OF_WORD = new Map<string, Tone>(
   Object.entries({
     good: ['done', 'ok', 'on track', 'approved', 'accepted', 'complete', 'completed', 'paid', 'under', 'met', 'selesai', 'disetujui', 'diterima', 'lunas', 'aman', 'sesuai', 'tercapai'],
@@ -110,16 +112,24 @@ function Spark({ values, said }: { values: (number | null)[]; said: string }) {
 
 async function exportAs(account: NonNullable<ReturnType<typeof useThread>['account']>, place: Place, fileFormat: 'csv' | 'xlsx', order: number[] | null) {
   const file = await rpc<{ name: string; mimetype: string; data: string }>(account, 'ck.turn', 'export_block', [[place.turnId], place.seq, place.index, fileFormat, order]);
-  const folder = new Directory(Paths.cache, 'kt-export', randomUUID());
+  clearExports();
+  const folder = new Directory(Paths.cache, exportFolder, randomUUID());
   folder.create({ intermediates: true, idempotent: true });
   const target = new File(folder, file.name.replace(/[\\/:*?"<>|]+/g, '_') || 'export.' + fileFormat);
   target.write(file.data, { encoding: 'base64' });
+  await Sharing.shareAsync(target.uri, { mimeType: file.mimetype, dialogTitle: file.name });
+}
+
+export function clearExports() {
   try {
-    await Sharing.shareAsync(target.uri, { mimeType: file.mimetype, dialogTitle: file.name });
-  } finally {
-    folder.delete();
+    const folder = new Directory(Paths.cache, exportFolder);
+    if (folder.exists) folder.delete();
+  } catch {
+    return;
   }
 }
+
+onAccountForgotten(() => clearExports());
 
 export const KtTable = memo(function KtTable({ block, place, exportable = true, ordered = true }: { block: TableBlock; place: Place | null; exportable?: boolean; ordered?: boolean }) {
   const { t } = useTranslation();

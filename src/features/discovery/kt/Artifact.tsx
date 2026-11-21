@@ -41,8 +41,10 @@ export function sealed(html: string): string {
   );
 }
 
+export const SEALED_ORIGINS = ['*'];
+
 export function allowsLoad(url: string): boolean {
-  return url === 'about:blank' || url.startsWith('about:blank#') || url.startsWith('data:text/html');
+  return url === 'about:blank' || url.startsWith('about:blank#');
 }
 
 export function versionsOf(items: TranscriptItem[], block: ArtifactBlock, place: Place | null): { versions: Version[]; own: Version } {
