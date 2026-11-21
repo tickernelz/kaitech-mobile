@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import com.facebook.react.bridge.ReactContext
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -59,6 +60,7 @@ class KaitechCallModule : Module() {
 
     AsyncFunction("setInCall") { value: Boolean ->
       CallBridge.setInCall(value)
+      CallKeepAlive.set(appContext.reactContext as? ReactContext, value)
       CallPip.apply(appContext.currentActivity)
       true
     }.runOnQueue(Queues.MAIN)

@@ -358,6 +358,42 @@ describe('picture-in-picture during a call', () => {
   });
 });
 
+describe('keeping the call alive in the background', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    mockListeners.length = 0;
+    mockRooms.length = 0;
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  it('holds the background task for the whole call and releases it when the call ends', async () => {
+    const { call } = await activeCall(false);
+    let done = false;
+    void require('../src/features/call/keepAlive').untilCallEnds().then(() => {
+      done = true;
+    });
+    await flush();
+    expect(done).toBe(false);
+    await call.hangUp('left');
+    await flush();
+    expect(done).toBe(true);
+  });
+
+  it('does not hold a task when no call is running', async () => {
+    let done = false;
+    void require('../src/features/call/keepAlive').untilCallEnds().then(() => {
+      done = true;
+    });
+    await flush();
+    expect(done).toBe(true);
+  });
+});
+
 describe('recording a call', () => {
   beforeEach(() => {
     jest.useFakeTimers();
