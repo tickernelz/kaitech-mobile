@@ -87,7 +87,7 @@ export async function bearerUpload<T>(account: Account, path: string, body: unkn
     request.ontimeout = () => reject(new AppError('network'));
     request.send(payload);
   });
-  if (status !== 200) refused(status, answer);
+  if (status !== 200) refused(account, status, answer);
   return answer as T;
 }
 
