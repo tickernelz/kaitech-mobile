@@ -178,9 +178,119 @@
     },
     "block": {
       "sources": "Sumber",
-      "unreadable": "Coworker mengirim bagian yang belum bisa ditampilkan aplikasi ini.",
-      "moreRows_one": "{{count}} baris lagi tidak ditampilkan",
-      "moreRows_other": "{{count}} baris lagi tidak ditampilkan"
+      "draft": "Draf Coworker · bukan keputusan",
+      "openWeb": "Buka di web",
+      "copy": "Salin",
+      "copied": "Tersalin",
+      "close": "Tutup",
+      "table": {
+        "rows_one": "{{count}} baris",
+        "rows_other": "{{count}} baris",
+        "listedOf": "{{listed}} dari {{count}} baris tercantum",
+        "shownOf": "{{shown}} dari {{listed}} baris",
+        "page": "Menampilkan {{shown}} dari {{all}} baris",
+        "showAll": "Tampilkan semua baris",
+        "total": "Total",
+        "filter": "Saring",
+        "noStatus": "Tanpa status",
+        "copyMarkdown": "Salin sebagai Markdown",
+        "copied": "Tabel disalin sebagai Markdown.",
+        "exportFailed": "Berkasnya gagal dibuat. Coba lagi sebentar lagi.",
+        "empty": "Belum ada yang bisa dicantumkan.",
+        "noMatch": "Tidak ada baris yang cocok dengan saringan ini.",
+        "sortBy": "Urutkan menurut {{name}}",
+        "csv": "CSV",
+        "xlsx": "Excel"
+      },
+      "chart": {
+        "chart": "Grafik",
+        "asTable": "Tabel",
+        "asChart": "Grafik",
+        "averaged": "Tiap titik adalah rata-rata hingga {{size}} nilai; tabelnya memuat semua nilai.",
+        "stepBefore": "{{value}} · {{share}} dari langkah sebelumnya",
+        "of": "dari {{max}}",
+        "name": "Nama",
+        "value": "Nilai",
+        "max": "Maks",
+        "label": "Label"
+      },
+      "compare": {
+        "before": "Sebelum",
+        "after": "Sesudah",
+        "item": "Butir",
+        "change": "Perubahan"
+      },
+      "diagram": {
+        "kind": {
+          "flow": "Alur swimlane",
+          "org": "Bagan organisasi",
+          "timeline": "Linimasa",
+          "gantt": "Gantt mini",
+          "relation": "Peta hubungan",
+          "architecture": "Arsitektur"
+        },
+        "steps_one": "{{count}} langkah",
+        "steps_other": "{{count}} langkah",
+        "decisions_one": "{{count}} keputusan",
+        "decisions_other": "{{count}} keputusan",
+        "people_one": "{{count}} orang",
+        "people_other": "{{count}} orang",
+        "milestones_one": "{{count}} tonggak",
+        "milestones_other": "{{count}} tonggak",
+        "tasks_one": "{{count}} tugas",
+        "tasks_other": "{{count}} tugas",
+        "items_one": "{{count}} butir",
+        "items_other": "{{count}} butir",
+        "fullScreen": "Layar penuh",
+        "asList": "Sebagai daftar",
+        "zoomIn": "Perbesar",
+        "zoomOut": "Perkecil",
+        "fit": "Pas layar",
+        "today": "Hari ini"
+      },
+      "checklist": {
+        "count": "{{done}} dari {{total}} selesai",
+        "done": "Selesai",
+        "open": "Belum"
+      },
+      "progress": {
+        "amount": "{{value}} dari {{total}}{{unit}}"
+      },
+      "options": {
+        "criterion": "Kriteria",
+        "note": "Pilihannya tetap di tangan konsultan."
+      },
+      "code": {
+        "lines_one": "{{count}} baris",
+        "lines_other": "{{count}} baris"
+      },
+      "gallery": {
+        "closed": "Tidak terbuka untuk Anda",
+        "open": "Buka {{name}}",
+        "kb": "{{size}} KB",
+        "mb": "{{size}} MB"
+      },
+      "record": {
+        "closed": "Hanya namanya yang ditampilkan; record ini tidak terbuka untuk Anda.",
+        "open": "Buka record",
+        "yes": "Ya",
+        "no": "Tidak"
+      },
+      "form": {
+        "datePlaceholder": "TTTT-BB-HH",
+        "peoplePlaceholder": "Nama, pisahkan dengan koma",
+        "missing": "Isi bagian ini untuk mengirim formulir.",
+        "badDate": "Tulis tanggal sebagai TTTT-BB-HH.",
+        "sent": "Terkirim sebagai pesan Anda.",
+        "note": "Mengirim hanya menulis pesan Anda berikutnya; tidak ada yang dipesan atau diubah sebelum sebuah kartu disetujui."
+      },
+      "artifact": {
+        "kind": "Halaman interaktif",
+        "open": "Buka",
+        "version": "Versi {{number}}",
+        "versionOf": "Versi {{number}} dari {{count}}",
+        "sealed": "Berjalan tersegel: tanpa jaringan, tanpa sesi, dan tautan tidak terbuka."
+      }
     },
     "card": {
       "title": "Kartu keputusan",

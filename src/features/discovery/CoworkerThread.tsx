@@ -32,6 +32,7 @@ import { useVoiceHold, type Voice } from '../chat/ui/useVoiceHold';
 import { ask, cards as readCards, panel, transcript, type Card, type Cursor, type Document, type TranscriptItem } from './api';
 import { DecisionCard } from './DecisionCard';
 import { chatAttachments } from './files';
+import { ItemsContext, ThreadContext, type Thread } from './kt/place';
 import { Markdown } from './Markdown';
 import { sourceBlocks } from '../chat/markdown';
 import { FormatBar, FormatToggle, useMarkup } from '../chat/ui/FormatBar';
@@ -41,6 +42,7 @@ import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread
 import { IconButton } from '../../ui/IconButton';
 import { StateView, useErrorText } from './ui';
 
+const bottomSlack = 48;
 const pollMs = 2500;
 
 type Staged = Picked | Voice;
@@ -87,7 +89,7 @@ function JobCard({ item, origin, testID }: { item: TranscriptItem; origin: strin
           {t(`discovery.thread.job.${state}`)}
         </Text>
       </View>
-      {item.body ? <Markdown text={item.body} /> : null}
+      {item.body ? <Markdown text={item.body} turnId={item.turnId} seq={item.seq} reads={item.blockReads ?? null} /> : null}
       <Attachments attachments={chatAttachments(item.attachments)} origin={origin} mine={false} />
     </View>
   );
@@ -308,6 +310,14 @@ export function CoworkerThread({
   };
 
   const reply = (text: string) => void send({ key: randomUUID(), text, failed: null, files: [], sent: null });
+  const replyRef = useRef(reply);
+  useEffect(() => {
+    replyRef.current = reply;
+  });
+  const onReply = useCallback((text: string) => replyRef.current(text), []);
+  const threadContext = useMemo<Thread>(() => ({ account: active, origin: active?.origin ?? '', onReply }), [active, onReply]);
+  const shownCount = useRef(0);
+  const atBottom = useRef(true);
   const submit = () => {
     const text = draft.trim();
     if ((!text && !files.length) || !active) return;
@@ -364,7 +374,7 @@ export function CoworkerThread({
     if (item.kind === 'reply') {
       return (
         <Bubble mine={false} testID={`${testID}-reply`}>
-          {item.item.body.trim() ? <Markdown text={item.item.body} onReply={reply} /> : null}
+          {item.item.body.trim() ? <Markdown text={item.item.body} turnId={item.item.turnId} seq={item.item.seq} reads={item.item.blockReads ?? null} /> : null}
           <Attachments attachments={chatAttachments(item.item.attachments)} origin={active?.origin ?? ''} mine={false} />
         </Bubble>
       );
@@ -396,13 +406,24 @@ export function CoworkerThread({
       ) : thread.error && !thread.items.length ? (
         <StateView error={thread.error} onRetry={() => void thread.pull()} testID={testID} />
       ) : (
+        <ThreadContext.Provider value={threadContext}>
+        <ItemsContext.Provider value={thread.items}>
         <FlatList
           ref={list}
           data={data}
           keyExtractor={(item) => ('title' in item ? `card-${item.id}` : 'key' in item ? item.key : item.id)}
           renderItem={render}
           contentContainerStyle={styles.list}
-          onContentSizeChange={() => list.current?.scrollToEnd({ animated: false })}
+          onScroll={(event) => {
+            const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+            atBottom.current = contentOffset.y + layoutMeasurement.height >= contentSize.height - bottomSlack;
+          }}
+          scrollEventThrottle={100}
+          onContentSizeChange={() => {
+            if (shownCount.current === data.length && !atBottom.current) return;
+            shownCount.current = data.length;
+            list.current?.scrollToEnd({ animated: false });
+          }}
           keyboardShouldPersistTaps="handled"
           ListFooterComponent={
             thread.following ? (
@@ -412,6 +433,8 @@ export function CoworkerThread({
             ) : undefined
           }
         />
+        </ItemsContext.Provider>
+        </ThreadContext.Provider>
       )}
       {files.length ? (
         <ScrollView horizontal contentContainerStyle={styles.staged} style={{ backgroundColor: colors.canvas }} showsHorizontalScrollIndicator={false} testID={`${testID}-staged`}>
