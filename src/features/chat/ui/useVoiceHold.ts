@@ -1,4 +1,7 @@
-import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
+import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from 'expo-audio';
+import AudioModule from 'expo-audio/build/AudioModule';
+import type { AudioRecorder } from 'expo-audio/build/AudioModule.types';
+import { createRecordingOptions } from 'expo-audio/build/utils/options';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +21,7 @@ const now = () => Date.now();
 export function useVoiceHold(onRecorded: (voice: Voice) => void) {
   const { t } = useTranslation('chat');
   const [recording, setRecording] = useState<Recording | null>(null);
-  const recorder = useAudioRecorder({ ...RecordingPresets.HIGH_QUALITY, directory: 'document' });
+  const recorder = useRef<AudioRecorder | null>(null);
   const recordingRef = useRef<Recording | null>(null);
   const recorded = useRef(onRecorded);
   useEffect(() => {
@@ -40,10 +43,20 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
     }
     stopVoice();
     await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-    await recorder.prepareToRecordAsync();
-    recorder.record();
+    const made = new AudioModule.AudioRecorder(createRecordingOptions({ ...RecordingPresets.HIGH_QUALITY, directory: 'document' }));
+    recorder.current = made;
+    try {
+      await made.prepareToRecordAsync();
+      made.record();
+    } catch (error) {
+      recorder.current = null;
+      made.release();
+      throw error;
+    }
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setRecording({ started: now(), elapsed: 0, offset: 0 });
+    const started = { started: now(), elapsed: 0, offset: 0 };
+    recordingRef.current = started;
+    setRecording(started);
   };
 
   const recordingActive = recording !== null;
@@ -54,13 +67,21 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
   }, [recordingActive]);
 
   const finishRecording = async (cancel: boolean) => {
-    const current = recordingRef.current;
-    if (!current) return;
+    const made = recorder.current;
+    if (!made) return;
+    const started = recordingRef.current?.started ?? now();
+    recordingRef.current = null;
+    recorder.current = null;
     setRecording(null);
-    await recorder.stop();
+    let uri: string | null;
+    try {
+      await made.stop();
+      uri = made.uri;
+    } finally {
+      made.release();
+    }
     await setAudioModeAsync({ allowsRecording: meetingRecording(), playsInSilentMode: true });
-    const uri = recorder.uri;
-    const elapsed = now() - current.started;
+    const elapsed = now() - started;
     if (!uri) return;
     if (cancel || elapsed < shortestVoiceMs) {
       dropFile(uri);
@@ -68,7 +89,7 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
       return;
     }
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    const name = `voice-${new Date(current.started).toISOString().replace(/[:.]/g, '-')}.m4a`;
+    const name = `voice-${new Date(started).toISOString().replace(/[:.]/g, '-')}.m4a`;
     const kept = await adoptFile(uri, name);
     recorded.current({ uri: kept.uri, name, mimetype: 'audio/mp4', size: kept.size, voice: true, durationMs: elapsed });
   };
@@ -95,6 +116,17 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
       void (starting.current ?? Promise.resolve()).then(() => finishRecording(true));
     },
   };
+
+  const finishing = useRef(finishRecording);
+  useEffect(() => {
+    finishing.current = finishRecording;
+  });
+  useEffect(
+    () => () => {
+      void (starting.current ?? Promise.resolve()).then(() => finishing.current(true));
+    },
+    [],
+  );
 
   return { recording, hold };
 }
