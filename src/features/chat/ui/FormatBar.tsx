@@ -110,7 +110,7 @@ export function FormatToggle({ onPress }: { onPress: () => void }) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  bar: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, minHeight: 44 },
+  bar: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, minHeight: 44, marginTop: space.xs },
   actions: { alignItems: 'center', paddingHorizontal: space.xs, gap: 2 },
   action: { minHeight: 44, minWidth: 44, paddingHorizontal: space.md, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   hide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm },

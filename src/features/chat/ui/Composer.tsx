@@ -227,7 +227,6 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           ))}
         </ScrollView>
       ) : null}
-      {markup.showBar && !recording ? <FormatBar onApply={markup.apply} onHide={markup.hide} /> : null}
       <View style={styles.row}>
         {recording ? (
           <RecordingStrip recording={recording} />
@@ -263,6 +262,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
         {canSend ? <RoundButton icon="send" label={t('composer.send')} filled onPress={submit} testID="composer-send" /> : null}
         <MicButton voice={voice} hidden={canSend} />
       </View>
+      {markup.showBar && !recording ? <FormatBar onApply={markup.apply} onHide={markup.hide} /> : null}
       <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} />
     </View>
   );

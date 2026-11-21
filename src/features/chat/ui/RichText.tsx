@@ -6,7 +6,7 @@ import type { Span } from '../html';
 import type { MdBlock } from '../markdown';
 
 const mono = Platform.select({ ios: 'Menlo', default: 'monospace' });
-const CHAR_WIDTH = 8;
+const CHAR_WIDTH = 9;
 const MIN_COLUMN = 72;
 const MAX_COLUMN = 240;
 const BULLETS = ['\u2022', '\u25e6'];
@@ -80,6 +80,8 @@ function Table({ block, color, colors, tint }: { block: Extract<MdBlock, { kind:
   return (
     <ScrollView
       horizontal
+      style={styles.scroller}
+      contentContainerStyle={styles.scrolled}
       nestedScrollEnabled
       showsHorizontalScrollIndicator
       accessibilityLabel={t('thread.table', { columns: block.head.length, rows: block.rows.length })}
@@ -171,6 +173,8 @@ const styles = StyleSheet.create({
   quote: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs, gap: space.xs },
   codeBlock: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   codeText: { fontFamily: mono, fontSize: 14, lineHeight: 20 },
+  scroller: { flexGrow: 0, flexShrink: 0 },
+  scrolled: { alignItems: 'flex-start' },
   table: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
   row: { flexDirection: 'row' },
   divider: { borderTopWidth: StyleSheet.hairlineWidth },

@@ -427,11 +427,6 @@ export function CoworkerThread({
           ))}
         </ScrollView>
       ) : null}
-      {markup.showBar && !voice.recording ? (
-        <View style={[styles.formatBar, { backgroundColor: colors.canvas }]}>
-          <FormatBar onApply={markup.apply} onHide={markup.hide} />
-        </View>
-      ) : null}
       <View style={[styles.composer, { borderColor: colors.line, backgroundColor: colors.canvas }]}>
         {voice.recording ? (
           <RecordingStrip recording={voice.recording} />
@@ -461,6 +456,11 @@ export function CoworkerThread({
         {canSend ? <IconButton icon="send" label={t('discovery.thread.send')} filled onPress={submit} testID={`${testID}-send`} /> : null}
         <MicButton voice={voice} hidden={canSend} testID={`${testID}-mic`} />
       </View>
+      {markup.showBar && !voice.recording ? (
+        <View style={[styles.formatBar, { backgroundColor: colors.canvas }]}>
+          <FormatBar onApply={markup.apply} onHide={markup.hide} />
+        </View>
+      ) : null}
       <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} />
     </KeyboardAvoidingView>
   );
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
   status: { alignSelf: 'flex-end' },
   retry: { alignSelf: 'flex-end', minHeight: 44, justifyContent: 'center' },
   working: { textAlign: 'center', paddingVertical: space.sm },
-  formatBar: { paddingHorizontal: space.sm, paddingTop: space.xs },
+  formatBar: { paddingHorizontal: space.lg, paddingBottom: space.sm },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
