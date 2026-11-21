@@ -71,6 +71,7 @@ class CallService : Service() {
       stopEverything()
       return
     }
+    ringingChannel = ring.channelId
     startForegroundCompat(CallNotifications.ringing(this, ring, ring.timeoutMs), CallNotifications.RING_ID, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
     playRingtone()
     main.removeCallbacks(timeout)
@@ -87,6 +88,7 @@ class CallService : Service() {
       intent.getBooleanExtra(EXTRA_CAMERA, false),
       intent.getBooleanExtra(EXTRA_SHARING, false),
     )
+    ringingChannel = 0
     stopRingtone()
     main.removeCallbacks(timeout)
     val type = if (call.video) {
@@ -139,6 +141,7 @@ class CallService : Service() {
   }
 
   private fun stopEverything() {
+    ringingChannel = 0
     main.removeCallbacks(timeout)
     stopRingtone()
     if (foreground) {
@@ -166,9 +169,13 @@ class CallService : Service() {
     const val ACTION_CALL = "io.kaitech.call.CALL"
     const val ACTION_STOP = "io.kaitech.call.STOP"
 
+    @Volatile
+    private var ringingChannel = 0
+
     fun ringing(context: Context): Boolean = CallNotifications.active(context, CallNotifications.RING_ID)
 
     fun ring(context: Context, ring: Ring) {
+      ringingChannel = ring.channelId
       val intent = Intent(context, CallService::class.java)
         .setAction(ACTION_RING)
         .putExtra(EXTRA_TITLE, ring.title)
@@ -198,6 +205,7 @@ class CallService : Service() {
     }
 
     fun cancelRing(context: Context, channelId: Int) {
+      if (channelId != ringingChannel) return
       CallNotifications.cancel(context, CallNotifications.RING_ID)
       stop(context)
     }
