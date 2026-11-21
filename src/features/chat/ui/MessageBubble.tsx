@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
@@ -286,7 +287,18 @@ export const MessageBubble = memo(function MessageBubble({
   }
   return (
     <View style={[styles.wrap, styles.withFace]} testID={`message-${message.id}`}>
-      {face === 'show' ? <Avatar name={message.author} seed={message.authorId ?? 0} partnerId={message.authorId} size={faceSize} /> : <View style={styles.faceSpace} />}
+      {face === 'show' ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('thread.openPerson', { name: message.author })}
+          disabled={!message.authorId}
+          onPress={() => message.authorId && router.push({ pathname: '/person/[id]', params: { id: String(message.authorId), name: message.author } })}
+          testID={`message-${message.id}-author`}>
+          <Avatar name={message.author} seed={message.authorId ?? 0} partnerId={message.authorId} size={faceSize} />
+        </Pressable>
+      ) : (
+        <View style={styles.faceSpace} />
+      )}
       <View style={styles.faceColumn}>{body}</View>
     </View>
   );

@@ -613,5 +613,20 @@
       "network": "No connection. Try again.",
       "generic": "Could not save. Try again."
     }
+  },
+  "person": {
+    "presence": {
+      "online": "Online",
+      "away": "Away",
+      "busy": "Busy",
+      "offline": "Offline"
+    },
+    "missing": "This person is not available",
+    "message": "Send message",
+    "jobTitle": "Job position",
+    "company": "Company",
+    "email": "Email",
+    "phone": "Phone",
+    "viewProfile": "View profile on the web"
   }
 }

@@ -78,7 +78,8 @@
     "close": "Tutup",
     "shareInstead": "Bagikan",
     "table": "Tabel, {{columns}} kolom dan {{rows}} baris. Geser ke samping untuk melihat semuanya.",
-    "background": "Latar chat"
+    "background": "Latar chat",
+    "openPerson": "Buka {{name}}"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",

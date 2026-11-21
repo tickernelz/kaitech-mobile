@@ -613,5 +613,20 @@
       "network": "Tidak ada koneksi. Coba lagi.",
       "generic": "Gagal menyimpan. Coba lagi."
     }
+  },
+  "person": {
+    "presence": {
+      "online": "Online",
+      "away": "Sedang pergi",
+      "busy": "Sibuk",
+      "offline": "Offline"
+    },
+    "missing": "Orang ini tidak tersedia",
+    "message": "Kirim pesan",
+    "jobTitle": "Jabatan",
+    "company": "Perusahaan",
+    "email": "Email",
+    "phone": "Telepon",
+    "viewProfile": "Lihat profil di web"
   }
 }

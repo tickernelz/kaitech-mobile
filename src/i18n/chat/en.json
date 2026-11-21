@@ -78,7 +78,8 @@
     "close": "Close",
     "shareInstead": "Share",
     "table": "Table, {{columns}} columns and {{rows}} rows. Scroll sideways to see all of it.",
-    "background": "Chat background"
+    "background": "Chat background",
+    "openPerson": "Open {{name}}"
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",
