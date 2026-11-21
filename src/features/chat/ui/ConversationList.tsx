@@ -29,6 +29,7 @@ function usePreview() {
     (conversation: Conversation): { author: string; text: string } => {
       const last = conversation.last;
       if (!last) return { author: '', text: t('list.noMessages') };
+      if (last.call) return { author: '', text: t('thread.call') };
       const mine = last.authorId === partnerId;
       const author = mine ? t('list.you') : conversation.type === 'chat' ? '' : last.author.split(' ')[0];
       const text = last.text || (last.voice ? t('list.voice') : last.attachments ? t('list.files', { count: last.attachments }) : '');
@@ -86,6 +87,7 @@ const Row = memo(function Row({
           </Text>
         </View>
         <View style={styles.rowTop}>
+          {conversation.last?.call ? <Icon name="phone" size={16} color={colors.inkSoft} /> : null}
           <Text variant="callout" tone="inkSoft" numberOfLines={2} style={styles.flex}>
             {pending ? (
               <Text variant="callout" tone="warnInk">

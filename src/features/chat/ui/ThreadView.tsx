@@ -20,7 +20,8 @@ import { Composer, type ComposerHandle } from './Composer';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { MessageActions } from './MessageActions';
-import { isCallNotice, MessageBubble, PendingBubble, type Quote } from './MessageBubble';
+import { isCallNotice } from '../odoo';
+import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
 import { NotifySheet } from './NotifySheet';
 
 type Row =
