@@ -7,19 +7,26 @@ import android.os.Build
 import android.os.Bundle
 import expo.modules.core.interfaces.Package
 import expo.modules.core.interfaces.ReactActivityLifecycleListener
+import java.lang.ref.WeakReference
 
 class KaitechCallPackage : Package {
   override fun createReactActivityLifecycleListeners(activityContext: Context?): List<ReactActivityLifecycleListener> {
-    return listOf(CallActivityListener())
+    return listOf(CallActivityListener(activityContext as? Activity))
   }
 }
 
-class CallActivityListener : ReactActivityLifecycleListener {
+class CallActivityListener(activity: Activity?) : ReactActivityLifecycleListener {
+  private val owner = WeakReference(activity)
+
   override fun onCreate(activity: Activity, savedInstanceState: Bundle?) {
     apply(activity, activity.intent)
   }
 
   override fun onNewIntent(intent: Intent): Boolean {
+    if (!CallIntents.isCall(intent)) return false
+    val activity = owner.get() ?: return false
+    activity.intent = intent
+    apply(activity, intent)
     return false
   }
 

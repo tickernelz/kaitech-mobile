@@ -65,6 +65,7 @@ jobs:
           TAG: ${{ github.ref_name }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           LINK_HOST_SET: ${{ vars.KAITECH_LINK_HOST != '' }}
+          DEFAULT_DB_SET: ${{ vars.KAITECH_DEFAULT_DB != '' }}
           PUSH_SET: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
         run: |
           set -euo pipefail
@@ -75,6 +76,9 @@ jobs:
             echo
             if [ "$LINK_HOST_SET" != true ]; then
               echo "- **Masuk belum bisa di build ini**: dibangun tanpa domain tautan (\`KAITECH_LINK_HOST\`), jadi layar masuk memberi tahu bahwa domain tautan belum diatur."
+            fi
+            if [ "$LINK_HOST_SET" = true ] && [ "$DEFAULT_DB_SET" != true ]; then
+              echo "- **Masuk meminta alamat server di build ini**: dibangun tanpa basis data bawaan (\`KAITECH_DEFAULT_DB\`), jadi tombol Masuk membuka isian server dan basis data."
             fi
             if [ "$PUSH_SET" != true ]; then
               echo "- **Push Android mati di build ini**: dibangun tanpa \`google-services.json\`, jadi pesan dan dering baru tampil hanya saat aplikasi terbuka."

@@ -3,12 +3,6 @@ name: Sign in on the server page and finish setup when the app is signed out
 ---
 - tapOn:
     id: welcome-sign-in
-- tapOn:
-    id: sign-in-server
-- inputText: ${SERVER}
-- runFlow: dismiss-keyboard.yaml
-- tapOn:
-    id: sign-in-continue
 - extendedWaitUntil:
     visible:
       text: (Email|Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)

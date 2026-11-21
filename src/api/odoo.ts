@@ -19,17 +19,17 @@ const renewBeforeMs = 60_000;
 const sessions = new Map<string, Promise<Session>>();
 const serverLanguages = { en: 'en_US', id: 'id_ID' } as const;
 
-function ended(): never {
-  markExpired();
+function ended(account: Account): never {
+  markExpired(account.id);
   throw new AppError('sessionEnded');
 }
 
 async function tokenOf(account: Account): Promise<string> {
-  return (await tokenFor(account.id)) ?? ended();
+  return (await tokenFor(account.id)) ?? ended(account);
 }
 
-function refused(status: number, body: Record<string, unknown> | null): never {
-  if (status === 401) ended();
+function refused(account: Account, status: number, body: Record<string, unknown> | null): never {
+  if (status === 401) ended(account);
   const code = typeof body?.error_code === 'string' ? body.error_code : status >= 500 ? 'server' : 'unknown';
   throw new ApiError(code, status);
 }
@@ -51,7 +51,7 @@ export async function bearer<T>(
     headers: headers(account.db, await tokenOf(account)),
     ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
   });
-  if (status !== 200) refused(status, body);
+  if (status !== 200) refused(account, status, body);
   return body as T;
 }
 
@@ -160,7 +160,7 @@ export async function rpc<T>(
         params: { model, method, args, kwargs: { ...kwargs, context: { lang } } },
       }),
     });
-    if (status !== 200) refused(status, body);
+    if (status !== 200) refused(account, status, body);
     const failure = body?.error as RpcFailure | undefined;
     if (!failure) return body?.result as T;
     if (attempt === 0 && expired(failure)) continue;
@@ -182,7 +182,7 @@ export async function route<T>(account: Account, path: string, params: Record<st
       body: JSON.stringify({ jsonrpc: '2.0', method: 'call', id: attempt, params }),
     });
     if (status === 404) throw new ApiError('not_found', status);
-    if (status !== 200) refused(status, body);
+    if (status !== 200) refused(account, status, body);
     const failure = body?.error as RpcFailure | undefined;
     if (!failure) return body?.result as T;
     if (attempt === 0 && expired(failure)) continue;

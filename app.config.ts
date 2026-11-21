@@ -13,15 +13,21 @@ function linkHost(): string | null {
   return /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(raw) ? raw : null;
 }
 
+function defaultDatabase(): string | null {
+  const raw = (process.env.KAITECH_DEFAULT_DB ?? '').trim();
+  return /^[A-Za-z0-9][A-Za-z0-9_.-]{0,62}$/.test(raw) ? raw : null;
+}
+
 export default function appConfig({ config }: ConfigContext): ExpoConfig {
   const googleServicesFile = process.env.GOOGLE_SERVICES_JSON;
   const build = buildNumber();
   const host = linkHost();
+  const database = defaultDatabase();
   return {
     ...config,
     name: config.name ?? 'Kaitech',
     slug: config.slug ?? 'kaitech-mobile',
-    extra: { ...config.extra, ...(host ? { linkHost: host } : {}) },
+    extra: { ...config.extra, ...(host ? { linkHost: host } : {}), ...(database ? { defaultDatabase: database } : {}) },
     ios: {
       ...config.ios,
       buildNumber: String(build),

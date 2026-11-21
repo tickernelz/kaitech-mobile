@@ -34,13 +34,17 @@ AppState.addEventListener('change', (next) => {
   }
 });
 
-function subscribe(listener: () => void) {
+export function onLockChange(listener: () => void) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
 export function useLock(): LockState {
-  return useSyncExternalStore(subscribe, () => state);
+  return useSyncExternalStore(onLockChange, () => state);
+}
+
+export function lockEnabled(): boolean {
+  return state.enabled;
 }
 
 export async function lockMethod(): Promise<LockMethod | null> {
