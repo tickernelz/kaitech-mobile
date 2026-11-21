@@ -1,0 +1,244 @@
+const mockUpdates: Record<string, boolean>[] = [];
+const mockNotices: boolean[] = [];
+const mockListeners: ((action: unknown) => void)[] = [];
+const mockRooms: MockRoom[] = [];
+
+type Handler = () => void;
+
+class MockLocal {
+  isScreenShareEnabled = false;
+  isCameraEnabled = false;
+  isMicrophoneEnabled = false;
+  trackPublications = new Map();
+  sid = 'local';
+  identity = 'local';
+  name = 'Me';
+  shareCalls: boolean[] = [];
+  refuse = false;
+  room: MockRoom;
+  constructor(room: MockRoom) {
+    this.room = room;
+  }
+  setMicrophoneEnabled(on: boolean) {
+    this.isMicrophoneEnabled = on;
+    return Promise.resolve();
+  }
+  setCameraEnabled(on: boolean) {
+    this.isCameraEnabled = on;
+    return Promise.resolve();
+  }
+  setScreenShareEnabled(on: boolean) {
+    this.shareCalls.push(on);
+    if (this.refuse) return Promise.reject(new Error('NotAllowedError'));
+    this.isScreenShareEnabled = on;
+    this.room.emit(on ? 'localTrackPublished' : 'localTrackUnpublished');
+    return Promise.resolve();
+  }
+}
+
+class MockRoom {
+  handlers = new Map<string, Handler[]>();
+  localParticipant = new MockLocal(this);
+  remoteParticipants = new Map();
+  activeSpeakers = [];
+  isRecording = false;
+  constructor() {
+    mockRooms.push(this);
+  }
+  on(name: string, handler: Handler) {
+    this.handlers.set(name, [...(this.handlers.get(name) ?? []), handler]);
+  }
+  emit(name: string) {
+    for (const handler of this.handlers.get(name) ?? []) handler();
+  }
+  connect() {
+    return Promise.resolve();
+  }
+  disconnect() {
+    return Promise.resolve();
+  }
+}
+
+jest.mock('expo-sqlite/kv-store', () => ({
+  getItemSync: () => null,
+  setItemSync: () => undefined,
+  removeItemSync: () => undefined,
+}));
+
+jest.mock('../src/i18n', () => ({
+  __esModule: true,
+  default: { t: (key: string) => key, language: 'en' },
+}));
+
+jest.mock('../src/auth/session', () => ({
+  getSession: () => ({ accounts: [{ id: 'A', origin: 'https://a.test', db: 'dbA', userId: 1, partnerId: 11 }], activeId: 'A' }),
+  onAccountForgotten: () => undefined,
+}));
+
+jest.mock('../src/features/call/api', () => ({
+  CallClient: class {
+    account: { id: string };
+    constructor(account: { id: string }) {
+      this.account = account;
+    }
+    join(channelId: number) {
+      return Promise.resolve({ sessionId: 9, channelId, url: 'wss://room.test', token: 't' });
+    }
+    update(_sessionId: number, values: Record<string, boolean>) {
+      mockUpdates.push(values);
+      return Promise.resolve();
+    }
+    ping() {
+      return Promise.resolve({});
+    }
+    leave() {
+      return Promise.resolve();
+    }
+    invitations() {
+      return Promise.resolve({});
+    }
+  },
+}));
+
+jest.mock('../src/features/call/native', () => ({
+  callNative: () => ({
+    takePending: () => Promise.resolve([]),
+    takeLaunchAction: () => Promise.resolve(null),
+    cancelRing: () => Promise.resolve(true),
+    setInCall: () => Promise.resolve(true),
+    startCall: () => Promise.resolve(true),
+    stopCall: () => Promise.resolve(true),
+    updateCall: (...args: unknown[]) => {
+      mockNotices.push(args[6] as boolean);
+      return Promise.resolve(true);
+    },
+  }),
+  onCallAction: (listener: (action: unknown) => void) => {
+    mockListeners.push(listener);
+    return () => undefined;
+  },
+}));
+
+jest.mock('../src/features/call/livekit', () => ({
+  loadClient: () =>
+    Promise.resolve({
+      Room: MockRoom,
+      RoomEvent: {
+        ParticipantConnected: 'participantConnected',
+        ParticipantDisconnected: 'participantDisconnected',
+        TrackSubscribed: 'trackSubscribed',
+        TrackUnsubscribed: 'trackUnsubscribed',
+        TrackMuted: 'trackMuted',
+        TrackUnmuted: 'trackUnmuted',
+        LocalTrackPublished: 'localTrackPublished',
+        LocalTrackUnpublished: 'localTrackUnpublished',
+        ActiveSpeakersChanged: 'activeSpeakersChanged',
+        RecordingStatusChanged: 'recordingStatusChanged',
+        Reconnecting: 'reconnecting',
+        Reconnected: 'reconnected',
+        Disconnected: 'disconnected',
+      },
+    }),
+  loadLiveKit: () =>
+    Promise.resolve({
+      AudioSession: {
+        startAudioSession: () => Promise.resolve(),
+        stopAudioSession: () => Promise.resolve(),
+        getAudioOutputs: () => Promise.resolve([]),
+        selectAudioOutput: () => Promise.resolve(),
+      },
+    }),
+}));
+
+jest.mock('../src/features/call/screenShare', () => ({ pickBroadcast: () => Promise.resolve(true) }));
+
+jest.mock('../src/features/call/permissions', () => ({
+  ensureMicrophone: () => Promise.resolve(true),
+  ensureCamera: () => Promise.resolve(true),
+}));
+
+jest.mock('../src/features/chat/chat', () => ({
+  conversationById: () => null,
+  getChat: () => ({ threads: {}, conversations: [] }),
+  invitedChannels: () => [],
+}));
+
+async function flush() {
+  for (let turn = 0; turn < 20; turn += 1) await Promise.resolve();
+}
+
+async function activeCall() {
+  const call = require('../src/features/call/call');
+  await call.startCall({ channelId: 5, channelName: 'Team', video: false });
+  await flush();
+  expect(call.callState().phase).toBe('active');
+  mockUpdates.length = 0;
+  mockNotices.length = 0;
+  return { call, room: mockRooms[mockRooms.length - 1] };
+}
+
+describe('screen sharing in a call', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    mockUpdates.length = 0;
+    mockNotices.length = 0;
+    mockListeners.length = 0;
+    mockRooms.length = 0;
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  it('starts sharing, tells Odoo and shows the stop action in the call notification', async () => {
+    const { call, room } = await activeCall();
+    await call.toggleScreenShare();
+    await flush();
+    expect(room.localParticipant.shareCalls).toEqual([true]);
+    expect(call.callState().screenSharing).toBe(true);
+    expect(mockUpdates).toContainEqual({ is_screen_sharing_on: true });
+    expect(mockNotices[mockNotices.length - 1]).toBe(true);
+  });
+
+  it('stops sharing from the notification action', async () => {
+    const { call, room } = await activeCall();
+    await call.toggleScreenShare();
+    await flush();
+    mockListeners[mockListeners.length - 1]({ type: 'stopShare' });
+    await flush();
+    expect(room.localParticipant.shareCalls).toEqual([true, false]);
+    expect(call.callState().screenSharing).toBe(false);
+    expect(mockUpdates[mockUpdates.length - 1]).toEqual({ is_screen_sharing_on: false });
+    expect(mockNotices[mockNotices.length - 1]).toBe(false);
+  });
+
+  it('follows a stop that came from the system bar', async () => {
+    const { call, room } = await activeCall();
+    await call.toggleScreenShare();
+    await flush();
+    room.localParticipant.isScreenShareEnabled = false;
+    room.emit('localTrackUnpublished');
+    await flush();
+    expect(call.callState().screenSharing).toBe(false);
+    expect(mockUpdates[mockUpdates.length - 1]).toEqual({ is_screen_sharing_on: false });
+  });
+
+  it('negative control: a refused system prompt leaves the call unchanged', async () => {
+    const { call, room } = await activeCall();
+    room.localParticipant.refuse = true;
+    await call.toggleScreenShare();
+    await flush();
+    expect(call.callState().screenSharing).toBe(false);
+    expect(mockUpdates).toEqual([]);
+  });
+
+  it('shows the recording state of the room', async () => {
+    const { call, room } = await activeCall();
+    expect(call.callState().recording).toBe(false);
+    room.isRecording = true;
+    room.emit('recordingStatusChanged');
+    expect(call.callState().recording).toBe(true);
+  });
+});

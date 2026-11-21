@@ -2,10 +2,11 @@
   "name": "kaitech-call",
   "version": "0.1.0",
   "private": true,
-  "description": "Android ringing, ongoing call notification and picture-in-picture for the Kaitech app",
+  "description": "Android ringing, ongoing call notification and picture-in-picture, and iOS screen broadcast events for the Kaitech app",
   "main": "src/index.ts",
   "files": [
     "android",
+    "ios",
     "src",
     "expo-module.config.json"
   ]

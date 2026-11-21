@@ -9,4 +9,5 @@
   <string name="kaitech_call_hidden_title">Kaitech</string>
   <string name="kaitech_call_decline">Decline</string>
   <string name="kaitech_call_answer">Answer</string>
+  <string name="kaitech_call_stop_sharing">Stop sharing</string>
 </resources>

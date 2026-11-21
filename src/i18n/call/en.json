@@ -28,6 +28,12 @@
   "backToCall": "Back to the call",
   "startVoice": "Voice call",
   "startVideo": "Video call",
+  "shareScreen": "Share screen",
+  "stopSharing": "Stop sharing",
+  "sharingScreen": "Sharing your screen",
+  "youAreSharing": "You're sharing your screen. Everyone in the call can see it.",
+  "screenOf": "{{name}}'s screen",
+  "recording": "Recording",
   "ended": {
     "left": "Call ended",
     "declined": "Call declined",

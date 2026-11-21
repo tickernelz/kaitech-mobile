@@ -1,5 +1,5 @@
 {
-  "platforms": ["android"],
+  "platforms": ["android", "apple"],
   "android": {
     "modules": ["io.kaitech.call.KaitechCallModule"],
     "publication": {
@@ -7,5 +7,8 @@
       "artifactId": "kaitech-call",
       "repository": "local-maven-repo"
     }
+  },
+  "apple": {
+    "modules": ["KaitechBroadcastModule"]
   }
 }

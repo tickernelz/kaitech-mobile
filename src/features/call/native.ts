@@ -2,7 +2,7 @@ import { EventEmitter, requireOptionalNativeModule } from 'expo';
 import { Platform } from 'react-native';
 
 export type CallAction = {
-  type: 'incoming' | 'cancel' | 'answer' | 'open' | 'decline' | 'hangup';
+  type: 'incoming' | 'cancel' | 'answer' | 'open' | 'decline' | 'hangup' | 'stopShare';
   channelId?: number;
   callId?: number;
   video?: boolean;
@@ -24,7 +24,7 @@ type NativeCall = {
   ringing(): Promise<boolean>;
   cancelRing(channelId: number): Promise<boolean>;
   startCall(video: boolean, title: string, body: string, channelId: number): Promise<boolean>;
-  updateCall(video: boolean, title: string, body: string, channelId: number, muted: boolean, camera: boolean): Promise<boolean>;
+  updateCall(video: boolean, title: string, body: string, channelId: number, muted: boolean, camera: boolean, sharing: boolean): Promise<boolean>;
   stopCall(): Promise<boolean>;
   setInCall(value: boolean): Promise<boolean>;
   setLocked(value: boolean): Promise<boolean>;

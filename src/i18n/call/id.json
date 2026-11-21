@@ -28,6 +28,12 @@
   "backToCall": "Kembali ke panggilan",
   "startVoice": "Panggilan suara",
   "startVideo": "Panggilan video",
+  "shareScreen": "Bagikan layar",
+  "stopSharing": "Berhenti berbagi",
+  "sharingScreen": "Sedang membagikan layar",
+  "youAreSharing": "Layarmu sedang dibagikan. Semua peserta panggilan bisa melihatnya.",
+  "screenOf": "Layar {{name}}",
+  "recording": "Sedang direkam",
   "ended": {
     "left": "Panggilan berakhir",
     "declined": "Panggilan ditolak",

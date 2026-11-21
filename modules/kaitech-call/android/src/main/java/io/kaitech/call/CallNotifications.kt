@@ -118,6 +118,12 @@ object CallNotifications {
       val end = PendingIntent.getBroadcast(context, CALL_ID + 1, hangup, flags)
       builder.setStyle(NotificationCompat.CallStyle.forOngoingCall(person(call.title), end))
     }
+    if (call.sharing) {
+      var flags = PendingIntent.FLAG_UPDATE_CURRENT
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags = flags or PendingIntent.FLAG_IMMUTABLE
+      val stop = Intent(context, CallActionReceiver::class.java).setAction(ACTION_STOP_SHARING)
+      builder.addAction(0, context.getString(R.string.kaitech_call_stop_sharing), PendingIntent.getBroadcast(context, CALL_ID + 2, stop, flags))
+    }
     return builder.build()
   }
 
@@ -146,4 +152,5 @@ object CallNotifications {
   const val ACTION_DECLINE = "io.kaitech.call.DECLINE"
   const val ACTION_ANSWER = "io.kaitech.call.ANSWER"
   const val ACTION_HANGUP = "io.kaitech.call.HANGUP"
+  const val ACTION_STOP_SHARING = "io.kaitech.call.STOP_SHARING"
 }

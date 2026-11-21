@@ -57,6 +57,7 @@
       "@livekit/react-native-expo-plugin",
       "@config-plugins/react-native-webrtc",
       "./modules/kaitech-call/plugin",
+      "./plugins/with-broadcast-extension",
       "expo-secure-store",
       "expo-web-browser",
       "expo-sqlite",

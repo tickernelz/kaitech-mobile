@@ -4,7 +4,7 @@ import { space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Icon, type IconName } from '../../chat/ui/icons';
 
-export type CallAction = 'mute' | 'camera' | 'flip' | 'speaker' | 'people' | 'pip' | 'hangup';
+export type CallAction = 'mute' | 'camera' | 'flip' | 'share' | 'speaker' | 'people' | 'pip' | 'hangup';
 
 function Control({ icon, label, onPress, active, danger, testID }: { icon: IconName; label: string; onPress: () => void; active?: boolean; danger?: boolean; testID: string }) {
   const { colors } = useTheme();
@@ -29,6 +29,8 @@ export function CallControls({
   cameraOn,
   speaker,
   pip,
+  share,
+  sharing,
   onAction,
 }: {
   vertical: boolean;
@@ -37,6 +39,8 @@ export function CallControls({
   cameraOn: boolean;
   speaker: boolean;
   pip: boolean;
+  share: boolean;
+  sharing: boolean;
   onAction: (action: CallAction) => void;
 }) {
   const { t } = useTranslation('call');
@@ -44,6 +48,7 @@ export function CallControls({
     { action: 'mute', icon: muted ? 'muted' : 'mic', label: muted ? t('unmute') : t('mute'), active: muted },
     ...(video ? [{ action: 'camera' as const, icon: 'camera' as const, label: cameraOn ? t('cameraTurnOff') : t('cameraOn'), active: !cameraOn }] : []),
     ...(video && cameraOn ? [{ action: 'flip' as const, icon: 'retry' as const, label: t('flip') }] : []),
+    ...(share ? [{ action: 'share' as const, icon: 'screen' as const, label: sharing ? t('stopSharing') : t('shareScreen'), active: sharing }] : []),
     { action: 'speaker', icon: 'play', label: speaker ? t('earpiece') : t('speaker'), active: speaker },
     { action: 'people', icon: 'people', label: t('people') },
     ...(pip ? [{ action: 'pip' as const, icon: 'copy' as const, label: t('pictureInPicture') }] : []),

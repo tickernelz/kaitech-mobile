@@ -1,4 +1,4 @@
-import { layoutFor, pagesFor, stageFor } from '../src/features/call/grid';
+import { layoutFor, pagesFor, presenterOf, stageFor } from '../src/features/call/grid';
 
 describe('call video grid', () => {
   it('stacks two people in portrait and puts them side by side in landscape', () => {
@@ -58,5 +58,21 @@ describe('call screen layout', () => {
   it('shows the people list beside the call on expanded windows', () => {
     expect(layoutFor(1280, 800).people).toBe('side');
     expect(layoutFor(800, 1280).people).toBe('sheet');
+  });
+});
+
+describe('presenterOf', () => {
+  const person = (sid: string, local: boolean, screenOn: boolean) => ({ sid, local, screenOn });
+
+  it('prefers a screen shared by someone else over your own', () => {
+    expect(presenterOf([person('me', true, true), person('b', false, true)])?.sid).toBe('b');
+  });
+
+  it('shows your own screen when nobody else shares', () => {
+    expect(presenterOf([person('me', true, true), person('b', false, false)])?.sid).toBe('me');
+  });
+
+  it('is empty when nobody shares', () => {
+    expect(presenterOf([person('me', true, false), person('b', false, false)])).toBeNull();
   });
 });

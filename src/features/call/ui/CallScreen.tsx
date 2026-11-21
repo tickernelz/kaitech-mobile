@@ -1,15 +1,18 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ScreenCapturePickerView } from '@livekit/react-native-webrtc';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { layoutFor, pagesFor, stageFor, tileGap } from '../grid';
+import { layoutFor, pagesFor, presenterOf, stageFor, tileGap } from '../grid';
+import { screenShareSupported, setBroadcastPicker } from '../screenShare';
 import { useTheme, space } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../chat/ui/icons';
-import { enterPictureInPicture, flipCamera, fullScreenIntentAllowed, hangUp, openFullScreenIntentSettings, pictureInPictureSupported, toggleCamera, toggleMute, toggleSpeaker, useCallState } from '../call';
+import { enterPictureInPicture, flipCamera, fullScreenIntentAllowed, hangUp, openFullScreenIntentSettings, pictureInPictureSupported, toggleCamera, toggleMute, toggleScreenShare, toggleSpeaker, useCallState } from '../call';
 import { CallControls, type CallAction } from './CallControls';
 import { CallTile } from './CallTile';
+import { ScreenStage } from './ScreenStage';
 
 export function CallScreen() {
   const { t } = useTranslation('call');
@@ -20,6 +23,8 @@ export function CallScreen() {
   const call = useCallState();
   const layout = layoutFor(width, height);
   const pip = pictureInPictureSupported();
+  const share = call.phase === 'active' && screenShareSupported();
+  const presenter = presenterOf(call.people);
 
   const visible = useMemo(() => {
     const ids = call.people.map((person) => person.sid);
@@ -56,6 +61,7 @@ export function CallScreen() {
     if (action === 'camera') void toggleCamera();
     if (action === 'flip') void flipCamera();
     if (action === 'speaker') void toggleSpeaker();
+    if (action === 'share') void toggleScreenShare();
     if (action === 'pip') void enterPictureInPicture();
     if (action === 'hangup') {
       void hangUp('left');
@@ -78,14 +84,24 @@ export function CallScreen() {
           <Text variant="footnote" tone="inkSoft" numberOfLines={2} testID="call-status">
             {subtitle}
           </Text>
+          {call.recording ? (
+            <View style={styles.recording} accessibilityLiveRegion="polite" testID="call-recording">
+              <Icon name="record" size={12} color={colors.danger} />
+              <Text variant="footnote" style={{ color: colors.danger }}>
+                {t('recording')}
+              </Text>
+            </View>
+          ) : null}
           <FullScreenNotice />
         </View>
-        {layout.controls === 'rail' ? null : <CallControls vertical={false} video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} onAction={onAction} />}
+        {layout.controls === 'rail' ? null : <CallControls vertical={false} video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} share={share} sharing={call.screenSharing} onAction={onAction} />}
       </View>
 
       <View style={[styles.body, layout.controls === 'rail' ? styles.bodyRail : null]}>
         <View style={styles.stage} testID="call-stage">
-          {call.people.length === 0 ? (
+          {presenter ? (
+            <ScreenStage presenter={presenter} people={call.people} side={layout.controls === 'rail'} onStop={() => void toggleScreenShare()} />
+          ) : call.people.length === 0 ? (
             <View style={styles.center}>
               <Text variant="body" tone="inkSoft">
                 {subtitle}
@@ -104,7 +120,7 @@ export function CallScreen() {
         </View>
         {layout.controls === 'rail' ? (
           <View style={styles.rail}>
-            <CallControls vertical video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} onAction={onAction} />
+            <CallControls vertical video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} share={share} sharing={call.screenSharing} onAction={onAction} />
           </View>
         ) : null}
       </View>
@@ -121,6 +137,10 @@ export function CallScreen() {
           ))}
         </ScrollView>
       ) : null}
+
+      {Platform.OS === 'ios' && share ? <View style={styles.picker} pointerEvents="none">
+          <ScreenCapturePickerView ref={setBroadcastPicker} />
+        </View> : null}
 
       {call.phase === 'ended' ? (
         <Pressable accessibilityRole="button" onPress={() => router.back()} style={[styles.ended, { backgroundColor: colors.surface }]} testID="call-close">
@@ -177,6 +197,8 @@ const styles = StyleSheet.create({
   top: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm },
   topRail: { paddingBottom: space.xs },
   heading: { gap: 2 },
+  recording: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  picker: { width: 1, height: 1, opacity: 0, position: 'absolute' },
   body: { flex: 1, paddingHorizontal: space.md },
   bodyRail: { flexDirection: 'row' },
   stage: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignContent: 'center' },
