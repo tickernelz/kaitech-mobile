@@ -174,6 +174,12 @@ describe('composer markup', () => {
     expect(applyMarkup('halo ', at(5), 'bold')).toEqual({ text: 'halo ****', selection: { start: 7, end: 7 } });
   });
 
+  it('formats the word under a resting cursor', () => {
+    expect(applyMarkup('cek modul sale hari', at(11), 'bold')).toEqual({ text: 'cek modul **sale** hari', selection: { start: 12, end: 16 } });
+    expect(applyMarkup('pakai sale_order', at(16), 'code').text).toBe('pakai `sale_order`');
+    expect(applyMarkup('baca notulen', at(7), 'link').text).toBe('baca [notulen](https://)');
+  });
+
   it('wraps each line of a multi-line selection', () => {
     expect(applyMarkup('satu\ndua', at(0, 8), 'bold').text).toBe('**satu**\n**dua**');
     expect(applyMarkup('a\nb', at(0, 3), 'code').text).toBe('```\na\nb\n```');

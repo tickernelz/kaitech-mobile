@@ -2,6 +2,7 @@ import Storage from 'expo-sqlite/kv-store';
 import { useCallback, useEffect, useRef, useState, type ComponentRef, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, ScrollView, StyleSheet, View, type TextInput, type TextInputSelectionChangeEvent, type TextStyle } from 'react-native';
+import { useKeyboardState } from 'react-native-keyboard-controller';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../../ui/icons';
@@ -12,6 +13,7 @@ const hiddenKey = 'chat.formatBar.hidden';
 export function useMarkup(text: string, setText: (next: string) => void, input: RefObject<ComponentRef<typeof TextInput> | null>) {
   const [selection, setSelection] = useState<Selection>({ start: text.length, end: text.length });
   const [focused, setFocused] = useState(false);
+  const keyboard = useKeyboardState((state) => state.isVisible);
   const [hidden, setHiddenState] = useState(() => Storage.getItemSync(hiddenKey) === '1');
   const pending = useRef<Selection | null>(null);
 
@@ -36,8 +38,8 @@ export function useMarkup(text: string, setText: (next: string) => void, input: 
   return {
     selection,
     apply,
-    showBar: focused && (!hidden || selected),
-    showToggle: focused && hidden && !selected,
+    showBar: focused && keyboard && (!hidden || selected),
+    showToggle: focused && keyboard && hidden && !selected,
     hide: () => setHidden(true),
     show: () => setHidden(false),
     inputProps: {

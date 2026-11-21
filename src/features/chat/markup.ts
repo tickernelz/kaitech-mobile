@@ -10,12 +10,23 @@ const LINK_TARGET = /^(https?:\/\/|mailto:|tel:)\S+$/i;
 const PLACEHOLDER = 'https://';
 
 export function applyMarkup(text: string, selection: Selection, markup: Markup): Edit {
-  const start = Math.max(0, Math.min(selection.start, selection.end, text.length));
-  const end = Math.min(text.length, Math.max(selection.start, selection.end, start));
+  let start = Math.max(0, Math.min(selection.start, selection.end, text.length));
+  let end = Math.min(text.length, Math.max(selection.start, selection.end, start));
   if (markup === 'quote' || markup === 'list') return prefixLines(text, start, end, markup);
+  if (start === end) [start, end] = wordAt(text, start);
   if (markup === 'link') return link(text, start, end);
   if (markup === 'code' && text.slice(start, end).includes('\n')) return fence(text, start, end);
   return wrap(text, start, end, wraps[markup]);
+}
+
+const WORD_CHAR = /[\p{L}\p{N}_]/u;
+
+function wordAt(text: string, cursor: number): [number, number] {
+  let from = cursor;
+  let to = cursor;
+  while (from > 0 && WORD_CHAR.test(text[from - 1])) from -= 1;
+  while (to < text.length && WORD_CHAR.test(text[to])) to += 1;
+  return [from, to];
 }
 
 function trimmed(text: string, start: number, end: number): [number, number] {
