@@ -1,0 +1,172 @@
+appId: io.kaitech.mobile
+name: MoM rows, record a short test meeting, long press and swipe its row, delete the recording with title and password
+tags:
+  - signed-in
+  - rows
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- evalScript: ${output.meeting = 'Uji hapus ' + RUN.slice(-6)}
+- evalScript: ${output.title = 'Rekaman ' + RUN.slice(-6)}
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-mom
+- extendedWaitUntil:
+    visible:
+      id: mom-record
+    timeout: 60000
+- tapOn:
+    id: mom-record
+- extendedWaitUntil:
+    visible:
+      id: setup-name
+    timeout: 30000
+- tapOn:
+    id: setup-name
+- inputText: ${output.meeting}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: setup-title
+- tapOn:
+    id: setup-title
+- eraseText: 80
+- inputText: ${output.title}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: setup-consent
+- tapOn:
+    id: setup-consent
+- scrollUntilVisible:
+    element:
+      id: setup-start
+- tapOn:
+    id: setup-start
+- runFlow:
+    when:
+      visible:
+        text: (While using the app|Saat aplikasi digunakan)
+    commands:
+      - tapOn:
+          text: (While using the app|Saat aplikasi digunakan)
+- runFlow:
+    when:
+      visible:
+        text: (Allow|Izinkan)
+    commands:
+      - tapOn:
+          text: (Allow|Izinkan)
+- extendedWaitUntil:
+    visible:
+      id: recorder-time
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      text: 0:0[5-9]
+    timeout: 20000
+- tapOn:
+    id: recorder-stop
+- tapOn:
+    text: (?i)(finish|selesai)
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: upload-done
+    timeout: 180000
+- scrollUntilVisible:
+    element:
+      text: ${output.meeting}
+    timeout: 60000
+- swipe:
+    from:
+      text: ${output.meeting}
+    direction: RIGHT
+- extendedWaitUntil:
+    visible:
+      id: meeting-[0-9]+-swipe-share
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r20-meeting-swipe-right
+- swipe:
+    from:
+      text: ${output.meeting}
+    direction: LEFT
+- extendedWaitUntil:
+    visible:
+      id: meeting-[0-9]+-swipe-remove
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r21-meeting-swipe-left
+- swipe:
+    from:
+      text: ${output.meeting}
+    direction: RIGHT
+- longPressOn:
+    text: ${output.meeting}
+- extendedWaitUntil:
+    visible:
+      id: row-sheet
+    timeout: 5000
+- assertVisible:
+    id: row-action-share
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r22-meeting-more
+- tapOn:
+    id: row-action-remove
+- extendedWaitUntil:
+    visible:
+      id: recording-remove-title
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r23-recording-remove
+- tapOn:
+    id: recording-remove-title
+- inputText: ${output.title}
+- tapOn:
+    id: recording-remove-password
+- inputText: ${PASSWORD}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: recording-remove-submit
+- extendedWaitUntil:
+    notVisible:
+      id: recording-remove
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        text: ${output.meeting}
+    commands:
+      - longPressOn:
+          text: ${output.meeting}
+      - extendedWaitUntil:
+          visible:
+            id: row-sheet
+          timeout: 5000
+      - assertNotVisible:
+          id: row-action-remove
+      - tapOn:
+          id: row-action-open
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r24-meeting-after-remove

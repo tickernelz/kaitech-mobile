@@ -80,3 +80,62 @@ if (ACTION === 'voice') {
   );
   output.peer = { voice: data.attachment_id };
 }
+
+function callKw(model, method, args, kwargs) {
+  return rpc('/web/dataset/call_kw/' + model + '/' + method, { model: model, method: method, args: args, kwargs: kwargs || {} }, cookie).result;
+}
+
+function ownPartner() {
+  return rpc('/web/session/get_session_info', {}, cookie).result.partner_id;
+}
+
+function otherMember(channelId) {
+  var mine = ownPartner();
+  var members = callKw('discuss.channel.member', 'search_read', [[['channel_id', '=', channelId]]], { fields: ['partner_id'] });
+  for (var i = 0; i < members.length; i++) {
+    var partner = members[i].partner_id && members[i].partner_id[0];
+    if (partner && partner !== mine) return partner;
+  }
+  throw new Error('no other member in channel ' + channelId);
+}
+
+function say(channelId, text) {
+  rpc(
+    '/mail/message/post',
+    { thread_model: 'discuss.channel', thread_id: channelId, post_data: { body: text, message_type: 'comment', subtype_xmlid: 'mail.mt_comment' } },
+    cookie,
+  );
+}
+
+if (ACTION === 'group') {
+  var phone = otherMember(channel);
+  var made = rpc('/mail/action', { fetch_params: [['/discuss/create_group', { partners_to: [phone], name: GROUP }]] }, cookie).result;
+  var groups = (made['discuss.channel'] || []).filter(function (row) { return row.name === GROUP; });
+  if (!groups.length) throw new Error('group not created');
+  say(groups[0].id, GROUP + ' halo');
+  output.peer = { group: groups[0].id, phone: phone };
+}
+
+if (ACTION === 'say') {
+  say(Number(TARGET), RUN + ' kembali');
+  output.peer = { said: Number(TARGET) };
+}
+
+if (ACTION === 'left') {
+  var phonePartner = otherMember(channel);
+  var still = callKw('discuss.channel.member', 'search_count', [[['channel_id', '=', Number(TARGET)], ['partner_id', '=', phonePartner]]]);
+  if (still !== 0) throw new Error('phone is still a member of ' + TARGET);
+  callKw('discuss.channel', 'action_unfollow', [[Number(TARGET)]]);
+  output.peer = { left: Number(TARGET) };
+}
+
+if (ACTION === 'conversation') {
+  var created = callKw('ck.conversation', 'create', [{ name: TITLE, engagement_id: Number(PROGRAMME) }]);
+  output.peer = { conversation: Array.isArray(created) ? created[0] : created };
+}
+
+if (ACTION === 'conversationGone') {
+  var left = callKw('ck.conversation', 'search_count', [[['id', '=', Number(TARGET)], ['active', 'in', [true, false]]]]);
+  if (left !== 0) throw new Error('conversation ' + TARGET + ' still exists');
+  output.peer = { gone: Number(TARGET) };
+}

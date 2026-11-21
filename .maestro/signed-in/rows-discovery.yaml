@@ -1,0 +1,218 @@
+appId: io.kaitech.mobile
+name: Discovery, Activity and Search rows, rename and delete a Coworker conversation with Undo, More sheet on programme, evidence, activity and search rows
+tags:
+  - signed-in
+  - rows
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: conversation
+      TITLE: ${'Uji baris ' + RUN}
+- evalScript: ${output.row = 'conversation-' + output.peer.conversation}
+- evalScript: ${output.renamed = 'Uji ganti ' + RUN.slice(-6)}
+- tapOn:
+    id: tab-button-discovery
+- extendedWaitUntil:
+    visible:
+      id: programme-summary
+    timeout: 60000
+- tapOn:
+    id: programme-switch
+- extendedWaitUntil:
+    visible:
+      id: ${'programme-' + PROGRAMME}
+    timeout: 30000
+- longPressOn:
+    id: ${'programme-' + PROGRAMME}
+- extendedWaitUntil:
+    visible:
+      id: row-sheet
+    timeout: 5000
+- assertVisible:
+    id: row-action-ask
+- assertVisible:
+    id: row-action-evidence
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r10-programme-more
+- tapOn:
+    id: row-action-conversations
+- extendedWaitUntil:
+    visible:
+      id: conversations
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: ${output.row}
+    timeout: 30000
+- swipe:
+    from:
+      id: ${output.row}
+    direction: RIGHT
+- extendedWaitUntil:
+    visible:
+      id: ${output.row + '-swipe-rename'}
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r11-conversation-swipe-right
+- tapOn:
+    id: ${output.row + '-swipe-rename'}
+- extendedWaitUntil:
+    visible:
+      id: conversation-rename-name
+    timeout: 5000
+- eraseText: 80
+- inputText: ${output.renamed}
+- tapOn:
+    id: conversation-rename-submit
+- extendedWaitUntil:
+    visible:
+      text: ${output.renamed}
+    timeout: 15000
+- swipe:
+    from:
+      id: ${output.row}
+    direction: LEFT
+- extendedWaitUntil:
+    visible:
+      id: ${output.row + '-swipe-remove'}
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r12-conversation-swipe-left
+- tapOn:
+    id: ${output.row + '-swipe-remove'}
+- extendedWaitUntil:
+    visible:
+      id: undo-bar
+    timeout: 5000
+- assertNotVisible:
+    id: ${output.row}
+- tapOn:
+    id: undo-action
+- extendedWaitUntil:
+    visible:
+      id: ${output.row}
+    timeout: 5000
+- longPressOn:
+    id: ${output.row}
+- tapOn:
+    id: row-action-remove
+- extendedWaitUntil:
+    notVisible:
+      id: undo-bar
+    timeout: 15000
+- assertNotVisible:
+    id: ${output.row}
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: conversationGone
+      TARGET: ${String(output.peer.conversation)}
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      visible:
+        id: programme-pick
+    commands:
+      - tapOn:
+          id: header-back
+- scrollUntilVisible:
+    element:
+      id: open-evidence
+- tapOn:
+    id: open-evidence
+- tapOn:
+    id: evidence-view-evidence
+- extendedWaitUntil:
+    visible:
+      id: evidence-[0-9]+
+    timeout: 30000
+- longPressOn:
+    id: evidence-[0-9]+
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: row-action-copy
+    timeout: 5000
+- assertVisible:
+    id: row-action-share
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r13-evidence-more
+- tapOn:
+    id: row-action-copy
+- tapOn:
+    id: header-back
+- tapOn:
+    id: tab-button-activity
+- tapOn:
+    id: activity-filter-all
+- extendedWaitUntil:
+    visible:
+      id: activity-.*-0
+    timeout: 30000
+- swipe:
+    from:
+      id: activity-.*-0
+    direction: RIGHT
+- extendedWaitUntil:
+    visible:
+      id: activity-.*-0-swipe-programme
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r14-activity-swipe
+- tapOn:
+    id: activity-.*-0-swipe-programme
+- extendedWaitUntil:
+    visible:
+      id: tab-discovery
+    timeout: 15000
+- tapOn:
+    id: open-search
+- tapOn:
+    id: search-input
+- inputText: ${SEARCH}
+- extendedWaitUntil:
+    visible:
+      id: search-hit-.*
+    timeout: 30000
+- longPressOn:
+    id: search-hit-.*
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: row-action-open
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r15-search-more
+- tapOn:
+    id: row-action-open
+- extendedWaitUntil:
+    notVisible:
+      id: search
+    timeout: 15000
