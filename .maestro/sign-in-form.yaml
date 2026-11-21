@@ -102,14 +102,6 @@ onFlowStart:
 - eraseText: 40
 - inputText: erp.example.com
 - runFlow: shared/dismiss-keyboard.yaml
-- scrollUntilVisible:
-    element:
-      id: sign-in-continue
-- tapOn:
-    id: sign-in-continue
-- assertVisible:
-    id: sign-in-database-error
-    text: "${APP_LANGUAGE === 'id' ? 'Masukkan nama basis data.' : 'Enter the database name.'}"
 - tapOn:
     id: sign-in-database
 - inputText: erp main

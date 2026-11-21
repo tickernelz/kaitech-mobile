@@ -79,9 +79,10 @@ describe('sign-in with a build default server', () => {
 
   it('checks a custom server and database before the browser opens, then goes back to the default', async () => {
     await render(createElement(SignInForm, { custom: true, onDone: jest.fn(), onBack: jest.fn() }));
-    await fireEvent.changeText(screen.getByTestId('sign-in-server'), 'erp.example.com');
+    await fireEvent.changeText(screen.getByTestId('sign-in-server'), 'http://erp.example.com');
     await fireEvent.press(screen.getByTestId('sign-in-continue'));
-    await waitFor(() => expect(screen.getByTestId('sign-in-database-error')).toHaveTextContent('Enter the database name.'));
+    await waitFor(() => expect(screen.getByTestId('sign-in-server-error')).toHaveTextContent('The server must use a secure connection (https).'));
+    await fireEvent.changeText(screen.getByTestId('sign-in-server'), 'erp.example.com');
     await fireEvent.changeText(screen.getByTestId('sign-in-database'), 'erp main');
     await fireEvent.press(screen.getByTestId('sign-in-continue'));
     await waitFor(() => expect(screen.getByTestId('sign-in-database-error')).toHaveTextContent("That doesn't look like a database name."));
@@ -103,6 +104,18 @@ describe('sign-in with a build default server', () => {
     await waitFor(() => expect(mockOpen).toHaveBeenCalledTimes(1));
     expect(openedUrl().host).toBe('erp.example.com');
     expect(openedUrl().searchParams.get('db')).toBe('erp_main');
+  });
+});
+
+describe('sign-in to a server with one database', () => {
+  beforeEach(() => configure({ linkHost: 'lab0.kaitech.io', defaultDatabase: 'lab0' }));
+
+  it('opens the custom server without a database when the field is left empty', async () => {
+    await render(createElement(SignInForm, { custom: true, onDone: jest.fn(), onBack: jest.fn() }));
+    await fireEvent.changeText(screen.getByTestId('sign-in-server'), 'erp.example.com');
+    await fireEvent.press(screen.getByTestId('sign-in-continue'));
+    await waitFor(() => expect(mockOpen).toHaveBeenCalledTimes(1));
+    expect(openedUrl().origin + openedUrl().pathname).toBe('https://erp.example.com/kaitech_mobile/authorize');
   });
 });
 

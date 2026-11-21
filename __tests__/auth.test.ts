@@ -38,9 +38,11 @@ describe('normalizeDatabase', () => {
     expect(normalizeDatabase('  erp_main-2.0 ')).toBe('erp_main-2.0');
   });
 
+  it.each(['', '   '])('leaves the database out for %p', (input) => {
+    expect(normalizeDatabase(input)).toBe('');
+  });
+
   it.each([
-    ['', 'databaseRequired'],
-    ['   ', 'databaseRequired'],
     ['erp main', 'databaseInvalid'],
     ['-erp', 'databaseInvalid'],
     ['erp/../x', 'databaseInvalid'],
@@ -62,8 +64,7 @@ describe('signInUrl', () => {
   };
 
   it('asks the server for an S256 code bound to the redirect, device and language', () => {
-    const login = new URL(signInUrl(request));
-    const url = new URL(login.searchParams.get('redirect') ?? '', login.origin);
+    const url = new URL(signInUrl({ ...request, db: '' }));
     expect(url.origin + url.pathname).toBe('https://erp.example.com/kaitech_mobile/authorize');
     expect(Object.fromEntries(url.searchParams)).toEqual({
       client_id: 'kaitech-mobile',

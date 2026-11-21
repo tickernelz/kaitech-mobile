@@ -18,7 +18,6 @@ export function normalizeServer(input: string): string {
 
 export function normalizeDatabase(input: string): string {
   const name = input.trim();
-  if (!name) throw new AppError('databaseRequired');
-  if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,62}$/.test(name)) throw new AppError('databaseInvalid');
+  if (name && !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,62}$/.test(name)) throw new AppError('databaseInvalid');
   return name;
 }

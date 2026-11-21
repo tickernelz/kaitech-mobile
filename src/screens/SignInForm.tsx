@@ -11,7 +11,7 @@ import { Text } from '../ui/Text';
 import { TextField, type TextFieldRef } from '../ui/TextField';
 
 const serverErrors: ErrorCode[] = ['serverRequired', 'serverInvalid', 'serverInsecure'];
-const databaseErrors: ErrorCode[] = ['databaseRequired', 'databaseInvalid'];
+const databaseErrors: ErrorCode[] = ['databaseInvalid'];
 
 export function SignInForm({ onDone, onBack, custom = false }: { onDone: () => void; onBack: () => void; custom?: boolean }) {
   const { t } = useTranslation();
@@ -97,6 +97,7 @@ export function SignInForm({ onDone, onBack, custom = false }: { onDone: () => v
           <TextField
             ref={databaseRef}
             label={t('signIn.databaseLabel')}
+            hint={t('signIn.databaseHint')}
             value={database}
             onChangeText={edit(setDatabase)}
             error={shown(databaseErrors)}
