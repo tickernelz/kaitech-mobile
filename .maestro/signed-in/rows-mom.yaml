@@ -73,7 +73,7 @@ onFlowStart:
     timeout: 30000
 - extendedWaitUntil:
     visible:
-      text: 0:0[5-9]
+      text: (0?0:)?0?0:(0[5-9]|[1-5][0-9])
     timeout: 20000
 - tapOn:
     id: recorder-stop
@@ -88,34 +88,6 @@ onFlowStart:
     element:
       text: ${output.meeting}
     timeout: 60000
-- swipe:
-    from:
-      text: ${output.meeting}
-    direction: RIGHT
-- extendedWaitUntil:
-    visible:
-      id: meeting-[0-9]+-swipe-share
-    timeout: 5000
-- runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: r20-meeting-swipe-right
-- swipe:
-    from:
-      text: ${output.meeting}
-    direction: LEFT
-- extendedWaitUntil:
-    visible:
-      id: meeting-[0-9]+-swipe-remove
-    timeout: 5000
-- runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: r21-meeting-swipe-left
-- swipe:
-    from:
-      text: ${output.meeting}
-    direction: RIGHT
 - longPressOn:
     text: ${output.meeting}
 - extendedWaitUntil:
@@ -124,12 +96,39 @@ onFlowStart:
     timeout: 5000
 - assertVisible:
     id: row-action-share
+- assertVisible:
+    id: row-action-remove
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: r22-meeting-more
+- back
+- extendedWaitUntil:
+    notVisible:
+      id: row-sheet
+    timeout: 5000
+- swipe:
+    from:
+      text: ${output.meeting}
+    direction: RIGHT
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r20-meeting-swipe-right
+- swipe:
+    from:
+      text: ${output.meeting}
+    direction: LEFT
+- swipe:
+    from:
+      text: ${output.meeting}
+    direction: LEFT
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r21-meeting-swipe-left
 - tapOn:
-    id: row-action-remove
+    id: meeting-[0-9]+-swipe-remove
 - extendedWaitUntil:
     visible:
       id: recording-remove-title
