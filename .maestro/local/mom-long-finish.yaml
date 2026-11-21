@@ -1,0 +1,53 @@
+appId: io.kaitech.mobile
+name: Long recording, part 2 - still recording after the screen was off, finish, cut the network mid-upload, upload resumes
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: recorder-time
+    timeout: 30000
+- assertVisible:
+    text: ${EXPECT_ELAPSED}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: l2-still-recording
+- tapOn:
+    id: recorder-stop
+- tapOn:
+    text: (?i)(finish|selesai)
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: upload-sending
+    timeout: 120000
+- extendedWaitUntil:
+    visible:
+      text: .*[89][0-9].?%.*
+    timeout: 900000
+- setAirplaneMode: enabled
+- extendedWaitUntil:
+    visible:
+      id: upload-waiting
+    timeout: 120000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: l3-network-cut
+- swipe:
+    direction: DOWN
+    duration: 400
+- extendedWaitUntil:
+    visible:
+      id: upload-waiting
+    timeout: 30000
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    visible:
+      id: upload-done
+    timeout: 900000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: l4-uploaded

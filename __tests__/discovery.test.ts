@@ -51,6 +51,13 @@ describe('routeForPush', () => {
     });
   });
 
+  it('opens the minutes of a meeting', () => {
+    expect(routeForPush({ type: 'mom_minutes', res_id: 3, engagement_id: 7, meeting_id: '15' })).toEqual({
+      pathname: '/mom/[meeting]',
+      params: { meeting: '15' },
+    });
+  });
+
   it('ignores other kinds and malformed ids', () => {
     expect(routeForPush({ type: 'mom_minutes', res_id: 3, engagement_id: 7 })).toBeNull();
     expect(routeForPush({ type: 'discovery_card', res_id: 'x', engagement_id: 7 })).toBeNull();

@@ -1,0 +1,364 @@
+import { useAudioPlayer, useAudioPlayerStatus, type AudioPlayer } from 'expo-audio';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useResource } from '../../api/resource';
+import { useSession } from '../../auth/session';
+import { readableWidth, useWindowClass } from '../../layout/windowClass';
+import { radius, space, useTheme } from '../../theme';
+import { Section } from '../../ui/List';
+import { Text } from '../../ui/Text';
+import { Header } from '../discovery/Header';
+import { Card, Chip, Segmented, StateView } from '../discovery/ui';
+import { minutesDetail, playbackUrl, secondsOf, transcript, type Detail, type Item } from './api';
+import { FinalPanel } from './FinalPanel';
+import { MeetingChip, MomIcon, useMomFormat } from './parts';
+import { clock, useRecording } from './recorder';
+
+type Tab = 'notes' | 'items' | 'transcript' | 'final';
+
+const shortWindow = 520;
+
+async function loaded(player: AudioPlayer): Promise<boolean> {
+  for (let tries = 0; tries < 100; tries++) {
+    if (player.isLoaded) return true;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  return false;
+}
+
+function usePlayback(recording: number | null) {
+  const { active } = useSession();
+  const player = useAudioPlayer(null);
+  const status = useAudioPlayerStatus(player);
+  const source = useRef<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  const play = useCallback(
+    async (seconds?: number) => {
+      if (!active || !recording) return;
+      setBusy(true);
+      try {
+        if (source.current !== recording) {
+          player.replace({ uri: await playbackUrl(active, recording) });
+          source.current = recording;
+          if (!(await loaded(player))) return;
+        }
+        if (seconds !== undefined) await player.seekTo(seconds);
+        player.play();
+      } catch {
+        source.current = null;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [active, recording, player],
+  );
+  return { status, play, pause: () => player.pause(), busy };
+}
+
+function PlayerBar({ playback }: { playback: ReturnType<typeof usePlayback> }) {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const { status } = playback;
+  const share = status.duration ? Math.min(1, status.currentTime / status.duration) : 0;
+  return (
+    <View style={styles.playerWrap}>
+    <View style={[styles.player, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="mom-player">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={status.playing ? t('mom.detail.pause') : t('mom.detail.play')}
+        onPress={() => (status.playing ? playback.pause() : void playback.play())}
+        disabled={playback.busy}
+        style={[styles.playButton, { backgroundColor: colors.primary, opacity: playback.busy ? 0.6 : 1 }]}
+        testID="player-toggle">
+        <MomIcon name={status.playing ? 'pause' : 'play'} color={colors.onPrimary} />
+      </Pressable>
+      <View style={[styles.track, { backgroundColor: colors.line }]}>
+        <View style={[styles.trackFill, { backgroundColor: colors.primary, width: `${Math.round(share * 100)}%` }]} />
+      </View>
+      <Text variant="footnote" style={styles.mono}>
+        {clock(status.currentTime * 1000)}
+      </Text>
+    </View>
+    </View>
+  );
+}
+
+function Banner({ text }: { text: string }) {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.banner, { backgroundColor: colors.warnBand }]}>
+      <Text variant="callout" tone="warnInk">
+        {text}
+      </Text>
+    </View>
+  );
+}
+
+function Bullets({ title, lines }: { title: string; lines?: string[] }) {
+  if (!lines?.length) return null;
+  return (
+    <Section title={title}>
+      {lines.map((line, index) => (
+        <View key={index} style={styles.bullet}>
+          <Text>{line}</Text>
+        </View>
+      ))}
+    </Section>
+  );
+}
+
+function Notes({ detail }: { detail: Detail }) {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const summary = detail.summary ?? {};
+  const decisions = summary.keputusan ?? [];
+  const actions = summary.action_items ?? [];
+  return (
+    <>
+      <Banner text={t('mom.detail.unverified')} />
+      {summary.summary || summary.ringkasan ? (
+        <View style={styles.block}>
+          <Text variant="title" accessibilityRole="header">
+            {t('mom.detail.summary')}
+          </Text>
+          <Text selectable>{summary.summary || summary.ringkasan}</Text>
+        </View>
+      ) : null}
+      {decisions.length || actions.length ? (
+        <Section title={t('mom.detail.decisions')}>
+          {decisions.map((line, index) => (
+            <View key={`k${index}`} style={styles.entry} testID={`decision-${index}`}>
+              <View style={[styles.badge, { backgroundColor: colors.select }]}>
+                <Text variant="label" tone="selectInk">{`K${index + 1}`}</Text>
+              </View>
+              <View style={styles.entryText}>
+                <Text variant="callout">{line}</Text>
+                <Chip tone="ok" label={t('mom.detail.decision')} />
+              </View>
+            </View>
+          ))}
+          {actions.map((action, index) => (
+            <View key={`t${index}`} style={styles.entry} testID={`task-${index}`}>
+              <View style={[styles.badge, { backgroundColor: colors.select }]}>
+                <Text variant="label" tone="selectInk">{`T${index + 1}`}</Text>
+              </View>
+              <View style={styles.entryText}>
+                <Text variant="callout">{action.task}</Text>
+                <Text variant="footnote" tone="inkSoft">
+                  {[action.owner, action.due ? t('mom.detail.due', { due: action.due }) : ''].filter(Boolean).join(' · ')}
+                </Text>
+                <Chip tone="info" label={t('mom.detail.task')} />
+              </View>
+            </View>
+          ))}
+        </Section>
+      ) : null}
+      <Bullets title={t('mom.detail.risks')} lines={summary.risiko} />
+      <Bullets title={t('mom.detail.unclear')} lines={summary.blockers} />
+      <Bullets title={t('mom.detail.followUps')} lines={summary.follow_ups} />
+    </>
+  );
+}
+
+function Items({ items, onPlay }: { items: Item[]; onPlay?: (seconds: number) => void }) {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  if (!items.length) return <Text tone="inkSoft">{t('mom.detail.noItems')}</Text>;
+  const hearable = !!onPlay && items.some((item) => secondsOf(item.at ?? '') !== null);
+  return (
+    <>
+      <Banner text={hearable ? `${t('mom.detail.unverified')} ${t('mom.detail.tapToHear')}` : t('mom.detail.unverified')} />
+      {items.map((item) => {
+        const seconds = secondsOf(item.at ?? '');
+        const playable = onPlay && seconds !== null;
+        return (
+          <Pressable
+            key={item.id}
+            accessibilityRole={playable ? 'button' : undefined}
+            accessibilityHint={playable ? t('mom.detail.playFrom', { time: item.at }) : undefined}
+            disabled={!playable}
+            onPress={() => playable && onPlay(seconds)}
+            testID={`item-${item.id}`}
+            style={({ pressed }) => [styles.item, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
+            <View style={styles.rowWrap}>
+              <Chip tone="select" label={item.typeLabel || item.type} />
+              {item.statusLabel ? <Chip label={item.statusLabel} /> : null}
+            </View>
+            <Text variant="callout" style={styles.strong}>
+              {item.title}
+            </Text>
+            {item.description ? <Text variant="callout">{item.description}</Text> : null}
+            <Text variant="footnote" tone="inkSoft">
+              {[item.speaker, item.at].filter(Boolean).join(' · ')}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </>
+  );
+}
+
+function Transcript({ recording, onPlay, header }: { recording: number; onPlay: (seconds: number) => void; header?: ReactNode }) {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const segments = useResource(`mom.transcript.${recording}`, (account) => transcript(account, recording), 300_000);
+  if (!segments.data) {
+    return (
+      <View style={styles.fill}>
+        {header}
+        <StateView loading={segments.loading || !segments.error} error={segments.error} onRetry={() => void segments.refresh()} testID="transcript" />
+      </View>
+    );
+  }
+  return (
+    <FlatList
+      data={segments.data}
+      keyExtractor={(segment) => String(segment.id)}
+      contentContainerStyle={styles.content}
+      initialNumToRender={20}
+      windowSize={7}
+      ListHeaderComponent={header ? <>{header}</> : undefined}
+      ListEmptyComponent={<Text tone="inkSoft">{t('mom.detail.noTranscript')}</Text>}
+      renderItem={({ item }) => (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityHint={t('mom.detail.playFrom', { time: item.clock })}
+          onPress={() => onPlay(item.start)}
+          style={({ pressed }) => [styles.segment, pressed && { backgroundColor: colors.surface2 }]}>
+          <Text variant="footnote" tone="inkSoft" style={styles.mono}>
+            {item.clock}
+          </Text>
+          <View style={styles.entryText}>
+            <Text variant="label" tone="selectInk">
+              {item.speaker}
+            </Text>
+            <Text selectable>{item.text}</Text>
+          </View>
+        </Pressable>
+      )}
+      testID="transcript-list"
+    />
+  );
+}
+
+export function MeetingView({ meeting, back }: { meeting: number; back: boolean }) {
+  const { t } = useTranslation();
+  const format = useMomFormat();
+  const { height } = useWindowClass();
+  const short = height < shortWindow;
+  const recordingNow = useRecording();
+  const detail = useResource(`mom.detail.${meeting}`, (account) => minutesDetail(account, meeting));
+  const [tab, setTab] = useState<Tab>('notes');
+  const [which, setWhich] = useState(0);
+  const data = detail.data;
+  const recordings = data?.recordings ?? [];
+  const recording = recordings[Math.min(which, recordings.length - 1)]?.id ?? null;
+  const playback = usePlayback(recording);
+  const canPlay = !!recording && !recordingNow;
+  const play = canPlay ? (seconds: number) => void playback.play(seconds) : undefined;
+
+  if (!data || data.closed) {
+    return (
+      <View style={styles.fill} testID="mom-meeting">
+        <Header title={data?.meeting ?? ''} back={back} />
+        {data?.closed ? (
+          <StateView empty={{ title: t('mom.detail.closedTitle'), body: t('mom.detail.closedBody') }} />
+        ) : (
+          <StateView loading={detail.loading || !detail.error} error={detail.error} onRetry={() => void detail.refresh()} testID="meeting" />
+        )}
+      </View>
+    );
+  }
+
+  const tabs: { value: Tab; label: string }[] = [
+    { value: 'notes', label: t('mom.detail.tabs.notes') },
+    { value: 'items', label: t('mom.detail.tabs.items', { count: data.items.length }) },
+    { value: 'transcript', label: t('mom.detail.tabs.transcript') },
+    { value: 'final', label: t('mom.detail.tabs.final') },
+  ];
+  const top = (
+    <>
+      <Header title={data.meeting} subtitle={t('mom.meetingLine', { day: format.day(data.day), programme: data.programme })} back={back} />
+      <View style={styles.tabs}>
+        <Segmented options={tabs} value={tab} onChange={setTab} testID="meeting-tab" />
+        {recordings.length > 1 && (tab === 'transcript' || tab === 'notes') ? (
+          <Segmented
+            options={recordings.map((one, index) => ({ value: String(index), label: one.title }))}
+            value={String(which)}
+            onChange={(next) => setWhich(Number(next))}
+            testID="meeting-recording"
+          />
+        ) : null}
+      </View>
+    </>
+  );
+  const inner = short ? top : undefined;
+  const scrolled = (body: ReactNode) => (
+    <ScrollView
+      contentContainerStyle={short ? styles.shortContent : styles.content}
+      refreshControl={<RefreshControl refreshing={detail.loading} onRefresh={() => void detail.refresh()} />}>
+      {inner}
+      {short ? <View style={styles.content}>{body}</View> : body}
+    </ScrollView>
+  );
+  const notReady = (
+    <Card>
+      <MeetingChip row={data} />
+      <Text variant="headline">{t('mom.detail.notYet')}</Text>
+      <Text tone="inkSoft">{t('mom.detail.notYetBody')}</Text>
+    </Card>
+  );
+
+  return (
+    <View style={styles.fill} testID="mom-meeting">
+      {short ? null : top}
+      <View style={styles.fill}>
+        {tab === 'notes' ? scrolled(data.generated ? <Notes detail={data} /> : notReady) : null}
+        {tab === 'items' ? scrolled(<Items items={data.items} onPlay={recordings.length === 1 ? play : undefined} />) : null}
+        {tab === 'transcript' ? (
+          recording ? (
+            <Transcript key={recording} recording={recording} onPlay={(seconds) => play?.(seconds)} header={inner} />
+          ) : (
+            scrolled(<Text tone="inkSoft">{t('mom.detail.noTranscript')}</Text>)
+          )
+        ) : null}
+        {tab === 'final' ? <FinalPanel programme={data.programmeId} meeting={data.meeting_id} header={inner} /> : null}
+      </View>
+      {canPlay && (tab === 'items' || tab === 'transcript' || playback.status.playing) ? <PlayerBar playback={playback} /> : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+  strong: { fontWeight: '600' },
+  mono: { fontVariant: ['tabular-nums'] },
+  shortContent: { paddingBottom: space.xxl },
+  tabs: { paddingHorizontal: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
+  content: { padding: space.lg, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center', paddingBottom: space.xxl },
+  banner: { padding: space.md, borderRadius: radius.md },
+  block: { gap: space.sm },
+  bullet: { paddingHorizontal: space.lg, paddingVertical: space.md },
+  entry: { flexDirection: 'row', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.md, alignItems: 'flex-start' },
+  entryText: { flex: 1, gap: space.xs },
+  badge: { minWidth: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.xs },
+  item: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.xs },
+  rowWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  segment: { flexDirection: 'row', gap: space.md, paddingVertical: space.sm, borderRadius: radius.md },
+  player: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    padding: space.sm,
+    paddingRight: space.lg,
+    borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    width: '100%',
+    maxWidth: readableWidth,
+  },
+  playerWrap: { paddingHorizontal: space.md, paddingVertical: space.sm, alignItems: 'center' },
+  playButton: { width: 48, height: 48, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  track: { flex: 1, height: 6, borderRadius: radius.pill, overflow: 'hidden' },
+  trackFill: { height: 6 },
+});

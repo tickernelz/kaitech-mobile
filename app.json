@@ -113,8 +113,10 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Kaitech uses the microphone to record voice messages and to make calls.",
-          "recordAudioAndroid": true
+          "microphonePermission": "Kaitech uses the microphone to record meetings and voice messages, and to make calls.",
+          "recordAudioAndroid": true,
+          "enableBackgroundRecording": true,
+          "enableBackgroundPlayback": false
         }
       ],
       [
@@ -122,7 +124,7 @@
         {
           "photosPermission": "Kaitech opens your photos so you can send them in messages.",
           "cameraPermission": "Kaitech uses the camera to take photos and videos you send in messages.",
-          "microphonePermission": "Kaitech uses the microphone to record voice messages and to make calls."
+          "microphonePermission": "Kaitech uses the microphone to record meetings and voice messages, and to make calls."
         }
       ],
       [
@@ -133,7 +135,9 @@
           "defaultChannel": "messages",
           "enableRemoteNotifications": false
         }
-      ]
+      ],
+      "expo-background-task",
+      "./plugins/meeting-recording.js"
     ]
   }
 }

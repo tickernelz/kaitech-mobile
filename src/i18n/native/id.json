@@ -2,11 +2,16 @@
   "ios": {
     "CFBundleDisplayName": "Kaitech",
     "NSFaceIDUsageDescription": "Kaitech memakai Face ID untuk membuka aplikasi saat kunci aplikasi aktif.",
-    "NSMicrophoneUsageDescription": "Kaitech memakai mikrofon untuk merekam pesan suara dan untuk menelepon.",
+    "NSMicrophoneUsageDescription": "Kaitech memakai mikrofon untuk merekam rapat dan pesan suara, serta untuk menelepon.",
     "NSCameraUsageDescription": "Kaitech memakai kamera untuk mengambil foto dan video yang Anda kirim dalam pesan dan untuk panggilan video.",
     "NSPhotoLibraryUsageDescription": "Kaitech membuka foto Anda agar dapat dikirim dalam pesan."
   },
   "android": {
-    "app_name": "Kaitech"
+    "app_name": "Kaitech",
+    "expo_audio_recording_title": "Merekam rapat",
+    "expo_audio_recording_text": "Ketuk untuk kembali ke Kaitech",
+    "expo_audio_recording_stop": "Hentikan",
+    "expo_audio_recording_channel": "Rekaman rapat",
+    "expo_audio_recording_channel_description": "Tampil selama Kaitech merekam rapat"
   }
 }

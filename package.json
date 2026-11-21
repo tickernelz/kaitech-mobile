@@ -11,6 +11,7 @@
     "expo": "~58.0.26",
     "expo-asset": "~58.0.21",
     "expo-audio": "~58.0.12",
+    "expo-background-task": "~58.0.13",
     "expo-clipboard": "~58.0.4",
     "expo-constants": "~58.0.16",
     "expo-crypto": "~58.0.8",
@@ -33,6 +34,7 @@
     "expo-sqlite": "~58.0.18",
     "expo-status-bar": "~58.0.5",
     "expo-system-ui": "~58.0.7",
+    "expo-task-manager": "~58.0.14",
     "expo-web-browser": "~58.1.0",
     "i18next": "^27.2.2",
     "livekit-client": "^2.25.0",
@@ -58,6 +60,7 @@
     "eslint-plugin-i18next": "^6.1.5",
     "jest": "~30.5.2",
     "jest-expo": "~58.0.15",
+    "patch-package": "8.0.1",
     "react-test-renderer": "^19.3.0",
     "typescript": "~6.0.3"
   },
@@ -69,10 +72,20 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "doctor": "expo-doctor",
-    "i18n:check": "jest --ci __tests__/i18n-catalogs.test.ts"
+    "i18n:check": "jest --ci __tests__/i18n-catalogs.test.ts",
+    "postinstall": "patch-package"
   },
   "private": true,
   "jest": {
     "preset": "jest-expo"
+  },
+  "expo": {
+    "autolinking": {
+      "android": {
+        "buildFromSource": [
+          "expo-audio"
+        ]
+      }
+    }
   }
 }

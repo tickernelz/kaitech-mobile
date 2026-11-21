@@ -1,4 +1,5 @@
 import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
+import { meetingRecording } from '../../../audio/meeting';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
@@ -212,6 +213,10 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   };
 
   const startRecording = async () => {
+    if (meetingRecording()) {
+      Alert.alert(t('composer.micBusy'));
+      return;
+    }
     const permission = await requestRecordingPermissionsAsync();
     if (!permission.granted) {
       if (!permission.canAskAgain) deniedAlert('microphone');
@@ -237,7 +242,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     if (!current) return;
     setRecording(null);
     await recorder.stop();
-    await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
+    await setAudioModeAsync({ allowsRecording: meetingRecording(), playsInSilentMode: true });
     const uri = recorder.uri;
     const elapsed = now() - current.started;
     if (!uri) return;

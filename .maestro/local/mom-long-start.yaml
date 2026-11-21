@@ -1,0 +1,15 @@
+appId: io.kaitech.mobile
+name: Long recording, part 1 - sign in and start recording (local only, the host turns the screen off afterwards)
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/record-meeting.yaml
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: l1-recording-started

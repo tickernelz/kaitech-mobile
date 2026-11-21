@@ -8,6 +8,11 @@ type Entry = { data?: unknown; error?: unknown; at: number; loading: boolean };
 const entries = new Map<string, Entry>();
 const listeners = new Map<string, Set<() => void>>();
 const idle: Entry = { at: 0, loading: false };
+const generations = new Map<string, number>();
+
+function generationOf(key: string): number {
+  return generations.get(key.slice(0, key.indexOf(':'))) ?? 0;
+}
 
 function notify(key: string) {
   listeners.get(key)?.forEach((listener) => listener());
@@ -20,12 +25,15 @@ function put(key: string, next: Partial<Entry>) {
 
 export async function load<T>(key: string, fetcher: () => Promise<T>): Promise<void> {
   if (entries.get(key)?.loading) return;
+  const generation = generationOf(key);
   put(key, { loading: true });
+  let next: Partial<Entry>;
   try {
-    put(key, { data: await fetcher(), error: undefined, at: Date.now(), loading: false });
+    next = { data: await fetcher(), error: undefined, at: Date.now(), loading: false };
   } catch (error) {
-    put(key, { error, loading: false });
+    next = { error, loading: false };
   }
+  if (generationOf(key) === generation) put(key, next);
 }
 
 export function update<T>(key: string, change: (current: T | undefined) => T) {
@@ -42,6 +50,7 @@ export function invalidate(prefix: string) {
 }
 
 onAccountForgotten((accountId) => {
+  generations.set(accountId, (generations.get(accountId) ?? 0) + 1);
   for (const key of [...entries.keys()]) if (key.startsWith(`${accountId}:`)) entries.delete(key);
 });
 

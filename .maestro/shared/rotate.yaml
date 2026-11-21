@@ -1,0 +1,15 @@
+appId: io.kaitech.mobile
+name: Turn the window to TO (portrait or landscape), whatever the device's natural orientation
+---
+- runFlow:
+    when:
+      true: ${(TO === 'landscape') !== (DEVICE_SIZE === 'tablet' && maestro.platform === 'android')}
+    commands:
+      - setOrientation: LANDSCAPE_LEFT
+- runFlow:
+    when:
+      true: ${(TO === 'landscape') === (DEVICE_SIZE === 'tablet' && maestro.platform === 'android')}
+    commands:
+      - setOrientation: PORTRAIT
+- waitForAnimationToEnd:
+    timeout: 3000
