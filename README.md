@@ -8,7 +8,7 @@ Tombol Masuk langsung membuka halaman masuk server bawaan tanpa isian; server la
 
 Unduh dari [Releases](https://github.com/tickernelz/kaitech-mobile/releases/latest): `kaitech-<build>-<sha>-arm64-v8a.apk` untuk Android (hampir semua ponsel Android sekarang; `kaitech-<build>-<sha>.apk` universal untuk ponsel lain), `kaitech-<build>-<sha>-unsigned.ipa` untuk iOS, dan `SHA256SUMS.txt`. Periksa unduhan dengan `sha256sum -c --ignore-missing SHA256SUMS.txt`. Ini rilis uji untuk tim, bukan rilis toko.
 
-Masuk di Android memakai App Link di domain tautan `lab0.kaitech.io` (variabel repo `KAITECH_LINK_HOST`), tertanam di build rilis mulai v0.2.2. Build tanpa variabel itu, misalnya PR dari fork, memberi tahu di layar masuk bahwa domain tautan belum diatur.
+Mulai v0.2.3 tombol Masuk langsung membuka halaman masuk lab0 tanpa isian; server lain tetap bisa dipilih lewat "Gunakan server lain". Masuk di Android memakai App Link di domain tautan `lab0.kaitech.io` (variabel repo `KAITECH_LINK_HOST`), tertanam di build rilis mulai v0.2.2. Build tanpa variabel itu, misalnya PR dari fork, memberi tahu di layar masuk bahwa domain tautan belum diatur.
 
 Push Android lewat FCM ikut build rilis mulai v0.2.2 (secret `GOOGLE_SERVICES_JSON`); build tanpa secret itu tidak punya push, dan catatan rilisnya menyebutnya.
 
@@ -22,7 +22,7 @@ Semua bukti dari emulator Android atau simulator iPad; belum ada uji di perangka
 
 | Bagian | Platform dan ukuran | Orientasi | Bahasa | Bukti |
 |---|---|---|---|---|
-| Pasang APK dari Release di emulator bersih, layar sambutan, form masuk (tanpa server); di ponsel juga rotasi di tengah form tanpa kehilangan isian | Android 15 ponsel (`pixel_6`) dan tablet 10 inci (`pixel_tablet`) | portrait, landscape | en, id | job `install from release` di run Release tiap tag, rekaman `e2e-android-release-*` |
+| Pasang APK dari Release di emulator bersih, layar sambutan, tombol Masuk membuka halaman masuk lab0 tanpa isian, form "Gunakan server lain" memeriksa alamat dan basis data lalu kembali ke bawaan; di ponsel juga rotasi di tengah form tanpa kehilangan isian | Android 15 ponsel (`pixel_6`) dan tablet 10 inci (`pixel_tablet`) | portrait, landscape | en, id | job `install from release` di run Release tiap tag, rekaman `e2e-android-release-*` |
 | Alur yang sama dengan APK x86_64 | Android 15 ponsel dan tablet | portrait, landscape | en, id | CI tiap push `main`, rekaman `e2e-android-*` |
 | Alur yang sama di iPad (percobaan, tidak memblokir) | simulator iPad di runner macOS | portrait, landscape | en | workflow `iPad trial`; hasil per tag ada di run `iPad trial` tag itu |
 | Masuk ke lab0 dari APK CI lewat App Link `lab0.kaitech.io` yang diverifikasi Android sendiri (`pm get-app-links`: verified), dari layar sambutan sampai Chat terbuka | Android 15 ponsel (`pixel_6`) | portrait | en | rekaman lokal APK CI, tidak dipublikasikan (tracker internal ZHA-7373) |
