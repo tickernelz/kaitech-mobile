@@ -79,8 +79,8 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
       uri = made.uri;
     } finally {
       made.release();
+      await setAudioModeAsync({ allowsRecording: meetingRecording(), playsInSilentMode: true });
     }
-    await setAudioModeAsync({ allowsRecording: meetingRecording(), playsInSilentMode: true });
     const elapsed = now() - started;
     if (!uri) return;
     if (cancel || elapsed < shortestVoiceMs) {
