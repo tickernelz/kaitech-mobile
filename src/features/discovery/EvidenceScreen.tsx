@@ -15,7 +15,8 @@ import { parseServerDate } from './dates';
 import { findingTone, FindingView } from './FindingView';
 import { Header } from './Header';
 import { sourceIcon, sourceLabelKey } from './sources';
-import { Chip, Icon, Segmented, StateView } from './ui';
+import { Icon } from '../../ui/icons';
+import { Chip, Segmented, StateView } from './ui';
 
 type View_ = 'findings' | 'evidence';
 

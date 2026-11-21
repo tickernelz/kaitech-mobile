@@ -5,7 +5,7 @@ import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { plainText } from '../html';
 import type { Message } from '../types';
-import { Icon, type IconName } from './icons';
+import { Icon, type IconName } from '../../../ui/icons';
 
 const quick = ['\u{1F44D}', '\u2764\uFE0F', '\u{1F602}', '\u{1F64F}', '\u2705'];
 

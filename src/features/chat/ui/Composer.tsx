@@ -17,7 +17,7 @@ import { pickAttachments, type AttachSource } from './attach';
 import { Avatar } from './Avatar';
 import { authorColor } from './MessageBubble';
 import { useChatFormat } from './format';
-import { Icon, type IconName } from './icons';
+import { Icon, type IconName } from '../../../ui/icons';
 import { AttachSheet, MicButton, RecordingStrip, StagedFile } from './MediaControls';
 import { useVoiceHold, type Voice } from './useVoiceHold';
 
@@ -230,7 +230,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           <RecordingStrip recording={recording} />
         ) : (
           <>
-            <RoundButton icon="plus" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />
+            <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />
             <View style={[styles.field, { backgroundColor: colors.surface, borderColor: colors.line }]}>
               <TextInput
                 ref={input}

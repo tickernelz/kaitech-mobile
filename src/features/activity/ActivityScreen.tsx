@@ -13,13 +13,14 @@ import { Text } from '../../ui/Text';
 import { briefing, type BriefingItem } from '../discovery/api';
 import { parseServerDate } from '../discovery/dates';
 import { openConversation, rememberProgramme } from '../discovery/store';
-import { Icon, Segmented, StateView, type IconName } from '../discovery/ui';
+import { Icon, type IconName } from '../../ui/icons';
+import { Segmented, StateView } from '../discovery/ui';
 
 type Filter = 'waiting' | 'all';
 
 const waitingKinds = new Set(['card', 'coworker_asks', 'answer', 'chase']);
 
-const iconOf: Record<string, IconName> = { card: 'hand', coworker_asks: 'sparkle', answer: 'chat', chase: 'history', agenda: 'bulb' };
+const iconOf: Record<string, IconName> = { card: 'decision', coworker_asks: 'sparkle', answer: 'chat', chase: 'history', agenda: 'bulb' };
 
 export function activityKindKey(kind: string): string {
   return ['card', 'coworker_asks', 'answer', 'chase', 'agenda'].includes(kind) ? `activity.kind.${kind}` : 'activity.kind.other';
@@ -104,7 +105,7 @@ export function ActivityScreen() {
                   </Text>
                 ) : null}
               </View>
-              <Icon name="chevron" size={20} color={colors.inkFaint} />
+              <Icon name="forward" size={20} color={colors.inkFaint} />
             </Pressable>
           );
         }}

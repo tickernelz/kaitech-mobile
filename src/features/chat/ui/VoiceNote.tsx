@@ -5,7 +5,7 @@ import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { cycleVoiceRate, toggleVoice, useVoice } from '../voicePlayer';
 import { useChatFormat } from './format';
-import { Icon } from './icons';
+import { Icon } from '../../../ui/icons';
 import { useCookie } from './useCookie';
 
 const barCount = 28;
