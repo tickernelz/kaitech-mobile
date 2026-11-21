@@ -6,6 +6,10 @@ export type KeyValue = { get(key: string): string | null; set(key: string, value
 
 export const registeredKey = 'chat.pushRegistered';
 
+function formatOf(answer: unknown): unknown {
+  return answer && typeof answer === 'object' ? (answer as { format?: unknown }).format : undefined;
+}
+
 export function registrationMarker(account: Pick<Account, 'id' | 'deviceId'>, token: string, language: string): string {
   return `${account.id}|${account.deviceId}|${token}|${language}|${pushFormat}`;
 }
@@ -24,9 +28,9 @@ export async function syncPushToken(input: {
 }): Promise<boolean> {
   const marker = registrationMarker(input.account, input.token, input.language);
   if (input.store.get(registeredKey) === marker && input.store.get(previewKey(input.account)) === String(input.preview)) return false;
-  await input.registerPush(input.token, input.language, input.preview);
-  input.store.set(registeredKey, marker);
+  const answer = await input.registerPush(input.token, input.language, input.preview);
   input.store.set(previewKey(input.account), String(input.preview));
+  if (formatOf(answer) === pushFormat) input.store.set(registeredKey, marker);
   return true;
 }
 

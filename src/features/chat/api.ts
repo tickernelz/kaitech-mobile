@@ -10,6 +10,11 @@ import type { PendingFile } from './types';
 
 const uploadTimeoutMs = 120000;
 
+function voiceSeconds(durationMs: number | null): { duration?: string } {
+  if (!durationMs || durationMs <= 0) return {};
+  return { duration: String(Math.min(86400, Math.max(1, Math.round(durationMs / 1000)))) };
+}
+
 export function errorCode(error: unknown): string {
   if (error instanceof ApiError) return error.code;
   if (error instanceof AppError) return error.code;
@@ -112,7 +117,7 @@ export class ChatClient {
         uploadType: UploadType.MULTIPART,
         fieldName: 'file',
         mimeType: file.mimetype,
-        parameters: { channel_id: String(channelId), key: file.key, ...(file.voice ? { voice: 'true' } : {}) },
+        parameters: { channel_id: String(channelId), key: file.key, ...(file.voice ? { voice: 'true', ...voiceSeconds(file.durationMs) } : {}) },
         headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(this.account.db ? { 'X-Odoo-Database': this.account.db } : {}) },
         signal: controller.signal,
       });

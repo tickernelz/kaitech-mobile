@@ -8,7 +8,7 @@ function memory(): KeyValue & { values: Map<string, string> } {
 describe('syncPushToken', () => {
   it('registers again after the same account signs in on a new device row', async () => {
     const store = memory();
-    const registerPush = jest.fn(async () => undefined);
+    const registerPush = jest.fn(async () => ({ format: 2 }));
     const first = { id: 'u7_abc', deviceId: 11 };
     await syncPushToken({ store, account: first, token: 'fcm-1', language: 'id', preview: true, registerPush });
     await syncPushToken({ store, account: first, token: 'fcm-1', language: 'id', preview: true, registerPush });
@@ -25,7 +25,7 @@ describe('syncPushToken', () => {
     });
     await expect(syncPushToken({ store, account, token: 'fcm-1', language: 'en', preview: true, registerPush: failing })).rejects.toThrow('offline');
     expect(store.values.has(registeredKey)).toBe(false);
-    const registerPush = jest.fn(async () => undefined);
+    const registerPush = jest.fn(async () => ({ format: 2 }));
     await syncPushToken({ store, account, token: 'fcm-1', language: 'en', preview: true, registerPush });
     await syncPushToken({ store, account, token: 'fcm-2', language: 'en', preview: true, registerPush });
     await syncPushToken({ store, account, token: 'fcm-2', language: 'id', preview: true, registerPush });
@@ -36,6 +36,19 @@ describe('syncPushToken', () => {
       ['fcm-2', 'id', true],
       ['fcm-2', 'id', false],
     ]);
+  });
+
+  it('keeps registering until the server confirms the notification format', async () => {
+    const store = memory();
+    const account = { id: 'u7_abc', deviceId: 11 };
+    const older = jest.fn(async () => ({ preview: true }));
+    await syncPushToken({ store, account, token: 'fcm-1', language: 'id', preview: true, registerPush: older });
+    await syncPushToken({ store, account, token: 'fcm-1', language: 'id', preview: true, registerPush: older });
+    expect(older).toHaveBeenCalledTimes(2);
+    const current = jest.fn(async () => ({ format: 2 }));
+    await syncPushToken({ store, account, token: 'fcm-1', language: 'id', preview: true, registerPush: current });
+    await syncPushToken({ store, account, token: 'fcm-1', language: 'id', preview: true, registerPush: current });
+    expect(current).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -71,8 +84,8 @@ describe('syncPreview', () => {
   it('skips a device row whose registration already carried the same preview', async () => {
     const store = memory();
     const account = { id: 'a', deviceId: 1 };
-    await syncPushToken({ store, account, token: 'fcm-1', language: 'en', preview: false, registerPush: async () => undefined });
-    const setPreview = jest.fn(async () => undefined);
+    await syncPushToken({ store, account, token: 'fcm-1', language: 'en', preview: false, registerPush: async () => ({ format: 2 }) });
+    const setPreview = jest.fn(async () => ({ format: 2 }));
     await syncPreview({ store, accounts: [account], preview: false, setPreview });
     expect(setPreview).not.toHaveBeenCalled();
     await syncPreview({ store, accounts: [account], preview: true, setPreview });
