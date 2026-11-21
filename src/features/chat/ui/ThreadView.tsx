@@ -25,6 +25,7 @@ import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
 import { NotifySheet } from './NotifySheet';
 import { router } from 'expo-router';
 import { ChatBackground } from '../../appearance/ChatBackground';
+import { usePartnerStatus } from '../../people/statuses';
 
 type Row =
   | { kind: 'day'; key: string; date: number }
@@ -93,6 +94,7 @@ export function ThreadView({
   const name = conversation?.name || thread.info?.name || '';
   const type = conversation?.type ?? (thread.info?.type as 'chat' | 'group' | 'channel' | undefined) ?? 'channel';
   const twoPeople = type === 'chat';
+  const status = usePartnerStatus(accountId, twoPeople ? conversation?.partnerId : null);
 
   const scrollTo = useCallback(
     (messageId: number) => {
@@ -205,7 +207,7 @@ export function ThreadView({
   const subtitle = typing.length
     ? t('thread.typing', { name: typing.map((typist) => typist.name.split(' ')[0]).join(', '), count: typing.length })
     : type === 'chat'
-      ? t('thread.kind.chat')
+      ? (status ?? t('thread.kind.chat'))
       : thread.info?.memberCount
         ? t(`thread.members.${type === 'group' ? 'group' : 'channel'}`, { count: thread.info.memberCount })
         : t(`thread.kind.${type === 'group' ? 'group' : 'channel'}`);
@@ -229,7 +231,13 @@ export function ThreadView({
         <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
           {name}
         </Text>
-        <Text variant="footnote" tone={typing.length ? 'link' : 'inkSoft'} numberOfLines={1} accessibilityLiveRegion="polite">
+        <Text
+          variant="footnote"
+          tone={typing.length ? 'link' : 'inkSoft'}
+          numberOfLines={1}
+          accessibilityLiveRegion="polite"
+          accessibilityLabel={!typing.length && twoPeople && status ? t('thread.status', { status }) : undefined}
+          testID="thread-subtitle">
           {subtitle}
         </Text>
       </View>
