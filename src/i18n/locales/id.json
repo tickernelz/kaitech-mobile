@@ -451,5 +451,21 @@
       "empty": "Notulen final belum siap.",
       "close": "Tutup"
     }
+  },
+  "appearance": {
+    "wallpapers": {
+      "doodle": "Doodle Lab0",
+      "keylines": "Garis bantu",
+      "bars": "Bilah merek",
+      "monogram": "Monogram K",
+      "kaitech": "Kaitech",
+      "dusk": "Senja",
+      "mist": "Kabut",
+      "lavender": "Lavender",
+      "slate": "Batu sabak",
+      "blush": "Merah jambu",
+      "midnight": "Tengah malam",
+      "ink": "Tinta"
+    }
   }
 }
