@@ -1,11 +1,13 @@
 import type { Account } from '../../auth/oauth';
 
+export const pushFormat = 2;
+
 export type KeyValue = { get(key: string): string | null; set(key: string, value: string): void };
 
 export const registeredKey = 'chat.pushRegistered';
 
 export function registrationMarker(account: Pick<Account, 'id' | 'deviceId'>, token: string, language: string): string {
-  return `${account.id}|${account.deviceId}|${token}|${language}`;
+  return `${account.id}|${account.deviceId}|${token}|${language}|${pushFormat}`;
 }
 
 export function previewKey(account: Pick<Account, 'id' | 'deviceId'>): string {

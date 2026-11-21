@@ -5,6 +5,7 @@ import type { Account } from '../../auth/oauth';
 import { markExpired, tokenFor } from '../../auth/session';
 import { localFile } from './files';
 import { SendError, type Posted, type Uploaded } from './outbox';
+import { pushFormat } from './pushAccount';
 import type { PendingFile } from './types';
 
 const uploadTimeoutMs = 120000;
@@ -138,7 +139,11 @@ export class ChatClient {
   }
 
   registerPush(fcm: string, locale: string, preview: boolean) {
-    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/push', { method: 'POST', body: { fcm, locale, preview } });
+    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/push', { method: 'POST', body: { fcm, locale, preview, format: pushFormat } });
+  }
+
+  mute(channelId: number, minutes: number) {
+    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/chat/mute', { method: 'POST', body: { channel_id: channelId, minutes } });
   }
 
   setPushPreview(preview: boolean) {

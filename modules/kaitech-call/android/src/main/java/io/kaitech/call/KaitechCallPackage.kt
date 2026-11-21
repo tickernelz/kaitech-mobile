@@ -23,6 +23,11 @@ class CallActivityListener(activity: Activity?) : ReactActivityLifecycleListener
   }
 
   override fun onNewIntent(intent: Intent): Boolean {
+    if (MessageIntents.isOpen(intent)) {
+      owner.get()?.intent = intent
+      CallBridge.module?.dispatchMessageOpen()
+      return false
+    }
     if (!CallIntents.isCall(intent)) return false
     val activity = owner.get() ?: return false
     activity.intent = intent

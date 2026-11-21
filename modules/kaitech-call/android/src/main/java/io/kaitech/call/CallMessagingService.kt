@@ -11,6 +11,15 @@ class CallMessagingService : FirebaseMessagingService() {
   override fun onMessageReceived(remoteMessage: RemoteMessage) {
     val data = remoteMessage.data
     val type = data["type"]
+    if (type == MessagePush.MESSAGE) {
+      val push = MessagePush.from(data)
+      if (push == null) forward(remoteMessage) else MessageNotifications.show(this, push)
+      return
+    }
+    if (type == MessagePush.READ) {
+      MessageKey.from(data)?.let { MessageNotifications.clear(this, it.value) }
+      return
+    }
     if ((type != CALL && type != CANCEL) || data["model"] != "discuss.channel") {
       forward(remoteMessage)
       return

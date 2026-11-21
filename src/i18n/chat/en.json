@@ -121,5 +121,19 @@
   },
   "push": {
     "channel": "Messages"
+  },
+  "notify": {
+    "title": "Notifications",
+    "mute": {
+      "hours8": "Mute for 8 hours",
+      "week": "Mute for 1 week",
+      "always": "Mute always"
+    },
+    "unmute": "Unmute",
+    "mutedAlways": "Muted",
+    "mutedUntil": "Muted until {{time}}",
+    "bubble": "Bubble",
+    "failed": "Could not change this. Check your connection and try again.",
+    "bubbleClosed": "Open Kaitech to read this conversation."
   }
 }

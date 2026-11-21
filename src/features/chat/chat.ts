@@ -673,6 +673,25 @@ export function notifyTyping(channelId: number, typing: boolean) {
   void client?.typing(channelId, typing).catch(() => undefined);
 }
 
+export async function muteConversation(channelId: number, minutes: number): Promise<boolean> {
+  const current = client;
+  const account = state.accountId;
+  if (!current || !account) return false;
+  try {
+    const answer = await current.mute(channelId, minutes);
+    if (answer.channel_id !== channelId) return false;
+    const mutedUntil = typeof answer.muted_until === 'string' ? answer.muted_until : null;
+    if (state.accountId !== account) return true;
+    const conversations = state.conversations.map((item) => (item.id === channelId ? { ...item, mutedUntil } : item));
+    set({ conversations });
+    const changed = conversations.find((item) => item.id === channelId);
+    if (changed) void storeConversations(account, [changed], false);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function chatClient(): ChatClient | null {
   return client;
 }

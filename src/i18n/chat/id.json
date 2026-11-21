@@ -121,5 +121,19 @@
   },
   "push": {
     "channel": "Pesan"
+  },
+  "notify": {
+    "title": "Notifikasi",
+    "mute": {
+      "hours8": "Bisukan 8 jam",
+      "week": "Bisukan 1 minggu",
+      "always": "Bisukan selalu"
+    },
+    "unmute": "Aktifkan lagi",
+    "mutedAlways": "Dibisukan",
+    "mutedUntil": "Dibisukan sampai {{time}}",
+    "bubble": "Gelembung",
+    "failed": "Belum bisa diubah. Periksa koneksi lalu coba lagi.",
+    "bubbleClosed": "Buka Kaitech untuk membaca percakapan ini."
   }
 }
