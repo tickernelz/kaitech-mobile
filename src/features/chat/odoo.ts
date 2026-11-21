@@ -49,6 +49,7 @@ function lastMessage(value: unknown): LastMessage | null {
     text: text(value.text),
     attachments: typeof value.attachments === 'number' ? value.attachments : 0,
     voice: value.voice === true,
+    call: text(value.type) === 'notification' && !text(value.text),
     type: text(value.type),
     date: utc(value.date),
   };
@@ -227,6 +228,10 @@ export function fullMessages(data: unknown, myPartnerId: number): Message[] {
   return messagesFromStore(data, myPartnerId).filter((message) => complete.has(message.id));
 }
 
+export function isCallNotice(message: Pick<Message, 'type' | 'body'>): boolean {
+  return message.type === 'notification' && message.body.includes('data-oe-type="call"');
+}
+
 export function lastMessageOf(message: Message, plain: string): LastMessage {
   return {
     id: message.id,
@@ -235,6 +240,7 @@ export function lastMessageOf(message: Message, plain: string): LastMessage {
     text: plain.slice(0, 160),
     attachments: message.attachments.length,
     voice: message.attachments.some((attachment) => attachment.voice),
+    call: isCallNotice(message),
     type: message.type,
     date: message.date,
   };

@@ -20,6 +20,7 @@ import { Composer, type ComposerHandle } from './Composer';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { MessageActions } from './MessageActions';
+import { isCallNotice } from '../odoo';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
 import { NotifySheet } from './NotifySheet';
 
@@ -34,6 +35,7 @@ export function buildRows(messages: Message[], pending: Pending[], delivered: De
   const rows: Row[] = [];
   let previous: Message | null = null;
   for (const message of messages) {
+    if (previous && isCallNotice(previous) && isCallNotice(message) && sameDay(previous.date, message.date)) continue;
     if (!previous || !sameDay(previous.date, message.date)) rows.push({ kind: 'day', key: `day-${message.id}`, date: message.date });
     const continues = previous && previous.authorId === message.authorId && message.date - previous.date < groupGapMs && sameDay(previous.date, message.date) && previous.type !== 'notification';
     rows.push({ kind: 'message', key: `m-${message.id}`, message, showAuthor: !continues });

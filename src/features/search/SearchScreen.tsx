@@ -10,7 +10,8 @@ import { Text } from '../../ui/Text';
 import { search, type SearchHits } from '../discovery/api';
 import { openConversation, rememberProgramme, useLastProgramme } from '../discovery/store';
 import { Icon, type IconName } from '../../ui/icons';
-import { IconButton, Segmented, StateView } from '../discovery/ui';
+import { IconButton } from '../../ui/IconButton';
+import { Segmented, StateView } from '../discovery/ui';
 
 type Filter = 'all' | 'chat' | 'discovery' | 'mom';
 type Hit = { key: string; icon: IconName; title: string; detail: string; open: () => void };
@@ -195,7 +196,7 @@ export function SearchScreen() {
               testID="search-results"
             />
           ) : (
-            <StateView empty={{ title: t('search.hintTitle'), body: t('search.hintBody') }} testID="search-hint" />
+            <StateView empty={{ title: t('search.hintTitle'), icon: 'search' }} testID="search-hint" />
           )
         }
       />
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
   filters: { paddingHorizontal: space.lg, paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   list: { padding: space.lg, gap: space.xs, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   ask: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg, borderRadius: radius.pill, marginBottom: space.md },
-  section: { textTransform: 'uppercase', letterSpacing: 0.4, paddingTop: space.md, paddingBottom: space.xs },
+  section: { paddingTop: space.md, paddingBottom: space.xs },
   hit: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingVertical: space.sm, borderRadius: radius.md },
   hitIcon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
 });

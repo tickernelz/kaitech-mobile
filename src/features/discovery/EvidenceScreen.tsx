@@ -168,7 +168,7 @@ export function EvidenceScreen({ programme, initial = 'findings' }: { programme:
           <StateView
             loading={found.loading}
             error={found.error}
-            empty={{ title: t('discovery.finding.noneTitle'), body: t('discovery.finding.noneBody') }}
+            empty={{ title: t('discovery.finding.noneTitle'), icon: 'bulb' }}
             onRetry={() => void found.refresh()}
           />
         }
@@ -188,7 +188,7 @@ export function EvidenceScreen({ programme, initial = 'findings' }: { programme:
           <StateView
             loading={paged.loading}
             error={paged.error}
-            empty={{ title: t('discovery.evidence.noneTitle'), body: t('discovery.evidence.noneBody') }}
+            empty={{ title: t('discovery.evidence.noneTitle'), icon: 'doc' }}
             onRetry={() => void paged.reload()}
           />
         }

@@ -5,7 +5,7 @@ import { readableWidth } from '../../../layout/windowClass';
 import { personColors, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
-import { attachmentUrl, type ReadState } from '../odoo';
+import { attachmentUrl, isCallNotice, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
 import type { Attachment, Message, Pending, PendingFile } from '../types';
 import { useChatFormat } from './format';
@@ -201,6 +201,16 @@ export const MessageBubble = memo(function MessageBubble({
   const notification = message.type === 'notification';
   const time = clock(message.date);
   const text = bodyPreview(message.body);
+  if (isCallNotice(message)) {
+    return (
+      <View style={[styles.notice, styles.callNotice]} accessible accessibilityLabel={`${t('thread.call')}, ${time}`} testID={`call-notice-${message.id}`}>
+        <Icon name="phone" size={16} color={colors.inkSoft} />
+        <Text variant="footnote" tone="inkSoft">
+          {t('thread.call')} · {time}
+        </Text>
+      </View>
+    );
+  }
   if (notification) {
     return (
       <View style={styles.notice}>
@@ -358,4 +368,5 @@ const styles = StyleSheet.create({
   reaction: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 32, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   notice: { paddingHorizontal: space.xxl, paddingVertical: space.sm },
+  callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs },
 });

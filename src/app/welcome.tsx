@@ -29,8 +29,7 @@ export default function Welcome() {
   const other = language === 'id' ? 'en' : 'id';
   const markIn = useMotion(FadeIn.duration(duration.hero).easing(easing.expo));
   const titleIn = useMotion(rise(1));
-  const bodyIn = useMotion(rise(2));
-  const footerIn = useMotion(rise(3));
+  const footerIn = useMotion(rise(2));
   const [preset] = useState(defaultServer);
   const { busy, error, start } = useSignIn(stay);
   const signIn = () => (preset ? void start(preset.server, preset.database) : router.push('/sign-in'));
@@ -78,9 +77,6 @@ export default function Welcome() {
           <Text variant="display" accessibilityRole="header" testID="welcome-title">
             {t('welcome.title')}
           </Text>
-        </Animated.View>
-        <Animated.View entering={bodyIn}>
-          <Text tone="inkSoft">{t('welcome.body')}</Text>
         </Animated.View>
       </View>
     </Screen>

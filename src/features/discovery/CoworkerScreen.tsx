@@ -11,7 +11,7 @@ import { programmes } from './api';
 import { CoworkerThread } from './CoworkerThread';
 import { Header } from './Header';
 import { openConversation, useOpenConversation } from './store';
-import { IconButton } from './ui';
+import { IconButton } from '../../ui/IconButton';
 import { useLatestConversation } from './useLatestConversation';
 
 export function CoworkerScreen({

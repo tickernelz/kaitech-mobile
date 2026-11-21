@@ -38,7 +38,8 @@ import { FormatBar, FormatToggle, useMarkup } from '../chat/ui/FormatBar';
 import { RichText } from '../chat/ui/RichText';
 import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
 import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread';
-import { IconButton, StateView, useErrorText } from './ui';
+import { IconButton } from '../../ui/IconButton';
+import { StateView, useErrorText } from './ui';
 
 const pollMs = 2500;
 

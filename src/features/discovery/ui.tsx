@@ -8,40 +8,6 @@ import { Button } from '../../ui/Button';
 import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
 
-export function IconButton({
-  icon,
-  label,
-  onPress,
-  testID,
-  filled = false,
-  disabled,
-}: {
-  icon: IconName;
-  label: string;
-  onPress: () => void;
-  testID?: string;
-  filled?: boolean;
-  disabled?: boolean;
-}) {
-  const { colors } = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: !!disabled }}
-      disabled={disabled}
-      hitSlop={4}
-      onPress={onPress}
-      testID={testID}
-      style={({ pressed }) => [
-        styles.iconButton,
-        { backgroundColor: filled ? colors.primary : pressed ? colors.surface2 : 'transparent', opacity: disabled ? 0.4 : 1 },
-      ]}>
-      <Icon name={icon} color={filled ? colors.onPrimary : colors.ink} />
-    </Pressable>
-  );
-}
-
 type Tone = 'neutral' | 'select' | 'ok' | 'warn' | 'danger' | 'info';
 
 const chipColors: Record<Tone, [keyof Colors, keyof Colors]> = {
@@ -131,11 +97,12 @@ export function StateView({
 }: {
   loading?: boolean;
   error?: unknown;
-  empty?: { title: string; body?: string };
+  empty?: { title: string; body?: string; icon?: IconName };
   onRetry?: () => void;
   testID?: string;
 }) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const errorText = useErrorText();
   if (loading) {
     return (
@@ -157,6 +124,7 @@ export function StateView({
   if (empty) {
     return (
       <View style={styles.state} testID={testID ? `${testID}-empty` : undefined}>
+        {empty.icon ? <Icon name={empty.icon} size={48} color={colors.inkFaint} /> : null}
         <Text variant="headline" style={styles.center}>
           {empty.title}
         </Text>
@@ -172,7 +140,6 @@ export function StateView({
 }
 
 export const styles = StyleSheet.create({
-  iconButton: { width: 44, height: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   chip: { alignSelf: 'flex-start', borderRadius: radius.pill, paddingHorizontal: space.sm + 2, paddingVertical: 3 },
   segments: { gap: space.sm, paddingVertical: space.xs },
   segment: { minHeight: 44, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.lg, justifyContent: 'center' },

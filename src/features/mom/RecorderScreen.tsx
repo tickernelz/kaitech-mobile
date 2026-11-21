@@ -8,7 +8,8 @@ import { useWindowClass } from '../../layout/windowClass';
 import { radius, space, type as typography, useTheme } from '../../theme';
 import { Text } from '../../ui/Text';
 import { Icon, type IconName } from '../../ui/icons';
-import { Chip, IconButton } from '../discovery/ui';
+import { IconButton } from '../../ui/IconButton';
+import { Chip } from '../discovery/ui';
 import { useMomFormat, Waveform } from './parts';
 import {
   bitRate,
