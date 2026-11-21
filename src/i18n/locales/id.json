@@ -810,6 +810,93 @@
         "emailProblems": "Email masih punya masalah yang perlu dibereskan.",
         "noRecipient": "Tidak ada penerima beralamat email yang menunggu."
       }
+    },
+    "minutesParts": {
+      "document": {
+        "title": "Notulen lengkap",
+        "about": "Tentang rapat",
+        "noteTaker": "Notulis",
+        "status": "Status",
+        "positives": "Berjalan baik",
+        "keyDecisions": "Keputusan penting",
+        "needsHelp": "Butuh bantuan",
+        "discussion": "Pembahasan utama",
+        "points": "Butir pembahasan",
+        "actionMatrix": "Matriks tindakan",
+        "decisions": "Keputusan",
+        "actions": "Butir tindakan",
+        "requirements": "Kebutuhan",
+        "confirm": "Dikonfirmasi kemudian",
+        "notes": "Catatan lain",
+        "programme": "Konteks programme",
+        "attendance": "Kehadiran",
+        "nextMeeting": "Rapat berikutnya"
+      },
+      "dynamics": {
+        "title": "Dinamika rapat",
+        "summary": "Ringkasan",
+        "dominance": "Siapa yang memimpin diskusi",
+        "sentiment": "Suasana",
+        "speakers": "Pembicara",
+        "observations": "Pengamatan",
+        "blockers": "Hambatan"
+      },
+      "context": {
+        "title": "Yang diberikan ke model",
+        "recordings": "Rekaman",
+        "prompt": "Prompt",
+        "promptCustom": "Prompt khusus",
+        "promptDefault": "Prompt bawaan",
+        "authorities": "Pemegang wewenang",
+        "glossary": "Glosarium",
+        "milestones": "Milestone",
+        "notes": "Catatan",
+        "documents": "Dokumen",
+        "size": "Ukuran",
+        "transcriptChars": "Karakter transkrip",
+        "noteChars": "Karakter catatan"
+      },
+      "milestones": {
+        "title": "Petunjuk milestone"
+      },
+      "noHints": "Tidak ada petunjuk milestone",
+      "planned": "Rencana {{day}}",
+      "realized": "Selesai {{day}}",
+      "confirm": "Konfirmasi",
+      "dismiss": "Abaikan",
+      "empty": "Belum ada isi"
+    },
+    "minutesBar": {
+      "transcribed": "Ditranskripsikan",
+      "speakers": "Pembicara dicek",
+      "generated": "Notulen ditulis",
+      "done": "sudah",
+      "notYet": "belum",
+      "generate": "Tulis notulen",
+      "again": "Tulis ulang notulen"
+    },
+    "minutesLinks": {
+      "title": "Lainnya di notulen ini",
+      "document": "Notulen lengkap",
+      "dynamics": "Dinamika rapat",
+      "milestones": "Petunjuk milestone ({{count}})",
+      "context": "Yang diberikan ke model",
+      "review": "Tinjau {{count}} butir yang menunggu bersama Coworker",
+      "reviewText": "Taruh objek pengetahuan rapat “{{meeting}}” yang masih menunggu tinjauan ke kartu persetujuan untukku."
+    },
+    "itemFilters": {
+      "awaiting": "Menunggu",
+      "attention": "Perlu perhatian",
+      "APPROVED": "Disetujui",
+      "REJECTED": "Ditolak",
+      "all": "Semua",
+      "anyType": "Semua jenis",
+      "none": "Tidak ada butir yang cocok"
+    },
+    "itemExtra": {
+      "confidence": "Yakin {{value}}%",
+      "finding": "Buka temuan: {{name}}",
+      "born": "Menjadi: {{name}}"
     }
   },
   "appearance": {

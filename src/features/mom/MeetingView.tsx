@@ -14,6 +14,8 @@ import { Card, Chip, Segmented, StateView } from '../discovery/ui';
 import { minutesDetail, playbackUrl, secondsOf, transcript, type Detail, type Item } from './api';
 import { FinalPanel } from './FinalPanel';
 import { MeetingMenu } from './MeetingMenu';
+import { filterItems, type ItemFilter } from './minutes';
+import { ItemExtra, ItemFilters, MinutesBar, MinutesLinks } from './MinutesExtras';
 import { MeetingChip, useMomFormat } from './parts';
 import { clock, useRecording } from './recorder';
 
@@ -163,14 +165,19 @@ function Notes({ detail }: { detail: Detail }) {
   );
 }
 
-function Items({ items, onPlay }: { items: Item[]; onPlay?: (seconds: number) => void }) {
+function Items({ items: all, team, onPlay }: { items: Item[]; team: boolean; onPlay?: (seconds: number) => void }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  if (!items.length) return <Text tone="inkSoft">{t('mom.detail.noItems')}</Text>;
+  const [filter, setFilter] = useState<ItemFilter>('all');
+  const [type, setType] = useState('');
+  if (!all.length) return <Text tone="inkSoft">{t('mom.detail.noItems')}</Text>;
+  const items = filterItems(all, filter, type);
   const hearable = !!onPlay && items.some((item) => secondsOf(item.at ?? '') !== null);
   return (
     <>
       <Banner text={hearable ? `${t('mom.detail.unverified')} ${t('mom.detail.tapToHear')}` : t('mom.detail.unverified')} />
+      <ItemFilters items={all} filter={filter} type={type} onFilter={setFilter} onType={setType} />
+      {items.length ? null : <Text tone="inkSoft">{t('mom.itemFilters.none')}</Text>}
       {items.map((item) => {
         const seconds = secondsOf(item.at ?? '');
         const playable = onPlay && seconds !== null;
@@ -194,6 +201,7 @@ function Items({ items, onPlay }: { items: Item[]; onPlay?: (seconds: number) =>
             <Text variant="footnote" tone="inkSoft">
               {[item.speaker, item.at].filter(Boolean).join(' · ')}
             </Text>
+            <ItemExtra item={item} team={team} />
           </Pressable>
         );
       })}
@@ -320,8 +328,16 @@ export function MeetingView({ meeting, back }: { meeting: number; back: boolean 
     <View style={styles.fill} testID="mom-meeting">
       {short ? null : top}
       <View style={styles.fill}>
-        {tab === 'notes' ? scrolled(data.generated ? <Notes detail={data} /> : notReady) : null}
-        {tab === 'items' ? scrolled(<Items items={data.items} onPlay={recordings.length === 1 ? play : undefined} />) : null}
+        {tab === 'notes'
+          ? scrolled(
+              <>
+                <MinutesBar detail={data} />
+                {data.generated ? <Notes detail={data} /> : notReady}
+                <MinutesLinks detail={data} />
+              </>,
+            )
+          : null}
+        {tab === 'items' ? scrolled(<Items items={data.items} team={!data.isClient} onPlay={recordings.length === 1 ? play : undefined} />) : null}
         {tab === 'transcript' ? (
           recording ? (
             <Transcript key={recording} recording={recording} onPlay={(seconds) => play?.(seconds)} header={inner} />

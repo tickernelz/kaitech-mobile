@@ -810,6 +810,93 @@
         "emailProblems": "The email has problems to fix first.",
         "noRecipient": "No recipient with an email address is waiting."
       }
+    },
+    "minutesParts": {
+      "document": {
+        "title": "Full minutes",
+        "about": "About the meeting",
+        "noteTaker": "Note taker",
+        "status": "Status",
+        "positives": "Went well",
+        "keyDecisions": "Key decisions",
+        "needsHelp": "Needs help",
+        "discussion": "Main discussion",
+        "points": "Discussion points",
+        "actionMatrix": "Action matrix",
+        "decisions": "Decisions",
+        "actions": "Action items",
+        "requirements": "Requirements",
+        "confirm": "To confirm later",
+        "notes": "Other notes",
+        "programme": "Programme context",
+        "attendance": "Attendance",
+        "nextMeeting": "Next meeting"
+      },
+      "dynamics": {
+        "title": "Meeting dynamics",
+        "summary": "Summary",
+        "dominance": "Who led the discussion",
+        "sentiment": "Mood",
+        "speakers": "Speakers",
+        "observations": "Observations",
+        "blockers": "Blockers"
+      },
+      "context": {
+        "title": "What the model was given",
+        "recordings": "Recordings",
+        "prompt": "Prompt",
+        "promptCustom": "Custom prompt",
+        "promptDefault": "Default prompt",
+        "authorities": "Authorities",
+        "glossary": "Glossary",
+        "milestones": "Milestones",
+        "notes": "Notes",
+        "documents": "Documents",
+        "size": "Size",
+        "transcriptChars": "Transcript characters",
+        "noteChars": "Note characters"
+      },
+      "milestones": {
+        "title": "Milestone hints"
+      },
+      "noHints": "No milestone hints",
+      "planned": "Planned {{day}}",
+      "realized": "Done {{day}}",
+      "confirm": "Confirm",
+      "dismiss": "Dismiss",
+      "empty": "Nothing here yet"
+    },
+    "minutesBar": {
+      "transcribed": "Transcribed",
+      "speakers": "Speakers checked",
+      "generated": "Minutes written",
+      "done": "done",
+      "notYet": "not yet",
+      "generate": "Write the minutes",
+      "again": "Write the minutes again"
+    },
+    "minutesLinks": {
+      "title": "More in these minutes",
+      "document": "Full minutes",
+      "dynamics": "Meeting dynamics",
+      "milestones": "Milestone hints ({{count}})",
+      "context": "What the model was given",
+      "review": "Review {{count}} waiting items with the Coworker",
+      "reviewText": "Put the knowledge objects of the meeting “{{meeting}}” that still await review on an approval card for me."
+    },
+    "itemFilters": {
+      "awaiting": "Waiting",
+      "attention": "Needs attention",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "all": "All",
+      "anyType": "Every type",
+      "none": "No items match"
+    },
+    "itemExtra": {
+      "confidence": "{{value}}% sure",
+      "finding": "Open finding: {{name}}",
+      "born": "Became: {{name}}"
     }
   },
   "appearance": {

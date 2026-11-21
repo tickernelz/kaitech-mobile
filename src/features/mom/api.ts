@@ -46,9 +46,18 @@ export type Item = {
   speaker: string;
   status: string;
   statusLabel: string;
+  decided?: boolean;
+  module?: string;
+  confidence?: number | false;
+  reviewedBy?: string;
+  reviewNote?: string;
+  reason?: string;
+  followUps?: { id: number; code: string; name: string; owner: string; due: string; suggested?: boolean }[];
+  born?: { model: string; id: number; name: string } | false;
+  finding?: { id: number; name: string } | false;
 };
 
-export type DetailRecording = { id: number; title: string; state: string; transcribed: boolean };
+export type DetailRecording = { id: number; title: string; state: string; transcribed: boolean; unvalidated?: string[] };
 
 export type Detail = {
   closed?: boolean;
@@ -63,7 +72,18 @@ export type Detail = {
   recordings: DetailRecording[];
   summary: Summary;
   items: Item[];
+  canChange?: boolean;
+  isClient?: boolean;
+  canDecide?: boolean;
+  why_not?: string;
+  job?: { state: string; label: string; message: string };
+  minutes?: Record<string, unknown>;
+  dynamics?: Record<string, unknown>;
+  milestones?: Hint[];
+  context?: Record<string, unknown>;
 };
+
+export type Hint = { id: number; task: string; planned_end: string | false; suggested_on: string | false; realized_on: string | false; quote: string; reason: string; state: string; status: string; decided_by: string };
 
 export type Segment = { id: number; start: number; clock: string; speaker: string; text: string };
 
