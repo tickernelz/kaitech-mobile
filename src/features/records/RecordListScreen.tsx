@@ -12,7 +12,7 @@ import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 import { Header } from '../discovery/Header';
 import { Chip, StateView } from '../discovery/ui';
-import { getViews, loadAction, searchRecords, specOf, type Fields, type RecordValues, type Spec, type WindowAction } from './api';
+import { getViews, loadAction, readGroups, searchRecords, specOf, type Fields, type Group, type RecordValues, type Spec, type WindowAction } from './api';
 import { andDomains, defaultFilters, filtersDomain, textDomain } from './domain';
 import { contextOf, domainOf, textOfValue, visible, scopeOf } from './model';
 import { useFormat } from './RecordScreen';
@@ -46,6 +46,9 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
   const [active, setActive] = useState<Set<string>>(new Set());
   const [onlyProgramme, setOnlyProgramme] = useState(true);
   const [filtering, setFiltering] = useState(false);
+  const [groupBy, setGroupBy] = useState<string | null>(null);
+  const [picked, setPicked] = useState<{ label: string; domain: unknown[] } | null>(null);
+  const [groups, setGroups] = useState<Group[] | null>(null);
   const asked = useRef(0);
   const uid = account?.userId ?? 0;
 
@@ -71,6 +74,7 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
       const actionContext = contextOf(action.context, { uid, context: {}, active_id: programme });
       if (!live) return;
       setActive(defaultFilters(search?.filters ?? [], actionContext));
+      setGroupBy(search?.groupBys.find((group) => group.name && actionContext[`search_default_${group.name}`])?.key ?? null);
       setLoaded({ action, list, search, fields, spec: specOf(list.names, fields), formView, canCreate: list.create && formCreate });
     })().catch((failure: unknown) => live && setError(failure));
     return () => {
@@ -81,7 +85,7 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
   const linked = !!loaded && loaded.fields.engagement_id?.relation === 'ck.engagement' && loaded.action.res_model !== 'ck.engagement';
   const actionContext = useMemo(() => (loaded ? contextOf(loaded.action.context, { uid, context: {}, active_id: programme }) : {}), [loaded, uid, programme]);
 
-  const domain = useMemo(() => {
+  const baseDomain = useMemo(() => {
     if (!loaded) return [];
     const scope = { uid, context: actionContext, active_id: programme };
     return andDomains([
@@ -91,6 +95,28 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
       textDomain(loaded.search, query, scope),
     ]);
   }, [loaded, uid, actionContext, programme, linked, onlyProgramme, active, query]);
+  const grouping = loaded?.search?.groupBys.find((group) => group.key === groupBy) ?? null;
+  const domain = useMemo(() => andDomains([baseDomain, picked?.domain ?? []]), [baseDomain, picked]);
+
+  useEffect(() => {
+    if (!account || !loaded || !grouping || picked) return;
+    let live = true;
+    readGroups(account, loaded.action.res_model, baseDomain, grouping.field, actionContext)
+      .then((rows) => live && setGroups(rows))
+      .catch((failure: unknown) => live && setError(failure));
+    return () => {
+      live = false;
+    };
+  }, [account, loaded, grouping, picked, baseDomain, actionContext, generation]);
+
+  const groupLabel = (group: Group): string => {
+    if (!grouping || !loaded) return '';
+    const value = group[grouping.field];
+    if (Array.isArray(value)) return String(value[1] ?? '');
+    const info = loaded.fields[grouping.field.split(':')[0]];
+    if (value === false || value === null || value === undefined) return t('records.none');
+    return info?.type === 'selection' ? textOfValue(info, value, format) : String(value);
+  };
 
   const fetchPage = useCallback(
     async (offset: number) => {
@@ -145,10 +171,11 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
   const titleName = loaded ? titleColumn(loaded.list) : 'display_name';
   const badge = loaded?.list.columns.find((column) => column.widget === 'badge' || column.name === 'state' || column.widget === 'statusbar');
   const others = loaded ? loaded.list.columns.filter((column) => column.name !== titleName && column !== badge).slice(0, 2) : [];
+  const conditional = others.some((column) => column.invisible.length);
 
   const renderRow = ({ item }: { item: RecordValues }) => {
     if (!loaded) return null;
-    const scope = scopeOf(item, loaded.fields, actionContext, uid);
+    const scope = conditional ? scopeOf(item, loaded.fields, actionContext, uid) : {};
     const name = textOfValue(loaded.fields[titleName], item[titleName], format) || String(item.display_name ?? '');
     const detail = others
       .filter((column) => visible(column.invisible, scope))
@@ -186,18 +213,28 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
         subtitle={loaded ? t('records.total', { count: total }) : undefined}
         actions={
           <>
-            {filters.length || linked ? <IconButton icon="filter" label={t('records.filters')} onPress={() => setFiltering(true)} testID="list-filters" /> : null}
+            {filters.length || linked || loaded?.search?.groupBys.length ? <IconButton icon="filter" label={t('records.filters')} onPress={() => setFiltering(true)} testID="list-filters" /> : null}
             {loaded?.canCreate ? <IconButton icon="sparkle" label={t('records.add')} onPress={create} testID="list-add" /> : null}
           </>
         }
       />
       <View style={styles.search}>
         <TextField label={t('records.search')} value={query} onChangeText={setQuery} returnKeyType="search" testID="list-search" />
-        {chosen.length || (linked && !onlyProgramme) ? (
+        {chosen.length || (linked && !onlyProgramme) || grouping ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
             {linked && !onlyProgramme ? (
               <Pressable accessibilityRole="button" onPress={() => setOnlyProgramme(true)} testID="list-chip-all">
                 <Chip tone="select" label={t('records.allProgrammes')} />
+              </Pressable>
+            ) : null}
+            {grouping ? (
+              <Pressable accessibilityRole="button" accessibilityHint={t('records.removeFilter')} onPress={() => (setGroupBy(null), setPicked(null))} testID="list-chip-group">
+                <Chip tone="select" label={t('records.groupedBy', { name: grouping.string })} />
+              </Pressable>
+            ) : null}
+            {picked ? (
+              <Pressable accessibilityRole="button" accessibilityHint={t('records.removeFilter')} onPress={() => setPicked(null)} testID="list-chip-picked">
+                <Chip tone="select" label={picked.label} />
               </Pressable>
             ) : null}
             {chosen.map((filter) => (
@@ -208,7 +245,29 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
           </ScrollView>
         ) : null}
       </View>
-      {!loaded || (error && !rows.length) ? (
+      {grouping && !picked && loaded ? (
+        <FlashList
+          data={groups ?? []}
+          keyExtractor={(group, index) => `${index}-${JSON.stringify(group.__extra_domain)}`}
+          renderItem={({ item }) => (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setPicked({ label: groupLabel(item), domain: item.__extra_domain })}
+              style={({ pressed }) => [styles.row, { borderColor: colors.line }, pressed && { backgroundColor: colors.surface2 }]}
+              testID="list-group">
+              <Text variant="callout" style={[styles.rowText, styles.strong]} numberOfLines={2}>
+                {groupLabel(item)}
+              </Text>
+              <Text variant="footnote" tone="inkSoft">
+                {item.__count}
+              </Text>
+              <Icon name="forward" size={18} color={colors.inkFaint} />
+            </Pressable>
+          )}
+          ListEmptyComponent={groups ? <StateView empty={{ title: t('records.empty'), icon: 'search' }} testID="list-groups" /> : <StateView loading testID="list-groups" />}
+          contentContainerStyle={styles.listContent}
+        />
+      ) : !loaded || (error && !rows.length) ? (
         <StateView loading={!error} error={error} onRetry={() => (setError(null), void fetchPage(0))} testID="list" />
       ) : (
         <FlashList
@@ -238,6 +297,15 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
                 ]
               : []),
             ...filters.map((filter) => ({ key: filter.name || filter.key, label: filter.string, selected: active.has(filter.key), onPress: () => toggle(filter.key) })),
+            ...(loaded.search?.groupBys ?? []).map((group) => ({
+              key: group.name || group.key,
+              label: t('records.groupedBy', { name: group.string }),
+              selected: groupBy === group.key,
+              onPress: () => {
+                setPicked(null);
+                setGroupBy(groupBy === group.key ? null : group.key);
+              },
+            })),
           ]}
         />
       ) : null}

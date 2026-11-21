@@ -686,6 +686,7 @@
     "webOnly": "\"{{name}}\" opens on the web only.",
     "yes": "Yes",
     "dateShape": "YYYY-MM-DD",
-    "dateTimeShape": "YYYY-MM-DD HH:MM"
+    "dateTimeShape": "YYYY-MM-DD HH:MM",
+    "groupedBy": "Group by {{name}}"
   }
 }

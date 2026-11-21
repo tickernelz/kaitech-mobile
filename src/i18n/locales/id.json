@@ -686,6 +686,7 @@
     "webOnly": "\"{{name}}\" hanya bisa dibuka di web.",
     "yes": "Ya",
     "dateShape": "YYYY-MM-DD",
-    "dateTimeShape": "YYYY-MM-DD HH:MM"
+    "dateTimeShape": "YYYY-MM-DD HH:MM",
+    "groupedBy": "Kelompokkan: {{name}}"
   }
 }

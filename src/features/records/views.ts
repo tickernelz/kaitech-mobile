@@ -1,4 +1,5 @@
 import type { Fields } from './api';
+import { literal } from './py';
 import { elements, parseXml, textOf, type XmlNode } from './xml';
 
 export type ButtonSpec = {
@@ -54,7 +55,9 @@ export type ListSpec = { create: boolean; remove: boolean; order?: string; colum
 
 export type FilterSpec = { key: string; name: string; string: string; domain: string; group: number; invisible?: string };
 
-export type SearchSpec = { filters: FilterSpec[]; text: { name: string; string?: string; filterDomain?: string; operator?: string }[] };
+export type GroupBySpec = { key: string; name: string; string: string; field: string };
+
+export type SearchSpec = { filters: FilterSpec[]; groupBys: GroupBySpec[]; text: { name: string; string?: string; filterDomain?: string; operator?: string }[] };
 
 const hidden = new Set(['1', 'True', 'true']);
 const off = new Set(['0', 'false', 'False']);
@@ -299,6 +302,7 @@ export function compileList(arch: string, fields: Fields): ListSpec {
 export function compileSearch(arch: string): SearchSpec {
   const root = parseXml(arch);
   const filters: FilterSpec[] = [];
+  const groupBys: GroupBySpec[] = [];
   const text: SearchSpec['text'] = [];
   let group = 0;
   let count = 0;
@@ -309,7 +313,11 @@ export function compileSearch(arch: string): SearchSpec {
         group += 1;
         walk(child);
         group += 1;
-      } else if (child.tag === 'filter' && child.attrs.domain && !/group_by/.test(child.attrs.context ?? '')) {
+      } else if (child.tag === 'filter' && /group_by/.test(child.attrs.context ?? '')) {
+        const context = literal<Record<string, unknown>>(child.attrs.context, {}, {});
+        const field = context.group_by;
+        if (typeof field === 'string' && field) groupBys.push({ key: `g${(count += 1)}`, name: child.attrs.name ?? '', string: child.attrs.string ?? field, field });
+      } else if (child.tag === 'filter' && child.attrs.domain) {
         filters.push({ key: `f${(count += 1)}`, name: child.attrs.name ?? '', string: child.attrs.string ?? child.attrs.name ?? '', domain: child.attrs.domain, group, invisible: child.attrs.invisible });
       } else if (child.tag === 'field' && child.attrs.name && !hidden.has(child.attrs.invisible ?? '')) {
         text.push({ name: child.attrs.name, string: child.attrs.string, filterDomain: child.attrs.filter_domain, operator: child.attrs.operator });
@@ -317,7 +325,7 @@ export function compileSearch(arch: string): SearchSpec {
     }
   };
   walk(root);
-  return { filters, text };
+  return { filters, groupBys, text };
 }
 
 export function titleColumn(list: ListSpec): string {

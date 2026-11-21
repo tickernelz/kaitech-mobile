@@ -110,6 +110,7 @@ describe('list and search compilers', () => {
       <filter name="mine" string="Mine" domain="[('user_id', '=', uid)]"/>
       <filter name="by_state" string="Status" context="{'group_by': 'state'}"/></search>`);
     expect(search.filters.map((filter) => filter.name)).toEqual(['draft', 'review', 'mine']);
+    expect(search.groupBys.map((group) => [group.name, group.field])).toEqual([['by_state', 'state']]);
     const active = defaultFilters(search.filters, { search_default_draft: 1, search_default_review: 1, search_default_mine: 1 });
     expect(filtersDomain(search.filters, active, { uid: 7 })).toEqual(['&', '|', ['state', '=', 'draft'], ['state', '=', 'review'], ['user_id', '=', 7]]);
     expect(textDomain(search, 'abc', {})).toEqual(['|', ['name', 'ilike', 'abc'], ['code', 'ilike', 'abc']]);

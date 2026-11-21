@@ -159,6 +159,12 @@ export function searchRecords(
   });
 }
 
+export type Group = Record<string, unknown> & { __count: number; __extra_domain: unknown[] };
+
+export function readGroups(account: Account, model: string, domain: unknown[], groupby: string, context?: Record<string, unknown>) {
+  return rpc<Group[]>(account, model, 'formatted_read_group', [], { domain, groupby: [groupby], aggregates: ['__count'], limit: 200, context });
+}
+
 export async function readRecord(account: Account, model: string, id: number, spec: Spec, context?: Record<string, unknown>): Promise<RecordValues | null> {
   const rows = await rpc<RecordValues[]>(account, model, 'web_read', [[id]], { specification: spec, context });
   return rows[0] ?? null;
