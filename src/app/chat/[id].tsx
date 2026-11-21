@@ -36,6 +36,7 @@ export default function ChatThread() {
       twoPane={false}
       focusMessage={Number.isInteger(message) && message > 0 ? message : null}
       onOpenChannel={(next) => router.push({ pathname: '/chat/[id]', params: { id: String(next) } })}
+      onBack={() => router.back()}
     />
   );
 }

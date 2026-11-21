@@ -33,6 +33,7 @@ jest.mock('../src/lock/lock', () => ({
   },
 }));
 jest.mock('../src/features/chat/chat', () => ({ chatClient: () => null, getChat: () => ({ openChannels: [] }) }));
+jest.mock('../src/features/chat/notify', () => ({ mirrorHidden: jest.fn(), forgetMessages: jest.fn() }));
 jest.mock('../src/features/chat/api', () => ({
   ChatClient: class {
     account: { id: string };
