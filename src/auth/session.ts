@@ -99,8 +99,8 @@ export function markOnboarded() {
   set({ onboarded: true });
 }
 
-export function markExpired(id?: string) {
-  if (state.activeId && (id === undefined || id === state.activeId)) set({ expired: true });
+export function markExpired(id: string) {
+  if (state.activeId === id) set({ expired: true });
 }
 
 const forgetListeners = new Set<(id: string) => void>();
@@ -149,8 +149,8 @@ export async function verifyActiveSession() {
   if (!account) return;
   const token = await tokenFor(account.id);
   if (!token) {
-    markExpired();
+    markExpired(account.id);
     return;
   }
-  if ((await checkSession(account, token)) === 'ended' && state.activeId === account.id) markExpired();
+  if ((await checkSession(account, token)) === 'ended') markExpired(account.id);
 }

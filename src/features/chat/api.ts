@@ -97,7 +97,7 @@ export class ChatClient {
   async upload(channelId: number, file: PendingFile): Promise<Uploaded> {
     const token = await tokenFor(this.account.id);
     if (!token) {
-      markExpired();
+      markExpired(this.account.id);
       throw new AppError('sessionEnded');
     }
     const source = localFile(file.uri);
@@ -128,7 +128,7 @@ export class ChatClient {
       body = null;
     }
     if (answer.status === 401) {
-      markExpired();
+      markExpired(this.account.id);
       throw new AppError('sessionEnded');
     }
     if (answer.status !== 200 || typeof body?.attachment_id !== 'number' || typeof body.ownership_token !== 'string') {

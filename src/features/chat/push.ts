@@ -19,14 +19,24 @@ function previewAllowed(): boolean {
   return !lockEnabled();
 }
 
-async function syncPreviews() {
-  if (!pushSupported) return;
-  await syncPreview({
-    store,
-    accounts: getSession().accounts,
-    preview: previewAllowed(),
-    setPreview: (account, preview) => new ChatClient(account).setPushPreview(preview),
-  });
+let pushQueue: Promise<void> = Promise.resolve();
+
+function serial(task: () => Promise<void>): Promise<void> {
+  const next = pushQueue.then(task);
+  pushQueue = next.catch(() => undefined);
+  return next;
+}
+
+function syncPreviews(): Promise<void> {
+  if (!pushSupported) return Promise.resolve();
+  return serial(() =>
+    syncPreview({
+      store,
+      accounts: getSession().accounts,
+      preview: previewAllowed(),
+      setPreview: (account, preview) => new ChatClient(account).setPushPreview(preview),
+    }),
+  );
 }
 
 let previewShown = previewAllowed();
@@ -59,13 +69,16 @@ async function register(accountId: string) {
   await ensureChannel();
   const token = await Notifications.getDevicePushTokenAsync();
   if (typeof token.data !== 'string' || !token.data) return;
-  await syncPushToken({
-    store,
-    account: client.account,
-    token: token.data,
-    language: i18n.language === 'id' ? 'id' : 'en',
-    preview: previewAllowed(),
-    registerPush: (value, language, preview) => client.registerPush(value, language, preview),
+  const fcm = token.data;
+  await serial(async () => {
+    await syncPushToken({
+      store,
+      account: client.account,
+      token: fcm,
+      language: i18n.language === 'id' ? 'id' : 'en',
+      preview: previewAllowed(),
+      registerPush: (value, language, preview) => client.registerPush(value, language, preview),
+    });
   });
 }
 

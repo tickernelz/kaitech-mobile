@@ -8,8 +8,8 @@ export function registrationMarker(account: Pick<Account, 'id' | 'deviceId'>, to
   return `${account.id}|${account.deviceId}|${token}|${language}`;
 }
 
-export function previewKey(account: Pick<Account, 'deviceId'>): string {
-  return `chat.pushPreview.${account.deviceId}`;
+export function previewKey(account: Pick<Account, 'id' | 'deviceId'>): string {
+  return `chat.pushPreview.${account.id}.${account.deviceId}`;
 }
 
 export async function syncPushToken(input: {
@@ -28,7 +28,7 @@ export async function syncPushToken(input: {
   return true;
 }
 
-export async function syncPreview<A extends Pick<Account, 'deviceId'>>(input: {
+export async function syncPreview<A extends Pick<Account, 'id' | 'deviceId'>>(input: {
   store: KeyValue;
   accounts: A[];
   preview: boolean;

@@ -7,7 +7,7 @@ const mockMarkExpired = jest.fn();
 jest.mock('../src/auth/session', () => {
   const forgotten: ((id: string) => void)[] = [];
   return {
-    markExpired: (id?: string) => mockMarkExpired(id),
+    markExpired: (id: string) => mockMarkExpired(id),
     onAccountForgotten: (listener: (id: string) => void) => forgotten.push(listener),
     forget: (id: string) => forgotten.forEach((listener) => listener(id)),
     tokenFor: async () => 'device-token',

@@ -1,6 +1,9 @@
 const mockLock = { enabled: false, listeners: [] as (() => void)[] };
 const mockForgotten: ((id: string) => void)[] = [];
 const mockSent: string[] = [];
+const mockServer = new Map<string, boolean>();
+let mockSlowOff = false;
+const mockDelay = (preview: boolean) => (mockSlowOff && !preview ? 30 : 0);
 const mockValues = new Map<string, string>();
 const mockAccounts = [
   { id: 'a', deviceId: 1 },
@@ -37,12 +40,14 @@ jest.mock('../src/features/chat/api', () => ({
       this.account = account;
     }
     async setPushPreview(preview: boolean) {
+      await new Promise((resolve) => setTimeout(resolve, mockDelay(preview)));
       mockSent.push(`${this.account.id}:${preview}`);
+      mockServer.set(this.account.id, preview);
     }
   },
 }));
 
-const flush = () => new Promise((resolve) => setImmediate(resolve));
+const flush = () => new Promise((resolve) => setTimeout(resolve, 60));
 
 describe('message previews follow the app lock', () => {
   it('turns previews off for every signed-in account when the lock is switched on, and back on when it is switched off', async () => {
@@ -60,12 +65,24 @@ describe('message previews follow the app lock', () => {
     expect(mockSent).toEqual(['a:false', 'b:false', 'a:true', 'b:true']);
   });
 
+  it('leaves previews on at the server when the lock is switched on and straight off again while the first update is still in flight', async () => {
+    require('../src/features/chat/push');
+    mockSlowOff = true;
+    mockLock.enabled = true;
+    mockLock.listeners.forEach((listener) => listener());
+    mockLock.enabled = false;
+    mockLock.listeners.forEach((listener) => listener());
+    await flush();
+    mockSlowOff = false;
+    expect(Object.fromEntries(mockServer)).toEqual({ a: true, b: true });
+  });
+
   it('forgets the preview state of a signed-out device row so a new sign-in sends it again', () => {
     require('../src/features/chat/push');
-    mockValues.set('chat.pushPreview.1', 'false');
-    mockValues.set('chat.pushPreview.2', 'false');
+    mockValues.set('chat.pushPreview.a.1', 'false');
+    mockValues.set('chat.pushPreview.b.2', 'false');
     mockForgotten.forEach((listener) => listener('a'));
-    expect(mockValues.has('chat.pushPreview.1')).toBe(false);
-    expect(mockValues.get('chat.pushPreview.2')).toBe('false');
+    expect(mockValues.has('chat.pushPreview.a.1')).toBe(false);
+    expect(mockValues.get('chat.pushPreview.b.2')).toBe('false');
   });
 });

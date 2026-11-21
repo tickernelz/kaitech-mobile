@@ -57,6 +57,17 @@ describe('syncPreview', () => {
     expect(setPreview.mock.calls.map(([account, preview]) => `${account.id}:${preview}`)).toEqual(['a:false', 'b:false', 'b:false']);
   });
 
+  it('turns previews off for two accounts on different servers whose device rows share an id', async () => {
+    const store = memory();
+    const accounts = [
+      { id: 'u7_lab0hash', deviceId: 5 },
+      { id: 'u3_otherhash', deviceId: 5 },
+    ];
+    const setPreview = jest.fn(async (_account: { id: string }, _preview: boolean) => undefined);
+    await syncPreview({ store, accounts, preview: false, setPreview });
+    expect(setPreview.mock.calls.map(([account, preview]) => `${account.id}:${preview}`)).toEqual(['u7_lab0hash:false', 'u3_otherhash:false']);
+  });
+
   it('skips a device row whose registration already carried the same preview', async () => {
     const store = memory();
     const account = { id: 'a', deviceId: 1 };
