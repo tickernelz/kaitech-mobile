@@ -127,10 +127,19 @@ jobs:
       - name: Scan the unpacked APK and IPA for secrets
         run: |
           set -euo pipefail
+          mkdir -p unpacked
           for file in release/*.apk release/*.ipa; do
             unzip -q "$file" -d "unpacked/$(basename "$file")"
           done
           gitleaks dir --redact --verbose --exit-code 1 unpacked
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-apk
+          path: |
+            release/*.apk
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 1
 
   install-from-release:
     name: install from release ${{ matrix.size }} ${{ matrix.orientation }} ${{ matrix.locale }}
@@ -138,7 +147,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
-      contents: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -163,14 +172,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Download the APK from the draft release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-apk
+          path: release
+      - name: APK matches the draft release checksum
+        working-directory: release
         run: |
           set -euo pipefail
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir release --pattern '*.apk' --pattern SHA256SUMS.txt
-          cd release
           sha256sum -c --ignore-missing SHA256SUMS.txt
           rm SHA256SUMS.txt
       - uses: ./.github/actions/setup-maestro

@@ -20,9 +20,9 @@ Semua bukti dari emulator Android atau simulator iPad; belum ada uji di perangka
 
 | Bagian | Platform dan ukuran | Orientasi | Bahasa | Bukti |
 |---|---|---|---|---|
-| Pasang APK dari Release di emulator bersih, layar sambutan, form masuk (tanpa server), rotasi tanpa kehilangan isian | Android 15 ponsel (`pixel_6`) dan tablet 10 inci (`pixel_tablet`) | portrait, landscape | en, id | job `install from release` di run Release tiap tag, rekaman `e2e-android-release-*` |
+| Pasang APK dari Release di emulator bersih, layar sambutan, form masuk (tanpa server); di ponsel juga rotasi di tengah form tanpa kehilangan isian | Android 15 ponsel (`pixel_6`) dan tablet 10 inci (`pixel_tablet`) | portrait, landscape | en, id | job `install from release` di run Release tiap tag, rekaman `e2e-android-release-*` |
 | Alur yang sama dengan APK x86_64 | Android 15 ponsel dan tablet | portrait, landscape | en, id | CI tiap push `main`, rekaman `e2e-android-*` |
-| Alur yang sama di iPad (percobaan, tidak memblokir) | simulator iPad di runner macOS | portrait, landscape | en | workflow `iPad trial`; hasil per tag ditulis di catatan rilis |
+| Alur yang sama di iPad (percobaan, tidak memblokir) | simulator iPad di runner macOS | portrait, landscape | en | workflow `iPad trial`; hasil per tag ada di run `iPad trial` tag itu |
 | Masuk ke server lalu keluar (F0) | Android ponsel dan tablet | tidak dicatat | en, id | rekaman lokal dengan build yang membawa domain tautan, tidak dipublikasikan (tracker internal ZHA-7236) |
 | Chat: daftar, thread, antrean kirim offline, lampiran, pesan suara, dua panel di tablet (F1) | Android ponsel dan tablet | portrait, landscape | en, id | rekaman lokal (ZHA-7238) |
 | Panggilan suara dua arah ponsel ke web, dering CallStyle dengan foreground service, landscape, picture-in-picture (F2) | Android ponsel | portrait, landscape | tidak dicatat | rekaman lokal (ZHA-7240) |
@@ -37,6 +37,8 @@ Semua bukti dari emulator Android atau simulator iPad; belum ada uji di perangka
 - Live Activity: belum dibangun; pembaruannya dari server butuh APNs.
 - Push Android sampai ke perangkat, termasuk dering saat aplikasi mati dan Tolak dari notifikasi saat aplikasi mati: butuh Firebase.
 - Layar kunci sungguhan (emulator tanpa keyguard) dan pemakaian baterai.
+- Discovery di iPad: hanya diuji di emulator Android.
+- MoM di ponsel landscape: sekali tercatat "recording couldn't start" di emulator dan belum terulang; galat native-nya kini masuk logcat bila muncul lagi.
 
 ## Identitas aplikasi
 
