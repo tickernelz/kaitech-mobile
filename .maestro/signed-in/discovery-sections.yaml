@@ -22,6 +22,18 @@ onFlowStart:
     visible:
       id: programme-summary
     timeout: 60000
+- runFlow:
+    when:
+      true: ${typeof PROGRAMME !== 'undefined' && PROGRAMME !== ''}
+    commands:
+      - tapOn:
+          id: programme-switch
+      - tapOn:
+          text: ${PROGRAMME}
+      - extendedWaitUntil:
+          visible:
+            id: programme-summary
+          timeout: 60000
 - scrollUntilVisible:
     element:
       id: open-sections

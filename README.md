@@ -291,7 +291,7 @@ Alur masuk sampai keluar ada di `.maestro/signed-in/` dan tidak ikut `maestro te
 
 Alur `signed-in/discovery.yaml` masuk bila perlu, lalu membuka beranda Program, temuan dan buktinya, bertanya ke Coworker (di ponsel Android layar diputar di tengah mengetik untuk membuktikan draf tetap ada), kartu keputusan bila ada yang menunggu, cari gabungan, dan Aktivitas. Variabel tambahan: `-e QUESTION=<pertanyaan> -e SEARCH=<kata>`. Jalankan hanya dengan akun uji yang hanya menjadi anggota Program uji; rekaman memuat isi Program.
 
-Alur `signed-in/discovery-sections.yaml` masuk hanya bila aplikasi belum masuk, membuka Semua bagian dari beranda Program, detail program dan lembar Lainnya, Pengetahuan, satu bagian dari setiap kelompok menu web (daftar, record pertama, lembar Lainnya), lalu membuat istilah Glossary baru dan menekan Accept. Variabel tambahan: `-e TERM=<istilah unik>`. Pilih dulu Program uji di aplikasi; alur ini membuat data di Program yang sedang terbuka.
+Alur `signed-in/discovery-sections.yaml` masuk hanya bila aplikasi belum masuk, membuka Semua bagian dari beranda Program, detail program dan lembar Lainnya, Pengetahuan, satu bagian dari setiap kelompok menu web (daftar, record pertama, lembar Lainnya), lalu membuat istilah Glossary baru dan menekan Accept. Variabel tambahan: `-e TERM=<istilah unik>` dan `-e PROGRAMME=<nama Program uji>` (dipilih lewat pemilih program sebelum mulai); alur ini membuat data di Program yang sedang terbuka.
 
 ### Klien server (`src/api`)
 
