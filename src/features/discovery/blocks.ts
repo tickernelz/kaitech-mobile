@@ -122,7 +122,8 @@ export function readBlock(raw: string): KtBlock {
   const title = textOf(data.title, MAX_TITLE);
   const summary = textOf(data.summary, MAX_SUMMARY);
   const sources = sourcesOf(data.sources);
-  const replies = data.type === 'replies' ? repliesOf(data.replies) : null;
+  const offersReplies = data.type === 'replies' && typeof data.summary === 'string' && data.summary.trim() !== '' && data.summary.length <= MAX_SUMMARY;
+  const replies = offersReplies ? repliesOf(data.replies) : null;
   if (replies) return { kind: 'replies', title, summary, sources, replies };
   const table = fallbackTable(data);
   if (!title && !summary && !table) return { kind: 'unreadable' };

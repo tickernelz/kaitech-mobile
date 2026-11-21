@@ -61,6 +61,15 @@ describe('readBlock', () => {
     }
   });
 
+  it('negative control: replies without a summary the web accepts are not offered as buttons', () => {
+    const offered = ['Ya', 'Tidak'];
+    expect(readBlock(JSON.stringify({ type: 'replies', replies: offered }))).toEqual({ kind: 'unreadable' });
+    expect(readBlock(JSON.stringify({ type: 'replies', summary: '  ', title: 'Pilih', replies: offered }))).toMatchObject({ kind: 'other', title: 'Pilih' });
+    expect(readBlock(JSON.stringify({ type: 'replies', summary: 7, title: 'Pilih', replies: offered }))).toMatchObject({ kind: 'other', title: 'Pilih' });
+    expect(readBlock(JSON.stringify({ type: 'replies', summary: 's'.repeat(401), replies: offered }))).toMatchObject({ kind: 'other', table: null });
+    expect(readBlock(JSON.stringify({ type: 'replies', summary: 's'.repeat(400), replies: offered }))).toMatchObject({ kind: 'replies', replies: offered });
+  });
+
   it('shows an unknown kind by its title and summary', () => {
     expect(readBlock(JSON.stringify({ type: 'diagram', title: 'Alur PO', summary: 'Tiga langkah', nodes: 'x' }))).toEqual({
       kind: 'other',
