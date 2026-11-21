@@ -9,7 +9,7 @@ import { attachmentUrl, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
 import type { Attachment, Message, Pending, PendingFile } from '../types';
 import { useChatFormat } from './format';
-import { Icon } from './icons';
+import { Icon } from '../../../ui/icons';
 import { UploadProgress } from './MediaControls';
 import { useCookie } from './useCookie';
 import { useOpenAttachment } from './useOpenAttachment';
@@ -254,7 +254,7 @@ export const MessageBubble = memo(function MessageBubble({
           <Text variant="label" tone="inkFaint" style={styles.time}>
             {time}
           </Text>
-          {readState ? <Icon name={readState === 'read' ? 'checks' : 'check'} size={16} color={readState === 'read' ? colors.primary : colors.inkFaint} /> : null}
+          {readState ? <Icon name={readState === 'read' ? 'checkDouble' : 'check'} size={16} color={readState === 'read' ? colors.primary : colors.inkFaint} /> : null}
         </View>
       </Frame>
       {message.reactions.length || hasThread ? (
@@ -274,7 +274,7 @@ export const MessageBubble = memo(function MessageBubble({
           ))}
           {hasThread ? (
             <Pressable accessibilityRole="button" onPress={() => onOpenThread(message)} style={[styles.reaction, { backgroundColor: colors.surface, borderColor: colors.line }]}>
-              <Icon name="thread" size={14} color={colors.link} />
+              <Icon name="thread" size={16} color={colors.link} />
               <Text variant="footnote" style={{ color: colors.link }}>
                 {t('thread.openSubThread')}
               </Text>

@@ -10,7 +10,7 @@ import { pushSupported } from '../push';
 import type { Conversation } from '../types';
 import { Avatar } from './Avatar';
 import { useChatFormat } from './format';
-import { Icon } from './icons';
+import { Icon } from '../../../ui/icons';
 
 type Filter = 'all' | 'unread' | 'people' | 'rooms';
 const filters: Filter[] = ['all', 'unread', 'people', 'rooms'];
@@ -96,7 +96,7 @@ const Row = memo(function Row({
             ) : null}
             {preview.text}
           </Text>
-          {muted ? <Icon name="muted" size={16} color={colors.inkFaint} /> : null}
+          {muted ? <Icon name="bellOff" size={16} color={colors.inkFaint} /> : null}
           {unread ? (
             <View style={[styles.badge, { backgroundColor: muted ? colors.inkFaint : colors.primary }]}>
               <Text variant="label" maxFontSizeMultiplier={1.4} style={{ color: colors.onPrimary }}>
@@ -158,7 +158,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
       </ScrollView>
       {!online ? (
         <View style={[styles.banner, { backgroundColor: colors.warnBand }]} accessibilityLiveRegion="polite" testID="chat-offline">
-          <Icon name="offline" size={18} color={colors.warnInk} />
+          <Icon name="cloudOff" size={20} color={colors.warnInk} />
           <Text variant="footnote" tone="warnInk" style={styles.flex}>
             {pending.length ? t('list.offlineQueued', { count: pending.length }) : t('list.offline')}
           </Text>
@@ -166,7 +166,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
       ) : null}
       {!pushSupported ? (
         <View style={[styles.banner, { backgroundColor: colors.infoBand }]} testID="chat-ios-push-note">
-          <Icon name="bell" size={18} color={colors.infoInk} />
+          <Icon name="bell" size={20} color={colors.infoInk} />
           <Text variant="footnote" tone="infoInk" style={styles.flex}>
             {t('list.iosNoPush')}
           </Text>

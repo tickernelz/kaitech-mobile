@@ -6,11 +6,11 @@ import { useResource } from '../../api/resource';
 import { readableWidth } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
+import { Icon } from '../../ui/icons';
 import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
 import { Card, Chip, StateView } from '../discovery/ui';
 import { finalMinutes, type FinalView } from './api';
-import { MomIcon } from './parts';
 
 export function finalKey(meeting: number) {
   return `mom.final.${meeting}`;
@@ -40,7 +40,7 @@ function Stages({ view }: { view: FinalView }) {
               },
             ]}
             testID={`stage-${stage.key}`}>
-            {done ? <MomIcon name="check" size={16} color={colors.okInk} /> : null}
+            {done ? <Icon name="check" size={16} color={colors.okInk} /> : null}
             <Text variant="label" style={{ color: current ? colors.onPrimary : done ? colors.okInk : colors.inkSoft }}>
               {t(`mom.stage.${stage.key}` as never, { defaultValue: stage.label }) as string}
             </Text>

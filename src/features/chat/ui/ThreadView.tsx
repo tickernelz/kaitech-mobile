@@ -17,7 +17,7 @@ import { CallButtons } from '../../call/ui/CallButtons';
 import { Avatar } from './Avatar';
 import { Composer, type ComposerHandle } from './Composer';
 import { useChatFormat } from './format';
-import { Icon } from './icons';
+import { Icon } from '../../../ui/icons';
 import { MessageActions } from './MessageActions';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
 import { NotifySheet } from './NotifySheet';
@@ -224,7 +224,7 @@ export function ThreadView({
         hitSlop={8}
         style={styles.headerButton}
         testID="thread-notify">
-        <Icon name={conversation?.mutedUntil ? 'muted' : 'bell'} color={colors.ink} />
+        <Icon name={conversation?.mutedUntil ? 'bellOff' : 'bell'} color={colors.ink} />
       </Pressable>
     </View>
   );

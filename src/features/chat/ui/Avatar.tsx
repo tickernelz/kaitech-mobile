@@ -5,7 +5,7 @@ import { initials } from '../../../screens/initials';
 import { Text } from '../../../ui/Text';
 import { useChat } from '../chat';
 import { useCookie } from './useCookie';
-import { Icon, type IconName } from './icons';
+import { Icon, type IconName } from '../../../ui/icons';
 
 const tints = [
   ['#F0E7FC', '#472268'],

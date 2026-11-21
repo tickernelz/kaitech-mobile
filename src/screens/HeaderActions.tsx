@@ -1,14 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { useSession } from '../auth/session';
 import { radius, space, useTheme } from '../theme';
+import { Icon } from '../ui/icons';
 import { Text } from '../ui/Text';
 import { initials } from './initials';
-
-const searchIcon = 'M10.5 3a7.5 7.5 0 0 1 5.9 12.1l4.3 4.3-1.4 1.4-4.3-4.3A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z';
-
 
 export function HeaderActions() {
   const { t } = useTranslation();
@@ -23,9 +20,7 @@ export function HeaderActions() {
         onPress={() => router.push('/search')}
         testID="open-search"
         style={({ pressed }) => [styles.round, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
-        <Svg width={22} height={22} viewBox="0 0 24 24" accessible={false}>
-          <Path d={searchIcon} fill={colors.ink} />
-        </Svg>
+        <Icon name="search" color={colors.ink} />
       </Pressable>
       <Pressable
         accessibilityRole="button"

@@ -1,4 +1,4 @@
-import type { IconName } from './ui';
+import type { IconName } from '../../ui/icons';
 
 export function sourceIcon(kind: string): IconName {
   if (kind === 'interview') return 'mic';

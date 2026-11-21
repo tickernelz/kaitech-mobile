@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Avatar } from '../../chat/ui/Avatar';
-import { Icon } from '../../chat/ui/icons';
+import { Icon } from '../../../ui/icons';
 import { loadLiveKit, liveKit } from '../livekit';
 import { videoTrack, type CallPerson } from '../call';
 
@@ -35,7 +35,7 @@ export function CallTile({ person, width, height, rounded }: { person: CallPerso
         <Text variant="footnote" numberOfLines={1} style={styles.name}>
           {person.local ? t('you') : person.name}
         </Text>
-        {person.micOn ? null : <Icon name="muted" size={14} color={colors.inkFaint} />}
+        {person.micOn ? null : <Icon name="micOff" size={16} color={colors.inkFaint} />}
       </View>
     </View>
   );

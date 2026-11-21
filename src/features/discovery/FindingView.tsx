@@ -10,7 +10,8 @@ import { Text } from '../../ui/Text';
 import { finding as readFinding, type Finding } from './api';
 import { parseServerDate } from './dates';
 import { sourceIcon, sourceLabelKey } from './sources';
-import { Chip, Icon, StateView } from './ui';
+import { Icon } from '../../ui/icons';
+import { Chip, StateView } from './ui';
 
 export function findingTone(row: Finding): 'warn' | 'ok' | 'info' {
   if (row.kind === 'conflict') return 'warn';
@@ -46,7 +47,7 @@ export function FindingView({ id, programme }: { id: number; programme?: number 
           return (
             <View key={side.id} style={[styles.side, { borderColor: colors.line }]} testID={`finding-side-${side.id}`}>
               <View style={[styles.sideIcon, { backgroundColor: colors.surface2 }]}>
-                <Icon name={sourceIcon(side.source_kind)} size={18} color={colors.selectInk} />
+                <Icon name={sourceIcon(side.source_kind)} size={20} color={colors.selectInk} />
               </View>
               <View style={styles.fill}>
                 <Text variant="callout" selectable>
