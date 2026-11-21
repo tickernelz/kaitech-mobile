@@ -62,6 +62,13 @@ class KaitechCallModule : Module() {
 
     AsyncFunction("setLocked") { value: Boolean -> CallBridge.setLocked(value) }
 
+    AsyncFunction("setCallSurface") { visible: Boolean ->
+      CallBridge.callSurface = visible
+      val activity = appContext.currentActivity ?: return@AsyncFunction false
+      activity.runOnUiThread { CallKeyguard.apply(activity) }
+      true
+    }
+
     AsyncFunction("stopCall") {
       CallService.stop(requireContext())
       true

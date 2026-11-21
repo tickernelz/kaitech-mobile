@@ -28,6 +28,7 @@ type NativeCall = {
   stopCall(): Promise<boolean>;
   setInCall(value: boolean): Promise<boolean>;
   setLocked(value: boolean): Promise<boolean>;
+  setCallSurface(visible: boolean): Promise<boolean>;
   enterPictureInPicture(): Promise<boolean>;
   isPictureInPictureSupported(): Promise<boolean>;
   canUseFullScreenIntent(): Promise<boolean>;
