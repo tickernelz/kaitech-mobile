@@ -32,7 +32,7 @@ import { useVoiceHold, type Voice } from '../chat/ui/useVoiceHold';
 import { ask, cards as readCards, panel, transcript, type Card, type Cursor, type Document, type TranscriptItem } from './api';
 import { DecisionCard } from './DecisionCard';
 import { chatAttachments } from './files';
-import { ThreadContext, type Place, type Thread } from './kt/place';
+import { ItemsContext, ThreadContext, type Place, type Thread } from './kt/place';
 import { Markdown } from './Markdown';
 import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
 import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread';
@@ -313,7 +313,7 @@ export function CoworkerThread({
     replyRef.current = reply;
   });
   const onReply = useCallback((text: string) => replyRef.current(text), []);
-  const threadContext = useMemo<Thread>(() => ({ account: active, origin: active?.origin ?? '', items: thread.items, onReply }), [active, thread.items, onReply]);
+  const threadContext = useMemo<Thread>(() => ({ account: active, origin: active?.origin ?? '', onReply }), [active, onReply]);
   const shownCount = useRef(0);
   const submit = () => {
     const text = draft.trim();
@@ -404,6 +404,7 @@ export function CoworkerThread({
         <StateView error={thread.error} onRetry={() => void thread.pull()} testID={testID} />
       ) : (
         <ThreadContext.Provider value={threadContext}>
+        <ItemsContext.Provider value={thread.items}>
         <FlatList
           ref={list}
           data={data}
@@ -424,6 +425,7 @@ export function CoworkerThread({
             ) : undefined
           }
         />
+        </ItemsContext.Provider>
         </ThreadContext.Provider>
       )}
       {files.length ? (

@@ -7,7 +7,7 @@ import { Icon } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';
 import type { TranscriptItem } from '../api';
 import { splitBlocks } from '../blocks';
-import { useThread, webChatUrl, type Place } from './place';
+import { useItems, useThread, webChatUrl, type Place } from './place';
 import { parseBlock, readArtifact, type ArtifactBlock } from './read';
 import { Tool, styles as shared } from './ui';
 
@@ -128,7 +128,8 @@ function Screen({ versions, start, onClose }: { versions: Version[]; start: Vers
 export const KtArtifact = memo(function KtArtifact({ block, place }: { block: ArtifactBlock; place: Place | null }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { items, origin } = useThread();
+  const { origin } = useThread();
+  const items = useItems();
   const [open, setOpen] = useState(false);
   const { versions, own } = useMemo(() => versionsOf(items, block, place), [items, block, place]);
   return (

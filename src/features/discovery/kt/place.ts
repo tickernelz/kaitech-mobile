@@ -15,16 +15,20 @@ export type BlockReads = { records: Record<string, RecordCard>; files: Record<st
 export type Thread = {
   account: Account | null;
   origin: string;
-  items: TranscriptItem[];
   onReply?: (text: string) => void;
 };
 
 export type Place = { turnId: number | null; seq: number | null; index: number; reads: BlockReads | null };
 
-export const ThreadContext = createContext<Thread>({ account: null, origin: '', items: [] });
+export const ThreadContext = createContext<Thread>({ account: null, origin: '' });
+export const ItemsContext = createContext<TranscriptItem[]>([]);
 
 export function useThread(): Thread {
   return useContext(ThreadContext);
+}
+
+export function useItems(): TranscriptItem[] {
+  return useContext(ItemsContext);
 }
 
 export function webChatUrl(origin: string): string {

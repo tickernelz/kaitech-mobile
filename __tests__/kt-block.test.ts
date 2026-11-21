@@ -40,7 +40,7 @@ function fenced(raw: string) {
 }
 
 function inThread(children: ReactNode, thread: Partial<Thread> = {}) {
-  return createElement(ThreadContext.Provider, { value: { account: null, origin: 'https://erp.example.com', items: [], ...thread } }, children);
+  return createElement(ThreadContext.Provider, { value: { account: null, origin: 'https://erp.example.com', ...thread } }, children);
 }
 
 async function draw(raw: string, thread: Partial<Thread> = {}) {
