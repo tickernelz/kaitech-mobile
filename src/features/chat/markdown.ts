@@ -648,6 +648,16 @@ export function bodyBlocks(html: string): MdBlock[] {
   });
 }
 
+export function isFlatList(block: Extract<MdBlock, { kind: 'list' }>): boolean {
+  return block.items.every((item) => item.sub.every((sub) => sub.kind === 'list' && isFlatList(sub)));
+}
+
+export function bodyShape(html: string): 'plain' | 'rich' | 'table' {
+  const blocks = bodyBlocks(html);
+  if (blocks.some((block) => block.kind === 'table')) return 'table';
+  return blocks.every((block) => block.kind === 'text' || (block.kind === 'list' && isFlatList(block))) ? 'plain' : 'rich';
+}
+
 export function sourceBlocks(source: string, tables: boolean): MdBlock[] {
   return cached(`${tables ? 't' : 's'}${source}`, () => htmlBlocks(markdownToHtml(source.replace(SLOT_MARKS, ''), { tables })));
 }

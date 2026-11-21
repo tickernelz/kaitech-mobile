@@ -11,7 +11,7 @@ import { Text } from '../../../ui/Text';
 import { conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat, type Delivered } from '../chat';
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
-import { bodyPreview } from '../markdown';
+import { bodyPreview, bodyShape } from '../markdown';
 import { readersOf, readState } from '../odoo';
 import type { Message, Pending } from '../types';
 import { CallButtons } from '../../call/ui/CallButtons';
@@ -46,6 +46,10 @@ export function buildRows(messages: Message[], pending: Pending[], delivered: De
   for (const item of delivered) rows.push({ kind: 'pending', key: `p-${item.key}`, pending: { ...item.pending, state: 'sending' } });
   for (const item of pending) rows.push({ kind: 'pending', key: `p-${item.key}`, pending: item });
   return rows;
+}
+
+export function rowType(row: Row): string {
+  return row.kind === 'message' ? `message-${bodyShape(row.message.body)}` : row.kind;
 }
 
 export function ThreadView({
@@ -264,7 +268,7 @@ export function ThreadView({
             ref={list}
             data={rows}
             keyExtractor={(item) => item.key}
-            getItemType={(item) => item.kind}
+            getItemType={rowType}
             renderItem={renderItem}
             initialScrollIndex={initialIndex}
             maintainVisibleContentPosition={{ startRenderingFromBottom: true, autoscrollToBottomThreshold: 0.2, animateAutoScrollToBottom: true }}
