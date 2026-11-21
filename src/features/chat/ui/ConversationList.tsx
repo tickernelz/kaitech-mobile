@@ -3,7 +3,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { HeaderActions } from '../../../screens/HeaderActions';
-import { radius, selectionBar, space, useTheme } from '../../../theme';
+import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { loadMoreConversations, refreshConversations, useChat } from '../chat';
 import { pushSupported } from '../push';
@@ -74,7 +74,6 @@ const Row = memo(function Row({
       style={({ pressed }) => [
         styles.row,
         { backgroundColor: selected ? colors.select : pressed ? colors.surface2 : 'transparent' },
-        selected && { borderLeftWidth: selectionBar, borderLeftColor: colors.primary, paddingLeft: space.lg - selectionBar },
       ]}>
       <Avatar name={conversation.name} path={conversation.type === 'chat' ? conversation.avatar : undefined} seed={conversation.partnerId ?? conversation.id} icon={icon} />
       <View style={[styles.rowBody, { borderBottomColor: colors.line }]}>

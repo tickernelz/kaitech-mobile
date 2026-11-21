@@ -24,7 +24,7 @@ function Body({ blocks, mine }: { blocks: Block[]; mine: boolean }) {
   return (
     <View style={styles.body}>
       {blocks.map((block, index) => (
-        <View key={index} style={[block.quote && [styles.quote, { borderColor: colors.lineStrong }], block.item && styles.item]}>
+        <View key={index} style={[block.quote && [styles.quote, { backgroundColor: colors.surface2 }], block.item && styles.item]}>
           <Text variant="body" style={{ color: mine ? colors.selectInk : colors.ink }}>
             {block.item ? '\u2022 ' : ''}
             {block.spans.map((span, spanIndex) => (
@@ -188,7 +188,7 @@ function QuoteBlock({ quote, mine, onPress }: { quote: Quote; mine: boolean; onP
   if (!quote) return null;
   const tint = authorColor(quote.authorId, scheme, colors);
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={[styles.quoteBox, { backgroundColor: mine ? colors.surface : colors.surface2, borderColor: tint }]}>
+    <Pressable onPress={onPress} accessibilityRole="button" style={[styles.quoteBox, { backgroundColor: mine ? colors.surface : colors.surface2 }]}>
       <Text variant="footnote" style={[styles.bold, { color: tint }]} numberOfLines={1}>
         {quote.author}
       </Text>
@@ -395,9 +395,9 @@ const styles = StyleSheet.create({
   mine: { borderBottomRightRadius: radius.sm },
   theirs: { borderBottomLeftRadius: radius.sm },
   body: { gap: space.xs },
-  quote: { borderLeftWidth: 3, paddingLeft: space.sm },
+  quote: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   item: { paddingLeft: space.xs },
-  quoteBox: { borderLeftWidth: 3, borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
+  quoteBox: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
   file: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48, width: 260, maxWidth: '100%' },
   fileText: { flexShrink: 1, flexGrow: 1 },

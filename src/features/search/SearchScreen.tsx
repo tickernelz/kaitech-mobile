@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   filters: { paddingHorizontal: space.lg, paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   list: { padding: space.lg, gap: space.xs, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   ask: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg, borderRadius: radius.pill, marginBottom: space.md },
-  section: { textTransform: 'uppercase', letterSpacing: 0.4, paddingTop: space.md, paddingBottom: space.xs },
+  section: { paddingTop: space.md, paddingBottom: space.xs },
   hit: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingVertical: space.sm, borderRadius: radius.md },
   hitIcon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
 });

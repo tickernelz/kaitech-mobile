@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { useLanguage } from '../../i18n';
 import { intlLocale } from '../../i18n/language';
-import { radius, selectionBar, space, useTheme, type Colors } from '../../theme';
+import { radius, space, useTheme, type Colors } from '../../theme';
 import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
 import { Chip } from '../discovery/ui';
@@ -135,7 +135,6 @@ export function Line({
       style={({ pressed }) => [
         styles.line,
         (pressed || selected) && { backgroundColor: selected ? colors.select : colors.surface2 },
-        selected && { borderLeftWidth: selectionBar, borderLeftColor: colors.primary, paddingLeft: space.lg - selectionBar },
       ]}>
       <View style={[styles.lineIcon, { backgroundColor: colors.surface2 }]}>
         <Icon name={icon} size={20} color={colors.selectInk} />

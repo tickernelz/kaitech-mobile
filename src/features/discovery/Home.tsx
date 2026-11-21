@@ -32,13 +32,10 @@ export function useCurrentProgramme(): { list: ReturnType<typeof useResource<Pro
 function Metric({ icon, value, label }: { icon: IconName; value: string; label: string }) {
   const { colors } = useTheme();
   return (
-    <View style={[styles.metric, { backgroundColor: colors.surface2 }]} accessible accessibilityLabel={`${value} ${label}`}>
-      <View style={styles.metricValue}>
-        <Icon name={icon} size={20} color={colors.inkSoft} />
-        <Text variant="title">{value}</Text>
-      </View>
-      <Text variant="footnote" tone="inkSoft" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
-        {label}
+    <View style={styles.metric} accessible accessibilityLabel={`${value} ${label}`}>
+      <Icon name={icon} size={16} color={colors.inkSoft} />
+      <Text variant="callout" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={styles.shrink}>
+        <Text variant="callout" style={styles.strong}>{value}</Text> {label}
       </Text>
     </View>
   );
@@ -352,9 +349,8 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   rowWrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.sm },
-  metrics: { flexDirection: 'row', gap: space.sm },
-  metric: { flex: 1, minWidth: 0, borderRadius: radius.md, padding: space.md, gap: 2 },
-  metricValue: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  metrics: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.lg, rowGap: space.xs },
+  metric: { flexDirection: 'row', alignItems: 'center', gap: space.xs, maxWidth: '100%' },
   badge: { minWidth: 20, height: 20, borderRadius: radius.pill, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
   track: { height: 6, borderRadius: radius.pill, overflow: 'hidden' },
   bar: { height: 6 },
