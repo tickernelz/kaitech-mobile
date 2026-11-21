@@ -76,7 +76,13 @@ const Row = memo(function Row({
         styles.row,
         { backgroundColor: selected ? colors.select : pressed ? colors.surface2 : 'transparent' },
       ]}>
-      <Avatar name={conversation.name} path={conversation.type === 'chat' ? conversation.avatar : undefined} seed={conversation.partnerId ?? conversation.id} icon={icon} />
+      <Avatar
+        name={conversation.name}
+        seed={conversation.partnerId ?? conversation.id}
+        icon={icon}
+        partnerId={conversation.type === 'chat' ? conversation.partnerId : undefined}
+        photo={conversation.type === 'chat' ? undefined : (conversation.photo ?? null)}
+      />
       <View style={[styles.rowBody, { borderBottomColor: colors.line }]}>
         <View style={styles.rowTop}>
           <Text variant="headline" numberOfLines={1} style={styles.flex}>

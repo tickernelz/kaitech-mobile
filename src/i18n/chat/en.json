@@ -77,7 +77,8 @@
     "cannotShare": "Sharing isn’t available on this device.",
     "close": "Close",
     "shareInstead": "Share",
-    "table": "Table, {{columns}} columns and {{rows}} rows. Scroll sideways to see all of it."
+    "table": "Table, {{columns}} columns and {{rows}} rows. Scroll sideways to see all of it.",
+    "background": "Chat background"
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",

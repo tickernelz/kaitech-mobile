@@ -23,6 +23,8 @@ import { MessageActions } from './MessageActions';
 import { isCallNotice } from '../odoo';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
 import { NotifySheet } from './NotifySheet';
+import { router } from 'expo-router';
+import { ChatBackground } from '../../appearance/ChatBackground';
 
 type Row =
   | { kind: 'day'; key: string; date: number }
@@ -179,6 +181,7 @@ export function ThreadView({
             message={message}
             mine={mine}
             showAuthor={item.showAuthor && !twoPeople}
+            face={twoPeople ? 'none' : item.showAuthor ? 'show' : 'space'}
             readState={ticks}
             quote={quoteOf(message)}
             origin={origin}
@@ -210,7 +213,14 @@ export function ThreadView({
           <Icon name="back" color={colors.ink} />
         </Pressable>
       )}
-      <Avatar name={name} seed={conversation?.partnerId ?? channelId} size={40} path={type === 'chat' ? conversation?.avatar : undefined} icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined} />
+      <Avatar
+        name={name}
+        seed={conversation?.partnerId ?? channelId}
+        size={40}
+        partnerId={type === 'chat' ? conversation?.partnerId : undefined}
+        photo={type === 'chat' ? undefined : (conversation?.photo ?? null)}
+        icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined}
+      />
       <View style={styles.flex}>
         <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
           {name}
@@ -249,6 +259,7 @@ export function ThreadView({
       {header}
       <KeyboardAvoidingView behavior="padding" automaticOffset style={styles.flex}>
         <View style={styles.flex}>
+          <ChatBackground channelId={channelId} />
           <FlashList
             ref={list}
             data={rows}
@@ -292,7 +303,14 @@ export function ThreadView({
         onCopy={(message) => void Clipboard.setStringAsync(plainText(message.body))}
         onThread={(message) => void openSub(message)}
       />
-      {notifying ? <NotifySheet channelId={channelId} mutedUntil={conversation?.mutedUntil ?? null} onClose={() => setNotifying(false)} /> : null}
+      {notifying ? (
+        <NotifySheet
+          channelId={channelId}
+          mutedUntil={conversation?.mutedUntil ?? null}
+          onClose={() => setNotifying(false)}
+          onBackground={bubble ? undefined : () => router.push({ pathname: '/settings/background', params: { channel: String(channelId) } })}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

@@ -4,8 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useSession } from '../auth/session';
 import { radius, space, useTheme } from '../theme';
 import { Icon } from '../ui/icons';
-import { Text } from '../ui/Text';
-import { initials } from './initials';
+import { Avatar } from '../features/chat/ui/Avatar';
 
 export function HeaderActions() {
   const { t } = useTranslation();
@@ -27,10 +26,8 @@ export function HeaderActions() {
         accessibilityLabel={t('tabs.profile')}
         onPress={() => router.push('/settings')}
         testID="open-settings"
-        style={({ pressed }) => [styles.round, styles.avatar, { backgroundColor: colors.select, opacity: pressed ? 0.8 : 1 }]}>
-        <Text variant="label" tone="selectInk">
-          {initials(active?.name ?? '')}
-        </Text>
+        style={({ pressed }) => [styles.round, styles.avatar, { opacity: pressed ? 0.8 : 1 }]}>
+        <Avatar name={active?.name ?? ''} seed={active?.partnerId ?? 0} partnerId={active?.partnerId} size={44} />
       </Pressable>
     </View>
   );

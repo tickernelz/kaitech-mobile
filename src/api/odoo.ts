@@ -1,3 +1,4 @@
+import { File, UploadType } from 'expo-file-system';
 import { AppError } from '../auth/errors';
 import { call, headers, type Account } from '../auth/oauth';
 import { markExpired, onAccountForgotten, tokenFor } from '../auth/session';
@@ -43,7 +44,7 @@ function queryOf(query?: Record<string, string | number>): string {
 export async function bearer<T>(
   account: Account,
   path: string,
-  init: { method?: 'GET' | 'POST'; body?: unknown; query?: Record<string, string | number> } = {},
+  init: { method?: 'GET' | 'POST' | 'DELETE'; body?: unknown; query?: Record<string, string | number> } = {},
 ): Promise<T> {
   const { status, body } = await call(`${account.origin}${path}${queryOf(init.query)}`, {
     method: init.method ?? 'GET',
@@ -89,6 +90,38 @@ export async function bearerUpload<T>(account: Account, path: string, body: unkn
   });
   if (status !== 200) refused(account, status, answer);
   return answer as T;
+}
+
+export async function bearerFile<T>(account: Account, path: string, uri: string, mimeType: string): Promise<T> {
+  const token = await tokenOf(account);
+  const file = new File(uri);
+  if (!file.exists) throw new ApiError('file_missing', 400);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), uploadDeadlineMs(file.size ?? 0));
+  let answer: { status: number; body: string };
+  try {
+    answer = await file.upload(`${account.origin}${path}`, {
+      httpMethod: 'POST',
+      uploadType: UploadType.MULTIPART,
+      fieldName: 'file',
+      mimeType,
+      headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(account.db ? { 'X-Odoo-Database': account.db } : {}) },
+      signal: controller.signal,
+    });
+  } catch {
+    throw new AppError('network');
+  } finally {
+    clearTimeout(timer);
+  }
+  let body: Record<string, unknown> | null = null;
+  try {
+    const parsed: unknown = JSON.parse(answer.body);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) body = parsed as Record<string, unknown>;
+  } catch {
+    body = null;
+  }
+  if (answer.status !== 200) refused(account, answer.status, body);
+  return body as T;
 }
 
 async function openSession(account: Account): Promise<Session> {

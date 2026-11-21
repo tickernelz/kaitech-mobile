@@ -123,6 +123,15 @@ async function forget(id: string) {
 
 export type SignOutResult = 'revoked' | 'local';
 
+export function accountKnown(id: string): boolean {
+  return state.accounts.some((account) => account.id === id);
+}
+
+export function renameAccount(id: string, name: string) {
+  if (!state.accounts.some((account) => account.id === id && account.name !== name)) return;
+  set({ accounts: state.accounts.map((account) => (account.id === id ? { ...account, name } : account)) });
+}
+
 export async function signOut(id: string): Promise<SignOutResult> {
   const account = state.accounts.find((candidate) => candidate.id === id);
   const token = await tokenFor(id);
