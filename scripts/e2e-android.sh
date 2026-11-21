@@ -73,6 +73,8 @@ sleep 3
   echo "before maestro: $(rotation_state)"
 } | tee "$out/display.txt"
 
+adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
+adb shell am set-debug-app --persistent com.android.chrome
 adb install -r "$apk"
 adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' | head -2 | tee "$out/installed.txt"
 

@@ -2,7 +2,7 @@
 
 Aplikasi mobile Kaitech untuk Android dan iOS, dibangun dengan React Native dan Expo SDK 58 (development build, bukan Expo Go). APK dan IPA hanya dibangun di GitHub Actions, tanpa EAS Build.
 
-Alamat server dan database diisi pengguna saat masuk. Repo ini tidak menyimpan alamat server, kunci, atau token apa pun. Satu-satunya nama host di build rilis adalah domain tautan masuk, diisi dari variabel repo saat build (lihat [Masuk](#masuk-login)).
+Tombol Masuk langsung membuka halaman masuk server bawaan tanpa isian; server lain bisa dipilih lewat "Gunakan server lain". Repo ini tidak menyimpan alamat server, kunci, atau token apa pun. Server dan basis data bawaan di build rilis diisi dari variabel repo saat build (lihat [Masuk](#masuk-login)).
 
 ## Rilis
 
@@ -191,7 +191,7 @@ Nilai secret tidak pernah ditulis ke repo, log, atau artefak. Berkas kredensial 
 
 Secret scanning dan push protection GitHub aktif, jadi push yang berisi rahasia dikenal ditolak sebelum masuk. Action pihak ketiga wajib dipin ke SHA commit (aturan repo). PR dari fork berjalan tanpa secret (APK bertanda tangan kunci debug, push mati) dan harus disetujui pemilik repo sebelum workflow jalan. Token workflow default hanya baca. Workflow rilis hanya jalan dari tag di repo ini.
 
-Jangan pernah menulis alamat server lab0 nyata, token, nama database, atau data nyata ke repo. Alamat server dibaca saat runtime dari isian pengguna di layar masuk; contoh dan fixture memakai data karangan.
+Jangan pernah menulis alamat server lab0 nyata, token, nama database, atau data nyata ke repo. Server bawaan datang dari variabel repo saat build, server lain dari isian pengguna; contoh dan fixture memakai data karangan.
 
 ## Pengembangan
 
@@ -231,7 +231,9 @@ Bahasa awal mengikuti perangkat (`id` atau `in` menjadi Indonesia, selain itu In
 
 ### Masuk (login)
 
-Aplikasi membuka `/kaitech_mobile/authorize` di server yang diisi pengguna lewat browser sistem dengan PKCE S256, lalu menukar kode di `/kaitech_mobile/token`. Token perangkat disimpan di Keychain/Keystore (`expo-secure-store`, hanya perangkat ini, hanya saat terbuka); data akun yang bukan rahasia disimpan di `kv-store`. Kontrak server: README modul `kaitech_mobile` lab0.
+Tombol Masuk di layar sambutan langsung membuka server bawaan: alamatnya domain tautan (`KAITECH_LINK_HOST`, `lab0.kaitech.io`) dan basis datanya variabel repo `KAITECH_DEFAULT_DB` (`lab0`, bukan rahasia), keduanya dibaca saat build. "Gunakan server lain" di layar sambutan dan di Tambah akun dari Pengaturan membuka isian alamat server dan basis data; alamat server wajib, basis data boleh kosong untuk server satu basis data, dan keduanya diperiksa bentuknya sebelum browser dibuka, dan "Gunakan lab0.kaitech.io" kembali ke bawaan. Basis data yang tidak ada tidak bisa dikenali sebelum browser terbuka, karena `/web/login?db=<nama>` selalu menjawab 200. Build tanpa salah satu variabel tidak punya server bawaan: tombol Masuk membuka isian seperti di atas. Akun disimpan per server dan basis data (`u{uid}_hash(origin|db)`), jadi akun bawaan dan akun server lain tidak saling menimpa.
+
+Aplikasi membuka `/kaitech_mobile/authorize` di server terpilih lewat browser sistem dengan PKCE S256, lalu menukar kode di `/kaitech_mobile/token`. Token perangkat disimpan di Keychain/Keystore (`expo-secure-store`, hanya perangkat ini, hanya saat terbuka); data akun yang bukan rahasia disimpan di `kv-store`. Kontrak server: README modul `kaitech_mobile` lab0.
 
 Server mengembalikan kode ke App Link/Universal Link `https://<domain tautan>/kaitech_mobile/callback`; skema kustom tidak dipakai. Domain tautan dibaca saat build dari variabel `KAITECH_LINK_HOST` (bukan dari repo); nilainya `lab0.kaitech.io`, jadi nama host itu terlihat di APK dan IPA publik. Build tanpa variabel itu tetap jalan, tetapi layar masuk menampilkan pesan bahwa domain tautan belum diatur. Domain itu harus menyajikan `/.well-known/assetlinks.json` dengan sidik jari sertifikat di atas dan terdaftar di `kaitech_mobile.redirect_uris` server; lab0 memenuhi keduanya (parameter itu kosong, jadi server memakai `web.base.url` + `/kaitech_mobile/callback`). Server lain yang dimasukkan pengguna tetap mengembalikan kode ke domain tautan ini, jadi server itu harus mendaftarkan `https://lab0.kaitech.io/kaitech_mobile/callback` di `kaitech_mobile.redirect_uris`.
 
@@ -247,7 +249,7 @@ Alur Maestro ada di `.maestro/`. Jalankan lokal di emulator yang sudah memasang 
 maestro test .maestro
 ```
 
-Di CI, setiap alur jalan dua kali, di emulator ber-locale `en-US` dan `id-ID`. `scripts/e2e-android.sh` mengganti locale sistem (`persist.sys.locale` lalu restart framework), menunggu sampai konfigurasi framework memakai locale itu, memasang APK release, merekam layar, lalu menjalankan semua alur dengan variabel `APP_LANGUAGE` (`en` atau `id`) untuk teks yang diperiksa, misalnya `${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}`. Lebih disarankan memeriksa elemen lewat `testID`. Alur `sign-in-form` juga memutar layar ke orientasi lain dan kembali, lalu memeriksa isi kolom alamat server tidak hilang.
+Di CI, setiap alur jalan dua kali, di emulator ber-locale `en-US` dan `id-ID`. `scripts/e2e-android.sh` mengganti locale sistem (`persist.sys.locale` lalu restart framework), menunggu sampai konfigurasi framework memakai locale itu, memasang APK release, merekam layar, lalu menjalankan semua alur dengan variabel `APP_LANGUAGE` (`en` atau `id`) untuk teks yang diperiksa, misalnya `${APP_LANGUAGE === 'id' ? 'Selamat datang' : 'Welcome'}`. Lebih disarankan memeriksa elemen lewat `testID`. Alur `sign-in-form` membuka halaman masuk lab0 dari tombol Masuk tanpa isian, lalu lewat "Gunakan server lain" memeriksa alamat kosong atau tanpa https dan nama basis data yang salah, memutar layar ke orientasi lain dan kembali tanpa kehilangan isi kolom, dan kembali ke bawaan.
 
 Jalankan lokal: `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATION=portrait .maestro`. Ketiga variabel wajib dikirim lewat `-e`; jangan beri nilai bawaan di blok `env:` alur, karena nilai itu menimpa `-e`.
 
@@ -285,7 +287,7 @@ Semua screenshot sel disalin ke `screenshots/`. `scripts/check-screenshots.mjs` 
 
 `node scripts/check-tablet-config.mjs` (langkah CI di job lint) gagal bila `orientation` bukan `default`, `ios.supportsTablet` bukan `true`, `ios.requireFullScreen` bernilai `true`, atau hasil `expo prebuild` mengunci `android:screenOrientation`, mematikan `android:resizeableActivity`, menyalakan `UIRequiresFullScreen`, atau tidak mendukung keempat orientasi iPad.
 
-Alur masuk sampai keluar ada di `.maestro/signed-in/` dan tidak ikut `maestro test .maestro` di CI, karena butuh server, akun uji, dan build dengan `KAITECH_LINK_HOST`. Jalankan dengan `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATION=portrait -e SERVER=<alamat> -e LOGIN=<akun> -e PASSWORD=<sandi> .maestro/signed-in`; nilainya jangan pernah ditulis ke repo, log, atau artefak publik.
+Alur masuk sampai keluar ada di `.maestro/signed-in/` dan tidak ikut `maestro test .maestro` di CI, karena butuh akun uji dan build dengan `KAITECH_LINK_HOST` dan `KAITECH_DEFAULT_DB`; alur ini masuk ke server bawaan. Jalankan dengan `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATION=portrait -e LOGIN=<akun> -e PASSWORD=<sandi> .maestro/signed-in`; nilainya jangan pernah ditulis ke repo, log, atau artefak publik.
 
 Alur `signed-in/discovery.yaml` masuk bila perlu, lalu membuka beranda Program, temuan dan buktinya, bertanya ke Coworker (di ponsel Android layar diputar di tengah mengetik untuk membuktikan draf tetap ada), kartu keputusan bila ada yang menunggu, cari gabungan, dan Aktivitas. Variabel tambahan: `-e QUESTION=<pertanyaan> -e SEARCH=<kata>`. Jalankan hanya dengan akun uji yang hanya menjadi anggota Program uji; rekaman memuat isi Program.
 
@@ -311,7 +313,7 @@ Push Android lewat FCM bila build membawa `GOOGLE_SERVICES_JSON`; token dan baha
 
 Di jendela expanded daftar di kiri (360 dp) dan percakapan di kanan; di compact dan medium percakapan dibuka sebagai layar sendiri. Di medium dan expanded tombol Enter di keyboard fisik mengirim pesan; di compact Enter membuat baris baru. Bila kunci aplikasi aktif, pratinjau di daftar aplikasi terbaru dikosongkan (Android `FLAG_SECURE` saat aplikasi di latar, iOS lapisan blur).
 
-Alur `signed-in/chat.yaml` masuk bila perlu, membuka percakapan dengan akun web, mengirim 25 pesan, menyalakan mode pesawat, mengirim 25 pesan lagi, mematikan mode pesawat, lalu memeriksa lewat server bahwa ke-50 pesan ada tepat sekali, tanda baca dari web, dan pesan suara dua arah. Variabel tambahan: `-e DB=<database> -e WEB_LOGIN=<akun web> -e WEB_PASSWORD=<sandi> -e CHANNEL_ID=<id percakapan> -e PEER=<nama akun web> -e RUN=<penanda unik>`. Waktu dari tekan Kirim sampai gelembung tampil dicatat di log sebagai `send_visible_ms`.
+Alur `signed-in/chat.yaml` masuk bila perlu, membuka percakapan dengan akun web, mengirim 25 pesan, menyalakan mode pesawat, mengirim 25 pesan lagi, mematikan mode pesawat, lalu memeriksa lewat server bahwa ke-50 pesan ada tepat sekali, tanda baca dari web, dan pesan suara dua arah. Variabel tambahan: `-e SERVER=<alamat server> -e DB=<database> -e WEB_LOGIN=<akun web> -e WEB_PASSWORD=<sandi> -e CHANNEL_ID=<id percakapan> -e PEER=<nama akun web> -e RUN=<penanda unik>`. Waktu dari tekan Kirim sampai gelembung tampil dicatat di log sebagai `send_visible_ms`.
 
 ## Lisensi
 

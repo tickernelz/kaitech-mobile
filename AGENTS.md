@@ -33,7 +33,7 @@ Run lint and typecheck before declaring any task done.
 
 APK and IPA are built only in GitHub Actions (`.github/workflows/build.yml`). Do not use EAS Build, EAS Submit, or EAS Update. There are no store accounts yet: the APK is signed with a non-store keystore from GitHub Secrets, the IPA is unsigned.
 
-Never commit secrets, server addresses, client data, or credential files. Server address and database are entered by the user at sign-in.
+Never commit secrets, server addresses, client data, or credential files. Sign-in defaults to the link host server and the `KAITECH_DEFAULT_DB` database, both read from repo variables at build time; users who need another server enter its address and database.
 
 E2E flows live in `.maestro/` and run on an Android emulator in CI with a screen recording artifact.
 
