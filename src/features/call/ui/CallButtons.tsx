@@ -9,7 +9,7 @@ function CallButton({ icon, label, onPress, testID }: { icon: IconName; label: s
   const { colors } = useTheme();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={8} style={styles.button} testID={testID}>
-      <Icon name={icon} color={colors.primary} />
+      <Icon name={icon} color={colors.ink} />
     </Pressable>
   );
 }

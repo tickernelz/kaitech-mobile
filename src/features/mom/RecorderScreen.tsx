@@ -77,7 +77,7 @@ function RoundButton({
             opacity: disabled ? 0.4 : pressed ? 0.8 : 1,
           },
         ]}>
-        <Icon name={icon} size={big ? 32 : 24} color={danger ? '#FFFFFF' : colors.ink} />
+        <Icon name={icon} size={big ? 32 : 24} color={danger ? colors.onPrimary : colors.ink} />
       </Pressable>
       <Text variant="footnote" style={styles.roundLabel} maxFontSizeMultiplier={1.6}>
         {label}
@@ -141,7 +141,7 @@ function SmallRound({
         styles.smallRound,
         { backgroundColor: danger ? colors.danger : pressed ? colors.surface2 : colors.surface, borderColor: colors.line, opacity: disabled ? 0.4 : 1 },
       ]}>
-      <Icon name={icon} size={24} color={danger ? '#FFFFFF' : colors.ink} />
+      <Icon name={icon} size={24} color={danger ? colors.onPrimary : colors.ink} />
     </Pressable>
   );
 }

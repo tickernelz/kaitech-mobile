@@ -25,7 +25,7 @@ export function ScreenStage({ presenter, people, side, onStop }: { presenter: Ca
 
   return (
     <View style={[styles.fill, side ? styles.row : null]}>
-      <View style={[styles.screen, { backgroundColor: presenter.local ? colors.surface2 : '#000000' }]} testID="call-screen-share">
+      <View style={[styles.screen, { backgroundColor: presenter.local ? colors.surface2 : colors.stage }]} testID="call-screen-share">
         {presenter.local ? (
           <View style={styles.center}>
             <Icon name="screenShare" size={40} color={colors.primary} />
@@ -46,8 +46,8 @@ export function ScreenStage({ presenter, people, side, onStop }: { presenter: Ca
           </View>
         )}
         {presenter.local ? null : (
-          <View style={styles.label}>
-            <Text variant="footnote" numberOfLines={1} style={styles.name}>
+          <View style={[styles.label, { backgroundColor: colors.stageScrim }]}>
+            <Text variant="footnote" numberOfLines={1} style={{ color: colors.onStage }}>
               {t('screenOf', { name: presenter.name })}
             </Text>
           </View>
@@ -69,8 +69,7 @@ const styles = StyleSheet.create({
   center: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.lg },
   note: { textAlign: 'center' },
   stop: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: 24, minHeight: 44, justifyContent: 'center' },
-  label: { paddingHorizontal: space.sm, paddingVertical: space.xs, backgroundColor: 'rgba(0,0,0,0.4)' },
-  name: { color: '#FFFFFF' },
+  label: { paddingHorizontal: space.sm, paddingVertical: space.xs },
   strip: { flexGrow: 0 },
   sideStrip: { flexGrow: 0, width: 120 },
   stripInner: { gap: space.sm },

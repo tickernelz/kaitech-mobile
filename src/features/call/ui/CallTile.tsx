@@ -31,11 +31,11 @@ export function CallTile({ person, width, height, rounded }: { person: CallPerso
           <Avatar name={person.name} seed={person.partnerId ?? person.sid.length} size={Math.min(width, height) * 0.42} />
         </View>
       )}
-      <View style={styles.label}>
-        <Text variant="footnote" numberOfLines={1} style={styles.name}>
+      <View style={[styles.label, { backgroundColor: colors.stageScrim }]}>
+        <Text variant="footnote" numberOfLines={1} style={[styles.name, { color: colors.onStage }]}>
           {person.local ? t('you') : person.name}
         </Text>
-        {person.micOn ? null : <Icon name="micOff" size={16} color={colors.inkFaint} />}
+        {person.micOn ? null : <Icon name="micOff" size={16} color={colors.onStage} />}
       </View>
     </View>
   );
@@ -44,6 +44,6 @@ export function CallTile({ person, width, height, rounded }: { person: CallPerso
 const styles = StyleSheet.create({
   frame: { overflow: 'hidden', borderWidth: 2, justifyContent: 'flex-end' },
   center: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
-  label: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.sm, paddingVertical: space.xs, backgroundColor: 'rgba(0,0,0,0.28)' },
-  name: { color: '#FFFFFF', flexShrink: 1 },
+  label: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.sm, paddingVertical: space.xs },
+  name: { flexShrink: 1 },
 });

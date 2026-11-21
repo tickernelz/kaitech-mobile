@@ -1,23 +1,11 @@
 import { memo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { useTheme } from '../../../theme';
+import { personColors, useTheme } from '../../../theme';
 import { initials } from '../../../screens/initials';
 import { Text } from '../../../ui/Text';
 import { useChat } from '../chat';
 import { useCookie } from './useCookie';
 import { Icon, type IconName } from '../../../ui/icons';
-
-const tints = [
-  ['#F0E7FC', '#472268'],
-  ['#DCF7E2', '#0D6332'],
-  ['#FFEECB', '#7D4A07'],
-  ['#E4F0FF', '#225899'],
-  ['#FFE7E6', '#B91C1E'],
-] as const;
-
-function tintFor(seed: number) {
-  return tints[Math.abs(seed) % tints.length];
-}
 
 export const Avatar = memo(function Avatar({
   name,
@@ -32,12 +20,11 @@ export const Avatar = memo(function Avatar({
   size?: number;
   icon?: IconName;
 }) {
-  const { scheme } = useTheme();
+  const { scheme, colors } = useTheme();
   const origin = useChat((state) => state.origin);
   const cookie = useCookie();
-  const [band, ink] = tintFor(seed);
-  const background = scheme === 'dark' ? ink : band;
-  const foreground = scheme === 'dark' ? band : ink;
+  const background = personColors(seed, scheme).fill;
+  const foreground = colors.onPrimary;
   const frame = { width: size, height: size, borderRadius: size / 2, backgroundColor: background };
   return (
     <View style={[styles.frame, frame]} accessible={false} importantForAccessibility="no-hide-descendants">
