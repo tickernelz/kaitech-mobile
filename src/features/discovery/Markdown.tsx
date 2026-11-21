@@ -2,6 +2,8 @@ import { Fragment } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { space } from '../../theme';
 import { Text } from '../../ui/Text';
+import { splitBlocks } from './blocks';
+import { KtBlockView } from './KtBlockView';
 
 type Block = { kind: 'paragraph' | 'bullet' | 'heading'; text: string };
 
@@ -37,9 +39,9 @@ function Inline({ text }: { text: string }) {
   );
 }
 
-export function Markdown({ text }: { text: string }) {
+function Prose({ text }: { text: string }) {
   return (
-    <View style={styles.wrap}>
+    <>
       {blocksOf(text).map((block, index) =>
         block.kind === 'bullet' ? (
           <View key={index} style={styles.bullet}>
@@ -52,6 +54,20 @@ export function Markdown({ text }: { text: string }) {
           <Text key={index} variant={block.kind === 'heading' ? 'headline' : 'body'} selectable>
             <Inline text={block.text} />
           </Text>
+        ),
+      )}
+    </>
+  );
+}
+
+export function Markdown({ text, onReply }: { text: string; onReply?: (reply: string) => void }) {
+  return (
+    <View style={styles.wrap}>
+      {splitBlocks(text).map((segment, index) =>
+        segment.kind === 'block' ? (
+          <KtBlockView key={index} raw={segment.raw} onReply={onReply} />
+        ) : (
+          <Prose key={index} text={segment.text} />
         ),
       )}
     </View>

@@ -302,6 +302,7 @@ export function CoworkerThread({
     if (kept.length) setFiles((current) => [...current, ...kept]);
   };
 
+  const reply = (text: string) => void send({ key: randomUUID(), text, failed: null, files: [], sent: null });
   const submit = () => {
     const text = draft.trim();
     if ((!text && !files.length) || !active) return;
@@ -358,7 +359,7 @@ export function CoworkerThread({
     if (item.kind === 'reply') {
       return (
         <Bubble mine={false} testID={`${testID}-reply`}>
-          {item.item.body.trim() ? <Markdown text={item.item.body} /> : null}
+          {item.item.body.trim() ? <Markdown text={item.item.body} onReply={reply} /> : null}
           <Attachments attachments={chatAttachments(item.item.attachments)} origin={active?.origin ?? ''} mine={false} />
         </Bubble>
       );
