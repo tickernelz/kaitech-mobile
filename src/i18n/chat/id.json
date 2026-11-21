@@ -71,9 +71,11 @@
     "empty": "Belum ada pesan di sini. Mulailah dengan menyapa.",
     "pickOne": "Pilih percakapan untuk membacanya di sini.",
     "queued": "Menunggu koneksi",
-    "cannotOpen": "Tidak ada aplikasi di perangkat ini yang dapat membuka {{name}}.",
+    "cannotOpen": "Tidak ada aplikasi di perangkat ini yang dapat membuka {{name}}. Bagikan ke aplikasi yang bisa.",
     "share": "Bagikan {{name}}",
-    "cannotShare": "Perangkat ini tidak bisa membagikan berkas."
+    "cannotShare": "Perangkat ini tidak bisa membagikan berkas.",
+    "close": "Tutup",
+    "shareInstead": "Bagikan"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",

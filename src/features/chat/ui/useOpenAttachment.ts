@@ -33,25 +33,29 @@ export function useOpenAttachment() {
     },
     [opening, t],
   );
+  const handOver = useCallback(
+    async (attachment: Attachment, uri: string) => {
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert(t('thread.cannotShare'));
+        return;
+      }
+      await Sharing.shareAsync(uri, { mimeType: attachment.mimetype || undefined, dialogTitle: attachment.name });
+    },
+    [t],
+  );
   const open = useCallback(
     (attachment: Attachment) =>
       fetched(attachment, async (file) => {
         const mimeType = attachment.mimetype || undefined;
         if (await file.canPreview({ mimeType })) await file.preview({ mimeType, title: attachment.name });
-        else Alert.alert(t('thread.cannotOpen', { name: attachment.name }));
+        else
+          Alert.alert(t('thread.cannotOpen', { name: attachment.name }), undefined, [
+            { text: t('thread.close'), style: 'cancel' },
+            { text: t('thread.shareInstead'), onPress: () => void handOver(attachment, file.uri) },
+          ]);
       }),
-    [fetched, t],
+    [fetched, handOver, t],
   );
-  const share = useCallback(
-    (attachment: Attachment) =>
-      fetched(attachment, async (file) => {
-        if (!(await Sharing.isAvailableAsync())) {
-          Alert.alert(t('thread.cannotShare'));
-          return;
-        }
-        await Sharing.shareAsync(file.uri, { mimeType: attachment.mimetype || undefined, dialogTitle: attachment.name });
-      }),
-    [fetched, t],
-  );
+  const share = useCallback((attachment: Attachment) => fetched(attachment, (file) => handOver(attachment, file.uri)), [fetched, handOver]);
   return { open, share, opening };
 }
