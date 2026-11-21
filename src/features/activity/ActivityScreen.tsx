@@ -88,6 +88,7 @@ export function ActivityScreen() {
           return (
             <Pressable
               accessibilityRole="button"
+              accessibilityLabel={[t(activityKindKey(item.kind) as never), item.headline, item.engagement, since ? date(since) : ''].filter(Boolean).join(', ')}
               onPress={() => open(item)}
               testID={`activity-${item.kind}-${index}`}
               style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
@@ -95,15 +96,10 @@ export function ActivityScreen() {
                 <Icon name={iconOf[item.kind] ?? 'bulb'} size={20} color={item.kind === 'card' ? colors.warnInk : colors.selectInk} />
               </View>
               <View style={styles.fill}>
-                <Text variant="label" tone="inkSoft">
-                  {t(activityKindKey(item.kind) as never)} · {item.engagement}
-                </Text>
                 <Text variant="callout">{item.headline}</Text>
-                {since ? (
-                  <Text variant="footnote" tone="inkFaint">
-                    {date(since)}
-                  </Text>
-                ) : null}
+                <Text variant="footnote" tone="inkFaint" numberOfLines={1}>
+                  {since ? `${item.engagement} · ${date(since)}` : item.engagement}
+                </Text>
               </View>
               <Icon name="forward" size={20} color={colors.inkFaint} />
             </Pressable>

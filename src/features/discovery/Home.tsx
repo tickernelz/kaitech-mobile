@@ -259,7 +259,6 @@ export function DiscoveryHome() {
                   key={`packet-${packet.id}`}
                   icon="decision"
                   title={packet.name}
-                  detail={packet.state_label}
                   onPress={() => openCard(packet)}
                   testID={`waiting-card-${packet.id}`}
                 />
