@@ -1,0 +1,44 @@
+appId: io.kaitech.mobile
+name: Screen share, part 1 - start a voice call with the web peer and share the phone screen (local only)
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      id: chat-list
+    timeout: 30000
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: call-voice
+    timeout: 30000
+- tapOn:
+    id: call-voice
+- extendedWaitUntil:
+    visible:
+      id: call-share
+    timeout: 60000
+- tapOn:
+    id: call-share
+- runFlow: ../shared/allow-screen-capture.yaml
+- extendedWaitUntil:
+    visible:
+      id: call-screen-share-own
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: s1-sharing

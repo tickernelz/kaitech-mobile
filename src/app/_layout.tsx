@@ -55,6 +55,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="chat/[id]" />
             <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
+            <Stack.Screen name="recording/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
             <Stack.Screen name="program" />
             <Stack.Screen name="mom" />
             <Stack.Screen name="search" options={{ animation: 'fade' }} />

@@ -34,6 +34,35 @@
   "youAreSharing": "Layarmu sedang dibagikan. Semua peserta panggilan bisa melihatnya.",
   "screenOf": "Layar {{name}}",
   "recording": "Sedang direkam",
+  "startRecording": "Rekam",
+  "stopRecording": "Hentikan rekaman",
+  "recordingBy": "Sedang direkam · dimulai oleh {{name}}",
+  "recordingErrors": {
+    "not_in_call": "Masuk ke panggilan dulu untuk merekamnya.",
+    "not_recording": "Panggilan ini sudah tidak direkam.",
+    "recording_busy": "Server sedang merekam panggilan lain. Coba lagi setelah selesai.",
+    "call_unavailable": "Rekaman belum disiapkan di server ini.",
+    "recording_unavailable": "Perekam tidak menjawab, jadi tidak ada yang terekam. Coba lagi sebentar lagi.",
+    "network": "Server tidak bisa dihubungi. Periksa koneksi lalu coba lagi.",
+    "other": "Rekaman gagal dimulai. Coba lagi."
+  },
+  "recordingCard": {
+    "video": "Rekaman panggilan",
+    "audio": "Rekaman panggilan (suara)",
+    "loading": "Memuat rekaman…",
+    "unavailable": "Rekaman gagal dimuat. Ketuk untuk mencoba lagi.",
+    "saving": "Masih disimpan…",
+    "failed": "Rekaman ini gagal",
+    "deleted": "Rekaman ini sudah dihapus",
+    "deletedOn": "Dihapus pada {{date}}",
+    "deletesOn": "Terhapus otomatis pada {{date}}"
+  },
+  "player": {
+    "title": "Rekaman panggilan",
+    "close": "Tutup",
+    "unavailable": "Rekaman ini belum bisa diputar.",
+    "audioOnly": "Hanya suara"
+  },
   "ended": {
     "left": "Panggilan berakhir",
     "declined": "Panggilan ditolak",

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, readFileSync as read, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readFileSync as read, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join as joinPath } from 'node:path';
 
@@ -78,7 +78,60 @@ const page = [
 
 const peer = `
 const out = document.getElementById('log');
-const state = { connected: false, participants: [], speakers: [], remoteAudio: 0, audioPlays: 0, error: null };
+const state = { connected: false, participants: [], speakers: [], remoteAudio: 0, audioPlays: 0, recording: false, screens: [], sharing: false, error: null };
+const screens = new Map();
+let shared = null;
+function frames() {
+  for (const [identity, element] of screens) {
+    if (!element.videoWidth) continue;
+    const canvas = document.createElement('canvas');
+    canvas.width = element.videoWidth;
+    canvas.height = element.videoHeight;
+    canvas.getContext('2d').drawImage(element, 0, 0);
+    fetch('/frame?from=' + encodeURIComponent(identity), { method: 'POST', body: canvas.toDataURL('image/png') }).catch(() => undefined);
+  }
+  state.screens = [...screens].map(([identity, element]) => ({ identity, width: element.videoWidth, height: element.videoHeight }));
+}
+async function share(on) {
+  const room = globalThis.room;
+  if (!room) return;
+  if (on && !shared) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1280;
+    canvas.height = 720;
+    const draw = canvas.getContext('2d');
+    let tick = 0;
+    setInterval(() => {
+      tick += 1;
+      draw.fillStyle = '#441D65';
+      draw.fillRect(0, 0, 1280, 720);
+      draw.fillStyle = '#FFFFFF';
+      draw.font = 'bold 72px sans-serif';
+      draw.fillText('Web screen share', 80, 200);
+      draw.font = '48px sans-serif';
+      draw.fillText(new Date().toISOString().slice(11, 19) + ' UTC  frame ' + tick, 80, 320);
+      draw.fillStyle = '#F5B700';
+      draw.fillRect(80 + ((tick * 20) % 1000), 420, 120, 120);
+    }, 100);
+    const track = canvas.captureStream(10).getVideoTracks()[0];
+    shared = await room.localParticipant.publishTrack(track, { source: LivekitClient.Track.Source.ScreenShare, name: 'screen' });
+    state.sharing = true;
+    log('sharing a screen');
+  }
+  if (!on && shared) {
+    await room.localParticipant.unpublishTrack(shared.track);
+    shared = null;
+    state.sharing = false;
+    log('stopped sharing');
+  }
+  refresh();
+}
+setInterval(() => {
+  fetch('/command').then((answer) => answer.json()).then((command) => {
+    if (command && command.share !== undefined) share(command.share);
+  }).catch(() => undefined);
+  frames();
+}, 1000);
 function log(line) {
   out.textContent += line + '\\n';
   fetch('/log', { method: 'POST', body: String(line) }).catch(() => undefined);
@@ -105,6 +158,14 @@ async function start(call) {
     room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => { log('participant left'); refresh(); });
     room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
       log('subscribed ' + track.kind + ' from ' + (track.participant && track.participant.identity));
+      if (track.kind === 'video' && track.source === 'screen_share') {
+        const element = track.attach();
+        element.muted = true;
+        element.style.width = '640px';
+        document.body.appendChild(element);
+        screens.set(track.participant ? track.participant.identity : 'unknown', element);
+        log('screen from ' + (track.participant && track.participant.identity));
+      }
       if (track.kind === 'audio') {
         const element = track.attach();
         element.autoplay = true;
@@ -114,11 +175,22 @@ async function start(call) {
       }
       refresh();
     });
-    room.on(LivekitClient.RoomEvent.TrackUnsubscribed, refresh);
+    room.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track) => {
+      if (track.source === 'screen_share') {
+        const identity = track.participant ? track.participant.identity : 'unknown';
+        const element = screens.get(identity);
+        if (element) element.remove();
+        screens.delete(identity);
+        log('screen ended from ' + identity);
+      }
+      refresh();
+    });
+    room.on(LivekitClient.RoomEvent.RecordingStatusChanged, (recording) => { state.recording = recording; log('recording ' + recording); send(); });
     room.on(LivekitClient.RoomEvent.ActiveSpeakersChanged, (speakers) => { state.speakers = speakers.map((speaker) => speaker.identity); send(); });
     room.on(LivekitClient.RoomEvent.Disconnected, () => { state.connected = false; log('disconnected'); send(); });
     await room.connect(call.url, call.token);
     state.connected = true;
+    state.recording = room.isRecording;
     await room.localParticipant.setMicrophoneEnabled(true);
     if (call.video) await room.localParticipant.setCameraEnabled(true);
     log('connected as ' + room.localParticipant.identity + ' in ' + room.name);
@@ -141,7 +213,10 @@ fetch('/call').then((answer) => answer.json()).then(start).catch((error) => { st
 
 function serve() {
   const cfg = config();
-  const sessions = { cookie: '', sessionId: 0, state: null, ready: 0, logs: [], room: null };
+  const sessions = { cookie: '', sessionId: 0, state: null, ready: 0, logs: [], room: null, command: {} };
+  const framesDir = process.env.CALL_PEER_FRAMES ?? '';
+  let frameCount = 0;
+  if (framesDir) mkdirSync(framesDir, { recursive: true });
   const chromeDir = mkdtempSync(joinPath(tmpdir(), 'kaitech-call-peer-'));
   let chrome = null;
   let finished = false;
@@ -155,7 +230,14 @@ function serve() {
         if (path === '/state') {
           try { sessions.state = JSON.parse(body); } catch { sessions.state = null; }
         }
-        if (path === '/log') sessions.logs.push(body);
+        if (path === '/log') sessions.logs.push(new Date().toISOString() + ' ' + body);
+        if (path === '/frame' && framesDir && body.startsWith('data:image/png;base64,')) {
+          frameCount += 1;
+          writeFileSync(joinPath(framesDir, 'screen-' + String(frameCount).padStart(4, '0') + '.png'), Buffer.from(body.slice(22), 'base64'));
+        }
+        if (path === '/command') {
+          try { sessions.command = JSON.parse(body); } catch { sessions.command = {}; }
+        }
         if (path === '/ready') sessions.ready = 1;
         response.end('ok');
       });
@@ -169,6 +251,11 @@ function serve() {
     if (path === '/state') {
       response.setHeader('content-type', 'application/json');
       response.end(JSON.stringify(sessions.state));
+      return;
+    }
+    if (path === '/command') {
+      response.setHeader('content-type', 'application/json');
+      response.end(JSON.stringify(sessions.command));
       return;
     }
     if (path === '/livekit-client.umd.js') {
@@ -307,7 +394,22 @@ async function stop() {
   rmSync(statePath, { force: true });
 }
 
-const actions = { serve, start, state, leave, stop };
+async function screen() {
+  const current = readState();
+  if (!current?.port) throw new Error('the peer is not running');
+  const on = process.argv[3] === 'on';
+  await fetch('http://127.0.0.1:' + current.port + '/command', { method: 'POST', body: JSON.stringify({ share: on }) });
+  console.log(JSON.stringify({ share: on }));
+}
+
+async function live() {
+  const current = readState();
+  if (!current?.port) throw new Error('the peer is not running');
+  const answer = await fetch('http://127.0.0.1:' + current.port + '/state');
+  console.log(JSON.stringify(await answer.json(), null, 2));
+}
+
+const actions = { serve, start, state, leave, stop, screen, live };
 const run = actions[action];
 if (!run) {
   process.stderr.write('usage: call-peer.mjs ' + Object.keys(actions).join('|') + '\n');

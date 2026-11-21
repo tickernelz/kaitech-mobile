@@ -152,6 +152,24 @@ jest.mock('../src/features/call/livekit', () => ({
 
 jest.mock('../src/features/call/screenShare', () => ({ pickBroadcast: () => Promise.resolve(true) }));
 
+const mockRecordingCalls: string[] = [];
+let mockRecordingFailure: { code: string } | null = null;
+
+jest.mock('../src/features/call/recording', () => ({
+  startRecording: (account: { id: string }, channelId: number) => {
+    mockRecordingCalls.push(account.id + ':start:' + channelId);
+    return mockRecordingFailure ? Promise.reject(mockRecordingFailure) : Promise.resolve({ id: 7, startedBy: 'Budi' });
+  },
+  stopRecording: (account: { id: string }, channelId: number) => {
+    mockRecordingCalls.push(account.id + ':stop:' + channelId);
+    return Promise.resolve({ id: 7, startedBy: 'Budi' });
+  },
+  currentRecording: (account: { id: string }, channelId: number) => {
+    mockRecordingCalls.push(account.id + ':status:' + channelId);
+    return Promise.resolve({ id: 7, startedBy: 'Sari' });
+  },
+}));
+
 jest.mock('../src/features/call/permissions', () => ({
   ensureMicrophone: () => Promise.resolve(true),
   ensureCamera: () => Promise.resolve(true),
@@ -184,6 +202,8 @@ describe('screen sharing in a call', () => {
     mockNotices.length = 0;
     mockListeners.length = 0;
     mockRooms.length = 0;
+    mockRecordingCalls.length = 0;
+    mockRecordingFailure = null;
     jest.resetModules();
   });
 
@@ -234,11 +254,53 @@ describe('screen sharing in a call', () => {
     expect(mockUpdates).toEqual([]);
   });
 
-  it('shows the recording state of the room', async () => {
+});
+
+describe('recording a call', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    mockUpdates.length = 0;
+    mockListeners.length = 0;
+    mockRooms.length = 0;
+    mockRecordingCalls.length = 0;
+    mockRecordingFailure = null;
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  it('follows the room recording state and names who started it', async () => {
     const { call, room } = await activeCall();
     expect(call.callState().recording).toBe(false);
     room.isRecording = true;
     room.emit('recordingStatusChanged');
+    await flush();
     expect(call.callState().recording).toBe(true);
+    expect(call.callState().recordingBy).toBe('Sari');
+    expect(mockRecordingCalls).toEqual(['A:status:5']);
+  });
+
+  it('starts on the call account and channel, then stops while recording', async () => {
+    const { call, room } = await activeCall();
+    await call.toggleRecording();
+    expect(mockRecordingCalls).toEqual(['A:start:5']);
+    expect(call.callState().recordingBusy).toBe(false);
+    room.isRecording = true;
+    room.emit('recordingStatusChanged');
+    await flush();
+    await call.toggleRecording();
+    expect(mockRecordingCalls[mockRecordingCalls.length - 1]).toBe('A:stop:5');
+  });
+
+  it('negative control: a refused start keeps the call unrecorded and reports the code', async () => {
+    const { call } = await activeCall();
+    mockRecordingFailure = { code: 'recording_busy' };
+    await call.toggleRecording();
+    expect(call.callState().recording).toBe(false);
+    expect(call.callState().recordingError).toBe('recording_busy');
+    expect(call.callState().recordingBusy).toBe(false);
   });
 });

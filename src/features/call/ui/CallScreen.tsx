@@ -9,7 +9,7 @@ import { screenShareSupported, setBroadcastPicker } from '../screenShare';
 import { useTheme, space } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../chat/ui/icons';
-import { enterPictureInPicture, flipCamera, fullScreenIntentAllowed, hangUp, openFullScreenIntentSettings, pictureInPictureSupported, toggleCamera, toggleMute, toggleScreenShare, toggleSpeaker, useCallState } from '../call';
+import { enterPictureInPicture, flipCamera, fullScreenIntentAllowed, hangUp, openFullScreenIntentSettings, pictureInPictureSupported, toggleCamera, toggleMute, toggleRecording, toggleScreenShare, toggleSpeaker, useCallState } from '../call';
 import { CallControls, type CallAction } from './CallControls';
 import { CallTile } from './CallTile';
 import { ScreenStage } from './ScreenStage';
@@ -25,6 +25,7 @@ export function CallScreen() {
   const pip = pictureInPictureSupported();
   const share = call.phase === 'active' && screenShareSupported();
   const presenter = presenterOf(call.people);
+  const recording = call.phase === 'active' ? { on: call.recording, busy: call.recordingBusy } : null;
 
   const visible = useMemo(() => {
     const ids = call.people.map((person) => person.sid);
@@ -62,6 +63,7 @@ export function CallScreen() {
     if (action === 'flip') void flipCamera();
     if (action === 'speaker') void toggleSpeaker();
     if (action === 'share') void toggleScreenShare();
+    if (action === 'record') void toggleRecording();
     if (action === 'pip') void enterPictureInPicture();
     if (action === 'hangup') {
       void hangUp('left');
@@ -88,13 +90,18 @@ export function CallScreen() {
             <View style={styles.recording} accessibilityLiveRegion="polite" testID="call-recording">
               <Icon name="record" size={12} color={colors.danger} />
               <Text variant="footnote" style={{ color: colors.danger }}>
-                {t('recording')}
+                {call.recordingBy ? t('recordingBy', { name: call.recordingBy }) : t('recording')}
               </Text>
             </View>
           ) : null}
+          {call.recordingError ? (
+            <Text variant="footnote" tone="warnInk" accessibilityLiveRegion="polite" testID="call-recording-error">
+              {t(recordingErrorKey(call.recordingError))}
+            </Text>
+          ) : null}
           <FullScreenNotice />
         </View>
-        {layout.controls === 'rail' ? null : <CallControls vertical={false} video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} share={share} sharing={call.screenSharing} onAction={onAction} />}
+        {layout.controls === 'rail' ? null : <CallControls vertical={false} video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} share={share} sharing={call.screenSharing} recording={recording} onAction={onAction} />}
       </View>
 
       <View style={[styles.body, layout.controls === 'rail' ? styles.bodyRail : null]}>
@@ -120,7 +127,7 @@ export function CallScreen() {
         </View>
         {layout.controls === 'rail' ? (
           <View style={styles.rail}>
-            <CallControls vertical video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} share={share} sharing={call.screenSharing} onAction={onAction} />
+            <CallControls vertical video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} share={share} sharing={call.screenSharing} recording={recording} onAction={onAction} />
           </View>
         ) : null}
       </View>
@@ -186,6 +193,12 @@ const endedReasons = [
 ] as const;
 
 type EndedReason = (typeof endedReasons)[number];
+
+const recordingErrors = ['not_in_call', 'not_recording', 'recording_busy', 'call_unavailable', 'recording_unavailable', 'network'] as const;
+
+function recordingErrorKey(code: string): `recordingErrors.${(typeof recordingErrors)[number] | 'other'}` {
+  return `recordingErrors.${recordingErrors.find((item) => item === code) ?? 'other'}`;
+}
 
 function endedKey(reason: string | null): `ended.${EndedReason}` {
   const found = endedReasons.find((item) => item === reason) ?? 'left';

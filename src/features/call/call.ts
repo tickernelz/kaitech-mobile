@@ -11,6 +11,7 @@ import { invitationChannels, invitationsFrom, sessionIdsFrom, type Invitation } 
 import { ensureCamera, ensureMicrophone } from './permissions';
 import { accountFromPush } from './account';
 import { pickBroadcast } from './screenShare';
+import { currentRecording, startRecording, stopRecording } from './recording';
 
 export type CallPhase = 'idle' | 'incoming' | 'outgoing' | 'connecting' | 'active' | 'reconnecting' | 'ended';
 
@@ -42,6 +43,9 @@ export type CallState = {
   ringing: boolean;
   screenSharing: boolean;
   recording: boolean;
+  recordingBy: string | null;
+  recordingBusy: boolean;
+  recordingError: string | null;
   people: CallPerson[];
   speaking: string[];
   version: number;
@@ -64,6 +68,9 @@ const idle: CallState = {
   ringing: false,
   screenSharing: false,
   recording: false,
+  recordingBy: null,
+  recordingBusy: false,
+  recordingError: null,
   people: [],
   speaking: [],
   version: 0,
@@ -209,7 +216,37 @@ function syncScreen() {
 
 function syncRecording() {
   const recording = Boolean(room?.isRecording);
-  if (recording !== state.recording) publish({ recording });
+  if (recording === state.recording) return;
+  publish({ recording, recordingBy: recording ? state.recordingBy : null });
+  if (recording) void lookUpRecorder();
+}
+
+async function lookUpRecorder() {
+  const account = callAccount;
+  const session = joined;
+  if (!account || !session) return;
+  const found = await currentRecording(account, session.channelId).catch(() => null);
+  if (joined === session && state.recording && found) publish({ recordingBy: found.startedBy });
+}
+
+function errorCode(error: unknown): string {
+  return typeof error === 'object' && error !== null && 'code' in error ? String((error as { code: unknown }).code) : 'network';
+}
+
+export async function toggleRecording() {
+  const account = callAccount;
+  const session = joined;
+  if (!account || !session || state.recordingBusy || state.phase !== 'active') return;
+  const stopping = state.recording;
+  publish({ recordingBusy: true, recordingError: null });
+  try {
+    const found = stopping ? await stopRecording(account, session.channelId) : await startRecording(account, session.channelId);
+    if (joined === session && found && !stopping) publish({ recordingBy: found.startedBy });
+  } catch (error) {
+    if (joined === session) publish({ recordingError: errorCode(error) });
+  } finally {
+    if (joined === session) publish({ recordingBusy: false });
+  }
 }
 
 export async function startCall(input: { channelId: number; channelName: string; video: boolean }) {
@@ -309,6 +346,7 @@ async function connect(api: CallClient, channelId: number, video: boolean, start
     }
     collect();
     publish({ phase: 'active', startedAt: Date.now(), muted: false, cameraOn: video, speaker: true, recording: instance.isRecording });
+    if (instance.isRecording) void lookUpRecorder();
     void callNative()?.setInCall(true);
     void callNative()?.startCall(video, state.channelName || state.callerName, i18n.t('call:inCall'), channelId);
     startPing(api, started);

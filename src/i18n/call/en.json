@@ -34,6 +34,35 @@
   "youAreSharing": "You're sharing your screen. Everyone in the call can see it.",
   "screenOf": "{{name}}'s screen",
   "recording": "Recording",
+  "startRecording": "Record",
+  "stopRecording": "Stop recording",
+  "recordingBy": "Recording · started by {{name}}",
+  "recordingErrors": {
+    "not_in_call": "Join the call first to record it.",
+    "not_recording": "This call isn't being recorded anymore.",
+    "recording_busy": "The server is already recording another call. Try again when it ends.",
+    "call_unavailable": "Recording isn't set up on this server.",
+    "recording_unavailable": "The recorder didn't respond, so nothing was recorded. Try again in a moment.",
+    "network": "Couldn't reach the server. Check the connection and try again.",
+    "other": "Recording couldn't start. Try again."
+  },
+  "recordingCard": {
+    "video": "Call recording",
+    "audio": "Call recording (audio)",
+    "loading": "Loading the recording…",
+    "unavailable": "Couldn't load the recording. Tap to try again.",
+    "saving": "Still being saved…",
+    "failed": "This recording failed",
+    "deleted": "This recording was deleted",
+    "deletedOn": "Deleted on {{date}}",
+    "deletesOn": "Deleted automatically on {{date}}"
+  },
+  "player": {
+    "title": "Call recording",
+    "close": "Close",
+    "unavailable": "This recording can't be played right now.",
+    "audioOnly": "Audio only"
+  },
   "ended": {
     "left": "Call ended",
     "declined": "Call declined",

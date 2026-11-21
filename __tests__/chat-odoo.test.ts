@@ -71,7 +71,7 @@ describe('conversationPage', () => {
 
 describe('attachmentUrl', () => {
   it('uses the image route for pictures and carries the access token', () => {
-    const url = attachmentUrl('https://erp.example.com', { id: 3, name: 'a b.png', mimetype: 'image/png', size: 1, voice: false, accessToken: 't', checksum: null });
+    const url = attachmentUrl('https://erp.example.com', { id: 3, name: 'a b.png', mimetype: 'image/png', size: 1, voice: false, accessToken: 't', checksum: null, url: null });
     expect(url).toBe('https://erp.example.com/web/image/3?access_token=t&filename=a+b.png');
   });
 });
