@@ -2,16 +2,18 @@
 
 Aplikasi mobile Kaitech untuk Android dan iOS, dibangun dengan React Native dan Expo SDK 58 (development build, bukan Expo Go). APK dan IPA hanya dibangun di GitHub Actions, tanpa EAS Build.
 
-Alamat server dan database diisi pengguna saat masuk. Repo ini tidak menyimpan alamat server, kunci, atau token apa pun.
+Alamat server dan database diisi pengguna saat masuk. Repo ini tidak menyimpan alamat server, kunci, atau token apa pun. Satu-satunya nama host di build rilis adalah domain tautan masuk, diisi dari variabel repo saat build (lihat [Masuk](#masuk-login)).
 
 ## Rilis
 
 Unduh dari [Releases](https://github.com/tickernelz/kaitech-mobile/releases/latest): `kaitech-<build>-<sha>-arm64-v8a.apk` untuk Android (hampir semua ponsel Android sekarang; `kaitech-<build>-<sha>.apk` universal untuk ponsel lain), `kaitech-<build>-<sha>-unsigned.ipa` untuk iOS, dan `SHA256SUMS.txt`. Periksa unduhan dengan `sha256sum -c --ignore-missing SHA256SUMS.txt`. Ini rilis uji untuk tim, bukan rilis toko.
 
-Batas build rilis selama domain tautan, Firebase, dan akun Apple Developer belum ada (catatan rilis tiap tag menyebut mana yang berlaku untuk build itu):
+Masuk di Android memakai App Link di domain tautan `lab0.kaitech.io` (variabel repo `KAITECH_LINK_HOST`), tertanam di build rilis mulai v0.2.2. Build tanpa variabel itu, misalnya PR dari fork, memberi tahu di layar masuk bahwa domain tautan belum diatur.
 
-- **Masuk.** Kode masuk kembali ke aplikasi lewat App Link di domain tautan yang ditanam saat build (variabel repo `KAITECH_LINK_HOST`). Tanpa variabel itu layar masuk memberi tahu bahwa domain tautan belum diatur, dan build itu belum bisa masuk ke server. Setelah variabel diisi, tag berikutnya membawanya tanpa perubahan kode.
-- **Push Android.** Tanpa secret `GOOGLE_SERVICES_JSON` push mati; pesan dan dering baru tampil hanya saat aplikasi terbuka.
+Push Android lewat FCM ikut build rilis mulai v0.2.2 (secret `GOOGLE_SERVICES_JSON`); build tanpa secret itu tidak punya push, dan catatan rilisnya menyebutnya.
+
+Batas build rilis selama akun Apple Developer belum ada:
+
 - **iOS.** Lihat [Pasang IPA](#pasang-ipa-ios): masuk lewat Universal Link, APNs, VoIP push, dan CallKit butuh akun Apple Developer.
 
 ### Yang terbukti
@@ -23,6 +25,7 @@ Semua bukti dari emulator Android atau simulator iPad; belum ada uji di perangka
 | Pasang APK dari Release di emulator bersih, layar sambutan, form masuk (tanpa server); di ponsel juga rotasi di tengah form tanpa kehilangan isian | Android 15 ponsel (`pixel_6`) dan tablet 10 inci (`pixel_tablet`) | portrait, landscape | en, id | job `install from release` di run Release tiap tag, rekaman `e2e-android-release-*` |
 | Alur yang sama dengan APK x86_64 | Android 15 ponsel dan tablet | portrait, landscape | en, id | CI tiap push `main`, rekaman `e2e-android-*` |
 | Alur yang sama di iPad (percobaan, tidak memblokir) | simulator iPad di runner macOS | portrait, landscape | en | workflow `iPad trial`; hasil per tag ada di run `iPad trial` tag itu |
+| Masuk ke lab0 dari APK CI lewat App Link `lab0.kaitech.io` yang diverifikasi Android sendiri (`pm get-app-links`: verified), dari layar sambutan sampai Chat terbuka | Android 15 ponsel (`pixel_6`) | portrait | en | rekaman lokal APK CI, tidak dipublikasikan (tracker internal ZHA-7373) |
 | Masuk ke server lalu keluar (F0) | Android ponsel dan tablet | tidak dicatat | en, id | rekaman lokal dengan build yang membawa domain tautan, tidak dipublikasikan (tracker internal ZHA-7236) |
 | Chat: daftar, thread, antrean kirim offline, lampiran, pesan suara, dua panel di tablet (F1) | Android ponsel dan tablet | portrait, landscape | en, id | rekaman lokal (ZHA-7238) |
 | Panggilan suara dua arah ponsel ke web, dering CallStyle dengan foreground service, landscape, picture-in-picture (F2) | Android ponsel | portrait, landscape | tidak dicatat | rekaman lokal (ZHA-7240) |
@@ -35,7 +38,7 @@ Semua bukti dari emulator Android atau simulator iPad; belum ada uji di perangka
 - Split-screen Android, Split View dan Slide Over iPad, perangkat lipat, skala font sistem 200%, dan keyboard fisik di tablet. Konfigurasinya diperiksa (orientasi bebas, multi-window aktif, `UIRequiresFullScreen` mati) di APK dan IPA rilis, tetapi perilakunya belum diuji.
 - Masuk di iOS, APNs, VoIP push, CallKit, Universal Link iOS, rekam MoM di latar dan unggah di iOS: butuh akun Apple Developer.
 - Live Activity: belum dibangun; pembaruannya dari server butuh APNs.
-- Push Android sampai ke perangkat, termasuk dering saat aplikasi mati dan Tolak dari notifikasi saat aplikasi mati: butuh Firebase.
+- Push Android sampai ke perangkat, termasuk dering saat aplikasi mati dan Tolak dari notifikasi saat aplikasi mati: Firebase sudah ada di build rilis mulai v0.2.2, uji kirimnya belum.
 - Layar kunci sungguhan (emulator tanpa keyguard) dan pemakaian baterai.
 - Discovery di iPad: hanya diuji di emulator Android.
 - MoM di ponsel landscape: sekali tercatat "recording couldn't start" di emulator dan belum terulang; galat native-nya kini masuk logcat bila muncul lagi.
@@ -91,8 +94,6 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 - CallKit yang memakai entitlement push VoIP.
 - Universal Links iOS yang terverifikasi (`apple-app-site-association` dengan Team ID), yang dibutuhkan untuk masuk di iOS.
 - Live Activity untuk panggilan dan rekaman MoM.
-
-Di luar akun toko, dua hal lain masih menunggu Zhafron: domain tautan untuk masuk dari build rilis (variabel repo `KAITECH_LINK_HOST`) dan proyek Firebase untuk push Android (secret `GOOGLE_SERVICES_JSON`).
 
 ## Calls
 
@@ -232,7 +233,7 @@ Bahasa awal mengikuti perangkat (`id` atau `in` menjadi Indonesia, selain itu In
 
 Aplikasi membuka `/kaitech_mobile/authorize` di server yang diisi pengguna lewat browser sistem dengan PKCE S256, lalu menukar kode di `/kaitech_mobile/token`. Token perangkat disimpan di Keychain/Keystore (`expo-secure-store`, hanya perangkat ini, hanya saat terbuka); data akun yang bukan rahasia disimpan di `kv-store`. Kontrak server: README modul `kaitech_mobile` lab0.
 
-Server mengembalikan kode ke App Link/Universal Link `https://<domain tautan>/kaitech_mobile/callback`; skema kustom tidak dipakai. Domain tautan dibaca saat build dari variabel `KAITECH_LINK_HOST` (bukan dari repo). Build tanpa variabel itu tetap jalan, tetapi layar masuk menampilkan pesan bahwa domain tautan belum diatur. Domain itu harus menyajikan `/.well-known/assetlinks.json` dengan sidik jari sertifikat di atas dan terdaftar di `kaitech_mobile.redirect_uris` server.
+Server mengembalikan kode ke App Link/Universal Link `https://<domain tautan>/kaitech_mobile/callback`; skema kustom tidak dipakai. Domain tautan dibaca saat build dari variabel `KAITECH_LINK_HOST` (bukan dari repo); nilainya `lab0.kaitech.io`, jadi nama host itu terlihat di APK dan IPA publik. Build tanpa variabel itu tetap jalan, tetapi layar masuk menampilkan pesan bahwa domain tautan belum diatur. Domain itu harus menyajikan `/.well-known/assetlinks.json` dengan sidik jari sertifikat di atas dan terdaftar di `kaitech_mobile.redirect_uris` server; lab0 memenuhi keduanya (parameter itu kosong, jadi server memakai `web.base.url` + `/kaitech_mobile/callback`). Server lain yang dimasukkan pengguna tetap mengembalikan kode ke domain tautan ini, jadi server itu harus mendaftarkan `https://lab0.kaitech.io/kaitech_mobile/callback` di `kaitech_mobile.redirect_uris`.
 
 ### Ikon dan splash
 
