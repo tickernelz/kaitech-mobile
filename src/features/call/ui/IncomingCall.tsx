@@ -1,4 +1,3 @@
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,15 +10,9 @@ import { answer, decline, useCallState } from '../call';
 export function IncomingCall() {
   const { t } = useTranslation('call');
   const { colors } = useTheme();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const call = useCallState();
   if (call.phase !== 'incoming') return null;
-
-  const open = () => {
-    void answer();
-    router.push({ pathname: '/call/[id]', params: { id: String(call.channelId) } });
-  };
 
   return (
     <View style={[styles.fill, { backgroundColor: colors.canvas, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.xl }]} testID="incoming-call">
@@ -36,7 +29,7 @@ export function IncomingCall() {
         <Pressable accessibilityRole="button" accessibilityLabel={t('decline')} onPress={() => void decline()} style={[styles.round, { backgroundColor: colors.danger }]} testID="incoming-decline">
           <Icon name="close" size={30} color={colors.onPrimary} />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel={t('answer')} onPress={open} style={[styles.round, { backgroundColor: colors.ok }]} testID="incoming-answer">
+        <Pressable accessibilityRole="button" accessibilityLabel={t('answer')} onPress={() => void answer()} style={[styles.round, { backgroundColor: colors.ok }]} testID="incoming-answer">
           <Icon name={call.video ? 'camera' : 'mic'} size={30} color={colors.onPrimary} />
         </Pressable>
       </View>

@@ -41,6 +41,7 @@ export type CallState = {
   startedAt: number;
   endedReason: string | null;
   ringing: boolean;
+  answering: boolean;
   screenSharing: boolean;
   recording: boolean;
   recordingBy: string | null;
@@ -66,6 +67,7 @@ const idle: CallState = {
   startedAt: 0,
   endedReason: null,
   ringing: false,
+  answering: false,
   screenSharing: false,
   recording: false,
   recordingBy: null,
@@ -291,6 +293,7 @@ export async function answer() {
   if (!api) return;
   const started = generation;
   stopRinging();
+  publish({ answering: true });
   if (!(await ensureMicrophone())) {
     if (stale(started)) return;
     publish({ phase: 'ended', endedReason: 'microphone', ringing: false });
@@ -581,6 +584,17 @@ export function setLocked(locked: boolean) {
   void callNative()?.setLocked(locked);
 }
 
+let screenSurface = false;
+
+function sendCallSurface(visible: boolean) {
+  void callNative()?.setCallSurface(visible).catch(() => undefined);
+}
+
+export function setCallSurface(visible: boolean) {
+  screenSurface = visible;
+  sendCallSurface(visible);
+}
+
 function stopRinging() {
   Vibration.cancel();
   void callNative()?.cancelRing(state.channelId);
@@ -678,8 +692,18 @@ function fromNative(action: CallAction) {
 async function takeLaunch(action: CallAction, target: Account | null) {
   if (action.type !== 'incoming' && action.type !== 'answer' && action.type !== 'open') return;
   if (!action.channelId) return;
-  const found = await lookForInvitations(action.channelId, { account: target ?? activeAccount() });
-  if (!found.length) return;
+  const account = target ?? activeAccount();
+  let placed = -1;
+  if (account && (state.phase === 'idle' || state.phase === 'ended')) {
+    ring({ channelId: action.channelId, callId: action.callId ?? 0, callerName: action.title ?? '', callerPartnerId: null, video: Boolean(action.video), channelType: '', channelName: '' }, account);
+    placed = generation;
+  }
+  const found = await lookForInvitations(action.channelId, { account });
+  if (!found.length) {
+    if (placed === generation && state.phase === 'incoming') reset();
+    sendCallSurface(state.phase === 'incoming' || (screenSurface && state.phase !== 'idle'));
+    return;
+  }
   if (action.type === 'answer' && state.phase === 'incoming') await answer();
 }
 
