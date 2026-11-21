@@ -51,12 +51,12 @@ describe('RichText native views', () => {
   it('stays close to the plain renderer in native views', () => {
     expect(nativeViews(render(bodyBlocks(composeBody('Pagi, barang sudah dikirim.', []))))).toBe(1);
     expect(nativeViews(render(bodyBlocks(composeBody('Daftar:\n- satu\n- dua\n- tiga\n\n> catatan', []))))).toBe(3);
-    expect(nativeViews(render(bodyBlocks(coworker)))).toBeLessThanOrEqual(14);
+    expect(nativeViews(render(bodyBlocks(coworker)))).toBeLessThanOrEqual(10);
   });
 
   it('draws a table of short cells one column at a time, rows aligned by line', () => {
     const texts = topTexts(render(sourceBlocks('| A | B |\n|---|---|\n| 1 | dua |\n| 3 | empat |', true)));
-    expect(texts).toEqual(['A', 'B', '1\n3', 'dua\nempat']);
+    expect(texts).toEqual(['A\n1\n3', 'B\ndua\nempat']);
   });
 
   it('keeps one text per cell when a cell could wrap', () => {

@@ -10,6 +10,7 @@ const CHAR_WIDTH = 9;
 const MIN_COLUMN = 72;
 const MAX_COLUMN = 240;
 const COLUMN_FIT = Math.floor((MAX_COLUMN - space.md * 2) / CHAR_WIDTH) - 2;
+const COLUMN_LINE = 30;
 const BULLET = '\u2022';
 const MARKER_GAP = '\u2002';
 const INDENT = '\u2003\u2003';
@@ -131,19 +132,17 @@ function Table({ block, paint }: { block: TableBlock; paint: Paint }) {
       ))}
     </View>
   );
-  const body = fitsColumns(block.rows) ? (
-    block.rows.length ? (
-      <View style={[styles.row, block.head && [styles.divider, { borderColor: colors.line }]]}>
-        {widths.map((_width, column) => (
-          <NativeText key={column} style={[cellStyle(column, false), styles.column]}>
-            {block.rows.flatMap((cells, index) => [index ? '\n' : '', ...spanNodes(cells[column] ?? [], paint, `r${index}.${column}`)])}
-          </NativeText>
-        ))}
-      </View>
-    ) : null
-  ) : (
-    block.rows.map((cells, index) => row(cells, false, index, index > 0 || !!block.head))
-  );
+  const columns = fitsColumns(all) ? (
+    <View style={styles.row}>
+      {block.head ? <View style={[styles.headBand, { backgroundColor: tint, borderColor: colors.line }]} /> : null}
+      {widths.map((_width, column) => (
+        <NativeText key={column} style={[cellStyle(column, false), styles.column]}>
+          {block.head ? <NativeText style={styles.bold}>{spanNodes(block.head[column] ?? [], paint, `h${column}`)}</NativeText> : null}
+          {block.rows.flatMap((cells, index) => [index || block.head ? '\n' : '', ...spanNodes(cells[column] ?? [], paint, `r${index}.${column}`)])}
+        </NativeText>
+      ))}
+    </View>
+  ) : null;
   return (
     <ScrollView
       horizontal
@@ -154,8 +153,12 @@ function Table({ block, paint }: { block: TableBlock; paint: Paint }) {
       accessibilityLabel={t('thread.table', { columns: widths.length, rows: block.rows.length })}
       testID="markdown-table">
       <View style={[styles.table, { borderColor: colors.line }]}>
-        {block.head ? row(block.head, true, -1, false) : null}
-        {body}
+        {columns ?? (
+          <>
+            {block.head ? row(block.head, true, -1, false) : null}
+            {block.rows.map((cells, index) => row(cells, false, index, index > 0 || !!block.head))}
+          </>
+        )}
       </View>
     </ScrollView>
   );
@@ -255,6 +258,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row' },
   divider: { borderTopWidth: StyleSheet.hairlineWidth },
   cell: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRightWidth: StyleSheet.hairlineWidth, fontSize: 15, lineHeight: 20 },
-  column: { lineHeight: 28, paddingVertical: 0 },
+  column: { lineHeight: COLUMN_LINE, paddingVertical: 0 },
+  headBand: { position: 'absolute', top: 0, left: 0, right: 0, height: COLUMN_LINE, borderBottomWidth: StyleSheet.hairlineWidth },
   lastCell: { borderRightWidth: 0 },
 });
