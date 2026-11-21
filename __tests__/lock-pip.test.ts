@@ -84,6 +84,16 @@ describe('app lock while a call sits in picture-in-picture', () => {
     expect(locks).toBe(1);
   });
 
+  it('locks when the resume is reported again after the mode change came first', () => {
+    emit(0, 'background', false);
+    emit(50, 'active', true);
+    now = 6 * minute;
+    pipEnded(false);
+    expect(locks).toBe(0);
+    pipEnded(true);
+    expect(locks).toBe(1);
+  });
+
   it('keeps counting when the window is dismissed instead of expanded', () => {
     emit(0, 'background', false);
     emit(50, 'active', true);

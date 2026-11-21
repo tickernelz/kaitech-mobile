@@ -96,7 +96,6 @@ let readTimers = new Map<number, ReturnType<typeof setTimeout>>();
 let teardown: (() => void)[] = [];
 let active = false;
 
-
 function set(next: Partial<ChatState>) {
   state = { ...state, ...next };
   listeners.forEach((listener) => listener());

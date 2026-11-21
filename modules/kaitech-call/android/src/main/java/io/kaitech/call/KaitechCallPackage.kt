@@ -24,8 +24,10 @@ class KaitechCallPackage : Package {
 
 class CallActivityListener(activity: Activity?) : ReactActivityLifecycleListener {
   private var owner = WeakReference(activity)
+  private var leftPip = false
   private val pipWatcher = Consumer<PictureInPictureModeChangedInfo> { info ->
     owner.get()?.let { held -> held.window.decorView.post { keepRendering(held, info.isInPictureInPictureMode) } }
+    if (!info.isInPictureInPictureMode) leftPip = true
     CallBridge.setPictureInPicture(info.isInPictureInPictureMode)
   }
 
@@ -59,6 +61,9 @@ class CallActivityListener(activity: Activity?) : ReactActivityLifecycleListener
 
   override fun onResume(activity: Activity) {
     CallKeyguard.apply(activity)
+    if (!leftPip) return
+    leftPip = false
+    activity.window.decorView.post { CallBridge.module?.dispatch(mapOf("type" to "pip", "active" to false)) }
   }
 
   override fun onPause(activity: Activity) {
