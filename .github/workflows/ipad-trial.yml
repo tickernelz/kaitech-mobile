@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+env:
+  KAITECH_LINK_HOST: ${{ vars.KAITECH_LINK_HOST }}
+  KAITECH_DEFAULT_DB: ${{ vars.KAITECH_DEFAULT_DB }}
+
 concurrency:
   group: ipad-trial-${{ github.ref }}
   cancel-in-progress: true
