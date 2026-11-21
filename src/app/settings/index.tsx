@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { Alert, View } from 'react-native';
 import { signOut, useSession } from '../../auth/session';
 import { Avatar } from '../../features/chat/ui/Avatar';
-import { useLockLabel } from '../../lock/useLockLabel';
 import { RowIcon, SettingsPage } from '../../screens/SettingsPage';
 import { useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
@@ -18,15 +17,15 @@ export default function Settings() {
   const { colors } = useTheme();
   const router = useRouter();
   const { active } = useSession();
-  const { method } = useLockLabel();
   const [busy, setBusy] = useState(false);
   if (!active) return null;
   const more = <Icon name="forward" size={20} color={colors.inkFaint} />;
   const entries: Entry[] = [
+    { icon: 'people', title: t('account.title'), href: '/settings/account', testID: 'settings-account' },
     { icon: 'image', title: t('settings.appearance'), href: '/settings/appearance', testID: 'settings-appearance' },
     { icon: 'bell', title: t('settings.notifications'), href: '/settings/notifications', testID: 'settings-notifications' },
     { icon: 'people', title: t('settings.accountsAndServer'), href: '/settings/accounts', testID: 'settings-accounts' },
-    ...(method ? [{ icon: 'eye' as const, title: t('settings.security'), href: '/settings/security' as const, testID: 'settings-security' }] : []),
+    { icon: 'lock', title: t('settings.security'), href: '/settings/security', testID: 'settings-security' },
     { icon: 'chat', title: t('settings.language'), href: '/settings/language', testID: 'settings-language' },
     { icon: 'bulb', title: t('settings.about'), href: '/settings/about', testID: 'settings-about' },
   ];

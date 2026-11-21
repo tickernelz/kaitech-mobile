@@ -614,8 +614,11 @@
       "photo_too_large": "Foto ini terlalu besar.",
       "photo_invalid": "Foto ini tidak bisa dibaca.",
       "network": "Tidak ada koneksi. Coba lagi.",
-      "generic": "Gagal menyimpan. Coba lagi."
-    }
+      "generic": "Gagal menyimpan. Coba lagi.",
+      "status_invalid": "Paling banyak 80 karakter dalam satu baris."
+    },
+    "status": "Status",
+    "statusHint": "Satu baris singkat yang dilihat orang di samping namamu"
   },
   "sheet": {
     "close": "Tutup"
@@ -680,6 +683,119 @@
       "tomorrow": "Besok",
       "inDays_one": "{{count}} hari lagi",
       "inDays_other": "{{count}} hari lagi"
+    }
+  },
+  "choice": {
+    "search": "Cari"
+  },
+  "notifications": {
+    "delivery": "Notifikasi Odoo",
+    "deliveryChoice": {
+      "inbox": "Tangani di Odoo",
+      "email": "Tangani lewat email"
+    },
+    "channels": "Pesan kanal",
+    "channelChoice": {
+      "all": "Semua pesan",
+      "mentions": "Hanya sebutan",
+      "no_notif": "Tidak ada"
+    }
+  },
+  "account": {
+    "title": "Akun Odoo",
+    "contact": "Kontak",
+    "email": "Email",
+    "phone": "Telepon",
+    "save": "Simpan",
+    "preferences": "Preferensi",
+    "timezone": "Zona waktu",
+    "calendarPrivacy": "Privasi kalender bawaan",
+    "signature": "Tanda tangan email",
+    "notSet": "Belum diatur",
+    "away": "Di luar kantor",
+    "awayToggle": "Di luar kantor",
+    "awayHint": "Orang yang mengirim pesan melihat pesanmu",
+    "awayFrom": "Dari",
+    "awayTo": "Sampai",
+    "awayMessage": "Pesan",
+    "language": "Bahasa akun Odoo",
+    "languageHint": "Dipakai untuk email dan notifikasi yang dikirim server kepadamu.",
+    "appLanguage": "Bahasa aplikasi"
+  },
+  "security": {
+    "thisPhone": "HP ini",
+    "account": "Akun Odoo",
+    "identity": {
+      "title": "Pastikan ini kamu",
+      "body": "Masukkan kata sandi Odoo untuk melanjutkan.",
+      "password": "Kata sandi",
+      "confirm": "Konfirmasi",
+      "wrong": "Kata sandi salah. Coba lagi."
+    },
+    "password": {
+      "title": "Ganti kata sandi",
+      "hint": "Mengganti kata sandi mengeluarkanmu dari web di browser lain.",
+      "new": "Kata sandi baru",
+      "confirm": "Ulangi kata sandi baru",
+      "mismatch": "Kata sandinya tidak sama.",
+      "save": "Ganti kata sandi",
+      "done": "Kata sandi sudah diganti."
+    },
+    "totp": {
+      "title": "Verifikasi dua langkah",
+      "on": "Aktif",
+      "off": "Nonaktif",
+      "enabledBody": "Saat masuk, kamu diminta kode dari aplikasi autentikator.",
+      "disabledBody": "Tambahkan kode dari aplikasi autentikator di setiap proses masuk.",
+      "start": "Aktifkan",
+      "scan": "Pindai kode ini dengan aplikasi autentikator, atau buka di HP ini.",
+      "qr": "Kode QR autentikator",
+      "openApp": "Buka di aplikasi autentikator",
+      "noApp": "Belum ada aplikasi autentikator di HP ini. Masukkan kuncinya manual.",
+      "manual": "Atau masukkan kunci ini manual:",
+      "copy": "Salin kunci",
+      "copied": "Tersalin",
+      "code": "Kode verifikasi",
+      "enable": "Aktifkan verifikasi dua langkah",
+      "disable": "Nonaktifkan",
+      "disableConfirm": "Nonaktifkan verifikasi dua langkah?"
+    },
+    "passkeys": {
+      "title": "Passkey",
+      "hint": "Passkey membuatmu bisa masuk ke web tanpa kata sandi.",
+      "created": "Ditambahkan {{date}}",
+      "none": "Belum ada passkey",
+      "addLater": "Untuk sementara tambahkan passkey lewat web; menambah dari HP ini menunggu pembaruan server.",
+      "name": "Nama",
+      "rename": "Ganti nama",
+      "delete": "Hapus passkey",
+      "deleteConfirm": "Hapus passkey {{name}}?"
+    },
+    "apiKeys": {
+      "title": "API key",
+      "hint": "API key membuat program lain bisa bertindak atas namamu. Rahasiakan.",
+      "created": "Dibuat {{date}}",
+      "expires": "Berlaku sampai {{date}}",
+      "none": "Belum ada API key",
+      "add": "API key baru",
+      "name": "Untuk apa?",
+      "duration": "Berlaku selama",
+      "create": "Buat kunci",
+      "ready": "API key siap",
+      "readyHint": "Salin sekarang. Kunci ini tidak ditampilkan lagi.",
+      "copy": "Salin kunci",
+      "copied": "Tersalin",
+      "delete": "Hapus kunci",
+      "deleteConfirm": "Hapus API key {{name}}? Program yang memakainya berhenti bekerja."
+    },
+    "devices": {
+      "title": "Perangkat",
+      "current": "{{name}} (yang ini)",
+      "none": "Belum ada perangkat",
+      "revoke": "Keluarkan",
+      "revokeConfirm": "Keluarkan {{name}}?",
+      "revokeAll": "Keluar dari semua perangkat lain",
+      "revokeAllConfirm": "Keluar dari semua perangkat kecuali yang ini?"
     }
   }
 }

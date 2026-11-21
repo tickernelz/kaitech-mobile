@@ -1,0 +1,87 @@
+import type { Account } from '../src/auth/oauth';
+import { localDayFromOdoo, meFrom, odooDateTime, plainSignature, selectionOf, setChannelNotifications, signatureHtml, discussSettings } from '../src/features/account/odoo';
+import { confirmIdentity, identityOf, makeApiKey, openTotp, revokeAllDevices, totpSecretGroups } from '../src/features/account/security';
+
+const mockCalls: { model: string; method: string; args: unknown[]; kwargs: Record<string, unknown> }[] = [];
+const mockAnswers: unknown[] = [];
+
+jest.mock('../src/api/odoo', () => ({
+  rpc: (_account: unknown, model: string, method: string, args: unknown[] = [], kwargs: Record<string, unknown> = {}) => {
+    mockCalls.push({ model, method, args, kwargs });
+    return Promise.resolve(mockAnswers.shift());
+  },
+}));
+
+const account = { id: 'a', origin: 'https://lab0.test', db: 'lab0', userId: 9, partnerId: 7, deviceId: 1, name: 'Budi', login: 'budi', signedInAt: 0 } as Account;
+const identityAction = { type: 'ir.actions.act_window', res_model: 'res.users.identitycheck', res_id: 31 };
+
+beforeEach(() => {
+  mockCalls.length = 0;
+  mockAnswers.length = 0;
+});
+
+describe('account preferences', () => {
+  it('reads the user row with empty Odoo values as empty text', () => {
+    expect(meFrom({ email: 'b@x.id', phone: false, tz: 'Asia/Jakarta', totp_enabled: true, out_of_office_from: false })).toMatchObject({
+      email: 'b@x.id',
+      phone: '',
+      tz: 'Asia/Jakarta',
+      totpEnabled: true,
+      outOfOfficeFrom: '',
+    });
+  });
+
+  it('reads selection choices from fields_get', () => {
+    expect(selectionOf({ tz: { selection: [['Asia/Jakarta', 'Asia/Jakarta'], ['UTC', 'UTC']] } }, 'tz')).toEqual([
+      { value: 'Asia/Jakarta', label: 'Asia/Jakarta' },
+      { value: 'UTC', label: 'UTC' },
+    ]);
+    expect(selectionOf({}, 'tz')).toEqual([]);
+  });
+
+  it('stores Mentions only as no channel setting, the way the web does', async () => {
+    mockAnswers.push([{ id: 4, channel_notifications: false }], {});
+    expect(await discussSettings(account)).toEqual({ id: 4, channelNotifications: 'mentions' });
+    await setChannelNotifications(account, 4, 'mentions');
+    expect(mockCalls[1]).toMatchObject({ model: 'res.users.settings', method: 'set_res_users_settings', args: [[4]], kwargs: { new_settings: { channel_notifications: false } } });
+  });
+
+  it('keeps the lines of a signature and escapes typed markup', () => {
+    expect(signatureHtml('Budi <b>\nKaitech & Co')).toBe('<div>Budi &lt;b&gt;<br>Kaitech &amp; Co</div>');
+    expect(plainSignature(signatureHtml('Budi <b>\nKaitech & Co'))).toBe('Budi <b>\nKaitech & Co');
+  });
+
+  it('sends out-of-office bounds in UTC and shows them as local days', () => {
+    const start = new Date(2026, 11, 1, 0, 0, 0);
+    const stored = odooDateTime(start);
+    expect(stored).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+    expect(localDayFromOdoo(stored)).toBe('2026-12-01');
+  });
+});
+
+describe('identity check', () => {
+  it('stops at the password check the web asks for, then resumes with the password in the context', async () => {
+    mockAnswers.push(identityAction);
+    expect(await openTotp(account)).toEqual({ kind: 'identity', checkId: 31 });
+    mockAnswers.push({ res_model: 'auth_totp.wizard', res_id: 8 });
+    await confirmIdentity(account, 31, 'secret');
+    expect(mockCalls[1]).toMatchObject({ model: 'res.users.identitycheck', method: 'run_check', args: [[31]], kwargs: { context: { password: 'secret' } } });
+  });
+
+  it('runs straight through when the identity was checked a moment ago', async () => {
+    mockAnswers.push({ type: 'ir.actions.client', tag: 'reload' });
+    expect(await revokeAllDevices(account)).toEqual({ kind: 'done', value: true });
+    expect(identityOf(false)).toBeNull();
+  });
+
+  it('hands back the new API key from the web wizard result', async () => {
+    mockAnswers.push(12, { res_model: 'res.users.apikeys.show', context: { default_key: 'abc123' } });
+    expect(await makeApiKey(account, ' CI ', '30')).toBe('abc123');
+    expect(mockCalls[0]).toMatchObject({ model: 'res.users.apikeys.description', method: 'create', args: [{ name: 'CI', duration: '30' }] });
+  });
+
+  it('groups a TOTP key for reading aloud', () => {
+    expect(totpSecretGroups('ABCD EFGH IJKL')).toBe('ABCD EFGH IJKL');
+    expect(totpSecretGroups('ABCDEFGHIJ')).toBe('ABCD EFGH IJ');
+  });
+});

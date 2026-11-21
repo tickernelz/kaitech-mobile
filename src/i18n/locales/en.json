@@ -614,8 +614,11 @@
       "photo_too_large": "This photo is too large.",
       "photo_invalid": "This photo cannot be read.",
       "network": "No connection. Try again.",
-      "generic": "Could not save. Try again."
-    }
+      "generic": "Could not save. Try again.",
+      "status_invalid": "Use at most 80 characters on one line."
+    },
+    "status": "Status",
+    "statusHint": "A short line others see next to your name"
   },
   "sheet": {
     "close": "Close"
@@ -680,6 +683,119 @@
       "tomorrow": "Tomorrow",
       "inDays_one": "In {{count}} day",
       "inDays_other": "In {{count}} days"
+    }
+  },
+  "choice": {
+    "search": "Search"
+  },
+  "notifications": {
+    "delivery": "Odoo notifications",
+    "deliveryChoice": {
+      "inbox": "Handle in Odoo",
+      "email": "Handle by email"
+    },
+    "channels": "Channel messages",
+    "channelChoice": {
+      "all": "All messages",
+      "mentions": "Mentions only",
+      "no_notif": "Nothing"
+    }
+  },
+  "account": {
+    "title": "Odoo account",
+    "contact": "Contact",
+    "email": "Email",
+    "phone": "Phone",
+    "save": "Save",
+    "preferences": "Preferences",
+    "timezone": "Time zone",
+    "calendarPrivacy": "Default calendar privacy",
+    "signature": "Email signature",
+    "notSet": "Not set",
+    "away": "Out of office",
+    "awayToggle": "Out of office",
+    "awayHint": "People who message you see your message",
+    "awayFrom": "From",
+    "awayTo": "Until",
+    "awayMessage": "Message",
+    "language": "Odoo account language",
+    "languageHint": "Used for emails and notifications the server sends you.",
+    "appLanguage": "App language"
+  },
+  "security": {
+    "thisPhone": "This phone",
+    "account": "Odoo account",
+    "identity": {
+      "title": "Confirm it is you",
+      "body": "Enter your Odoo password to continue.",
+      "password": "Password",
+      "confirm": "Confirm",
+      "wrong": "Wrong password. Try again."
+    },
+    "password": {
+      "title": "Change password",
+      "hint": "Changing the password signs you out of the web on other browsers.",
+      "new": "New password",
+      "confirm": "Repeat new password",
+      "mismatch": "The passwords do not match.",
+      "save": "Change password",
+      "done": "Password changed."
+    },
+    "totp": {
+      "title": "Two-step verification",
+      "on": "On",
+      "off": "Off",
+      "enabledBody": "Signing in asks for a code from your authenticator app.",
+      "disabledBody": "Add a code from an authenticator app to every sign-in.",
+      "start": "Turn on",
+      "scan": "Scan this code with your authenticator app, or open it on this phone.",
+      "qr": "Authenticator QR code",
+      "openApp": "Open in authenticator app",
+      "noApp": "No authenticator app on this phone. Enter the key by hand.",
+      "manual": "Or enter this key by hand:",
+      "copy": "Copy key",
+      "copied": "Copied",
+      "code": "Verification code",
+      "enable": "Turn on two-step verification",
+      "disable": "Turn off",
+      "disableConfirm": "Turn off two-step verification?"
+    },
+    "passkeys": {
+      "title": "Passkeys",
+      "hint": "Passkeys let you sign in to the web without a password.",
+      "created": "Added {{date}}",
+      "none": "No passkeys",
+      "addLater": "Add a passkey on the web for now; adding one from this phone needs a server update.",
+      "name": "Name",
+      "rename": "Rename",
+      "delete": "Delete passkey",
+      "deleteConfirm": "Delete the passkey {{name}}?"
+    },
+    "apiKeys": {
+      "title": "API keys",
+      "hint": "API keys let other programs act as you. Keep them secret.",
+      "created": "Created {{date}}",
+      "expires": "Expires {{date}}",
+      "none": "No API keys",
+      "add": "New API key",
+      "name": "What is it for?",
+      "duration": "Valid for",
+      "create": "Create key",
+      "ready": "API key ready",
+      "readyHint": "Copy it now. It is not shown again.",
+      "copy": "Copy key",
+      "copied": "Copied",
+      "delete": "Delete key",
+      "deleteConfirm": "Delete the API key {{name}}? Programs using it stop working."
+    },
+    "devices": {
+      "title": "Devices",
+      "current": "{{name}} (this one)",
+      "none": "No devices",
+      "revoke": "Sign out",
+      "revokeConfirm": "Sign out {{name}}?",
+      "revokeAll": "Sign out of all other devices",
+      "revokeAllConfirm": "Sign out of every device except this one?"
     }
   }
 }
