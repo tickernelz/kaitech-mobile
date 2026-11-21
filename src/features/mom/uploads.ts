@@ -295,9 +295,19 @@ export function sweepRecordings() {
   }
 }
 
+export async function runInBudget(budgetMs: number): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const budget = new Promise<void>((resolve) => (timer = setTimeout(resolve, budgetMs)));
+  try {
+    await Promise.race([drain(Date.now() + budgetMs), budget]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 TaskManager.defineTask(taskName, async () => {
   try {
-    await drain(Date.now() + backgroundBudgetMs);
+    await runInBudget(backgroundBudgetMs);
     return BackgroundTask.BackgroundTaskResult.Success;
   } catch {
     return BackgroundTask.BackgroundTaskResult.Failed;

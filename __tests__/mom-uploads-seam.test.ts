@@ -217,3 +217,15 @@ it('registers the background task while the first part is still on its way', asy
   release();
   await draining;
 });
+
+it('ends the background run at its budget even when a foreground drain is still sending', async () => {
+  signIn('u2_b');
+  mockAnswer = (path) => (path.endsWith('/mom/upload') ? new Promise(() => undefined) : answer(path));
+  const uploads = load([row('b4', 'u2_b', 'queued')]);
+  void uploads.drain();
+  let ended = false;
+  const background = uploads.runInBudget(1_000).then(() => (ended = true));
+  await jest.advanceTimersByTimeAsync(1_000);
+  await background;
+  expect(ended).toBe(true);
+});

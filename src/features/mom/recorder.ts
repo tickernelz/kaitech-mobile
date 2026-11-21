@@ -181,7 +181,8 @@ export async function start(setup: Setup): Promise<StartResult> {
     made.record();
     set({ ...setup, key, startedAt: Date.now(), phase: 'recording', markers: [], durationMs: 0 });
     return 'started';
-  } catch {
+  } catch (error) {
+    console.error('Meeting recording could not start', error);
     release();
     set(null);
     return 'failed';
