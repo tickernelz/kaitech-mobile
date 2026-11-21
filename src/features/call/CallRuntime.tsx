@@ -1,12 +1,12 @@
 import { usePathname, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { space, useTheme } from '../../theme';
 import { Text } from '../../ui/Text';
 import { Icon } from '../chat/ui/icons';
 import { onRealtimeNotifications } from '../chat/chat';
-import { onNotification, startAccount, stopAccount, useCallState } from './call';
+import { onNotification, setCallSurface, startAccount, stopAccount, useCallState } from './call';
 import { IncomingCall } from './ui/IncomingCall';
 import type { Account } from '../../auth/oauth';
 
@@ -27,6 +27,20 @@ export function CallRuntime({ account }: { account: Account | null }) {
   }, [account]);
 
   useEffect(() => onRealtimeNotifications((notification) => onNotification(notification.type, notification.payload)), []);
+
+  const onCallScreen = pathname.startsWith('/call/');
+  const surface = call.phase === 'incoming' || onCallScreen;
+  const seen = useRef(false);
+  useEffect(() => {
+    if (!surface && !seen.current) return;
+    seen.current = true;
+    setCallSurface(surface);
+  }, [surface]);
+
+  const answering = call.phase === 'incoming' && call.answering;
+  useEffect(() => {
+    if (answering && !onCallScreen) router.push({ pathname: '/call/[id]', params: { id: String(call.channelId) } });
+  }, [answering, onCallScreen, call.channelId, router]);
 
   if (call.phase === 'incoming') return <IncomingCall />;
 
