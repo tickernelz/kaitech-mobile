@@ -55,6 +55,41 @@ export async function bearer<T>(
   return body as T;
 }
 
+const slowestUplinkBytesPerSecond = 32 * 1024;
+const uploadGraceMs = 60_000;
+
+export function uploadDeadlineMs(bytes: number): number {
+  return uploadGraceMs + Math.ceil((bytes * 1000) / slowestUplinkBytesPerSecond);
+}
+
+export async function bearerUpload<T>(account: Account, path: string, body: unknown, onProgress: (fraction: number) => void): Promise<T> {
+  const token = await tokenOf(account);
+  const payload = JSON.stringify(body);
+  const { status, answer } = await new Promise<{ status: number; answer: Record<string, unknown> | null }>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', `${account.origin}${path}`);
+    Object.entries(headers(account.db, token)).forEach(([name, value]) => request.setRequestHeader(name, value));
+    request.timeout = uploadDeadlineMs(payload.length);
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) onProgress(event.loaded / event.total);
+    };
+    request.onload = () => {
+      let parsed: unknown = null;
+      try {
+        parsed = request.responseText ? JSON.parse(request.responseText) : null;
+      } catch {
+        parsed = null;
+      }
+      resolve({ status: request.status, answer: parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : null });
+    };
+    request.onerror = () => reject(new AppError('network'));
+    request.ontimeout = () => reject(new AppError('network'));
+    request.send(payload);
+  });
+  if (status !== 200) refused(status, answer);
+  return answer as T;
+}
+
 async function openSession(account: Account): Promise<Session> {
   const started = Date.now();
   const answer = await bearer<{ session_id?: unknown; expires_in?: unknown }>(account, '/kaitech_mobile/session', {

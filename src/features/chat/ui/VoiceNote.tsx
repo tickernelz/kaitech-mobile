@@ -6,6 +6,7 @@ import { Text } from '../../../ui/Text';
 import { cycleVoiceRate, toggleVoice, useVoice } from '../voicePlayer';
 import { useChatFormat } from './format';
 import { Icon } from './icons';
+import { useCookie } from './useCookie';
 
 const barCount = 28;
 
@@ -22,6 +23,7 @@ export const VoiceNote = memo(function VoiceNote({ id, uri, mine, seed }: { id: 
   const { colors } = useTheme();
   const { duration } = useChatFormat();
   const voice = useVoice();
+  const cookie = useCookie();
   const current = voice.id === id;
   const playing = current && voice.playing;
   const progress = current && voice.duration ? voice.position / voice.duration : 0;
@@ -31,7 +33,7 @@ export const VoiceNote = memo(function VoiceNote({ id, uri, mine, seed }: { id: 
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={playing ? t('voice.pause') : t('voice.play')}
-        onPress={() => void toggleVoice(id, uri)}
+        onPress={() => void toggleVoice(id, uri, cookie ?? undefined)}
         testID={`voice-toggle-${id}`}
         style={({ pressed }) => [styles.play, { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 }]}>
         <Icon name={playing ? 'pause' : 'play'} color={colors.onPrimary} />

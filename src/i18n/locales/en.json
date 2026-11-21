@@ -159,7 +159,13 @@
       "working": "The Coworker is working",
       "waitingForYou": "The Coworker is waiting for your answer",
       "steps_one": "{{count}} step",
-      "steps_other": "{{count}} steps"
+      "steps_other": "{{count}} steps",
+      "attach": "Attach a file",
+      "job": {
+        "running": "Working on it",
+        "done": "Finished",
+        "failed": "Could not finish"
+      }
     },
     "card": {
       "title": "Decision card",

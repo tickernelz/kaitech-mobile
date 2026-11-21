@@ -71,7 +71,9 @@
     "empty": "Belum ada pesan di sini. Mulailah dengan menyapa.",
     "pickOne": "Pilih percakapan untuk membacanya di sini.",
     "queued": "Menunggu koneksi",
-    "cannotOpen": "Tidak ada aplikasi di perangkat ini yang dapat membuka {{name}}."
+    "cannotOpen": "Tidak ada aplikasi di perangkat ini yang dapat membuka {{name}}.",
+    "share": "Bagikan {{name}}",
+    "cannotShare": "Perangkat ini tidak bisa membagikan berkas."
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",
@@ -93,7 +95,11 @@
       "photos": "Foto & video",
       "files": "Dokumen"
     },
-    "micBusy": "Rapat sedang direkam. Selesaikan rekaman rapat sebelum merekam pesan suara."
+    "micBusy": "Rapat sedang direkam. Selesaikan rekaman rapat sebelum merekam pesan suara.",
+    "uploading": "Mengunggah {{name}}",
+    "uploadingPercent": "{{name}} · {{percent}}%",
+    "tooBig_one": "{{names}} lebih besar dari {{limit}}, batas yang diterima server ini.",
+    "tooBig_other": "{{names}} lebih besar dari {{limit}}, batas yang diterima server ini."
   },
   "permissions": {
     "cameraTitle": "Akses kamera tidak aktif",
