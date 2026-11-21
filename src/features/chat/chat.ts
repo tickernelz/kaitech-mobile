@@ -416,6 +416,7 @@ export function startChat(account: Account) {
             partnerIds: mentions.map((mention) => mention.id),
             mentionTokens: Object.fromEntries(mentions.filter((mention) => mention.token).map((mention) => [String(mention.id), mention.token as string])),
             files,
+            urgent: item.urgent === true,
           });
         } catch (error) {
           throw sendErrorFrom(error);
@@ -682,7 +683,7 @@ async function markRead(channelId: number) {
   }
 }
 
-export type Outgoing = { channelId: number; text: string; parentId: number | null; mentions: Mention[]; files: Omit<PendingFile, 'key' | 'attachmentId' | 'ownershipToken'>[] };
+export type Outgoing = { channelId: number; text: string; parentId: number | null; mentions: Mention[]; files: Omit<PendingFile, 'key' | 'attachmentId' | 'ownershipToken'>[]; urgent?: boolean };
 
 export function newKey(): string {
   return randomUUID();
@@ -711,6 +712,7 @@ export async function send(outgoing: Outgoing, startedAt?: number): Promise<stri
     files: outgoing.files.map((file) => ({ ...file, key: newKey(), attachmentId: null, ownershipToken: null })),
     createdAt: Date.now(),
     attempts: 0,
+    ...(outgoing.urgent ? { urgent: true } : {}),
     state: 'queued',
     error: null,
   };

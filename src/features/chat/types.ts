@@ -55,6 +55,7 @@ export type Message = {
   edited?: boolean;
   translation?: { body: string; lang: string } | null;
   translated?: boolean;
+  urgent?: boolean;
 };
 
 export type Mention = { id: number; name: string; token: string | null };
@@ -83,6 +84,7 @@ export type Pending = {
   files: PendingFile[];
   createdAt: number;
   attempts: number;
+  urgent?: boolean;
   state: PendingState;
   error: string | null;
 };

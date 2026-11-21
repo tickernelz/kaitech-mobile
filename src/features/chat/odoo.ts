@@ -171,6 +171,7 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
       reactions: reactions.get(messageId) ?? [],
       ...editedBody(text(raw.body)),
       starred: raw.starred === true,
+      urgent: Array.isArray(raw.kaitech_chat_urgent_partner_ids) && raw.kaitech_chat_urgent_partner_ids.length > 0,
       pinnedAt: text(raw.pinned_at) || null,
     });
   }

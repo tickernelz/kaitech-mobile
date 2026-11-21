@@ -84,7 +84,8 @@
     "pinned": "Disematkan",
     "starred": "Berbintang",
     "translatedFrom": "Diterjemahkan dari {{lang}}",
-    "translated": "Diterjemahkan"
+    "translated": "Diterjemahkan",
+    "urgent": "Mendesak"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",
@@ -363,5 +364,27 @@
     "cancel": "Hapus",
     "sent": "Terkirim",
     "cancelled": "Pesan terjadwal dihapus"
+  },
+  "extras": {
+    "emoji": "Emoji",
+    "gif": "GIF",
+    "gifSearch": "Cari GIF",
+    "gifSend": "Kirim GIF ini",
+    "canned": "Balasan siap pakai",
+    "later": "Kirim nanti",
+    "laterEmpty": "Tulis pesan atau lampirkan berkas dulu.",
+    "laterPick": "Pilih waktu",
+    "laterAt": "Kirim {{when}}",
+    "laterCustom": "Waktu lain",
+    "quick": {
+      "tomorrow": "Besok pagi",
+      "monday": "Senin pagi"
+    },
+    "scheduled": "Terjadwal. Hanya Anda yang melihatnya sampai terkirim.",
+    "urgent": "Tandai mendesak",
+    "notUrgent": "Tidak mendesak",
+    "urgentOn": "Mendesak: orang di sini mendapat peringatan keras",
+    "urgentLeft_one": "Sisa {{count}} hari ini",
+    "urgentLeft_other": "Sisa {{count}} hari ini"
   }
 }

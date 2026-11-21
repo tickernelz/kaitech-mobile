@@ -6,7 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { chatClient, notifyTyping, send, type Outgoing } from '../chat';
+import { chatClient, notifyTyping, send, useChat, type Outgoing } from '../chat';
+import { cannedResponses, markCannedUsed, sendLater, type Canned } from '../composerExtras';
+import { hasFeature } from '../features';
+import { EmojiPicker } from './EmojiPicker';
+import { GifSheet } from './composer/GifSheet';
+import { SendLaterSheet } from './composer/SendLaterSheet';
 import { clearDraft, readDraft, writeDraft } from '../drafts';
 import { dropFile } from '../files';
 import { bodyPreview, editableSource } from '../markdown';
@@ -22,7 +27,7 @@ import { notePhotoList } from '../../people/photos';
 import { authorColor } from './MessageBubble';
 import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
-import { AttachSheet, MicButton, RecordingStrip, StagedFile } from './MediaControls';
+import { AttachSheet, MicButton, RecordingStrip, StagedFile, type Extra } from './MediaControls';
 import { useVoiceHold, type Voice } from './useVoiceHold';
 import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 
@@ -32,6 +37,15 @@ export type ComposerHandle = { reply(message: Message): void; edit(message: Mess
 
 const now = () => Date.now();
 const clock = () => performance.now();
+
+export function cannedQuery(text: string, cursor: number): { start: number; query: string } | null {
+  const before = text.slice(0, cursor);
+  const at = before.lastIndexOf('::');
+  if (at < 0 || (at > 0 && !/\s/.test(before[at - 1]))) return null;
+  const query = before.slice(at + 2);
+  if (/\s/.test(query) || query.length > 32) return null;
+  return { start: at, query };
+}
 
 export function mentionQuery(text: string, cursor: number): { start: number; query: string } | null {
   const before = text.slice(0, cursor);
@@ -78,6 +92,11 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const [suggestions, setSuggestions] = useState<Mention[]>([]);
   const [sheet, setSheet] = useState(false);
   const [editing, setEditing] = useState<Message | null>(null);
+  const [urgent, setUrgent] = useState(false);
+  const [extra, setExtra] = useState<'emoji' | 'gif' | 'later' | null>(null);
+  const [laterBusy, setLaterBusy] = useState(false);
+  const [canned, setCanned] = useState<Canned[]>([]);
+  const features = useChat((state) => state.features);
   const [saving, setSaving] = useState(false);
   const stash = useRef<{ text: string; mentions: Mention[]; parentId: number | null } | null>(null);
   const input = useRef<ComponentRef<typeof TextInput>>(null);
@@ -166,6 +185,31 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     };
   }, [accountId, channelId, queryText]);
 
+  const cannedAt = cannedQuery(text, cursor);
+  const cannedText = cannedAt?.query ?? null;
+  useEffect(() => {
+    if (cannedText === null) return;
+    let live = true;
+    const timer = setTimeout(() => void cannedResponses(cannedText).then((result) => live && setCanned(result.ok ? result.value : [])), 150);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+  }, [cannedText]);
+
+  const insertAtCursor = (piece: string, from = cursor) => {
+    const next = `${text.slice(0, from)}${piece}${text.slice(cursor)}`;
+    setText(next);
+    setCursor(from + piece.length);
+  };
+
+  const pickCanned = (item: Canned) => {
+    if (!cannedAt) return;
+    insertAtCursor(item.substitution, cannedAt.start);
+    setCanned([]);
+    void markCannedUsed(item.id);
+  };
+
   const pickMention = (person: Mention) => {
     if (!query) return;
     const next = `${text.slice(0, query.start)}@${person.name} ${text.slice(cursor)}`;
@@ -200,7 +244,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
       return;
     }
     const startedAt = clock();
-    const outgoing: Outgoing = { channelId, text, parentId, mentions, files };
+    const outgoing: Outgoing = { channelId, text, parentId, mentions, files, ...(urgent ? { urgent: true } : {}) };
     if (!outgoing.text.trim() && !outgoing.files.length) return;
     stagedRef.current = [];
     setText('');
@@ -208,6 +252,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     setParentId(null);
     setMentions([]);
     setCursor(0);
+    setUrgent(false);
     clearDraft(accountId, channelId);
     typingAt.current = 0;
     notifyTyping(channelId, false);
@@ -219,6 +264,38 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     const staged = await pickAttachments(source, t, maxBytes, size);
     if (staged.length) setFiles((current) => [...current, ...staged]);
   };
+
+  const scheduleAt = async (when: number) => {
+    setLaterBusy(true);
+    const result = await sendLater({ channelId, text, mentions, files, when });
+    setLaterBusy(false);
+    if (!result.ok) {
+      onNotice?.(failureText(t, result));
+      return;
+    }
+    setExtra(null);
+    stagedRef.current = [];
+    setText('');
+    setFiles([]);
+    setMentions([]);
+    setCursor(0);
+    clearDraft(accountId, channelId);
+    onNotice?.(t('extras.scheduled'));
+  };
+
+  const extras: Extra[] = editing
+    ? []
+    : [
+        { key: 'emoji', icon: 'emoji', label: t('extras.emoji'), onPress: () => { setSheet(false); setExtra('emoji'); } },
+        ...(features.gif ? [{ key: 'gif', icon: 'image' as const, label: t('extras.gif'), onPress: () => { setSheet(false); setExtra('gif'); } }] : []),
+        { key: 'canned', icon: 'reply', label: t('extras.canned'), onPress: () => { setSheet(false); insertAtCursor('::'); input.current?.focus(); } },
+        ...(hasFeature(features, 'send_later') && !parentId
+          ? [{ key: 'later', icon: 'clock' as const, label: t('extras.later'), onPress: () => { setSheet(false); if (text.trim() || files.length) setExtra('later'); else onNotice?.(t('extras.laterEmpty')); } }]
+          : []),
+        ...(hasFeature(features, 'urgent')
+          ? [{ key: 'urgent', icon: 'alert' as const, label: urgent ? t('extras.notUrgent') : t('extras.urgent'), detail: features.urgentLeft !== null ? t('extras.urgentLeft', { count: features.urgentLeft }) : undefined, onPress: () => { setSheet(false); setUrgent((value) => !value); } }]
+          : []),
+      ];
 
   const sendVoice = (voice: Voice) => {
     const startedAt = clock();
@@ -249,6 +326,29 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
               </Text>
             </Pressable>
           ))}
+        </View>
+      ) : null}
+      {cannedText !== null && canned.length ? (
+        <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="canned-suggestions">
+          {canned.map((item) => (
+            <Pressable key={item.id} accessibilityRole="button" onPress={() => pickCanned(item)} style={({ pressed }) => [styles.suggestion, pressed && { backgroundColor: colors.surface2 }]} testID={`canned-${item.id}`}>
+              <Text variant="callout" style={styles.strong}>
+                {item.source}
+              </Text>
+              <Text variant="footnote" tone="inkSoft" numberOfLines={1} style={styles.flex}>
+                {item.substitution}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      {urgent ? (
+        <View style={[styles.replyBar, { backgroundColor: colors.warnBand }]} testID="composer-urgent">
+          <Icon name="alert" color={colors.warnInk} />
+          <Text variant="footnote" tone="warnInk" style={[styles.flex, styles.strong]}>
+            {t('extras.urgentOn')}
+          </Text>
+          <RoundButton icon="close" label={t('extras.notUrgent')} onPress={() => setUrgent(false)} />
         </View>
       ) : null}
       {editing ? (
@@ -334,7 +434,19 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
         )}
       </View>
       {markup.showBar && !recording ? <FormatBar onApply={markup.apply} onHide={markup.hide} /> : null}
-      <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} />
+      <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} extras={extras} />
+      {extra === 'emoji' ? <EmojiPicker onClose={() => setExtra(null)} onPick={(emoji) => { setExtra(null); insertAtCursor(emoji); }} /> : null}
+      {extra === 'gif' ? (
+        <GifSheet
+          onClose={() => setExtra(null)}
+          onPick={(gif) => {
+            setExtra(null);
+            void send({ channelId, text: gif.url, parentId, mentions: [], files: [] }, clock()).then((key) => delivered(key));
+            setParentId(null);
+          }}
+        />
+      ) : null}
+      {extra === 'later' ? <SendLaterSheet busy={laterBusy} onClose={() => setExtra(null)} onPick={(when) => void scheduleAt(when)} /> : null}
     </View>
   );
 });
