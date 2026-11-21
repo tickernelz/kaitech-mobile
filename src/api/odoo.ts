@@ -8,6 +8,7 @@ export class ApiError extends Error {
   constructor(
     readonly code: string,
     readonly status: number,
+    readonly said = '',
   ) {
     super(code);
     this.name = 'ApiError';
@@ -19,6 +20,10 @@ type Session = { id: string; until: number };
 const renewBeforeMs = 60_000;
 const sessions = new Map<string, Promise<Session>>();
 const serverLanguages = { en: 'en_US', id: 'id_ID' } as const;
+
+export function serverLanguage(): string {
+  return serverLanguages[i18n.language === 'id' ? 'id' : 'en'];
+}
 
 function ended(account: Account): never {
   markExpired(account.id);
@@ -158,7 +163,11 @@ async function sessionFor(account: Account, renew: boolean): Promise<Session> {
 
 onAccountForgotten((accountId) => sessions.delete(accountId));
 
-type RpcFailure = { code?: unknown; data?: { name?: unknown } };
+type RpcFailure = { code?: unknown; data?: { name?: unknown; message?: unknown } };
+
+function saidOf(failure: RpcFailure): string {
+  return typeof failure.data?.message === 'string' ? failure.data.message : '';
+}
 
 function rpcCode(name: string): string {
   if (/\.(AccessError|AccessDenied)$/.test(name)) return 'forbidden';
@@ -179,7 +188,7 @@ export async function rpc<T>(
   args: unknown[] = [],
   kwargs: Record<string, unknown> = {},
 ): Promise<T> {
-  const lang = serverLanguages[i18n.language === 'id' ? 'id' : 'en'];
+  const lang = serverLanguage();
   for (let attempt = 0; ; attempt += 1) {
     const session = await sessionFor(account, attempt > 0);
     const { status, body } = await call(`${account.origin}/web/dataset/call_kw/${model}/${method}`, {
@@ -190,14 +199,14 @@ export async function rpc<T>(
         jsonrpc: '2.0',
         method: 'call',
         id: attempt,
-        params: { model, method, args, kwargs: { ...kwargs, context: { lang } } },
+        params: { model, method, args, kwargs: { ...kwargs, context: { ...(kwargs.context as Record<string, unknown> | undefined), lang } } },
       }),
     });
     if (status !== 200) refused(account, status, body);
     const failure = body?.error as RpcFailure | undefined;
     if (!failure) return body?.result as T;
     if (attempt === 0 && expired(failure)) continue;
-    throw new ApiError(rpcCode(typeof failure.data?.name === 'string' ? failure.data.name : ''), status);
+    throw new ApiError(rpcCode(typeof failure.data?.name === 'string' ? failure.data.name : ''), status, saidOf(failure));
   }
 }
 
@@ -220,7 +229,7 @@ export async function route<T>(account: Account, path: string, params: Record<st
     if (!failure) return body?.result as T;
     if (attempt === 0 && expired(failure)) continue;
     const name = typeof failure.data?.name === 'string' ? failure.data.name : '';
-    throw new ApiError(failure.code === 404 || /NotFound$/.test(name) ? 'not_found' : rpcCode(name), status);
+    throw new ApiError(failure.code === 404 || /NotFound$/.test(name) ? 'not_found' : rpcCode(name), status, saidOf(failure));
   }
 }
 
