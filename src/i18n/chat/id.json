@@ -160,5 +160,26 @@
     "failed": "Belum bisa diubah. Coba lagi nanti.",
     "bubbleClosed": "Buka Kaitech untuk membaca percakapan ini.",
     "failedNetwork": "Belum bisa diubah. Periksa koneksi lalu coba lagi."
+  },
+  "rowActions": {
+    "pin": "Sematkan",
+    "unpin": "Lepas sematan",
+    "mute": "Senyapkan",
+    "unmute": "Bunyikan",
+    "markRead": "Tandai dibaca",
+    "markUnread": "Tandai belum dibaca",
+    "read": "Dibaca",
+    "unread": "Belum dibaca",
+    "archive": "Arsipkan",
+    "unarchive": "Keluarkan dari arsip",
+    "hide": "Hapus dari daftar",
+    "leave": "Keluar",
+    "archivedDone": "Percakapan diarsipkan",
+    "unarchivedDone": "Kembali ke Chat",
+    "hiddenDone": "Dihapus dari daftar",
+    "leftDone": "Kamu keluar dari {{name}}",
+    "archivedTitle": "Arsip",
+    "archivedEmpty": "Belum ada percakapan yang diarsipkan.",
+    "failed": "Gagal mengubah. Coba lagi."
   }
 }

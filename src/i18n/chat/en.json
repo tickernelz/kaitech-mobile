@@ -160,5 +160,26 @@
     "failed": "Couldn't change this. Try again later.",
     "bubbleClosed": "Open Kaitech to read this conversation.",
     "failedNetwork": "Could not change this. Check your connection and try again."
+  },
+  "rowActions": {
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "markRead": "Mark as read",
+    "markUnread": "Mark as unread",
+    "read": "Read",
+    "unread": "Unread",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "hide": "Remove from list",
+    "leave": "Leave",
+    "archivedDone": "Conversation archived",
+    "unarchivedDone": "Moved back to Chats",
+    "hiddenDone": "Removed from the list",
+    "leftDone": "You left {{name}}",
+    "archivedTitle": "Archived",
+    "archivedEmpty": "No archived conversations.",
+    "failed": "Couldn't change this. Try again."
   }
 }

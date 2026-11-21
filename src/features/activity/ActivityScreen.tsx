@@ -2,6 +2,8 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { RowActions } from '../../ui/RowActions';
+import { textActions } from '../../ui/textActions';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
@@ -86,7 +88,30 @@ export function ActivityScreen() {
         renderItem={({ item, index }) => {
           const since = parseServerDate(item.since);
           return (
+            <RowActions
+              title={item.headline}
+              subtitle={item.engagement}
+              actions={[
+                { key: 'open', icon: 'forward', label: t('row.open'), onPress: () => open(item) },
+                {
+                  key: 'programme',
+                  icon: 'compass',
+                  label: t('activity.rows.programme'),
+                  short: t('activity.rows.programmeShort'),
+                  onPress: () => {
+                    if (!active) return;
+                    rememberProgramme(active.id, item.engagement_id);
+                    router.navigate('/discovery');
+                  },
+                },
+                ...textActions(t, `${item.headline}\n${item.engagement}`),
+              ]}
+              start={['programme']}
+              end={['copy', 'more']}
+              testID={`activity-${item.kind}-${index}`}>
+              {(bind) => (
             <Pressable
+              {...bind}
               accessibilityRole="button"
               accessibilityLabel={[t(activityKindKey(item.kind) as never), item.headline, item.engagement, since ? date(since) : ''].filter(Boolean).join(', ')}
               onPress={() => open(item)}
@@ -103,6 +128,8 @@ export function ActivityScreen() {
               </View>
               <Icon name="forward" size={20} color={colors.inkFaint} />
             </Pressable>
+              )}
+            </RowActions>
           );
         }}
         ListEmptyComponent={

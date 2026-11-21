@@ -358,6 +358,19 @@
       "title": "Pilih program",
       "waiting_one": "{{count}} kartu",
       "waiting_other": "{{count}} kartu"
+    },
+    "rows": {
+      "rename": "Ganti judul",
+      "renameShort": "Judul",
+      "title": "Judul",
+      "save": "Simpan",
+      "archive": "Arsipkan",
+      "delete": "Hapus",
+      "archivedDone": "Percakapan diarsipkan",
+      "deletedDone": "Percakapan dihapus",
+      "ask": "Tanya Coworker",
+      "askShort": "Tanya",
+      "evidence": "Bukti"
     }
   },
   "activity": {
@@ -371,6 +384,10 @@
       "chase": "Tindak lanjut",
       "agenda": "Agenda",
       "other": "Discovery"
+    },
+    "rows": {
+      "programme": "Buka program",
+      "programmeShort": "Program"
     }
   },
   "search": {
@@ -562,6 +579,16 @@
       "version": "Versi {{version}}",
       "empty": "Notulen final belum siap.",
       "close": "Tutup"
+    },
+    "remove": {
+      "action": "Hapus rekaman",
+      "pick": "Rekaman yang mana?",
+      "title": "Hapus “{{title}}”",
+      "warning": "Ini menghapus audio, transkrip, dan apa yang ditambahkannya ke program. Tidak bisa diurungkan.",
+      "typeTitle": "Ketik judulnya: {{title}}",
+      "password": "Kata sandi kamu",
+      "submit": "Hapus",
+      "notYours": "Hanya pengunggah rekaman yang bisa menghapusnya."
     }
   },
   "appearance": {
@@ -613,5 +640,16 @@
       "network": "Tidak ada koneksi. Coba lagi.",
       "generic": "Gagal menyimpan. Coba lagi."
     }
+  },
+  "row": {
+    "more": "Lainnya",
+    "close": "Tutup",
+    "back": "Kembali",
+    "undo": "Urungkan",
+    "failed": "Gagal, jadi dikembalikan seperti semula.",
+    "copy": "Salin",
+    "share": "Bagikan",
+    "open": "Buka",
+    "cancel": "Batal"
   }
 }
