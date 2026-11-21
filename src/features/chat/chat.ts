@@ -28,6 +28,7 @@ import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
 import type { Conversation, Member, Mention, Message, Pending, PendingFile } from './types';
 import { setUploadProgress } from './progress';
+import { onPresenceChange, userInApp } from '../call/presence';
 
 export type Typist = { partnerId: number; name: string; until: number };
 
@@ -95,10 +96,6 @@ let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let readTimers = new Map<number, ReturnType<typeof setTimeout>>();
 let teardown: (() => void)[] = [];
 let active = false;
-
-function foreground(state: string | null | undefined): boolean {
-  return state !== 'background' && state !== 'inactive';
-}
 
 function set(next: Partial<ChatState>) {
   state = { ...state, ...next };
@@ -364,7 +361,7 @@ export function startChat(account: Account) {
     delivered,
   );
   outbox.load(pending);
-  active = foreground(AppState.currentState);
+  active = userInApp(AppState.currentState);
   realtime = new Realtime(current, onNotifications, onRealtimeState);
   if (active) realtime.start();
   void refreshConversations();
@@ -380,8 +377,8 @@ export function startChat(account: Account) {
     }
   });
   void getNetworkStateAsync().then((network) => set({ online: network.isConnected !== false && network.isInternetReachable !== false }));
-  const app = AppState.addEventListener('change', (next) => {
-    const nowActive = foreground(next);
+  const stopPresence = onPresenceChange((next) => {
+    const nowActive = userInApp(next);
     if (nowActive === active) return;
     active = nowActive;
     if (active) {
@@ -396,7 +393,7 @@ export function startChat(account: Account) {
       realtime?.stop();
     }
   });
-  teardown = [() => network.remove(), () => app.remove()];
+  teardown = [() => network.remove(), stopPresence];
 }
 
 export function stopChat() {

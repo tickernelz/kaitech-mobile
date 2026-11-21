@@ -16,9 +16,6 @@ object CallBridge {
   var locked = false
 
   @Volatile
-  var pipRequested = false
-
-  @Volatile
   var callSurface = false
 
   private val pending = CopyOnWriteArraySet<Map<String, Any?>>()
@@ -31,6 +28,12 @@ object CallBridge {
   fun setLocked(value: Boolean): Boolean {
     locked = value
     return true
+  }
+
+  fun setPictureInPicture(value: Boolean) {
+    if (CallPip.active == value) return
+    CallPip.active = value
+    module?.dispatch(mapOf("type" to "pip", "active" to value))
   }
 
   fun send(action: Map<String, Any?>) {
