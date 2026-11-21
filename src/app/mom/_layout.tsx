@@ -13,6 +13,9 @@ export default function MomLayout() {
       <Stack.Screen name="list/[kind]" />
       <Stack.Screen name="followups" />
       <Stack.Screen name="minutes/[part]" />
+      <Stack.Screen name="transcript/[recording]" />
+      <Stack.Screen name="transcript/speakers" />
+      <Stack.Screen name="transcript/doubts" />
       <Stack.Screen name="final/[tool]" options={{ presentation: 'modal' }} />
       <Stack.Screen name="followup/[id]" />
       <Stack.Screen name="followup/edit" options={{ presentation: 'modal' }} />

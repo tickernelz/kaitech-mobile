@@ -45,7 +45,12 @@ export function MeetingMenu({ meeting }: { meeting: number }) {
     ? cards.map((card) => ({
         key: String(card.id),
         title: cards.length > 1 ? t('mom.recordingMenu.group', { title: card.name }) : t('mom.recordingMenu.groupOne'),
-        actions: verbActions(card, board.data!, run).map((action) => ({ ...action, label: t(`mom.recordingMenu.${action.verb}`) })),
+        actions: [
+          ...(card.state === 'transcribed'
+            ? [{ key: `editor-${card.id}`, icon: 'doc' as const, label: t('mom.recordingMenu.editor'), onPress: () => router.push({ pathname: '/mom/transcript/[recording]', params: { recording: String(card.id) } }) }]
+            : []),
+          ...verbActions(card, board.data!, run).map((action) => ({ ...action, label: t(`mom.recordingMenu.${action.verb}`) })),
+        ],
       }))
     : [];
   if (!groups.some((group) => group.actions.length)) return null;

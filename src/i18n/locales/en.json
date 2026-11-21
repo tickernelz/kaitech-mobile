@@ -537,7 +537,9 @@
       "pause": "Pause the recording",
       "playFrom": "Play from {{time}}",
       "pick": "Choose a meeting to read its minutes.",
-      "back": "Back"
+      "back": "Back",
+      "back10": "Back 10 seconds",
+      "forward10": "Forward 10 seconds"
     },
     "final": {
       "signoff": "Sign-off",
@@ -601,7 +603,8 @@
       "started": {
         "transcribe": "{{title}} is being transcribed.",
         "compare": "ElevenLabs is listening to {{title}}."
-      }
+      },
+      "editor": "Open the transcript editor"
     },
     "remove": {
       "title": "Remove this recording for good",
@@ -897,6 +900,70 @@
       "confidence": "{{value}}% sure",
       "finding": "Open finding: {{name}}",
       "born": "Became: {{name}}"
+    },
+    "editor": {
+      "title": "Transcript editor",
+      "speakers": "Speakers ({{count}})",
+      "doubts": "Doubtful words ({{count}})",
+      "elevenAll": "Use ElevenLabs words wherever they differ",
+      "findDoubts": "Look for doubtful words",
+      "findStarted": "Looking for doubtful words. They show up under Doubtful words.",
+      "downloadTxt": "Download text",
+      "downloadDocx": "Download Word",
+      "downloadEleven": "Download the ElevenLabs text",
+      "everyone": "Everyone",
+      "none": "No lines match",
+      "filters": {
+        "all": "All",
+        "flagged": "Flagged",
+        "doubts": "Doubts",
+        "different": "Different",
+        "changed": "Changed"
+      },
+      "marks": {
+        "flagged": "Flagged",
+        "corrected": "Corrected",
+        "speaker": "Speaker changed",
+        "different": "ElevenLabs heard otherwise",
+        "doubts": "{{count}} doubtful"
+      },
+      "rowHint": "Opens the actions for this line",
+      "playHere": "Play from here",
+      "editText": "Correct the text",
+      "changeSpeaker": "Change the speaker",
+      "flag": "Flag this line",
+      "unflag": "Remove the flag",
+      "restore": "Back to the transcribed text",
+      "useEleven": "Use the ElevenLabs words",
+      "heard": "Transcribed: {{text}}",
+      "elevenSaid": "ElevenLabs: {{text}}",
+      "newLabel": "Speaker label",
+      "scope": {
+        "segment": "This line",
+        "from": "From here on",
+        "until": "Up to here"
+      },
+      "speakersTitle": "Speakers",
+      "doubtsTitle": "Doubtful words",
+      "speakerLine": "{{segments}} lines, {{minutes}} min",
+      "validatedBy": "Checked by {{name}}",
+      "sample": "Hear a sample",
+      "person": "Who is it",
+      "validate": "Mark as checked",
+      "unvalidate": "Mark as not checked",
+      "renameTo": "Label",
+      "mapSave": "Save {{count}} label changes",
+      "history": "Speaker changes",
+      "historyLine": "{{count}} lines",
+      "undone": "undone",
+      "undo": "Undo",
+      "noPerson": "Nobody",
+      "noDoubts": "No doubtful words",
+      "heardMeant": "“{{heard}}” may be “{{meant}}”",
+      "doesNotFit": "No longer fits the line as it reads now",
+      "choose": "Choose",
+      "reject": "Reject",
+      "applyChosen": "Apply {{count}} chosen"
     }
   },
   "appearance": {

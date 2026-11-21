@@ -537,7 +537,9 @@
       "pause": "Jeda rekaman",
       "playFrom": "Putar dari {{time}}",
       "pick": "Pilih rapat untuk membaca notulennya.",
-      "back": "Kembali"
+      "back": "Kembali",
+      "back10": "Mundur 10 detik",
+      "forward10": "Maju 10 detik"
     },
     "final": {
       "signoff": "Pengesahan",
@@ -601,7 +603,8 @@
       "started": {
         "transcribe": "{{title}} sedang ditranskripsikan.",
         "compare": "ElevenLabs sedang mendengarkan {{title}}."
-      }
+      },
+      "editor": "Buka penyunting transkrip"
     },
     "remove": {
       "title": "Hapus rekaman ini permanen",
@@ -897,6 +900,70 @@
       "confidence": "Yakin {{value}}%",
       "finding": "Buka temuan: {{name}}",
       "born": "Menjadi: {{name}}"
+    },
+    "editor": {
+      "title": "Penyunting transkrip",
+      "speakers": "Pembicara ({{count}})",
+      "doubts": "Kata meragukan ({{count}})",
+      "elevenAll": "Pakai kata ElevenLabs di semua yang berbeda",
+      "findDoubts": "Cari kata meragukan",
+      "findStarted": "Sedang mencari kata meragukan. Hasilnya muncul di Kata meragukan.",
+      "downloadTxt": "Unduh teks",
+      "downloadDocx": "Unduh Word",
+      "downloadEleven": "Unduh teks ElevenLabs",
+      "everyone": "Semua orang",
+      "none": "Tidak ada baris yang cocok",
+      "filters": {
+        "all": "Semua",
+        "flagged": "Ditandai",
+        "doubts": "Ragu",
+        "different": "Berbeda",
+        "changed": "Diubah"
+      },
+      "marks": {
+        "flagged": "Ditandai",
+        "corrected": "Dikoreksi",
+        "speaker": "Pembicara diganti",
+        "different": "ElevenLabs mendengar lain",
+        "doubts": "{{count}} meragukan"
+      },
+      "rowHint": "Membuka aksi untuk baris ini",
+      "playHere": "Putar dari sini",
+      "editText": "Koreksi teks",
+      "changeSpeaker": "Ganti pembicara",
+      "flag": "Tandai baris ini",
+      "unflag": "Hapus tanda",
+      "restore": "Kembali ke hasil transkripsi",
+      "useEleven": "Pakai kata ElevenLabs",
+      "heard": "Hasil transkripsi: {{text}}",
+      "elevenSaid": "ElevenLabs: {{text}}",
+      "newLabel": "Label pembicara",
+      "scope": {
+        "segment": "Baris ini",
+        "from": "Dari sini ke bawah",
+        "until": "Sampai baris ini"
+      },
+      "speakersTitle": "Pembicara",
+      "doubtsTitle": "Kata meragukan",
+      "speakerLine": "{{segments}} baris, {{minutes}} menit",
+      "validatedBy": "Dicek oleh {{name}}",
+      "sample": "Dengar contoh",
+      "person": "Siapa orangnya",
+      "validate": "Tandai sudah dicek",
+      "unvalidate": "Tandai belum dicek",
+      "renameTo": "Label",
+      "mapSave": "Simpan {{count}} perubahan label",
+      "history": "Riwayat ganti pembicara",
+      "historyLine": "{{count}} baris",
+      "undone": "dibatalkan",
+      "undo": "Urungkan",
+      "noPerson": "Tidak ada",
+      "noDoubts": "Tidak ada kata meragukan",
+      "heardMeant": "“{{heard}}” mungkin “{{meant}}”",
+      "doesNotFit": "Sudah tidak cocok dengan baris saat ini",
+      "choose": "Pilih",
+      "reject": "Tolak",
+      "applyChosen": "Terapkan {{count}} yang dipilih"
     }
   },
   "appearance": {
