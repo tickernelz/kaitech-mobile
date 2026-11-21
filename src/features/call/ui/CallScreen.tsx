@@ -28,7 +28,6 @@ import {
 import { usePictureInPictureAllowed } from '../pipSetting';
 import { CallControls, type CallAction } from './CallControls';
 import { CallTile } from './CallTile';
-import { PipStage } from './PipStage';
 import { ScreenStage } from './ScreenStage';
 
 export function CallScreen() {
@@ -46,7 +45,8 @@ export function CallScreen() {
   const compact = call.pictureInPicture || layout.pip;
   const stageRef = useRef<ComponentRef<typeof View>>(null);
   const share = call.phase === 'active' && screenShareSupported();
-  const presenter = presenterOf(call.people);
+  const shared = presenterOf(call.people);
+  const presenter = compact && shared?.local ? null : shared;
   const recording = call.phase === 'active' ? { on: call.recording, busy: call.recordingBusy } : null;
 
   const [measured, setMeasured] = useState<{ width: number; height: number } | null>(null);
@@ -56,14 +56,15 @@ export function CallScreen() {
     if (Platform.OS === 'android') stageRef.current?.measureInWindow(setPictureInPictureHint);
   };
 
+  const focusSid = compact ? call.focus?.sid ?? null : null;
   const visible = useMemo(() => {
-    const ids = call.people.map((person) => person.sid);
+    const ids = focusSid ? [focusSid] : call.people.map((person) => person.sid);
     const stageWidth = measured?.width ?? Math.max(240, width - (layout.controls === 'rail' ? 120 : 2 * space.md));
-    const stageHeight = measured ? measured.height - tileGap : Math.max(180, height - (layout.people === 'side' ? 260 : 220));
-    const stage = stageFor(call.people.length, stageWidth, stageHeight);
+    const stageHeight = measured ? measured.height - (focusSid ? 0 : tileGap) : Math.max(180, height - (layout.people === 'side' ? 260 : 220));
+    const stage = stageFor(ids.length, stageWidth, stageHeight);
     const pages = pagesFor(ids, call.speaking, stage.perPage);
     return { stage, ids: pages[0] ?? [] };
-  }, [call.people, call.speaking, width, height, layout.controls, layout.people, measured]);
+  }, [focusSid, call.people, call.speaking, width, height, layout.controls, layout.people, measured]);
 
   const live = useRef(call.phase !== 'idle');
   useEffect(() => {
@@ -100,16 +101,17 @@ export function CallScreen() {
     }
   };
 
-  if (compact) return <PipStage call={call} status={call.phase === 'active' ? null : subtitle} />;
-
   const stage = visible.stage;
   const people = visible.ids
     .map((sid) => call.people.find((person) => person.sid === sid))
     .filter((person): person is NonNullable<typeof person> => Boolean(person));
 
   return (
-    <View style={[styles.fill, { backgroundColor: colors.canvas, paddingTop: insets.top, paddingBottom: insets.bottom }]} testID="call-screen">
-      <View style={[styles.top, layout.controls === 'rail' ? styles.topRail : null]}>
+    <View
+      style={[styles.fill, compact ? styles.compact : { backgroundColor: colors.canvas, paddingTop: insets.top, paddingBottom: insets.bottom }]}
+      testID={compact ? 'call-pip' : 'call-screen'}
+    >
+      {compact ? null : <View style={[styles.top, layout.controls === 'rail' ? styles.topRail : null]}>
         <View style={styles.heading}>
           <Text variant="title" numberOfLines={1} testID="call-title">
             {title}
@@ -133,15 +135,15 @@ export function CallScreen() {
           <FullScreenNotice />
         </View>
         {layout.controls === 'rail' ? null : <CallControls vertical={false} video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} share={share} sharing={call.screenSharing} recording={recording} onAction={onAction} />}
-      </View>
+      </View>}
 
-      <View style={[styles.body, layout.controls === 'rail' ? styles.bodyRail : null]}>
+      <View style={[styles.body, compact ? styles.bodyCompact : layout.controls === 'rail' ? styles.bodyRail : null]}>
         <View ref={stageRef} style={styles.stage} onLayout={onStageLayout} testID="call-stage">
           {presenter ? (
-            <ScreenStage presenter={presenter} people={call.people} side={layout.controls === 'rail'} onStop={() => void toggleScreenShare()} pip={pipTarget} />
-          ) : call.people.length === 0 ? (
+            <ScreenStage presenter={presenter} people={compact ? [] : call.people} side={layout.controls === 'rail'} onStop={() => void toggleScreenShare()} pip={pipTarget} />
+          ) : people.length === 0 ? (
             <View style={styles.center}>
-              <Text variant="body" tone="inkSoft">
+              <Text variant="body" tone="inkSoft" numberOfLines={2}>
                 {subtitle}
               </Text>
             </View>
@@ -149,12 +151,12 @@ export function CallScreen() {
             people.map((person, index) => {
               const columns = stage.columns;
               return (
-                <View key={person.sid} style={{ paddingRight: index % columns === columns - 1 ? 0 : tileGap, paddingBottom: tileGap }}>
+                <View key={person.sid} style={compact ? null : { paddingRight: index % columns === columns - 1 ? 0 : tileGap, paddingBottom: tileGap }}>
                   <CallTile
                     person={person}
                     width={stage.tileWidth}
                     height={stage.tileHeight}
-                    rounded={call.people.length < 3}
+                    rounded={!compact && call.people.length < 3}
                     pip={pipTarget?.source === 'camera' && pipTarget.sid === person.sid ? pipTarget.size : null}
                   />
                 </View>
@@ -162,14 +164,14 @@ export function CallScreen() {
             })
           )}
         </View>
-        {layout.controls === 'rail' ? (
+        {layout.controls === 'rail' && !compact ? (
           <View style={styles.rail}>
             <CallControls vertical video={call.video} muted={call.muted} cameraOn={call.cameraOn} speaker={call.speaker} pip={pip} share={share} sharing={call.screenSharing} recording={recording} onAction={onAction} />
           </View>
         ) : null}
       </View>
 
-      {call.people.length > 3 && layout.people === 'side' ? (
+      {call.people.length > 3 && layout.people === 'side' && !compact ? (
         <ScrollView style={styles.side} contentContainerStyle={styles.sideInner} testID="call-people">
           {call.people.map((person) => (
             <View key={person.sid} style={styles.person}>
@@ -186,7 +188,7 @@ export function CallScreen() {
           <ScreenCapturePickerView ref={setBroadcastPicker} />
         </View> : null}
 
-      {call.phase === 'ended' ? (
+      {call.phase === 'ended' && !compact ? (
         <Pressable accessibilityRole="button" onPress={() => router.back()} style={[styles.ended, { backgroundColor: colors.surface }]} testID="call-close">
           <Text variant="callout" tone="inkSoft">
             {t('close')}
@@ -251,6 +253,8 @@ const styles = StyleSheet.create({
   picker: { width: 1, height: 1, opacity: 0, position: 'absolute' },
   body: { flex: 1, paddingHorizontal: space.md },
   bodyRail: { flexDirection: 'row' },
+  bodyCompact: { paddingHorizontal: 0 },
+  compact: { backgroundColor: '#000000' },
   stage: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignContent: 'center', overflow: 'hidden' },
   rail: { justifyContent: 'center', paddingLeft: space.sm },
   side: { maxHeight: 132, borderTopWidth: StyleSheet.hairlineWidth },

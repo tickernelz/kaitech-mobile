@@ -55,6 +55,20 @@ object CallPip {
     return Rect((x * density).toInt(), (y * density).toInt(), ((x + width) * density).toInt(), ((y + height) * density).toInt())
   }
 
+  fun fit(area: Rect, aspect: Rational): Rect {
+    val wanted = aspect.toDouble()
+    if (area.width() <= 0 || area.height() <= 0) return area
+    return if (area.width().toDouble() / area.height() > wanted) {
+      val width = (area.height() * wanted).toInt()
+      val left = area.left + (area.width() - width) / 2
+      Rect(left, area.top, left + width, area.bottom)
+    } else {
+      val height = (area.width() / wanted).toInt()
+      val top = area.top + (area.height() - height) / 2
+      Rect(area.left, top, area.right, top + height)
+    }
+  }
+
   fun apply(activity: Activity?) {
     if (activity == null || !supported(activity)) return
     try {
@@ -89,10 +103,11 @@ object CallPip {
   @RequiresApi(Build.VERSION_CODES.O)
   private fun params(activity: Activity): PictureInPictureParams {
     val current = spec
+    val aspect = ratio(current.width, current.height)
     val builder = PictureInPictureParams.Builder()
-      .setAspectRatio(ratio(current.width, current.height))
+      .setAspectRatio(aspect)
       .setActions(actions(activity, current).take(activity.maxNumPictureInPictureActions))
-    current.hint?.let { builder.setSourceRectHint(it) }
+    current.hint?.let { builder.setSourceRectHint(fit(it, aspect)) }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
       builder.setAutoEnterEnabled(current.enabled && CallBridge.inCall)
       builder.setSeamlessResizeEnabled(true)

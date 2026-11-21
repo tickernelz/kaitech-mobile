@@ -7,7 +7,7 @@ import { Avatar } from '../../chat/ui/Avatar';
 import { Icon } from '../../chat/ui/icons';
 import { loadLiveKit, liveKit } from '../livekit';
 import { videoTrack, type CallPerson } from '../call';
-import { iosPip, type PipSize } from './iosPip';
+import { pipVideo, type PipSize } from './pipVideo';
 
 export function CallTile({ person, width, height, rounded, pip }: { person: CallPerson; width: number; height: number; rounded: boolean; pip?: PipSize | null }) {
   const { t } = useTranslation('call');
@@ -26,7 +26,7 @@ export function CallTile({ person, width, height, rounded, pip }: { person: Call
   return (
     <View style={[styles.frame, frame, { backgroundColor: colors.surface2, borderColor: person.speaking ? colors.primary : 'transparent' }]} testID={`call-tile-${person.sid}`}>
       {track && VideoTrack ? (
-        <VideoTrack trackRef={track as never} style={StyleSheet.absoluteFill} objectFit="cover" mirror={person.local} iosPIP={iosPip(pip)} />
+        <VideoTrack trackRef={track as never} style={StyleSheet.absoluteFill} objectFit="cover" mirror={person.local} iosPIP={pipVideo(pip)} />
       ) : (
         <View style={styles.center}>
           <Avatar name={person.name} seed={person.partnerId ?? person.sid.length} size={Math.min(width, height) * 0.42} />
