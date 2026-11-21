@@ -382,19 +382,24 @@
     "groups": {
       "chat": "Messages",
       "discovery": "Discovery",
-      "mom": "Meetings"
+      "mom": "Meetings",
+      "people": "People and channels"
     },
     "kind": {
       "programme": "Programme",
       "conversation": "Coworker conversation",
       "card": "Decision card",
       "recording": "Recording",
-      "minutes": "Minutes"
+      "minutes": "Minutes",
+      "person": "Person",
+      "channel": "Channel",
+      "channelJoin": "Channel · join"
     },
     "ask": "Ask the Coworker: \"{{q}}\"",
     "noneTitle": "No results",
     "noneBody": "Try other words or ask the Coworker.",
-    "hintTitle": "Search everything"
+    "hintTitle": "Search everything",
+    "seeAll": "See all {{count}}"
   },
   "mom": {
     "record": "Record a meeting",

@@ -52,6 +52,40 @@ onFlowStart:
     env:
       SCREEN: k2-muted
 - tapOn:
+    id: call-more
+- extendedWaitUntil:
+    visible:
+      id: call-sheet-hand
+    timeout: 10000
+- assertVisible:
+    id: call-sheet-deafen
+- assertVisible:
+    id: call-sheet-output
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: k3-more
+- tapOn:
+    id: call-sheet-hand
+- tapOn:
+    id: call-more
+- tapOn:
+    id: call-sheet-deafen
+- tapOn:
+    id: call-more
+- tapOn:
+    id: call-sheet-people
+- extendedWaitUntil:
+    visible:
+      id: call-sheet-people
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: k4-people
+- tapOn:
+    id: call-sheet-backdrop
+- tapOn:
     id: call-hangup
 - extendedWaitUntil:
     notVisible:

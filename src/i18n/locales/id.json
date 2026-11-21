@@ -382,19 +382,24 @@
     "groups": {
       "chat": "Pesan",
       "discovery": "Discovery",
-      "mom": "Rapat"
+      "mom": "Rapat",
+      "people": "Orang dan kanal"
     },
     "kind": {
       "programme": "Program",
       "conversation": "Percakapan Coworker",
       "card": "Kartu keputusan",
       "recording": "Rekaman",
-      "minutes": "Notulen"
+      "minutes": "Notulen",
+      "person": "Orang",
+      "channel": "Kanal",
+      "channelJoin": "Kanal · gabung"
     },
     "ask": "Tanya Coworker: \"{{q}}\"",
     "noneTitle": "Tidak ada hasil",
     "noneBody": "Coba kata lain atau tanya Coworker.",
-    "hintTitle": "Cari semuanya"
+    "hintTitle": "Cari semuanya",
+    "seeAll": "Lihat semua {{count}}"
   },
   "mom": {
     "record": "Rekam rapat",

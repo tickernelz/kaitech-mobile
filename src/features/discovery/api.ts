@@ -284,5 +284,5 @@ export async function briefing(account: Account) {
 }
 
 export function search(account: Account, q: string) {
-  return bearer<SearchHits>(account, '/kaitech_mobile/search', { query: { q, limit: 10 } });
+  return bearer<SearchHits>(account, '/kaitech_mobile/search', { query: { q, limit: 20 } });
 }
