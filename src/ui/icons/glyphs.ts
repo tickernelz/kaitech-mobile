@@ -102,6 +102,17 @@ export const glyphs = {
   play: { parts: [body('M7 4.5v15L19 12Z')] },
   pause: { parts: [body(tile(6, 5, 10, 19, 1)), body(tile(14, 5, 18, 19, 1))] },
   stop: { parts: [body(tile(5, 5, 19, 19, 2))] },
+  expand: { parts: [line('M14 4h6v6M10 20H4v-6'), line('M20 4l-6.5 6.5M4 20l6.5-6.5')] },
+  external: { parts: [line('M14 4h6v6'), line('M20 4l-9 9'), line('M18 14v6H4V6h6')] },
+  download: { parts: [line('M12 3v12'), line('M7.5 10.5 12 15l4.5-4.5'), line('M4 17v3h16v-3')] },
+  filter: { parts: [body('M3 5h18l-7 8v6l-4 2v-8Z')] },
+  lock: { parts: [body(tile(5, 10, 19, 21)), line('M8 10V7a4 4 0 0 1 8 0v3'), cutDot(square(11, 14.5, 2))] },
+  arrowUp: { parts: [line('M12 20V5'), line('M5.5 11.5 12 5l6.5 6.5')] },
+  arrowDown: { parts: [line('M12 4v15'), line('M5.5 12.5 12 19l6.5-6.5')] },
+  minus: { parts: [line('M5 12h14')] },
+  zoomIn: { parts: [line(circle(10.5, 10.5, 7)), line('M15.5 15.5 21 21'), line('M7.5 10.5h6M10.5 7.5v6')] },
+  zoomOut: { parts: [line(circle(10.5, 10.5, 7)), line('M15.5 15.5 21 21'), line('M7.5 10.5h6')] },
+  table: { parts: [body(tile(3, 4, 21, 20)), cut('M3 9.5h18M3 14.5h18M9 9.5V20')] },
 } satisfies Record<string, Glyph>;
 
 export type IconName = keyof typeof glyphs;

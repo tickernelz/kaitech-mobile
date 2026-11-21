@@ -4,6 +4,7 @@ import { space } from '../../theme';
 import { Text } from '../../ui/Text';
 import { splitBlocks } from './blocks';
 import { KtBlockView } from './KtBlockView';
+import type { Place } from './kt/place';
 
 type Block = { kind: 'paragraph' | 'bullet' | 'heading'; text: string };
 
@@ -60,12 +61,13 @@ function Prose({ text }: { text: string }) {
   );
 }
 
-export function Markdown({ text, onReply }: { text: string; onReply?: (reply: string) => void }) {
+export function Markdown({ text, place = null }: { text: string; place?: Omit<Place, 'index'> | null }) {
+  let block = 0;
   return (
     <View style={styles.wrap}>
       {splitBlocks(text).map((segment, index) =>
         segment.kind === 'block' ? (
-          <KtBlockView key={index} raw={segment.raw} onReply={onReply} />
+          <KtBlockView key={index} raw={segment.raw} index={block++} place={place} />
         ) : (
           <Prose key={index} text={segment.text} />
         ),

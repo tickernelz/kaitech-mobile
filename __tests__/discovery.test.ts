@@ -4,6 +4,8 @@ import { blocksOf, spansOf } from '../src/features/discovery/Markdown';
 import { routeForPush } from '../src/features/discovery/push';
 import { entriesOf, mergeItems, stepCount } from '../src/features/discovery/thread';
 
+jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
+
 function item(turnId: number, seq: number, kind: string, body = ''): TranscriptItem {
   return { turnId, seq, kind, author: 'coworker', name: kind, body, occurredAt: '' };
 }

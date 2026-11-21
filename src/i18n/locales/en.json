@@ -173,9 +173,119 @@
     },
     "block": {
       "sources": "Sources",
-      "unreadable": "The Coworker sent a part this app cannot show yet.",
-      "moreRows_one": "{{count}} more row not shown",
-      "moreRows_other": "{{count}} more rows not shown"
+      "draft": "Coworker draft · not a decision",
+      "openWeb": "Open on the web",
+      "copy": "Copy",
+      "copied": "Copied",
+      "close": "Close",
+      "table": {
+        "rows_one": "{{count}} row",
+        "rows_other": "{{count}} rows",
+        "listedOf": "{{listed}} of {{count}} rows listed",
+        "shownOf": "{{shown}} of {{listed}} rows",
+        "page": "Showing {{shown}} of {{all}} rows",
+        "showAll": "Show every row",
+        "total": "Total",
+        "filter": "Filter",
+        "noStatus": "No status",
+        "copyMarkdown": "Copy as Markdown",
+        "copied": "Table copied as Markdown.",
+        "exportFailed": "The file could not be made. Try again in a moment.",
+        "empty": "Nothing to list here.",
+        "noMatch": "No row matches this filter.",
+        "sortBy": "Sort by {{name}}",
+        "csv": "CSV",
+        "xlsx": "Excel"
+      },
+      "chart": {
+        "chart": "Chart",
+        "asTable": "Table",
+        "asChart": "Chart",
+        "averaged": "Each point is the average of up to {{size}} values; the table holds every value.",
+        "stepBefore": "{{value}} · {{share}} of the step before",
+        "of": "of {{max}}",
+        "name": "Name",
+        "value": "Value",
+        "max": "Max",
+        "label": "Label"
+      },
+      "compare": {
+        "before": "Before",
+        "after": "After",
+        "item": "Item",
+        "change": "Change"
+      },
+      "diagram": {
+        "kind": {
+          "flow": "Swimlane flow",
+          "org": "Org chart",
+          "timeline": "Timeline",
+          "gantt": "Mini Gantt",
+          "relation": "Relation map",
+          "architecture": "Architecture"
+        },
+        "steps_one": "{{count}} step",
+        "steps_other": "{{count}} steps",
+        "decisions_one": "{{count}} decision",
+        "decisions_other": "{{count}} decisions",
+        "people_one": "{{count}} person",
+        "people_other": "{{count}} people",
+        "milestones_one": "{{count}} milestone",
+        "milestones_other": "{{count}} milestones",
+        "tasks_one": "{{count}} task",
+        "tasks_other": "{{count}} tasks",
+        "items_one": "{{count}} item",
+        "items_other": "{{count}} items",
+        "fullScreen": "Full screen",
+        "asList": "As a list",
+        "zoomIn": "Zoom in",
+        "zoomOut": "Zoom out",
+        "fit": "Fit",
+        "today": "Today"
+      },
+      "checklist": {
+        "count": "{{done}} of {{total}} done",
+        "done": "Done",
+        "open": "Open"
+      },
+      "progress": {
+        "amount": "{{value}} of {{total}}{{unit}}"
+      },
+      "options": {
+        "criterion": "Criterion",
+        "note": "The choice stays with a consultant."
+      },
+      "code": {
+        "lines_one": "{{count}} line",
+        "lines_other": "{{count}} lines"
+      },
+      "gallery": {
+        "closed": "Not open to you",
+        "open": "Open {{name}}",
+        "kb": "{{size}} KB",
+        "mb": "{{size}} MB"
+      },
+      "record": {
+        "closed": "Only the name is shown; this record is not open to you.",
+        "open": "Open record",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "form": {
+        "datePlaceholder": "YYYY-MM-DD",
+        "peoplePlaceholder": "Names, separated by commas",
+        "missing": "Fill this in to send the form.",
+        "badDate": "Write the date as YYYY-MM-DD.",
+        "sent": "Sent as your message.",
+        "note": "Sending only writes your next message; nothing is booked or changed until a card is approved."
+      },
+      "artifact": {
+        "kind": "Interactive page",
+        "open": "Open",
+        "version": "Version {{number}}",
+        "versionOf": "Version {{number}} of {{count}}",
+        "sealed": "Runs sealed: no network, no session, and links do not open."
+      }
     },
     "card": {
       "title": "Decision card",

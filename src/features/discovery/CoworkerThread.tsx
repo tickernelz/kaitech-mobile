@@ -32,6 +32,7 @@ import { useVoiceHold, type Voice } from '../chat/ui/useVoiceHold';
 import { ask, cards as readCards, panel, transcript, type Card, type Cursor, type Document, type TranscriptItem } from './api';
 import { DecisionCard } from './DecisionCard';
 import { chatAttachments } from './files';
+import { ThreadContext, type Place, type Thread } from './kt/place';
 import { Markdown } from './Markdown';
 import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
 import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread';
@@ -83,10 +84,14 @@ function JobCard({ item, origin, testID }: { item: TranscriptItem; origin: strin
           {t(`discovery.thread.job.${state}`)}
         </Text>
       </View>
-      {item.body ? <Markdown text={item.body} /> : null}
+      {item.body ? <Markdown text={item.body} place={placeOf(item)} /> : null}
       <Attachments attachments={chatAttachments(item.attachments)} origin={origin} mine={false} />
     </View>
   );
+}
+
+function placeOf(item: TranscriptItem): Omit<Place, 'index'> {
+  return { turnId: item.turnId, seq: item.seq, reads: item.blockReads ?? null };
 }
 
 function useTranscript(conversation: number | null) {
@@ -303,6 +308,13 @@ export function CoworkerThread({
   };
 
   const reply = (text: string) => void send({ key: randomUUID(), text, failed: null, files: [], sent: null });
+  const replyRef = useRef(reply);
+  useEffect(() => {
+    replyRef.current = reply;
+  });
+  const onReply = useCallback((text: string) => replyRef.current(text), []);
+  const threadContext = useMemo<Thread>(() => ({ account: active, origin: active?.origin ?? '', items: thread.items, onReply }), [active, thread.items, onReply]);
+  const shownCount = useRef(0);
   const submit = () => {
     const text = draft.trim();
     if ((!text && !files.length) || !active) return;
@@ -359,7 +371,7 @@ export function CoworkerThread({
     if (item.kind === 'reply') {
       return (
         <Bubble mine={false} testID={`${testID}-reply`}>
-          {item.item.body.trim() ? <Markdown text={item.item.body} onReply={reply} /> : null}
+          {item.item.body.trim() ? <Markdown text={item.item.body} place={placeOf(item.item)} /> : null}
           <Attachments attachments={chatAttachments(item.item.attachments)} origin={active?.origin ?? ''} mine={false} />
         </Bubble>
       );
@@ -391,13 +403,18 @@ export function CoworkerThread({
       ) : thread.error && !thread.items.length ? (
         <StateView error={thread.error} onRetry={() => void thread.pull()} testID={testID} />
       ) : (
+        <ThreadContext.Provider value={threadContext}>
         <FlatList
           ref={list}
           data={data}
           keyExtractor={(item) => ('title' in item ? `card-${item.id}` : 'key' in item ? item.key : item.id)}
           renderItem={render}
           contentContainerStyle={styles.list}
-          onContentSizeChange={() => list.current?.scrollToEnd({ animated: false })}
+          onContentSizeChange={() => {
+            if (shownCount.current === data.length) return;
+            shownCount.current = data.length;
+            list.current?.scrollToEnd({ animated: false });
+          }}
           keyboardShouldPersistTaps="handled"
           ListFooterComponent={
             thread.following ? (
@@ -407,6 +424,7 @@ export function CoworkerThread({
             ) : undefined
           }
         />
+        </ThreadContext.Provider>
       )}
       {files.length ? (
         <ScrollView horizontal contentContainerStyle={styles.staged} style={{ backgroundColor: colors.canvas }} showsHorizontalScrollIndicator={false} testID={`${testID}-staged`}>
