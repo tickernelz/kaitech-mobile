@@ -5,6 +5,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import androidx.core.app.OnPictureInPictureModeChangedProvider
+import androidx.core.app.PictureInPictureModeChangedInfo
+import androidx.core.util.Consumer
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import com.facebook.react.ReactApplication
+import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler
 import expo.modules.core.interfaces.Package
 import expo.modules.core.interfaces.ReactActivityLifecycleListener
 import java.lang.ref.WeakReference
@@ -16,10 +23,21 @@ class KaitechCallPackage : Package {
 }
 
 class CallActivityListener(activity: Activity?) : ReactActivityLifecycleListener {
-  private val owner = WeakReference(activity)
+  private var owner = WeakReference(activity)
+  private val pipWatcher = Consumer<PictureInPictureModeChangedInfo> { info ->
+    owner.get()?.let { held -> held.window.decorView.post { keepRendering(held, info.isInPictureInPictureMode) } }
+    CallBridge.setPictureInPicture(info.isInPictureInPictureMode)
+  }
 
   override fun onCreate(activity: Activity, savedInstanceState: Bundle?) {
+    owner = WeakReference(activity)
     CallKeyguard.apply(activity)
+    (activity as? OnPictureInPictureModeChangedProvider)?.addOnPictureInPictureModeChangedListener(pipWatcher)
+    CallPip.apply(activity)
+  }
+
+  override fun onDestroy(activity: Activity) {
+    (activity as? OnPictureInPictureModeChangedProvider)?.removeOnPictureInPictureModeChangedListener(pipWatcher)
   }
 
   override fun onNewIntent(intent: Intent): Boolean {
@@ -36,15 +54,23 @@ class CallActivityListener(activity: Activity?) : ReactActivityLifecycleListener
   }
 
   override fun onUserLeaveHint(activity: Activity) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-    if (!CallBridge.inCall || CallBridge.pipRequested) return
-    if (activity.isInPictureInPictureMode) return
-    val params = android.app.PictureInPictureParams.Builder().build()
-    activity.enterPictureInPictureMode(params)
+    CallPip.onLeaving(activity)
   }
 
   override fun onResume(activity: Activity) {
     CallKeyguard.apply(activity)
+  }
+
+  override fun onPause(activity: Activity) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+    activity.window.decorView.post { if (activity.isInPictureInPictureMode) keepRendering(activity, true) }
+  }
+
+  private fun keepRendering(activity: Activity, pinned: Boolean) {
+    val reactHost = (activity.application as? ReactApplication)?.reactHost ?: return
+    val resumed = (activity as? LifecycleOwner)?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.RESUMED) ?: true
+    if (resumed || activity.isFinishing) return
+    if (pinned) reactHost.onHostResume(activity, activity as? DefaultHardwareBackBtnHandler) else reactHost.onHostPause(activity)
   }
 }
 

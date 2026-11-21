@@ -49,6 +49,11 @@ describe('call screen layout', () => {
     expect(layoutFor(360, 640).pip).toBe(false);
   });
 
+  it('keeps the full call screen while the window reports no size during a transition', () => {
+    expect(layoutFor(0, 0).pip).toBe(false);
+    expect(layoutFor(0, 640).pip).toBe(false);
+  });
+
   it('moves the controls to a side rail on a landscape phone only', () => {
     expect(layoutFor(780, 360).controls).toBe('rail');
     expect(layoutFor(1280, 800).controls).toBe('bar');

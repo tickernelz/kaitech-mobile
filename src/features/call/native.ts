@@ -2,7 +2,8 @@ import { EventEmitter, requireOptionalNativeModule } from 'expo';
 import { Platform } from 'react-native';
 
 export type CallAction = {
-  type: 'incoming' | 'cancel' | 'answer' | 'open' | 'decline' | 'hangup' | 'stopShare';
+  type: 'incoming' | 'cancel' | 'answer' | 'open' | 'decline' | 'hangup' | 'stopShare' | 'mute' | 'camera' | 'pip';
+  active?: boolean;
   channelId?: number;
   callId?: number;
   video?: boolean;
@@ -28,9 +29,12 @@ type NativeCall = {
   stopCall(): Promise<boolean>;
   setInCall(value: boolean): Promise<boolean>;
   setLocked(value: boolean): Promise<boolean>;
+  readonly pictureInPictureSupported?: boolean;
   setCallSurface(visible: boolean): Promise<boolean>;
   enterPictureInPicture(): Promise<boolean>;
-  isPictureInPictureSupported(): Promise<boolean>;
+  leavePictureInPicture(): Promise<boolean>;
+  setPictureInPicture(enabled: boolean, width: number, height: number, muted: boolean, camera: boolean, video: boolean, sharing: boolean): Promise<boolean>;
+  setPictureInPictureHint(x: number, y: number, width: number, height: number): Promise<boolean>;
   canUseFullScreenIntent(): Promise<boolean>;
   openFullScreenIntentSettings(): Promise<boolean>;
   setMessagesHidden(value: boolean): Promise<boolean>;

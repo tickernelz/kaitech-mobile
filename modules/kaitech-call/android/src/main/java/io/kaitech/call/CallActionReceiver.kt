@@ -33,6 +33,8 @@ class CallActionReceiver : BroadcastReceiver() {
       }
       CallNotifications.ACTION_HANGUP -> CallBridge.send(mapOf("type" to "hangup"))
       CallNotifications.ACTION_STOP_SHARING -> CallBridge.send(mapOf("type" to "stopShare"))
+      CallPip.ACTION_TOGGLE_MUTE -> CallBridge.send(mapOf("type" to "mute"))
+      CallPip.ACTION_TOGGLE_CAMERA -> CallBridge.send(mapOf("type" to "camera"))
       CallNotifications.ACTION_ANSWER -> {
         Log.i("KaitechCall", "answer from the notification, the app opens for the call")
       }

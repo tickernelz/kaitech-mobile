@@ -12,6 +12,8 @@ import { ensureCamera, ensureMicrophone } from './permissions';
 import { accountFromPush } from './account';
 import { pickBroadcast } from './screenShare';
 import { currentRecording, startRecording, stopRecording } from './recording';
+import { pipFocus, pipSpec, type PipSpec } from './pip';
+import { onPictureInPictureAllowedChange, pictureInPictureAllowed } from './pipSetting';
 
 export type CallPhase = 'idle' | 'incoming' | 'outgoing' | 'connecting' | 'active' | 'reconnecting' | 'ended';
 
@@ -49,6 +51,8 @@ export type CallState = {
   recordingError: string | null;
   people: CallPerson[];
   speaking: string[];
+  focus: { sid: string; source: 'camera' | 'screen' } | null;
+  pictureInPicture: boolean;
   version: number;
 };
 
@@ -75,6 +79,8 @@ const idle: CallState = {
   recordingError: null,
   people: [],
   speaking: [],
+  focus: null,
+  pictureInPicture: false,
   version: 0,
 };
 
@@ -106,7 +112,11 @@ export function useCallState(): CallState {
 }
 
 function publish(next: Partial<CallState>) {
-  state = { ...state, ...next, version: state.version + 1 };
+  const merged = { ...state, ...next };
+  const found = pipFocus(merged.people, merged.speaking, state.focus?.sid ?? null);
+  const focus = found ? { sid: found.person.sid, source: found.source } : null;
+  const same = focus && state.focus && focus.sid === state.focus.sid && focus.source === state.focus.source;
+  state = { ...merged, focus: same ? state.focus : focus, pictureInPicture: next.pictureInPicture ?? state.pictureInPicture, version: state.version + 1 };
   listeners.forEach((listener) => listener());
 }
 
@@ -467,7 +477,7 @@ function reset() {
   stopRinging();
   stopPing();
   callAccount = null;
-  state = { ...idle, version: state.version + 1 };
+  state = { ...idle, pictureInPicture: state.pictureInPicture, version: state.version + 1 };
   listeners.forEach((listener) => listener());
 }
 
@@ -563,11 +573,56 @@ function presence() {
 }
 
 export function enterPictureInPicture(): Promise<boolean> {
-  return Promise.resolve(callNative()?.enterPictureInPicture() ?? false);
+  return callNative()?.enterPictureInPicture().catch(() => false) ?? Promise.resolve(false);
 }
 
 export function pictureInPictureSupported(): boolean {
-  return Boolean(callNative()?.isPictureInPictureSupported());
+  return Boolean(callNative()?.pictureInPictureSupported);
+}
+
+function trackDimensions(sid: string, source: 'camera' | 'screen') {
+  const held = tracks.get(`${sid}|${source}`) as { publication?: { dimensions?: { width: number; height: number } } } | undefined;
+  return held?.publication?.dimensions ?? null;
+}
+
+export function pictureInPictureSpec(current: CallState = state): PipSpec {
+  const person = current.focus ? current.people.find((item) => item.sid === current.focus?.sid) ?? null : null;
+  const focus = person && current.focus ? { person, source: current.focus.source } : null;
+  return pipSpec({
+    allowed: pictureInPictureAllowed(),
+    phase: current.phase,
+    video: current.video,
+    muted: current.muted,
+    cameraOn: current.cameraOn,
+    screenSharing: current.screenSharing,
+    people: current.people,
+    focus,
+    dimensions: focus ? trackDimensions(focus.person.sid, focus.source) : null,
+  });
+}
+
+let pipKey = '';
+let hintKey = '';
+
+function syncPictureInPicture() {
+  const native = callNative();
+  if (!native) return;
+  if (state.phase === 'idle' && state.pictureInPicture) void native.leavePictureInPicture().catch(() => false);
+  const spec = pictureInPictureSpec();
+  const key = JSON.stringify(spec);
+  if (key === pipKey) return;
+  pipKey = key;
+  void native.setPictureInPicture(spec.enabled, spec.width, spec.height, spec.muted, spec.camera, spec.video, spec.sharing).catch(() => false);
+}
+
+export function setPictureInPictureHint(x: number, y: number, width: number, height: number) {
+  const native = callNative();
+  if (!native) return;
+  const rect = [x, y, width, height].map(Math.round);
+  const key = rect.join(',');
+  if (key === hintKey) return;
+  hintKey = key;
+  void native.setPictureInPictureHint(rect[0], rect[1], rect[2], rect[3]).catch(() => false);
 }
 
 export async function fullScreenIntentAllowed(): Promise<boolean> {
@@ -681,6 +736,18 @@ function fromNative(action: CallAction) {
     void setScreenShare(false);
     return;
   }
+  if (action.type === 'mute') {
+    void toggleMute();
+    return;
+  }
+  if (action.type === 'camera') {
+    void toggleCamera();
+    return;
+  }
+  if (action.type === 'pip') {
+    publish({ pictureInPicture: Boolean(action.active) });
+    return;
+  }
   if (action.type === 'cancel') {
     const mine = !target || target.id === callAccount?.id;
     if (state.phase === 'incoming' && mine && (!action.channelId || action.channelId === state.channelId)) reset();
@@ -717,6 +784,9 @@ export async function takePendingActions() {
 }
 
 onCallAction(fromNative);
+
+subscribeCall(syncPictureInPicture);
+onPictureInPictureAllowedChange(syncPictureInPicture);
 
 void takePendingActions();
 

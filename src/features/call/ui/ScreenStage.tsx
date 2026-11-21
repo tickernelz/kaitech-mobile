@@ -7,10 +7,23 @@ import { Icon } from '../../chat/ui/icons';
 import { loadLiveKit, liveKit } from '../livekit';
 import { videoTrack, type CallPerson } from '../call';
 import { CallTile } from './CallTile';
+import { pipVideo, type PipSize } from './pipVideo';
 
 const stripTile = { width: 112, height: 84 };
 
-export function ScreenStage({ presenter, people, side, onStop }: { presenter: CallPerson; people: CallPerson[]; side: boolean; onStop: () => void }) {
+export function ScreenStage({
+  presenter,
+  people,
+  side,
+  onStop,
+  pip,
+}: {
+  presenter: CallPerson;
+  people: CallPerson[];
+  side: boolean;
+  onStop: () => void;
+  pip: { sid: string; source: 'camera' | 'screen'; size: PipSize } | null;
+}) {
   const { t } = useTranslation('call');
   const { colors } = useTheme();
   const [ready, setReady] = useState(liveKit() !== null);
@@ -39,7 +52,7 @@ export function ScreenStage({ presenter, people, side, onStop }: { presenter: Ca
             </Pressable>
           </View>
         ) : track && VideoTrack ? (
-          <VideoTrack trackRef={track as never} style={StyleSheet.absoluteFill} objectFit="contain" />
+          <VideoTrack trackRef={track as never} style={StyleSheet.absoluteFill} objectFit="contain" iosPIP={pipVideo(pip?.source === 'screen' && pip.sid === presenter.sid ? pip.size : null)} />
         ) : (
           <View style={styles.center}>
             <Icon name="screen" size={40} color={colors.inkFaint} />
@@ -53,11 +66,13 @@ export function ScreenStage({ presenter, people, side, onStop }: { presenter: Ca
           </View>
         )}
       </View>
-      <ScrollView horizontal={!side} style={side ? styles.sideStrip : styles.strip} contentContainerStyle={styles.stripInner} testID="call-screen-share-people">
-        {people.map((person) => (
-          <CallTile key={person.sid} person={person} width={stripTile.width} height={stripTile.height} rounded />
-        ))}
-      </ScrollView>
+      {people.length ? (
+        <ScrollView horizontal={!side} style={side ? styles.sideStrip : styles.strip} contentContainerStyle={styles.stripInner} testID="call-screen-share-people">
+          {people.map((person) => (
+            <CallTile key={person.sid} person={person} width={stripTile.width} height={stripTile.height} rounded pip={pip?.source === 'camera' && pip.sid === person.sid ? pip.size : null} />
+          ))}
+        </ScrollView>
+      ) : null}
     </View>
   );
 }

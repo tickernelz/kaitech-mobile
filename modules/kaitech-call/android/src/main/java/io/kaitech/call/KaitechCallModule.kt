@@ -1,11 +1,11 @@
 package io.kaitech.call
 
-import android.app.PictureInPictureParams
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.util.Rational
+import com.facebook.react.bridge.ReactContext
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -58,7 +58,12 @@ class KaitechCallModule : Module() {
       true
     }
 
-    AsyncFunction("setInCall") { value: Boolean -> CallBridge.setInCall(value) }
+    AsyncFunction("setInCall") { value: Boolean ->
+      CallBridge.setInCall(value)
+      CallKeepAlive.set(appContext.reactContext as? ReactContext, value)
+      CallPip.apply(appContext.currentActivity)
+      true
+    }.runOnQueue(Queues.MAIN)
 
     AsyncFunction("setLocked") { value: Boolean -> CallBridge.setLocked(value) }
 
@@ -74,19 +79,27 @@ class KaitechCallModule : Module() {
       true
     }
 
-    AsyncFunction("enterPictureInPicture") {
-      val activity = appContext.currentActivity
-      if (activity == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return@AsyncFunction false
-      val params = PictureInPictureParams.Builder()
-        .setAspectRatio(Rational(3, 4))
-        .build()
-      activity.enterPictureInPictureMode(params)
-    }
+    Constant("pictureInPictureSupported") { CallPip.supported(appContext.reactContext) }
 
-    AsyncFunction("isPictureInPictureSupported") {
-      Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-        appContext.currentActivity?.packageManager?.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE) == true
-    }
+    AsyncFunction("enterPictureInPicture") { CallPip.enter(appContext.currentActivity) }.runOnQueue(Queues.MAIN)
+
+    AsyncFunction("leavePictureInPicture") {
+      CallPip.leave(appContext.currentActivity)
+      true
+    }.runOnQueue(Queues.MAIN)
+
+    AsyncFunction("setPictureInPicture") { enabled: Boolean, width: Int, height: Int, muted: Boolean, camera: Boolean, video: Boolean, sharing: Boolean ->
+      CallPip.spec = CallPip.spec.copy(enabled = enabled, width = width, height = height, muted = muted, camera = camera, video = video, sharing = sharing)
+      CallPip.apply(appContext.currentActivity)
+      true
+    }.runOnQueue(Queues.MAIN)
+
+    AsyncFunction("setPictureInPictureHint") { x: Int, y: Int, width: Int, height: Int ->
+      val activity = appContext.currentActivity ?: return@AsyncFunction false
+      CallPip.spec = CallPip.spec.copy(hint = CallPip.hint(activity, x, y, width, height))
+      CallPip.apply(activity)
+      true
+    }.runOnQueue(Queues.MAIN)
 
     AsyncFunction("setMessagesHidden") { value: Boolean ->
       MessageNotifications.setHidden(requireContext(), value)
