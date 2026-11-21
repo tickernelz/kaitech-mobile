@@ -29,6 +29,9 @@ onFlowStart:
       ACTION: group
       GROUP: ${'Uji baris ' + RUN}
 - evalScript: ${output.row = 'conversation-' + output.peer.group}
+- swipe:
+    start: 50%, 35%
+    end: 50%, 80%
 - scrollUntilVisible:
     element:
       id: ${output.row}
@@ -75,7 +78,7 @@ onFlowStart:
     id: ${output.row + '-swipe-read'}
 - extendedWaitUntil:
     notVisible:
-      text: .*(1 unread message|1 pesan belum dibaca).*
+      text: ${'Uji baris ' + RUN + ', (1 unread message|1 pesan belum dibaca),.*'}
     timeout: 15000
 - swipe:
     from:
@@ -85,7 +88,7 @@ onFlowStart:
     id: ${output.row + '-swipe-read'}
 - extendedWaitUntil:
     visible:
-      text: .*(1 unread message|1 pesan belum dibaca).*
+      text: ${'Uji baris ' + RUN + ', (1 unread message|1 pesan belum dibaca),.*'}
     timeout: 15000
 - runFlow:
     file: ../shared/screenshot.yaml
@@ -146,17 +149,12 @@ onFlowStart:
           element:
             id: ${output.row}
           timeout: 30000
-- runFlow:
-    when:
-      notVisible:
-        id: ${output.row + '-swipe-more'}
-    commands:
-      - swipe:
-          from:
-            id: ${output.row}
-          direction: LEFT
-- tapOn:
-    id: ${output.row + '-swipe-more'}
+- longPressOn:
+    id: ${output.row}
+- extendedWaitUntil:
+    visible:
+      id: row-sheet
+    timeout: 5000
 - runFlow:
     when:
       visible:
