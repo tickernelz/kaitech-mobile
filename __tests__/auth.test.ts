@@ -1,7 +1,7 @@
 import { AppError, errorFromServer } from '../src/auth/errors';
 import { codeFromCallback, grantFrom, signInUrl } from '../src/auth/oauth';
 import { base64Url } from '../src/auth/pkce';
-import { normalizeServer } from '../src/auth/server';
+import { normalizeDatabase, normalizeServer } from '../src/auth/server';
 
 function codeOf(run: () => unknown): string {
   try {
@@ -33,10 +33,26 @@ describe('normalizeServer', () => {
   });
 });
 
+describe('normalizeDatabase', () => {
+  it('keeps a valid name without surrounding spaces', () => {
+    expect(normalizeDatabase('  erp_main-2.0 ')).toBe('erp_main-2.0');
+  });
+
+  it.each([
+    ['', 'databaseRequired'],
+    ['   ', 'databaseRequired'],
+    ['erp main', 'databaseInvalid'],
+    ['-erp', 'databaseInvalid'],
+    ['erp/../x', 'databaseInvalid'],
+  ])('refuses %p with %p', (input, code) => {
+    expect(codeOf(() => normalizeDatabase(input))).toBe(code);
+  });
+});
+
 describe('signInUrl', () => {
   const request = {
     origin: 'https://erp.example.com',
-    db: '',
+    db: 'erp_main',
     redirectUri: 'https://link.example.com/kaitech_mobile/callback',
     challenge: 'challenge',
     state: 'state-1234',
@@ -46,7 +62,8 @@ describe('signInUrl', () => {
   };
 
   it('asks the server for an S256 code bound to the redirect, device and language', () => {
-    const url = new URL(signInUrl(request));
+    const login = new URL(signInUrl(request));
+    const url = new URL(login.searchParams.get('redirect') ?? '', login.origin);
     expect(url.origin + url.pathname).toBe('https://erp.example.com/kaitech_mobile/authorize');
     expect(Object.fromEntries(url.searchParams)).toEqual({
       client_id: 'kaitech-mobile',
@@ -61,9 +78,9 @@ describe('signInUrl', () => {
     });
   });
 
-  it('picks the database through the login page when one is given', () => {
-    const url = new URL(signInUrl({ ...request, db: 'erp_main' }));
-    expect(url.pathname).toBe('/web/login');
+  it('picks the database through the login page', () => {
+    const url = new URL(signInUrl(request));
+    expect(url.origin + url.pathname).toBe('https://erp.example.com/web/login');
     expect(url.searchParams.get('db')).toBe('erp_main');
     expect(url.searchParams.get('redirect')?.startsWith('/kaitech_mobile/authorize?')).toBe(true);
   });

@@ -60,9 +60,7 @@ export function signInUrl(request: SignInRequest): string {
     platform: request.platform,
     ui_locales: request.language,
   })}`;
-  return request.db
-    ? `${request.origin}/web/login?${query({ db: request.db, redirect: authorize })}`
-    : `${request.origin}${authorize}`;
+  return `${request.origin}/web/login?${query({ db: request.db, redirect: authorize })}`;
 }
 
 export function codeFromCallback(url: string, expected: { redirectUri: string; state: string }): string {

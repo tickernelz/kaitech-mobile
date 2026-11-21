@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 import { AppError } from './errors';
 import { codeFromCallback, exchangeCode, redirectUriFor, signInUrl, type Account } from './oauth';
 import { createPkce } from './pkce';
-import { normalizeServer } from './server';
+import { normalizeDatabase, normalizeServer } from './server';
 import { addAccount } from './session';
 
 const pendingKey = 'pendingSignIn';
@@ -36,6 +36,16 @@ function linkHost(): string {
   const host: unknown = Constants.expoConfig?.extra?.linkHost;
   if (typeof host !== 'string' || !host) throw new AppError('linkNotConfigured');
   return host;
+}
+
+export type ServerChoice = { server: string; database: string };
+
+export function defaultServer(): ServerChoice | null {
+  const extra = Constants.expoConfig?.extra;
+  const server: unknown = extra?.linkHost;
+  const database: unknown = extra?.defaultDatabase;
+  if (typeof server !== 'string' || !server || typeof database !== 'string' || !database) return null;
+  return { server, database };
 }
 
 function deviceName(): string {
@@ -76,7 +86,7 @@ export function completeSignIn(url: string): Promise<Account> {
 
 export async function signIn(server: string, database: string, language: string): Promise<Account> {
   const origin = normalizeServer(server);
-  const db = database.trim();
+  const db = normalizeDatabase(database);
   const redirectUri = redirectUriFor(linkHost());
   const pkce = await createPkce();
   const pending: Pending = { origin, db, verifier: pkce.verifier, state: pkce.state, redirectUri, language, at: Date.now() };

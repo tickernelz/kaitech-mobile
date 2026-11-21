@@ -2,6 +2,8 @@ export type ErrorCode =
   | 'serverRequired'
   | 'serverInvalid'
   | 'serverInsecure'
+  | 'databaseRequired'
+  | 'databaseInvalid'
   | 'network'
   | 'cancelled'
   | 'accessDenied'

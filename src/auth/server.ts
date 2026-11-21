@@ -15,3 +15,10 @@ export function normalizeServer(input: string): string {
   if (port !== undefined && !/^\d{1,5}$/.test(port)) throw new AppError('serverInvalid');
   return port && port !== '443' ? `https://${host}:${port}` : `https://${host}`;
 }
+
+export function normalizeDatabase(input: string): string {
+  const name = input.trim();
+  if (!name) throw new AppError('databaseRequired');
+  if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,62}$/.test(name)) throw new AppError('databaseInvalid');
+  return name;
+}

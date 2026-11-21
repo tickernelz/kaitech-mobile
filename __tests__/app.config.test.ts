@@ -22,6 +22,19 @@ describe('appConfig', () => {
   beforeEach(() => {
     delete process.env.GOOGLE_SERVICES_JSON;
     delete process.env.APP_BUILD_NUMBER;
+    delete process.env.KAITECH_LINK_HOST;
+    delete process.env.KAITECH_DEFAULT_DB;
+  });
+
+  it('carries the default database from KAITECH_DEFAULT_DB next to the link host', () => {
+    process.env.KAITECH_LINK_HOST = 'lab0.kaitech.io';
+    process.env.KAITECH_DEFAULT_DB = ' lab0 ';
+    expect(appConfig(context).extra).toMatchObject({ linkHost: 'lab0.kaitech.io', defaultDatabase: 'lab0' });
+  });
+
+  it.each(['', 'lab 0', '-lab0'])('leaves the default database out for KAITECH_DEFAULT_DB=%p', (value) => {
+    process.env.KAITECH_DEFAULT_DB = value;
+    expect(appConfig(context).extra?.defaultDatabase).toBeUndefined();
   });
 
   afterAll(() => {
