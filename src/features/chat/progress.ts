@@ -7,7 +7,7 @@ export function setUploadProgress(key: string, fraction: number | null) {
   if (fraction === null) {
     if (!sent.delete(key)) return;
   } else {
-    const next = Math.min(1, Math.max(0, fraction));
+    const next = Math.round(Math.min(1, Math.max(0, fraction)) * 100) / 100;
     if (sent.get(key) === next) return;
     sent.set(key, next);
   }

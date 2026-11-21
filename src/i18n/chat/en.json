@@ -101,7 +101,9 @@
     "uploading": "Uploading {{name}}",
     "uploadingPercent": "{{name}} · {{percent}}%",
     "tooBig_one": "{{names}} is larger than {{limit}}, the most this server accepts.",
-    "tooBig_other": "{{names}} are larger than {{limit}}, the most this server accepts."
+    "tooBig_other": "{{names}} are larger than {{limit}}, the most this server accepts.",
+    "tooMuch_one": "{{names}} would take this message past {{limit}}, the most the Coworker accepts at once. Send it in a separate message.",
+    "tooMuch_other": "{{names}} would take this message past {{limit}}, the most the Coworker accepts at once. Send them in a separate message."
   },
   "permissions": {
     "cameraTitle": "Camera access is off",

@@ -1,4 +1,4 @@
-import { limitsOf } from '../src/features/chat/uploadRule';
+import { limitsOf, withinBudget } from '../src/features/chat/uploadRule';
 import { chatAttachments } from '../src/features/discovery/files';
 
 describe('upload limits from the server', () => {
@@ -6,6 +6,20 @@ describe('upload limits from the server', () => {
     expect(limitsOf({ coworker: { max_bytes: 26214400 }, chat: { max_bytes: '5' } })).toEqual({ coworker: 26214400 });
     expect(limitsOf({ chat: { max_bytes: 0 }, coworker: { max_bytes: 1.5 } })).toEqual({});
     expect(limitsOf(null)).toEqual({});
+  });
+});
+
+describe('total bytes of one Coworker message', () => {
+  it('keeps picked files while the message stays within the limit and refuses the ones that would pass it', () => {
+    const mib = 1024 * 1024;
+    const picked = [
+      { name: 'a.mp4', size: 11 * mib },
+      { name: 'b.pdf', size: 8 * mib },
+      { name: 'c.png', size: 1 * mib },
+    ];
+    const { kept, refused } = withinBudget([{ size: 15 * mib }], picked, 25 * mib);
+    expect(kept.map((file) => file.name)).toEqual(['b.pdf', 'c.png']);
+    expect(refused.map((file) => file.name)).toEqual(['a.mp4']);
   });
 });
 

@@ -68,6 +68,7 @@ export async function bearerUpload<T>(account: Account, path: string, body: unkn
   const { status, answer } = await new Promise<{ status: number; answer: Record<string, unknown> | null }>((resolve, reject) => {
     const request = new XMLHttpRequest();
     request.open('POST', `${account.origin}${path}`);
+    request.withCredentials = false;
     Object.entries(headers(account.db, token)).forEach(([name, value]) => request.setRequestHeader(name, value));
     request.timeout = uploadDeadlineMs(payload.length);
     request.upload.onprogress = (event) => {

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import {
   ActivityIndicator,
+  Alert,
   AppState,
   FlatList,
   Keyboard,
@@ -21,6 +22,7 @@ import { radius, space, type as typography, useTheme } from '../../theme';
 import { Text } from '../../ui/Text';
 import { localFile, dropFile } from '../chat/files';
 import { useUploadLimit } from '../chat/limits';
+import { coworkerFallbackBytes, withinBudget } from '../chat/uploadRule';
 import { pickAttachments, type AttachSource, type Picked } from '../chat/ui/attach';
 import { useChatFormat } from '../chat/ui/format';
 import { Icon as ChatIcon } from '../chat/ui/icons';
@@ -216,20 +218,25 @@ export function CoworkerThread({
   const [pending, setPending] = useState<Pending[]>([]);
   const [files, setFiles] = useState<Staged[]>([]);
   const [sheet, setSheet] = useState(false);
-  const maxBytes = useUploadLimit(active, 'coworker');
+  const maxBytes = useUploadLimit(active, 'coworker') ?? coworkerFallbackBytes;
   const { t: chatT } = useTranslation('chat');
   const { size } = useChatFormat();
   const held = useRef<{ files: Staged[]; pending: Pending[] }>({ files: [], pending: [] });
+  const sending = useRef(new Set<string>());
+  const mounted = useRef(true);
   useEffect(() => {
     held.current = { files, pending };
   }, [files, pending]);
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mounted.current = true;
+    const inFlight = sending.current;
+    return () => {
+      mounted.current = false;
       const { files: staged, pending: unsent } = held.current;
-      [...staged, ...unsent.filter((entry) => entry.turnId === undefined).flatMap((entry) => entry.files)].forEach((file) => dropFile(file.uri));
-    },
-    [],
-  );
+      const abandoned = unsent.filter((entry) => entry.turnId === undefined && !inFlight.has(entry.key));
+      [...staged, ...abandoned.flatMap((entry) => entry.files)].forEach((file) => dropFile(file.uri));
+    };
+  }, []);
   const thread = useTranscript(conversation);
   const programmePanel = useResource(`discovery.panel.${programme}`, (signedIn) => panel(signedIn, programme));
   const list = useRef<FlatList<Entry | Pending | Card>>(null);
@@ -255,7 +262,8 @@ export function CoworkerThread({
   const shownPending = pending.filter((entry) => entry.turnId === undefined || !asked.has(entry.turnId));
 
   const send = async (entry: Pending) => {
-    if (!active) return;
+    if (!active || sending.current.has(entry.key)) return;
+    sending.current.add(entry.key);
     setPending((current) => [...current.filter((other) => other.key !== entry.key), { ...entry, failed: null, sent: null }]);
     try {
       const documents = await documentsOf(entry.files);
@@ -271,7 +279,10 @@ export function CoworkerThread({
       void thread.pull();
       void programmePanel.refresh();
     } catch (failure) {
+      if (!mounted.current) entry.files.forEach((file) => dropFile(file.uri));
       setPending((current) => current.map((other) => (other.key === entry.key ? { ...other, failed: failure, sent: null } : other)));
+    } finally {
+      sending.current.delete(entry.key);
     }
   };
 
@@ -285,7 +296,10 @@ export function CoworkerThread({
   const pickFrom = async (source: AttachSource) => {
     setSheet(false);
     const staged = await pickAttachments(source, chatT, maxBytes, size);
-    if (staged.length) setFiles((current) => [...current, ...staged]);
+    const { kept, refused } = withinBudget(held.current.files, staged, maxBytes);
+    refused.forEach((file) => dropFile(file.uri));
+    if (refused.length) Alert.alert(chatT('composer.tooMuch', { count: refused.length, names: refused.map((file) => file.name).join(', '), limit: size(maxBytes) }));
+    if (kept.length) setFiles((current) => [...current, ...kept]);
   };
 
   const submit = () => {

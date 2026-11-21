@@ -101,7 +101,9 @@
     "uploading": "Mengunggah {{name}}",
     "uploadingPercent": "{{name}} · {{percent}}%",
     "tooBig_one": "{{names}} lebih besar dari {{limit}}, batas yang diterima server ini.",
-    "tooBig_other": "{{names}} lebih besar dari {{limit}}, batas yang diterima server ini."
+    "tooBig_other": "{{names}} lebih besar dari {{limit}}, batas yang diterima server ini.",
+    "tooMuch_one": "{{names}} membuat pesan ini melebihi {{limit}}, batas sekali kirim ke Coworker. Kirim di pesan terpisah.",
+    "tooMuch_other": "{{names}} membuat pesan ini melebihi {{limit}}, batas sekali kirim ke Coworker. Kirim di pesan terpisah."
   },
   "permissions": {
     "cameraTitle": "Akses kamera tidak aktif",
