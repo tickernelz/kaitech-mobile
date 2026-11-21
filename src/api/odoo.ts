@@ -8,6 +8,7 @@ export class ApiError extends Error {
   constructor(
     readonly code: string,
     readonly status: number,
+    readonly detail: string | null = null,
   ) {
     super(code);
     this.name = 'ApiError';
@@ -158,7 +159,11 @@ async function sessionFor(account: Account, renew: boolean): Promise<Session> {
 
 onAccountForgotten((accountId) => sessions.delete(accountId));
 
-type RpcFailure = { code?: unknown; data?: { name?: unknown } };
+type RpcFailure = { code?: unknown; data?: { name?: unknown; message?: unknown } };
+
+function shownDetail(failure: RpcFailure, code: string): string | null {
+  return code === 'refused' && typeof failure.data?.message === 'string' ? failure.data.message : null;
+}
 
 function rpcCode(name: string): string {
   if (/\.(AccessError|AccessDenied)$/.test(name)) return 'forbidden';
@@ -190,14 +195,15 @@ export async function rpc<T>(
         jsonrpc: '2.0',
         method: 'call',
         id: attempt,
-        params: { model, method, args, kwargs: { ...kwargs, context: { lang } } },
+        params: { model, method, args, kwargs: { ...kwargs, context: { ...(kwargs.context as Record<string, unknown> | undefined), lang } } },
       }),
     });
     if (status !== 200) refused(account, status, body);
     const failure = body?.error as RpcFailure | undefined;
     if (!failure) return body?.result as T;
     if (attempt === 0 && expired(failure)) continue;
-    throw new ApiError(rpcCode(typeof failure.data?.name === 'string' ? failure.data.name : ''), status);
+    const code = rpcCode(typeof failure.data?.name === 'string' ? failure.data.name : '');
+    throw new ApiError(code, status, shownDetail(failure, code));
   }
 }
 
@@ -220,7 +226,8 @@ export async function route<T>(account: Account, path: string, params: Record<st
     if (!failure) return body?.result as T;
     if (attempt === 0 && expired(failure)) continue;
     const name = typeof failure.data?.name === 'string' ? failure.data.name : '';
-    throw new ApiError(failure.code === 404 || /NotFound$/.test(name) ? 'not_found' : rpcCode(name), status);
+    const code = failure.code === 404 || /NotFound$/.test(name) ? 'not_found' : rpcCode(name);
+    throw new ApiError(code, status, shownDetail(failure, code));
   }
 }
 

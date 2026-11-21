@@ -115,6 +115,8 @@ function attachmentFrom(value: Raw): Attachment | null {
 
 function reactionsFromStore(data: unknown, myPartnerId: number): Map<number, Reaction[]> {
   const byMessage = new Map<number, Reaction[]>();
+  const partners = new Map(records(data, 'res.partner').map((partner) => [id(partner.id), text(partner.name)]));
+  const guests = new Map(records(data, 'mail.guest').map((guest) => [id(guest.id), text(guest.name)]));
   for (const raw of records(data, 'mail.message.reaction')) {
     const messageId = id(raw.message);
     const content = text(raw.content);
@@ -124,6 +126,7 @@ function reactionsFromStore(data: unknown, myPartnerId: number): Map<number, Rea
       content,
       count: typeof raw.count === 'number' ? raw.count : ids(raw.partners).length + ids(raw.guests).length,
       mine: ids(raw.partners).includes(myPartnerId),
+      people: [...ids(raw.partners).map((partnerId) => partners.get(partnerId)), ...ids(raw.guests).map((guestId) => guests.get(guestId))].filter((name): name is string => !!name),
     });
     byMessage.set(messageId, list);
   }
@@ -152,7 +155,6 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
       channelId,
       authorId,
       author: (authorId ? partners.get(authorId) : guestId ? guests.get(guestId) : undefined) ?? text(raw.email_from),
-      body: text(raw.body),
       date: utc(raw.date),
       type: text(raw.message_type),
       attachments: ids(raw.attachment_ids)
@@ -160,9 +162,45 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
         .filter((item): item is Attachment => item !== undefined),
       parentId: id(raw.parent_id),
       reactions: reactions.get(messageId) ?? [],
+      ...editedBody(text(raw.body)),
+      starred: raw.starred === true,
+      pinnedAt: text(raw.pinned_at) || null,
     });
   }
   return messages.sort((a, b) => a.id - b.id);
+}
+
+const editedMark = /<span class=["']o-mail-Message-edited["']\s*(?:\/>|><\/span>)/g;
+
+export function editedBody(html: string): { body: string; edited: boolean } {
+  const body = html.replace(editedMark, '');
+  return { body, edited: body.length !== html.length };
+}
+
+export type MessagePatch = Partial<Pick<Message, 'body' | 'edited' | 'attachments' | 'pinnedAt' | 'starred'>>;
+
+export function messagePatches(data: unknown): Map<number, MessagePatch> {
+  const attachments = new Map<number, Attachment>();
+  for (const raw of records(data, 'ir.attachment')) {
+    const attachment = attachmentFrom(raw);
+    if (attachment) attachments.set(attachment.id, attachment);
+  }
+  const patches = new Map<number, MessagePatch>();
+  for (const raw of records(data, 'mail.message')) {
+    const messageId = id(raw.id);
+    if (!messageId) continue;
+    const patch: MessagePatch = {};
+    if ('body' in raw) Object.assign(patch, editedBody(text(raw.body)));
+    if ('attachment_ids' in raw) patch.attachments = ids(raw.attachment_ids).map((attachmentId) => attachments.get(attachmentId)).filter((item): item is Attachment => item !== undefined);
+    if ('pinned_at' in raw) patch.pinnedAt = text(raw.pinned_at) || null;
+    if ('starred' in raw) patch.starred = raw.starred === true;
+    if (Object.keys(patch).length) patches.set(messageId, patch);
+  }
+  return patches;
+}
+
+export function isRemoved(message: Pick<Message, 'type' | 'body' | 'attachments'>): boolean {
+  return message.type === 'comment' && !message.attachments.length && !message.body.replace(/<[^>]*>|&nbsp;|\s/g, '');
 }
 
 export function membersFromStore(data: unknown): Map<number, Member[]> {

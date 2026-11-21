@@ -18,13 +18,16 @@ import {
   fullMessages,
   lastMessageOf,
   membersFromStore,
+  messagePatches,
   messagesFromStore,
+  type MessagePatch,
   reactionUpdates,
   seenFromStore,
   subChannelsFromStore,
   typingFromStore,
   type ChannelInfo,
 } from './odoo';
+import { featuresFromSession, noFeatures, type ChatFeatures } from './features';
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
 import type { Conversation, Member, Mention, Message, Pending, PendingFile } from './types';
@@ -66,6 +69,7 @@ export type ChatState = {
   realtime: RealtimeState;
   openChannels: number[];
   invited: number[];
+  features: ChatFeatures;
 };
 
 const emptyThread: Thread = { messages: [], loading: false, loaded: false, hasOlder: true, loadingOlder: false, error: null, members: [], typing: [], hasNewer: false, info: null, subChannels: {} };
@@ -88,6 +92,7 @@ let state: ChatState = {
   realtime: 'closed',
   openChannels: [],
   invited: [],
+  features: noFeatures,
 };
 
 const listeners = new Set<() => void>();
@@ -171,6 +176,21 @@ function delivered(sent: Sent) {
   void fetchNewer(pending.channelId);
 }
 
+export function patchMessages(patches: Map<number, MessagePatch>) {
+  if (!patches.size) return;
+  let threads: Record<number, Thread> | null = null;
+  for (const [key, thread] of Object.entries(state.threads)) {
+    if (!thread.messages.some((message) => patches.has(message.id))) continue;
+    const messages = thread.messages.map((message) => {
+      const patch = patches.get(message.id);
+      return patch ? { ...message, ...patch } : message;
+    });
+    threads = { ...(threads ?? state.threads), [Number(key)]: { ...thread, messages } };
+    if (state.accountId) void storeMessages(state.accountId, Number(key), messages.filter((message) => patches.has(message.id)));
+  }
+  if (threads) set({ threads });
+}
+
 function upsertMessages(channelId: number, incoming: Message[]) {
   if (!incoming.length || !state.accountId) return;
   const arrived = new Set(incoming.map((message) => message.id));
@@ -240,8 +260,15 @@ function onNotifications(notifications: Notification[]) {
       if (active && state.openChannels.includes(channelId)) scheduleRead(channelId);
       continue;
     }
+    if (notification.type === 'mail.message/toggle_star') {
+      const payload = notification.payload as { message_ids?: unknown; starred?: unknown };
+      const ids = Array.isArray(payload.message_ids) ? payload.message_ids.filter((item): item is number => typeof item === 'number') : [];
+      patchMessages(new Map(ids.map((messageId) => [messageId, { starred: payload.starred === true }])));
+      continue;
+    }
     if (notification.type !== 'mail.record/insert') continue;
     const data = notification.payload;
+    patchMessages(messagePatches(data));
     for (const message of fullMessages(data, state.partnerId)) {
       if (state.threads[message.channelId]?.messages.some((existing) => existing.id === message.id)) upsertMessages(message.channelId, [message]);
     }
@@ -311,6 +338,15 @@ function stop() {
   teardown = [];
 }
 
+async function loadFeatures(current: ChatClient) {
+  try {
+    const info = await current.sessionInfo();
+    if (client === current) set({ features: featuresFromSession(info) });
+  } catch {
+    return;
+  }
+}
+
 export function startChat(account: Account) {
   if (state.accountId === account.id && client) return;
   stop();
@@ -332,9 +368,11 @@ export function startChat(account: Account) {
     delivered: [],
     openChannels: [],
     invited: [],
+    features: noFeatures,
   };
   listeners.forEach((listener) => listener());
   const current = client;
+  void loadFeatures(current);
   outbox = new Outbox(
     {
       upload: async (item: Pending, file: PendingFile) => {
@@ -407,7 +445,7 @@ export function startChat(account: Account) {
 
 export function stopChat() {
   stop();
-  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [] });
+  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [], features: noFeatures });
 }
 
 onAccountForgotten((id) => {

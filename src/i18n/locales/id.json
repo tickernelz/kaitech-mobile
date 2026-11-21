@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "Kaitech"
+    "name": "Kaitech",
+    "close": "Tutup"
   },
   "welcome": {
     "title": "Selamat datang di Kaitech",

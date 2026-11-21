@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "Kaitech"
+    "name": "Kaitech",
+    "close": "Close"
   },
   "welcome": {
     "title": "Welcome to Kaitech",

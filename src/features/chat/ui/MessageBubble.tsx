@@ -5,7 +5,7 @@ import { readableWidth } from '../../../layout/windowClass';
 import { personColors, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
-import { attachmentUrl, isCallNotice, type ReadState } from '../odoo';
+import { attachmentUrl, isCallNotice, isRemoved, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
 import type { Attachment, Message, Pending, PendingFile } from '../types';
 import { useChatFormat } from './format';
@@ -203,7 +203,8 @@ export const MessageBubble = memo(function MessageBubble({
   const { t } = useTranslation('chat');
   const { colors, scheme } = useTheme();
   const { clock } = useChatFormat();
-  const blocks = bodyBlocks(message.body);
+  const removed = isRemoved(message);
+  const blocks = removed ? [] : bodyBlocks(message.body);
   const notification = message.type === 'notification';
   const time = clock(message.date);
   const text = bodyPreview(message.body);
@@ -229,7 +230,16 @@ export const MessageBubble = memo(function MessageBubble({
       </View>
     );
   }
-  const label = [mine ? t('thread.you') : message.author, text, message.attachments.length ? t('list.files', { count: message.attachments.length }) : '', time, readState === 'read' ? t('thread.read') : readState === 'sent' ? t('thread.sent') : '']
+  const label = [
+    mine ? t('thread.you') : message.author,
+    removed ? t('thread.removed') : text,
+    message.attachments.length ? t('list.files', { count: message.attachments.length }) : '',
+    message.edited && !removed ? t('thread.edited') : '',
+    message.pinnedAt ? t('thread.pinned') : '',
+    message.starred ? t('thread.starred') : '',
+    time,
+    readState === 'read' ? t('thread.read') : readState === 'sent' ? t('thread.sent') : '',
+  ]
     .filter(Boolean)
     .join(', ');
   const body = (
@@ -243,7 +253,19 @@ export const MessageBubble = memo(function MessageBubble({
         <QuoteBlock quote={quote} mine={mine} onPress={message.parentId ? () => onQuotePress(message.parentId as number) : undefined} />
         <Attachments attachments={message.attachments} origin={origin} mine={mine} />
         {blocks.length ? <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} /> : null}
+        {removed ? (
+          <Text variant="callout" tone="inkSoft" style={styles.removed} testID={`removed-${message.id}`}>
+            {t('thread.removed')}
+          </Text>
+        ) : null}
         <View style={styles.meta}>
+          {message.pinnedAt ? <Icon name="pin" size={16} color={colors.inkFaint} /> : null}
+          {message.starred ? <Icon name="star" size={16} color={colors.inkFaint} /> : null}
+          {message.edited && !removed ? (
+            <Text variant="label" tone="inkFaint" style={styles.time} testID={`edited-${message.id}`}>
+              {t('thread.edited')}
+            </Text>
+          ) : null}
           <Text variant="label" tone="inkFaint" style={styles.time}>
             {time}
           </Text>
@@ -385,6 +407,7 @@ const styles = StyleSheet.create({
   share: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   meta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
   time: { fontWeight: '400' },
+  removed: { fontStyle: 'italic' },
   under: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
   reaction: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 32, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },

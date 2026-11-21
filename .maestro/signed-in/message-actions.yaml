@@ -1,0 +1,276 @@
+appId: io.kaitech.mobile
+name: Message actions from the long-press sheet, checked on the server
+tags:
+  - signed-in
+  - chat-actions
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      text: ${PEER}
+    timeout: 60000
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- tapOn:
+    id: composer-input
+- inputText: ${RUN + ' a1'}
+- tapOn:
+    id: composer-send
+- runFlow: ../shared/dismiss-keyboard.yaml
+- extendedWaitUntil:
+    notVisible:
+      id: (pending-queued|pending-sending)
+    timeout: 30000
+- longPressOn:
+    text: ${RUN + ' a1'}
+- extendedWaitUntil:
+    visible:
+      id: message-actions
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a1-sheet
+- tapOn:
+    id: action-more
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a2-more
+- tapOn:
+    id: action-pin
+- extendedWaitUntil:
+    visible:
+      id: thread-notice
+    timeout: 10000
+- longPressOn:
+    text: ${RUN + ' a1'}
+- tapOn:
+    id: action-more
+- tapOn:
+    id: action-star
+- extendedWaitUntil:
+    visible:
+      id: thread-notice
+    timeout: 10000
+- longPressOn:
+    text: ${RUN + ' a1'}
+- tapOn:
+    id: action-emoji
+- extendedWaitUntil:
+    visible:
+      id: emoji-picker
+    timeout: 10000
+- tapOn:
+    id: emoji-search
+- inputText: rocket
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a3-emoji
+- tapOn:
+    text: "\U0001F680"
+- extendedWaitUntil:
+    visible:
+      text: "\U0001F680 1"
+    timeout: 15000
+- longPressOn:
+    text: ${RUN + ' a1'}
+- tapOn:
+    id: action-edit
+- extendedWaitUntil:
+    visible:
+      id: composer-editing
+    timeout: 10000
+- tapOn:
+    id: composer-input
+- eraseText: 40
+- inputText: ${RUN + ' a1 edited'}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a4-editing
+- tapOn:
+    id: composer-save-edit
+- runFlow: ../shared/dismiss-keyboard.yaml
+- extendedWaitUntil:
+    visible:
+      text: ${RUN + ' a1 edited'}
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      text: (edited|diedit)
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a5-edited
+- longPressOn:
+    text: ${RUN + ' a1 edited'}
+- tapOn:
+    id: action-forward
+- extendedWaitUntil:
+    visible:
+      id: forward-sheet
+    timeout: 15000
+- tapOn:
+    id: forward-search
+- inputText: ${FORWARD_TO}
+- tapOn:
+    id: forward-target-.*
+    index: 0
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a6-forward
+- tapOn:
+    id: forward-send
+- extendedWaitUntil:
+    visible:
+      id: thread-notice
+    timeout: 15000
+- runFlow:
+    when:
+      true: ${MAKE_TASK == 'yes'}
+    commands:
+      - longPressOn:
+          text: ${RUN + ' a1 edited'}
+      - tapOn:
+          id: action-more
+      - tapOn:
+          id: action-task
+      - extendedWaitUntil:
+          visible:
+            id: task-create
+          timeout: 15000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: a7-task
+      - tapOn:
+          id: task-create
+      - extendedWaitUntil:
+          visible:
+            id: thread-notice
+          timeout: 15000
+- longPressOn:
+    text: ${RUN + ' a1 edited'}
+- tapOn:
+    id: action-more
+- tapOn:
+    id: action-activity
+- extendedWaitUntil:
+    visible:
+      id: activity-create
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a8-activity
+- tapOn:
+    id: activity-create
+- extendedWaitUntil:
+    visible:
+      id: thread-notice
+    timeout: 15000
+- runFlow:
+    when:
+      true: ${MEETING == 'yes'}
+    commands:
+      - longPressOn:
+          text: ${RUN + ' a1 edited'}
+      - tapOn:
+          id: action-more
+      - tapOn:
+          id: action-meeting
+      - extendedWaitUntil:
+          visible:
+            id: meeting-schedule
+          timeout: 15000
+      - tapOn:
+          id: meeting-start-day-1
+      - tapOn:
+          id: meeting-start-time-480
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: a9-meeting
+      - tapOn:
+          id: meeting-schedule
+      - extendedWaitUntil:
+          visible:
+            id: thread-notice
+          timeout: 15000
+- longPressOn:
+    text: ${RUN + ' a1 edited'}
+- tapOn:
+    id: action-more
+- tapOn:
+    id: action-link
+- extendedWaitUntil:
+    visible:
+      id: thread-notice
+    timeout: 10000
+- tapOn:
+    id: composer-input
+- inputText: ${RUN + ' a2'}
+- tapOn:
+    id: composer-send
+- runFlow: ../shared/dismiss-keyboard.yaml
+- extendedWaitUntil:
+    notVisible:
+      id: (pending-queued|pending-sending)
+    timeout: 30000
+- longPressOn:
+    text: ${RUN + ' a2'}
+- tapOn:
+    id: action-delete
+- tapOn:
+    text: (DELETE|Delete|HAPUS|Hapus)
+- extendedWaitUntil:
+    visible:
+      text: (This message was deleted|Pesan ini sudah dihapus)
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a10-deleted
+- runScript:
+    file: ../scripts/actions-peer.js
+- assertTrue: ${output.actions.edited == 1 && output.actions.removed == 1 && output.actions.pinned == 1 && output.actions.reacted == 1 && output.actions.forwarded == 1}
+- longPressOn:
+    text: ${RUN + ' a1 edited'}
+- tapOn:
+    id: action-more
+- tapOn:
+    id: action-unread
+- runFlow:
+    when:
+      true: ${DEVICE_SIZE == 'phone'}
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: chat-list
+          timeout: 15000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: a11-unread
