@@ -19,7 +19,7 @@ export type Recording = {
 export type Playback = { recording: Recording; url: string | null };
 
 const states: RecordingState[] = ['recording', 'ending', 'done', 'failed', 'deleted'];
-const playPath = /\/kaitech_mobile\/call\/recordings\/(\d+)\/play$/;
+const playPath = /^\/kaitech_mobile\/call\/recordings\/(\d+)\/play$/;
 
 type Raw = Record<string, unknown>;
 

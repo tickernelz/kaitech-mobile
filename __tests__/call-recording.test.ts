@@ -3,9 +3,13 @@ import { odooDate, recordingFrom, recordingIdOf } from '../src/features/call/rec
 jest.mock('../src/api/odoo', () => ({ bearer: () => Promise.reject(new Error('offline')) }));
 
 describe('recordingIdOf', () => {
-  it('reads the recording id from the attachment url', () => {
+  it('reads the recording id from the attachment url the server writes', () => {
     expect(recordingIdOf('/kaitech_mobile/call/recordings/7/play')).toBe(7);
-    expect(recordingIdOf('https://erp.example.com/kaitech_mobile/call/recordings/12/play')).toBe(12);
+  });
+
+  it('ignores the recording path on another host', () => {
+    expect(recordingIdOf('https://erp.example.com/kaitech_mobile/call/recordings/12/play')).toBeNull();
+    expect(recordingIdOf('//erp.example.com/kaitech_mobile/call/recordings/12/play')).toBeNull();
   });
 
   it('ignores other links', () => {
