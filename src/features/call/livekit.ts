@@ -21,7 +21,7 @@ export function loadLiveKit(): Promise<LiveKit> {
 }
 
 export function loadClient(): Promise<Client> {
-  return Promise.resolve(require('livekit-client') as Client);
+  return Promise.resolve(require('./liveKitClient') as Client);
 }
 
 export type LiveRoom = import('livekit-client').Room;
