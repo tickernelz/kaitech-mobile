@@ -10,9 +10,10 @@ Unduh dari [Releases](https://github.com/tickernelz/kaitech-mobile/releases/late
 
 Masuk di Android memakai App Link di domain tautan `lab0.kaitech.io` (variabel repo `KAITECH_LINK_HOST`), tertanam di build rilis mulai v0.2.2. Build tanpa variabel itu, misalnya PR dari fork, memberi tahu di layar masuk bahwa domain tautan belum diatur.
 
-Batas build rilis selama Firebase dan akun Apple Developer belum ada (catatan rilis tiap tag menyebut mana yang berlaku untuk build itu):
+Push Android lewat FCM ikut build rilis mulai v0.2.2 (secret `GOOGLE_SERVICES_JSON`); build tanpa secret itu tidak punya push, dan catatan rilisnya menyebutnya.
 
-- **Push Android.** Tanpa secret `GOOGLE_SERVICES_JSON` push mati; pesan dan dering baru tampil hanya saat aplikasi terbuka.
+Batas build rilis selama akun Apple Developer belum ada:
+
 - **iOS.** Lihat [Pasang IPA](#pasang-ipa-ios): masuk lewat Universal Link, APNs, VoIP push, dan CallKit butuh akun Apple Developer.
 
 ### Yang terbukti
@@ -36,7 +37,7 @@ Semua bukti dari emulator Android atau simulator iPad; belum ada uji di perangka
 - Split-screen Android, Split View dan Slide Over iPad, perangkat lipat, skala font sistem 200%, dan keyboard fisik di tablet. Konfigurasinya diperiksa (orientasi bebas, multi-window aktif, `UIRequiresFullScreen` mati) di APK dan IPA rilis, tetapi perilakunya belum diuji.
 - Masuk di iOS, APNs, VoIP push, CallKit, Universal Link iOS, rekam MoM di latar dan unggah di iOS: butuh akun Apple Developer.
 - Live Activity: belum dibangun; pembaruannya dari server butuh APNs.
-- Push Android sampai ke perangkat, termasuk dering saat aplikasi mati dan Tolak dari notifikasi saat aplikasi mati: butuh Firebase.
+- Push Android sampai ke perangkat, termasuk dering saat aplikasi mati dan Tolak dari notifikasi saat aplikasi mati: Firebase sudah ada di build rilis mulai v0.2.2, uji kirimnya belum.
 - Layar kunci sungguhan (emulator tanpa keyguard) dan pemakaian baterai.
 - Discovery di iPad: hanya diuji di emulator Android.
 - MoM di ponsel landscape: sekali tercatat "recording couldn't start" di emulator dan belum terulang; galat native-nya kini masuk logcat bila muncul lagi.
@@ -92,8 +93,6 @@ Batas iOS tanpa akun Apple Developer: tanpa APNs, pembaruan realtime hanya berja
 - CallKit yang memakai entitlement push VoIP.
 - Universal Links iOS yang terverifikasi (`apple-app-site-association` dengan Team ID), yang dibutuhkan untuk masuk di iOS.
 - Live Activity untuk panggilan dan rekaman MoM.
-
-Di luar akun toko, proyek Firebase untuk push Android (secret `GOOGLE_SERVICES_JSON`) masih menunggu Zhafron.
 
 ## Calls
 
