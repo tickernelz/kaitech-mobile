@@ -9,7 +9,8 @@ import { radius, space, type as typography, useTheme } from '../../theme';
 import { Text } from '../../ui/Text';
 import { search, type SearchHits } from '../discovery/api';
 import { openConversation, rememberProgramme, useLastProgramme } from '../discovery/store';
-import { Icon, IconButton, Segmented, StateView, type IconName } from '../discovery/ui';
+import { Icon, type IconName } from '../../ui/icons';
+import { IconButton, Segmented, StateView } from '../discovery/ui';
 
 type Filter = 'all' | 'chat' | 'discovery' | 'mom';
 type Hit = { key: string; icon: IconName; title: string; detail: string; open: () => void };
@@ -76,7 +77,7 @@ export function SearchScreen() {
           title: t('search.groups.discovery'),
           data: shownHits.discovery.map<Hit>((hit) => ({
             key: `discovery-${hit.kind}-${hit.id}`,
-            icon: hit.kind === 'card' ? 'hand' : hit.kind === 'conversation' ? 'sparkle' : 'doc',
+            icon: hit.kind === 'card' ? 'decision' : hit.kind === 'conversation' ? 'sparkle' : 'doc',
             title: hit.title,
             detail: t(`search.kind.${hit.kind}`),
             open: () => {

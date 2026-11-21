@@ -5,7 +5,7 @@ import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { attachSources, type AttachSource } from './attach';
 import { useChatFormat } from './format';
-import { Icon } from './icons';
+import { Icon } from '../../../ui/icons';
 import { cancelDistance, type Recording, type useVoiceHold } from './useVoiceHold';
 
 export function AttachSheet({ visible, onClose, onPick }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void }) {
@@ -14,7 +14,7 @@ export function AttachSheet({ visible, onClose, onPick }: { visible: boolean; on
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <Pressable style={styles.scrim} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button">
+      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button">
         <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} accessibilityViewIsModal onPress={() => undefined}>
           <Text variant="title" accessibilityRole="header">
             {t('composer.attachTitle')}
@@ -23,7 +23,7 @@ export function AttachSheet({ visible, onClose, onPick }: { visible: boolean; on
             {attachSources.map((source) => (
               <Pressable key={source} accessibilityRole="button" onPress={() => onPick(source)} style={styles.sheetItem} testID={`attach-${source}`}>
                 <View style={[styles.sheetIcon, { backgroundColor: colors.select }]}>
-                  <Icon name={source === 'camera' ? 'camera' : source === 'photos' ? 'image' : 'file'} color={colors.selectInk} />
+                  <Icon name={source === 'camera' ? 'photo' : source === 'photos' ? 'image' : 'file'} color={colors.selectInk} />
                 </View>
                 <Text variant="callout" style={styles.centerText}>
                   {t(`composer.source.${source}`)}
@@ -77,12 +77,12 @@ export function StagedFile({ name, mimetype, onRemove }: { name: string; mimetyp
   const { colors } = useTheme();
   return (
     <View style={[styles.stagedFile, { backgroundColor: colors.surface2 }]}>
-      <Icon name={mimetype.startsWith('image/') ? 'image' : 'file'} size={18} color={colors.inkSoft} />
+      <Icon name={mimetype.startsWith('image/') ? 'image' : 'file'} size={20} color={colors.inkSoft} />
       <Text variant="footnote" numberOfLines={1} style={styles.stagedName}>
         {name}
       </Text>
       <Pressable accessibilityRole="button" accessibilityLabel={t('composer.removeFile', { name })} hitSlop={12} onPress={onRemove}>
-        <Icon name="close" size={18} color={colors.inkSoft} />
+        <Icon name="close" size={20} color={colors.inkSoft} />
       </Pressable>
     </View>
   );
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   progress: { gap: space.xs, minWidth: 160 },
   track: { height: 4, borderRadius: 2, overflow: 'hidden' },
   fill: { height: 4 },
-  scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', backgroundColor: 'rgba(17,5,27,0.45)' },
+  scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 560, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, padding: space.xl, gap: space.lg },
   sheetGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.lg },
   sheetItem: { width: 88, alignItems: 'center', gap: space.xs },

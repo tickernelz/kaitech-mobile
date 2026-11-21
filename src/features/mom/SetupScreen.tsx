@@ -12,7 +12,8 @@ import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 import { Header } from '../discovery/Header';
 import { useCurrentProgramme } from '../discovery/Home';
-import { Icon, Segmented, StateView } from '../discovery/ui';
+import { Icon } from '../../ui/icons';
+import { Segmented, StateView } from '../discovery/ui';
 import { uploadOptions } from './api';
 import { useMomFormat } from './parts';
 import { start, type StartResult } from './recorder';
@@ -132,7 +133,7 @@ export function SetupScreen() {
           <Text variant="callout" tone="selectInk" numberOfLines={2} style={styles.shrink}>
             {current.name}
           </Text>
-          <Icon name="down" size={18} color={colors.selectInk} />
+          <Icon name="chevronDown" size={20} color={colors.selectInk} />
         </Pressable>
       </View>
       <View style={styles.group}>

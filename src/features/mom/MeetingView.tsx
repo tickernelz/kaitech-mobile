@@ -6,13 +6,14 @@ import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
+import { Icon } from '../../ui/icons';
 import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
 import { Header } from '../discovery/Header';
 import { Card, Chip, Segmented, StateView } from '../discovery/ui';
 import { minutesDetail, playbackUrl, secondsOf, transcript, type Detail, type Item } from './api';
 import { FinalPanel } from './FinalPanel';
-import { MeetingChip, MomIcon, useMomFormat } from './parts';
+import { MeetingChip, useMomFormat } from './parts';
 import { clock, useRecording } from './recorder';
 
 type Tab = 'notes' | 'items' | 'transcript' | 'final';
@@ -71,7 +72,7 @@ function PlayerBar({ playback }: { playback: ReturnType<typeof usePlayback> }) {
         disabled={playback.busy}
         style={[styles.playButton, { backgroundColor: colors.primary, opacity: playback.busy ? 0.6 : 1 }]}
         testID="player-toggle">
-        <MomIcon name={status.playing ? 'pause' : 'play'} color={colors.onPrimary} />
+        <Icon name={status.playing ? 'pause' : 'play'} color={colors.onPrimary} />
       </Pressable>
       <View style={[styles.track, { backgroundColor: colors.line }]}>
         <View style={[styles.trackFill, { backgroundColor: colors.primary, width: `${Math.round(share * 100)}%` }]} />

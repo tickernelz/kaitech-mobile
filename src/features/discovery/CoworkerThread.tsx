@@ -25,7 +25,7 @@ import { useUploadLimit } from '../chat/limits';
 import { coworkerFallbackBytes, withinBudget } from '../chat/uploadRule';
 import { pickAttachments, type AttachSource, type Picked } from '../chat/ui/attach';
 import { useChatFormat } from '../chat/ui/format';
-import { Icon as ChatIcon } from '../chat/ui/icons';
+import { Icon } from '../../ui/icons';
 import { AttachSheet, MicButton, RecordingStrip, StagedFile, UploadProgress } from '../chat/ui/MediaControls';
 import { Attachments } from '../chat/ui/MessageBubble';
 import { useVoiceHold, type Voice } from '../chat/ui/useVoiceHold';
@@ -35,7 +35,7 @@ import { chatAttachments } from './files';
 import { Markdown } from './Markdown';
 import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
 import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread';
-import { Icon, IconButton, StateView, useErrorText } from './ui';
+import { IconButton, StateView, useErrorText } from './ui';
 
 const pollMs = 2500;
 
@@ -53,7 +53,7 @@ function PendingFile({ file, sent }: { file: Staged; sent: number | null }) {
   const name = file.voice ? t('composer.voiceLength', { length: duration(file.durationMs) }) : file.name;
   return (
     <View style={[styles.pendingFile, { backgroundColor: colors.surface }]}>
-      <ChatIcon name={file.voice ? 'mic' : file.mimetype.startsWith('image/') ? 'image' : 'file'} color={colors.inkSoft} />
+      <Icon name={file.voice ? 'mic' : file.mimetype.startsWith('image/') ? 'image' : 'file'} color={colors.inkSoft} />
       <View style={styles.fill}>
         {sent === null ? (
           <Text variant="callout" numberOfLines={1}>
@@ -77,7 +77,7 @@ function JobCard({ item, origin, testID }: { item: TranscriptItem; origin: strin
         {state === 'running' ? (
           <ActivityIndicator color={colors.primary} />
         ) : (
-          <ChatIcon name={state === 'done' ? 'check' : 'alert'} color={state === 'done' ? colors.primary : colors.dangerInk} />
+          <Icon name={state === 'done' ? 'check' : 'alert'} color={state === 'done' ? colors.primary : colors.dangerInk} />
         )}
         <Text variant="headline" tone={state === 'failed' ? 'dangerInk' : undefined} style={styles.fill}>
           {t(`discovery.thread.job.${state}`)}
@@ -302,6 +302,7 @@ export function CoworkerThread({
     if (kept.length) setFiles((current) => [...current, ...kept]);
   };
 
+  const reply = (text: string) => void send({ key: randomUUID(), text, failed: null, files: [], sent: null });
   const submit = () => {
     const text = draft.trim();
     if ((!text && !files.length) || !active) return;
@@ -358,7 +359,7 @@ export function CoworkerThread({
     if (item.kind === 'reply') {
       return (
         <Bubble mine={false} testID={`${testID}-reply`}>
-          {item.item.body.trim() ? <Markdown text={item.item.body} /> : null}
+          {item.item.body.trim() ? <Markdown text={item.item.body} onReply={reply} /> : null}
           <Attachments attachments={chatAttachments(item.item.attachments)} origin={active?.origin ?? ''} mine={false} />
         </Bubble>
       );
@@ -427,7 +428,7 @@ export function CoworkerThread({
           <RecordingStrip recording={voice.recording} />
         ) : (
           <>
-            <IconButton icon="plus" label={t('discovery.thread.attach')} onPress={() => setSheet(true)} testID={`${testID}-attach`} />
+            <IconButton icon="attach" label={t('discovery.thread.attach')} onPress={() => setSheet(true)} testID={`${testID}-attach`} />
             <TextInput
               ref={input}
               defaultValue={draft}

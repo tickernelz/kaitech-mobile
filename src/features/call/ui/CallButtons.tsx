@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet } from 'react-native';
 import { space, useTheme } from '../../../theme';
-import { Icon, type IconName } from '../../chat/ui/icons';
+import { Icon, type IconName } from '../../../ui/icons';
 import { useRouter } from 'expo-router';
 import { startCall } from '../call';
 
@@ -9,7 +9,7 @@ function CallButton({ icon, label, onPress, testID }: { icon: IconName; label: s
   const { colors } = useTheme();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={8} style={styles.button} testID={testID}>
-      <Icon name={icon} color={colors.primary} />
+      <Icon name={icon} color={colors.ink} />
     </Pressable>
   );
 }
@@ -23,8 +23,8 @@ export function CallButtons({ channelId, channelName }: { channelId: number; cha
   };
   return (
     <>
-      <CallButton icon="mic" label={t('startVoice')} onPress={() => open(false)} testID="call-voice" />
-      <CallButton icon="camera" label={t('startVideo')} onPress={() => open(true)} testID="call-video" />
+      <CallButton icon="phone" label={t('startVoice')} onPress={() => open(false)} testID="call-voice" />
+      <CallButton icon="video" label={t('startVideo')} onPress={() => open(true)} testID="call-video" />
     </>
   );
 }

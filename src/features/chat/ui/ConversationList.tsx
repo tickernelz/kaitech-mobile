@@ -3,14 +3,14 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { HeaderActions } from '../../../screens/HeaderActions';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, selectionBar, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { loadMoreConversations, refreshConversations, useChat } from '../chat';
 import { pushSupported } from '../push';
 import type { Conversation } from '../types';
 import { Avatar } from './Avatar';
 import { useChatFormat } from './format';
-import { Icon } from './icons';
+import { Icon } from '../../../ui/icons';
 
 type Filter = 'all' | 'unread' | 'people' | 'rooms';
 const filters: Filter[] = ['all', 'unread', 'people', 'rooms'];
@@ -71,14 +71,18 @@ const Row = memo(function Row({
       accessibilityState={{ selected }}
       onPress={() => onOpen(conversation.id)}
       testID={`conversation-${conversation.id}`}
-      style={({ pressed }) => [styles.row, { backgroundColor: selected ? colors.select : pressed ? colors.surface2 : 'transparent' }]}>
-      <Avatar name={conversation.name} path={conversation.type === 'chat' ? conversation.avatar : undefined} seed={conversation.id} icon={icon} />
+      style={({ pressed }) => [
+        styles.row,
+        { backgroundColor: selected ? colors.select : pressed ? colors.surface2 : 'transparent' },
+        selected && { borderLeftWidth: selectionBar, borderLeftColor: colors.primary, paddingLeft: space.lg - selectionBar },
+      ]}>
+      <Avatar name={conversation.name} path={conversation.type === 'chat' ? conversation.avatar : undefined} seed={conversation.partnerId ?? conversation.id} icon={icon} />
       <View style={[styles.rowBody, { borderBottomColor: colors.line }]}>
         <View style={styles.rowTop}>
           <Text variant="headline" numberOfLines={1} style={styles.flex}>
             {conversation.name}
           </Text>
-          <Text variant="footnote" tone={unread ? 'primary' : 'inkFaint'} style={unread && styles.strong}>
+          <Text variant="footnote" tone={unread ? 'link' : 'inkFaint'} style={unread && styles.strong}>
             {listTime(conversation.last?.date ?? conversation.activityAt)}
           </Text>
         </View>
@@ -96,7 +100,7 @@ const Row = memo(function Row({
             ) : null}
             {preview.text}
           </Text>
-          {muted ? <Icon name="muted" size={16} color={colors.inkFaint} /> : null}
+          {muted ? <Icon name="bellOff" size={16} color={colors.inkFaint} /> : null}
           {unread ? (
             <View style={[styles.badge, { backgroundColor: muted ? colors.inkFaint : colors.primary }]}>
               <Text variant="label" maxFontSizeMultiplier={1.4} style={{ color: colors.onPrimary }}>
@@ -158,7 +162,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
       </ScrollView>
       {!online ? (
         <View style={[styles.banner, { backgroundColor: colors.warnBand }]} accessibilityLiveRegion="polite" testID="chat-offline">
-          <Icon name="offline" size={18} color={colors.warnInk} />
+          <Icon name="cloudOff" size={20} color={colors.warnInk} />
           <Text variant="footnote" tone="warnInk" style={styles.flex}>
             {pending.length ? t('list.offlineQueued', { count: pending.length }) : t('list.offline')}
           </Text>
@@ -166,7 +170,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
       ) : null}
       {!pushSupported ? (
         <View style={[styles.banner, { backgroundColor: colors.infoBand }]} testID="chat-ios-push-note">
-          <Icon name="bell" size={18} color={colors.infoInk} />
+          <Icon name="bell" size={20} color={colors.infoInk} />
           <Text variant="footnote" tone="infoInk" style={styles.flex}>
             {t('list.iosNoPush')}
           </Text>

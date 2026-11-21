@@ -8,7 +8,8 @@ import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Text } from '../../ui/Text';
 import { answer, type Card } from './api';
-import { Chip, Icon, useErrorText } from './ui';
+import { Icon } from '../../ui/icons';
+import { Chip, useErrorText } from './ui';
 
 export function isOpen(card: Card): boolean {
   return !card.settled && !card.withdrawn;
@@ -49,7 +50,7 @@ export function DecisionCard({ card, onAnswered }: { card: Card; onAnswered?: (n
       accessibilityLabel={card.title}
       style={[styles.card, { backgroundColor: colors.surface, borderColor: open ? colors.warnInk : colors.line }]}>
       <View style={[styles.band, { backgroundColor: open ? colors.warnBand : colors.surface2 }]}>
-        <Icon name="hand" size={18} color={open ? colors.warnInk : colors.inkSoft} />
+        <Icon name="decision" size={20} color={open ? colors.warnInk : colors.inkSoft} />
         <Text variant="label" style={{ color: open ? colors.warnInk : colors.inkSoft }}>
           {card.settled
             ? t('discovery.card.settled')

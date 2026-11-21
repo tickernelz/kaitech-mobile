@@ -45,6 +45,7 @@ const assets = {
   'android-icon-monochrome.png': svg(432, [mark({ size: 432, width: 220, ink: '#FFFFFF', bar: '#FFFFFF' })]),
   'splash-icon.png': svg(1024, [mark({ size: 1024, width: 520, ink: '#200C30', bar: ['#441D65', '#FF5A5A'] })]),
   'splash-icon-dark.png': svg(1024, [mark({ size: 1024, width: 520, ink: '#F0EDF4', bar: ['#B18BD3', '#FF5A5A'] })]),
+  'notification-icon.png': svg(96, [mark({ size: 96, width: 80, ink: '#FFFFFF', bar: '#FFFFFF' })]),
   'favicon.png': svg(1024, [background(1024, light.from, light.to), mark({ size: 1024, width: 600, ink: light.ink, bar: light.bar })]),
 };
 

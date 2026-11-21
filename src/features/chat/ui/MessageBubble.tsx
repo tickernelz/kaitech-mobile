@@ -2,14 +2,14 @@ import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { readableWidth } from '../../../layout/windowClass';
-import { radius, space, useTheme } from '../../../theme';
+import { personColors, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { parseBody, plainText, type Block } from '../html';
 import { attachmentUrl, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
 import type { Attachment, Message, Pending, PendingFile } from '../types';
 import { useChatFormat } from './format';
-import { Icon } from './icons';
+import { Icon } from '../../../ui/icons';
 import { UploadProgress } from './MediaControls';
 import { useCookie } from './useCookie';
 import { useOpenAttachment } from './useOpenAttachment';
@@ -177,14 +177,19 @@ function Frame({
   );
 }
 
-export type Quote = { author: string; text: string } | null;
+export type Quote = { author: string; authorId: number | null; text: string } | null;
+
+export function authorColor(authorId: number | null, scheme: Scheme, colors: Colors): string {
+  return authorId === null ? colors.link : personColors(authorId, scheme).name;
+}
 
 function QuoteBlock({ quote, mine, onPress }: { quote: Quote; mine: boolean; onPress?: () => void }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   if (!quote) return null;
+  const tint = authorColor(quote.authorId, scheme, colors);
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={[styles.quoteBox, { backgroundColor: mine ? colors.surface : colors.surface2, borderColor: colors.primary }]}>
-      <Text variant="footnote" style={[styles.bold, { color: colors.primary }]} numberOfLines={1}>
+    <Pressable onPress={onPress} accessibilityRole="button" style={[styles.quoteBox, { backgroundColor: mine ? colors.surface : colors.surface2, borderColor: tint }]}>
+      <Text variant="footnote" style={[styles.bold, { color: tint }]} numberOfLines={1}>
         {quote.author}
       </Text>
       <Text variant="footnote" tone="inkSoft" numberOfLines={2}>
@@ -220,7 +225,7 @@ export const MessageBubble = memo(function MessageBubble({
   onOpenThread: (message: Message) => void;
 }) {
   const { t } = useTranslation('chat');
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { clock } = useChatFormat();
   const blocks = parseBody(message.body);
   const notification = message.type === 'notification';
@@ -243,7 +248,7 @@ export const MessageBubble = memo(function MessageBubble({
     <View style={[styles.wrap, mine ? styles.wrapMine : styles.wrapTheirs]} testID={`message-${message.id}`}>
       <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label}>
         {showAuthor && !mine ? (
-          <Text variant="footnote" numberOfLines={1} style={[styles.bold, { color: colors.primary }]}>
+          <Text variant="footnote" numberOfLines={1} style={[styles.bold, { color: authorColor(message.authorId, scheme, colors) }]}>
             {message.author}
           </Text>
         ) : null}
@@ -254,7 +259,7 @@ export const MessageBubble = memo(function MessageBubble({
           <Text variant="label" tone="inkFaint" style={styles.time}>
             {time}
           </Text>
-          {readState ? <Icon name={readState === 'read' ? 'checks' : 'check'} size={16} color={readState === 'read' ? colors.primary : colors.inkFaint} /> : null}
+          {readState ? <Icon name={readState === 'read' ? 'checkDouble' : 'check'} size={16} color={readState === 'read' ? colors.primary : colors.inkFaint} /> : null}
         </View>
       </Frame>
       {message.reactions.length || hasThread ? (
@@ -274,7 +279,7 @@ export const MessageBubble = memo(function MessageBubble({
           ))}
           {hasThread ? (
             <Pressable accessibilityRole="button" onPress={() => onOpenThread(message)} style={[styles.reaction, { backgroundColor: colors.surface, borderColor: colors.line }]}>
-              <Icon name="thread" size={14} color={colors.link} />
+              <Icon name="thread" size={16} color={colors.link} />
               <Text variant="footnote" style={{ color: colors.link }}>
                 {t('thread.openSubThread')}
               </Text>
