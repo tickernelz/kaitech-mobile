@@ -99,7 +99,7 @@ class KaitechCallModule : Module() {
     AsyncFunction("setOpenConversations") { db: String, uid: Int, channelIds: List<Int> ->
       val keys = channelIds.map { MessageKey.of(db, uid, it) }.toSet()
       MessageStore.openKeys = keys
-      keys.forEach { MessageNotifications.clear(requireContext(), it) }
+      keys.filter { it != MessageStore.bubbleKey }.forEach { MessageNotifications.clear(requireContext(), it) }
       true
     }
 

@@ -18,6 +18,16 @@ class BubbleActivity : ReactActivity() {
         }
     }
 
+  override fun onResume() {
+    super.onResume()
+    MessageStore.bubbleKey = MessageKey.of(intent.getStringExtra(EXTRA_DB).orEmpty(), intent.getIntExtra(EXTRA_UID, 0), intent.getIntExtra(EXTRA_CHANNEL, 0))
+  }
+
+  override fun onPause() {
+    MessageStore.bubbleKey = null
+    super.onPause()
+  }
+
   companion object {
     const val COMPONENT = "KaitechBubble"
     const val EXTRA_DB = "io.kaitech.bubble.db"

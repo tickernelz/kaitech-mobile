@@ -14,6 +14,9 @@ object MessageStore {
   @Volatile
   var openKeys: Set<String> = emptySet()
 
+  @Volatile
+  var bubbleKey: String? = null
+
   data class Line(
     val id: Int,
     val sender: String,
