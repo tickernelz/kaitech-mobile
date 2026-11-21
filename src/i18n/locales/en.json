@@ -371,7 +371,10 @@
       "chase": "Follow-up",
       "agenda": "Agenda",
       "other": "Discovery"
-    }
+    },
+    "askAbout": "Go through this with me, every one of them: {{headline}}",
+    "daily": "Also send this to my {{channel}} each working-day morning",
+    "dailyNeedsLink": "Link your {{channel}} number to get this each working-day morning."
   },
   "search": {
     "open": "Search",
@@ -612,6 +615,71 @@
       "photo_invalid": "This photo cannot be read.",
       "network": "No connection. Try again.",
       "generic": "Could not save. Try again."
+    }
+  },
+  "sheet": {
+    "close": "Close"
+  },
+  "date": {
+    "previous": "Previous month",
+    "next": "Next month"
+  },
+  "activities": {
+    "mine": "My activities",
+    "discovery": "Discovery",
+    "pending": "{{count}} activities due",
+    "filter": {
+      "all": "All {{count}}",
+      "overdue": "Late {{count}}",
+      "today": "Today {{count}}",
+      "planned": "Planned {{count}}"
+    },
+    "addTodo": "Add a to-do",
+    "meetingsToday": "Today's meetings ({{count}})",
+    "allDay": "All day",
+    "sectionCount": "{{name}} ({{count}})",
+    "noneTitle": "No activities",
+    "noneFiltered": "Nothing here",
+    "editTitle": "Edit activity",
+    "todoTitle": "Add a to-do",
+    "scheduleTitle": "Schedule an activity",
+    "type": "Type",
+    "summary": "Summary",
+    "due": "Due",
+    "pickDate": "Pick a date",
+    "inAWeek": "In a week",
+    "assignedTo": "Assigned to",
+    "nobody": "Nobody",
+    "findPerson": "Find a person",
+    "note": "Note",
+    "save": "Save",
+    "schedule": "Schedule",
+    "feedback": "Feedback (optional)",
+    "markDone": "Mark done",
+    "uploadDone": "Upload document and mark done",
+    "doneAndNext": "Done and schedule next",
+    "snooze": {
+      "title": "Reschedule",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "nextweek": "Next week"
+    },
+    "moveTo": "Move to {{date}}",
+    "edit": "Edit",
+    "openRecord": "Open record",
+    "cancel": "Cancel activity",
+    "keep": "Keep",
+    "cancelConfirm": "Cancel this activity? It is removed without a done note.",
+    "readOnly": "You can view this activity but not change it.",
+    "tooBig": "The file is larger than {{size}} MB.",
+    "when": {
+      "overdue_one": "{{count}} day late",
+      "overdue_other": "{{count}} days late",
+      "yesterday": "Yesterday",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "inDays_one": "In {{count}} day",
+      "inDays_other": "In {{count}} days"
     }
   }
 }

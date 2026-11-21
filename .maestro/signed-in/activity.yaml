@@ -1,0 +1,161 @@
+appId: io.kaitech.mobile
+name: Activity, my Odoo activities - add a to-do, reschedule, edit, mark done, cancel; Discovery list
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-activity
+- extendedWaitUntil:
+    visible:
+      id: activities-add-todo
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a1-activities
+- evalScript: ${output.todo = 'E2E todo ' + Date.now()}
+- tapOn:
+    id: activities-add-todo
+- extendedWaitUntil:
+    visible:
+      id: activity-summary
+    timeout: 10000
+- tapOn:
+    id: activity-summary
+- inputText: ${output.todo}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: activity-due-tomorrow
+- tapOn:
+    id: activity-due-pick
+- extendedWaitUntil:
+    visible:
+      id: activity-date-next
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a2-schedule
+- tapOn:
+    id: activity-due-tomorrow
+- scrollUntilVisible:
+    element:
+      id: activity-schedule-save
+- tapOn:
+    id: activity-schedule-save
+- tapOn:
+    id: activities-filter-planned
+- scrollUntilVisible:
+    element:
+      text: ${output.todo}
+    timeout: 30000
+- tapOn:
+    text: ${output.todo}
+- extendedWaitUntil:
+    visible:
+      id: activity-done
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a3-sheet
+- tapOn:
+    id: activity-snooze
+- tapOn:
+    id: activity-snooze-today
+- extendedWaitUntil:
+    notVisible:
+      id: activity-sheet
+    timeout: 15000
+- tapOn:
+    id: activities-filter-today
+- scrollUntilVisible:
+    element:
+      text: ${output.todo}
+    timeout: 30000
+- tapOn:
+    text: ${output.todo}
+- scrollUntilVisible:
+    element:
+      id: activity-edit
+- tapOn:
+    id: activity-edit
+- extendedWaitUntil:
+    visible:
+      id: activity-summary
+    timeout: 10000
+- tapOn:
+    id: activity-summary
+- inputText: ' edited'
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: activity-schedule-save
+- tapOn:
+    id: activity-schedule-save
+- scrollUntilVisible:
+    element:
+      text: ${output.todo + ' edited'}
+    timeout: 30000
+- tapOn:
+    text: ${output.todo + ' edited'}
+- tapOn:
+    id: activity-feedback
+- inputText: E2E feedback
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: activity-done
+- extendedWaitUntil:
+    notVisible:
+      text: ${output.todo + ' edited'}
+    timeout: 15000
+- evalScript: ${output.second = 'E2E cancel ' + Date.now()}
+- tapOn:
+    id: activities-filter-all
+- tapOn:
+    id: activities-add-todo
+- tapOn:
+    id: activity-summary
+- inputText: ${output.second}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: activity-schedule-save
+- tapOn:
+    id: activity-schedule-save
+- scrollUntilVisible:
+    element:
+      text: ${output.second}
+    timeout: 30000
+- tapOn:
+    text: ${output.second}
+- scrollUntilVisible:
+    element:
+      id: activity-cancel
+- tapOn:
+    id: activity-cancel
+- tapOn:
+    text: (?i)(cancel activity|batalkan aktivitas)
+- extendedWaitUntil:
+    notVisible:
+      text: ${output.second}
+    timeout: 15000
+- tapOn:
+    id: activity-source-discovery
+- extendedWaitUntil:
+    visible:
+      id: (activity-.*-[0-9]+|activity-empty)
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a4-discovery

@@ -371,7 +371,10 @@
       "chase": "Tindak lanjut",
       "agenda": "Agenda",
       "other": "Discovery"
-    }
+    },
+    "askAbout": "Bahas ini bersamaku, satu per satu: {{headline}}",
+    "daily": "Kirim juga ke {{channel}}-ku tiap pagi hari kerja",
+    "dailyNeedsLink": "Tautkan nomor {{channel}} agar ringkasan ini terkirim tiap pagi hari kerja."
   },
   "search": {
     "open": "Cari",
@@ -612,6 +615,71 @@
       "photo_invalid": "Foto ini tidak bisa dibaca.",
       "network": "Tidak ada koneksi. Coba lagi.",
       "generic": "Gagal menyimpan. Coba lagi."
+    }
+  },
+  "sheet": {
+    "close": "Tutup"
+  },
+  "date": {
+    "previous": "Bulan sebelumnya",
+    "next": "Bulan berikutnya"
+  },
+  "activities": {
+    "mine": "Aktivitas saya",
+    "discovery": "Discovery",
+    "pending": "{{count}} aktivitas jatuh tempo",
+    "filter": {
+      "all": "Semua {{count}}",
+      "overdue": "Terlambat {{count}}",
+      "today": "Hari ini {{count}}",
+      "planned": "Terencana {{count}}"
+    },
+    "addTodo": "Tambah to-do",
+    "meetingsToday": "Rapat hari ini ({{count}})",
+    "allDay": "Seharian",
+    "sectionCount": "{{name}} ({{count}})",
+    "noneTitle": "Tidak ada aktivitas",
+    "noneFiltered": "Tidak ada di sini",
+    "editTitle": "Ubah aktivitas",
+    "todoTitle": "Tambah to-do",
+    "scheduleTitle": "Jadwalkan aktivitas",
+    "type": "Jenis",
+    "summary": "Ringkasan",
+    "due": "Tenggat",
+    "pickDate": "Pilih tanggal",
+    "inAWeek": "Seminggu lagi",
+    "assignedTo": "Ditugaskan ke",
+    "nobody": "Belum ada",
+    "findPerson": "Cari orang",
+    "note": "Catatan",
+    "save": "Simpan",
+    "schedule": "Jadwalkan",
+    "feedback": "Umpan balik (opsional)",
+    "markDone": "Tandai selesai",
+    "uploadDone": "Unggah dokumen dan tandai selesai",
+    "doneAndNext": "Selesai dan jadwalkan berikutnya",
+    "snooze": {
+      "title": "Tunda",
+      "today": "Hari ini",
+      "tomorrow": "Besok",
+      "nextweek": "Minggu depan"
+    },
+    "moveTo": "Pindah ke {{date}}",
+    "edit": "Ubah",
+    "openRecord": "Buka rekaman",
+    "cancel": "Batalkan aktivitas",
+    "keep": "Biarkan",
+    "cancelConfirm": "Batalkan aktivitas ini? Aktivitas dihapus tanpa catatan selesai.",
+    "readOnly": "Kamu bisa melihat aktivitas ini tetapi tidak bisa mengubahnya.",
+    "tooBig": "Berkas lebih besar dari {{size}} MB.",
+    "when": {
+      "overdue_one": "Terlambat {{count}} hari",
+      "overdue_other": "Terlambat {{count}} hari",
+      "yesterday": "Kemarin",
+      "today": "Hari ini",
+      "tomorrow": "Besok",
+      "inDays_one": "{{count}} hari lagi",
+      "inDays_other": "{{count}} hari lagi"
     }
   }
 }

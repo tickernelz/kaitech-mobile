@@ -279,8 +279,22 @@ export async function finding(account: Account, id: number): Promise<{ finding: 
   return { finding: found, sides };
 }
 
-export async function briefing(account: Account) {
-  return (await rpc<{ items: BriefingItem[] }>(account, 'ck.engagement', 'briefing_for_me')).items;
+export type DailyMessage = { on: boolean; channel: string; reaches: boolean };
+
+export type Briefing = { items: BriefingItem[]; daily: DailyMessage };
+
+function dailyFrom(value: unknown): DailyMessage {
+  const raw = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+  return { on: raw.on === true, channel: typeof raw.channel === 'string' ? raw.channel : '', reaches: raw.reaches === true };
+}
+
+export async function briefing(account: Account): Promise<Briefing> {
+  const answer = await rpc<{ items: BriefingItem[]; daily_message?: unknown }>(account, 'ck.engagement', 'briefing_for_me');
+  return { items: answer.items, daily: dailyFrom(answer.daily_message) };
+}
+
+export async function setDailyBriefing(account: Account, on: boolean): Promise<DailyMessage> {
+  return dailyFrom(await rpc<unknown>(account, 'ck.engagement', 'set_my_daily_briefing', [on]));
 }
 
 export function search(account: Account, q: string) {
