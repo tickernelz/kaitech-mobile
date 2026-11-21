@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Animated, StyleSheet, type GestureResponderEvent } from 'react-native';
 import type { CallPerson } from '../call';
 import { CallTile } from './CallTile';
+import type { PipSize } from './pipVideo';
 
 export const floatingTile = { width: 96, height: 128, corner: 12 } as const;
 
@@ -16,6 +17,7 @@ export function FloatingTile({
   top,
   bottom,
   side,
+  pip,
   onSwap,
 }: {
   person: CallPerson;
@@ -23,6 +25,7 @@ export function FloatingTile({
   top: number;
   bottom: number;
   side: number;
+  pip: PipSize | null;
   onSwap: () => void;
 }) {
   const { t } = useTranslation('call');
@@ -55,7 +58,7 @@ export function FloatingTile({
       onResponderTerminate={() => drag.setValue({ x: 0, y: 0 })}
       accessible
       accessibilityRole="button"
-      accessibilityLabel={t('you')}
+      accessibilityLabel={person.local ? t('you') : person.name}
       onAccessibilityTap={onSwap}
       style={[
         styles.float,
@@ -64,7 +67,7 @@ export function FloatingTile({
         { transform: drag.getTranslateTransform() },
       ]}
       testID="call-self-tile">
-      <CallTile person={person} width={floatingTile.width} height={floatingTile.height} corner={floatingTile.corner} bare />
+      <CallTile person={person} width={floatingTile.width} height={floatingTile.height} corner={floatingTile.corner} bare pip={pip} />
     </Animated.View>
   );
 }
