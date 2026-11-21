@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { chatClient } from '../../chat/chat';
-import { Icon } from '../../chat/ui/icons';
+import { Icon } from '../../../ui/icons';
 import { playback, type Playback } from '../recording';
 
 type Loaded = { status: 'loading' } | { status: 'failed' } | { status: 'ready'; playback: Playback };

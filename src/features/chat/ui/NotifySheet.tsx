@@ -7,7 +7,7 @@ import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { muteConversation } from '../chat';
 import { bubbleSettingsAvailable, muteChoices, mutedForever, mutedUntilMs, openBubbleSettings } from '../notify';
-import { Icon, type IconName } from './icons';
+import { Icon, type IconName } from '../../../ui/icons';
 
 export function NotifySheet({ channelId, mutedUntil, onClose }: { channelId: number; mutedUntil: string | null; onClose: () => void }) {
   const { t, i18n } = useTranslation('chat');
@@ -28,7 +28,7 @@ export function NotifySheet({ channelId, mutedUntil, onClose }: { channelId: num
   const account = useSession().active;
   const items: { icon: IconName; label: string; onPress: () => void; testID: string }[] = until
     ? [{ icon: 'bell', label: t('notify.unmute'), onPress: choose(0), testID: 'notify-unmute' }]
-    : muteChoices.map((choice) => ({ icon: 'muted', label: t(`notify.mute.${choice.key}`), onPress: choose(choice.minutes), testID: `notify-mute-${choice.key}` }));
+    : muteChoices.map((choice) => ({ icon: 'bellOff', label: t(`notify.mute.${choice.key}`), onPress: choose(choice.minutes), testID: `notify-mute-${choice.key}` }));
   if (account && bubbleSettingsAvailable()) {
     items.push({
       icon: 'thread',

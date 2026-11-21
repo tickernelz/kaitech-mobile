@@ -1,40 +1,16 @@
 import { useCallback, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { useLanguage } from '../../i18n';
 import { intlLocale } from '../../i18n/language';
 import { radius, selectionBar, space, useTheme, type Colors } from '../../theme';
+import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
 import { Chip } from '../discovery/ui';
 import type { MeetingRow } from './api';
 import { clock, useRecorderClock, type Recording } from './recorder';
 import { isPending, sentBytes, type Upload } from './upload';
 import { discard, dismiss, retry } from './uploads';
-
-const paths = {
-  record: 'M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm0 2.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z',
-  flag: 'M5 3h2v1h11.5l-2.4 4.5L18.5 13H7v8H5Zm2 3v5h8.2l-1.3-2.5L15.2 6Z',
-  pause: 'M7 5h3.5v14H7Zm6.5 0H17v14h-3.5Z',
-  play: 'M8 5.2v13.6a.8.8 0 0 0 1.2.7l10.6-6.8a.8.8 0 0 0 0-1.4L9.2 4.5a.8.8 0 0 0-1.2.7Z',
-  stop: 'M7 7h10v10H7Z',
-  cloud: 'M12 4a6 6 0 0 1 5.8 4.6A4.5 4.5 0 0 1 17.5 18H13v-4.2l1.6 1.6 1.4-1.4L12 10l-4 4 1.4 1.4 1.6-1.6V18H6.5a4.5 4.5 0 0 1-.9-8.9A6 6 0 0 1 12 4Z',
-  check: 'm9.5 16.2-4.3-4.3-1.4 1.4 5.7 5.7L21.3 7.2l-1.4-1.4Z',
-  sign: 'M3 17.3V21h3.7L17.8 9.9l-3.7-3.7Zm17.7-10.2a1 1 0 0 0 0-1.4l-2.4-2.4a1 1 0 0 0-1.4 0L15 5.1l3.7 3.7Z',
-  minutes: 'M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm7 1.5V8h4.5ZM8 12v2h8v-2Zm0 4v2h6v-2Z',
-  wave: 'M11 3h2v18h-2Zm-4 5h2v8H7Zm8 2h2v4h-2ZM3 10h2v4H3Zm16-2h2v8h-2Z',
-  collapse: 'm4.6 8.6 7.4 7.4 7.4-7.4L18 7.2l-6 6-6-6Z',
-} as const;
-
-export type MomIconName = keyof typeof paths;
-
-export function MomIcon({ name, color, size = 22 }: { name: MomIconName; color: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" accessible={false}>
-      <Path d={paths[name]} fill={color} />
-    </Svg>
-  );
-}
 
 export function useMomFormat() {
   const { language } = useLanguage();
@@ -100,7 +76,7 @@ export function Line({
   selected,
   testID,
 }: {
-  icon: MomIconName;
+  icon: IconName;
   title: string;
   detail?: string;
   trailing?: ReactNode;
@@ -123,7 +99,7 @@ export function Line({
         selected && { borderLeftWidth: selectionBar, borderLeftColor: colors.primary, paddingLeft: space.lg - selectionBar },
       ]}>
       <View style={[styles.lineIcon, { backgroundColor: colors.surface2 }]}>
-        <MomIcon name={icon} size={20} color={colors.selectInk} />
+        <Icon name={icon} size={20} color={colors.selectInk} />
       </View>
       <View style={styles.lineText}>
         <Text variant="callout" style={styles.strong}>
@@ -183,7 +159,7 @@ export function UploadCard({ upload }: { upload: Upload }) {
   return (
     <View style={[styles.upload, { backgroundColor: colors.surface, borderColor: colors.line }]} testID={`upload-${upload.state}`}>
       <View style={styles.uploadTop}>
-        <MomIcon name={upload.state === 'done' ? 'check' : 'cloud'} color={uploadTone(upload.state, colors)} />
+        <Icon name={upload.state === 'done' ? 'check' : 'cloudUpload'} color={uploadTone(upload.state, colors)} />
         <View style={styles.lineText}>
           <Text variant="callout" style={styles.strong} numberOfLines={2}>
             {upload.title}

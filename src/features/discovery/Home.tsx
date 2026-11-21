@@ -16,7 +16,8 @@ import { counts, findings, panel, programmes, type Panel, type Programme } from 
 import { CoworkerThread } from './CoworkerThread';
 import { Header } from './Header';
 import { openConversation, rememberProgramme, useLastProgramme, useOpenConversation } from './store';
-import { Card, Chip, Icon, IconButton, StateView, type IconName } from './ui';
+import { Icon, type IconName } from '../../ui/icons';
+import { Card, Chip, IconButton, StateView } from './ui';
 import { useLatestConversation } from './useLatestConversation';
 
 export function useCurrentProgramme(): { list: ReturnType<typeof useResource<Programme[]>>; current: Programme | null } {
@@ -111,7 +112,7 @@ function Line({
           </Text>
         ) : null}
       </View>
-      {onPress ? <Icon name="chevron" size={20} color={colors.inkFaint} /> : null}
+      {onPress ? <Icon name="forward" size={20} color={colors.inkFaint} /> : null}
     </>
   );
   return onPress ? (
@@ -230,7 +231,7 @@ export function DiscoveryHome() {
           <Text variant="callout" tone="selectInk" numberOfLines={1} style={styles.shrink}>
             {current.name}
           </Text>
-          <Icon name="down" size={18} color={colors.selectInk} />
+          <Icon name="chevronDown" size={20} color={colors.selectInk} />
         </Pressable>
       ) : null}
       {!current ? (
@@ -250,7 +251,7 @@ export function DiscoveryHome() {
               {programmePanel.data.packets.map((packet) => (
                 <Line
                   key={`packet-${packet.id}`}
-                  icon="hand"
+                  icon="decision"
                   title={packet.name}
                   detail={packet.state_label}
                   onPress={() => openCard(packet)}

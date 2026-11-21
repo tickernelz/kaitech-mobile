@@ -8,7 +8,7 @@ import { layoutFor, pagesFor, presenterOf, stageFor, tileGap } from '../grid';
 import { screenShareSupported, setBroadcastPicker } from '../screenShare';
 import { useTheme, space } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { Icon } from '../../chat/ui/icons';
+import { Icon } from '../../../ui/icons';
 import { enterPictureInPicture, flipCamera, fullScreenIntentAllowed, hangUp, openFullScreenIntentSettings, pictureInPictureSupported, toggleCamera, toggleMute, toggleRecording, toggleScreenShare, toggleSpeaker, useCallState } from '../call';
 import { CallControls, type CallAction } from './CallControls';
 import { CallTile } from './CallTile';
@@ -94,7 +94,7 @@ export function CallScreen() {
           </Text>
           {call.recording ? (
             <View style={styles.recording} accessibilityLiveRegion="polite" testID="call-recording">
-              <Icon name="record" size={12} color={colors.danger} />
+              <Icon name="record" size={16} color={colors.danger} />
               <Text variant="footnote" style={{ color: colors.danger }}>
                 {call.recordingBy ? t('recordingBy', { name: call.recordingBy }) : t('recording')}
               </Text>
@@ -142,7 +142,7 @@ export function CallScreen() {
         <ScrollView style={styles.side} contentContainerStyle={styles.sideInner} testID="call-people">
           {call.people.map((person) => (
             <View key={person.sid} style={styles.person}>
-              <Icon name={person.micOn ? 'mic' : 'muted'} size={16} color={person.speaking ? colors.primary : colors.inkFaint} />
+              <Icon name={person.micOn ? 'mic' : 'micOff'} size={16} color={person.speaking ? colors.primary : colors.inkFaint} />
               <Text variant="callout" numberOfLines={1} style={styles.flex}>
                 {person.local ? t('you') : person.name}
               </Text>
