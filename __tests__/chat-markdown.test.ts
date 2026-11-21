@@ -79,6 +79,11 @@ describe('message trees', () => {
     expect(sourceBlocks(table, false).some((block) => block.kind === 'table')).toBe(false);
   });
 
+  it('drops NUL characters instead of looping on them', () => {
+    expect(sourceBlocks('a\u0000b *c*', false)).toEqual([{ kind: 'text', spans: [{ text: 'ab ' }, { text: 'c', italic: true }] }]);
+    expect(bodyBlocks('<p>x *y* \u0000 z</p>')).toEqual([{ kind: 'text', spans: [{ text: 'x ' }, { text: 'y', italic: true }, { text: ' z' }] }]);
+  });
+
   it('ignores characters typed to pose as placeholders', () => {
     expect(sourceBlocks('a\ue0000\ue001 **b**', false)).toEqual([{ kind: 'text', spans: [{ text: 'a0 ' }, { text: 'b', bold: true }] }]);
     expect(bodyBlocks('\ue0000\ue001 *x* <a href="https://k.io">k</a>')).toEqual([

@@ -28,6 +28,8 @@ const KEPT = /\u0000(\d+)\u0000/g;
 const SLOT = /\uE000(\d+)\uE001/g;
 const SLOT_ONLY = /^\uE000(\d+)\uE001$/;
 const SLOT_MARKS = /[\uE000\uE001]/g;
+const SLOT_MARK = /[\uE000\uE001]/;
+const KEEP_MARKS = /\u0000/g;
 const WORD = '\\p{L}\\p{N}_';
 const CODE_SPAN = /(`+)(?!`)([\s\S]*?[^`])\1(?!`)/g;
 const ESCAPED = /\\([!-/:-@[-`{-~])/g;
@@ -54,6 +56,10 @@ function slotsAsText(html: string, slots: Slot[]): string {
   return html.replace(SLOT, (_whole, index: string) => escapeText(slots[Number(index)]?.text || ''));
 }
 
+function slotsAsPlain(text: string, slots: Slot[]): string {
+  return text.replace(SLOT, (_whole, index: string) => slots[Number(index)]?.text || '');
+}
+
 function anchor(href: string, inner: string, title?: string): string {
   const titled = title ? ` title="${escapeAttribute(title)}"` : '';
   return `<a href="${escapeAttribute(href)}"${titled} target="_blank" rel="noreferrer noopener">${inner}</a>`;
@@ -62,6 +68,7 @@ function anchor(href: string, inner: string, title?: string): string {
 function hrefOf(target: string, slots: Slot[]): string {
   const slot = SLOT_ONLY.exec(target);
   if (slot) return slots[Number(slot[1])]?.href || '';
+  if (SLOT_MARK.test(target)) return '';
   return SAFE_HREF.test(target) ? target : '';
 }
 
@@ -91,7 +98,7 @@ function renderInline(text: string, context: Context): string {
   source = source.replace(ESCAPED, (_whole, character: string) => keep(escapeText(character)));
   source = source.replace(LINK, (whole, label: string, target: string, title?: string) => {
     const href = hrefOf(target, context.slots);
-    return href ? keep(anchor(href, emphasize(escapeText(label)), title)) : whole;
+    return href ? keep(anchor(href, emphasize(escapeText(label)), title && slotsAsPlain(title, context.slots))) : whole;
   });
   source = source.replace(BARE_URL, (url) => {
     const { link, rest } = trimUrl(url);
@@ -311,7 +318,7 @@ function renderBlocks(source: string, context: Context): string {
 }
 
 export function markdownToHtml(source: string, { tables = true, slots = [] }: { tables?: boolean; slots?: Slot[] } = {}): string {
-  return renderBlocks(String(source || ''), { tables, slots });
+  return renderBlocks(String(source || '').replace(KEEP_MARKS, ''), { tables, slots });
 }
 
 type Element = { tag: string; attrs: string; children: Node[] };
@@ -516,7 +523,7 @@ class Builder {
       const text = textContent(node.children).replace(/^\n/, '').replace(/\s+$/, '');
       if (!text.trim()) return;
       if (isPipeTable(text)) this.blocks.push(...htmlBlocks(markdownToHtml(text, { tables: true })));
-      else this.blocks.push({ kind: 'code', text: slotsAsTextPlain(text, this.slots) });
+      else this.blocks.push({ kind: 'code', text: slotsAsPlain(text, this.slots) });
       return;
     }
     if (tag === 'blockquote') {
@@ -603,10 +610,6 @@ class Builder {
       align: Array.from({ length: width }, (_, column) => alignFrom?.cells[column]?.align ?? 'left'),
     };
   }
-}
-
-function slotsAsTextPlain(text: string, slots: Slot[]): string {
-  return slots.length ? text.replace(SLOT, (_whole, index: string) => slots[Number(index)]?.text || '') : text;
 }
 
 function treeBlocks(nodes: Node[], slots: Slot[] = []): MdBlock[] {
