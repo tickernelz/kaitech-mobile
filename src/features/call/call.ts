@@ -14,6 +14,7 @@ import { accountFromPush } from './account';
 import { pickBroadcast } from './screenShare';
 import { currentRecording, startRecording, stopRecording } from './recording';
 import { pipFocus, pipSpec, type PipSpec } from './pip';
+import { loadVolumes, saveVolume } from './volumes';
 import { onPictureInPictureAllowedChange, pictureInPictureAllowed } from './pipSetting';
 
 export type CallPhase = 'idle' | 'incoming' | 'outgoing' | 'connecting' | 'active' | 'reconnecting' | 'ended';
@@ -27,6 +28,8 @@ export type CallPerson = {
   cameraOn: boolean;
   micOn: boolean;
   screenOn: boolean;
+  hand: boolean;
+  deaf: boolean;
 };
 
 export type CallState = {
@@ -54,6 +57,10 @@ export type CallState = {
   speaking: string[];
   focus: { sid: string; source: 'camera' | 'screen' } | null;
   pictureInPicture: boolean;
+  deaf: boolean;
+  hand: boolean;
+  videoOnly: boolean;
+  output: string | null;
   version: number;
 };
 
@@ -82,6 +89,10 @@ const idle: CallState = {
   speaking: [],
   focus: null,
   pictureInPicture: false,
+  deaf: false,
+  hand: false,
+  videoOnly: false,
+  output: null,
   version: 0,
 };
 
@@ -99,6 +110,8 @@ let callAccount: Account | null = null;
 let sharingBusy = false;
 let shareStarting = false;
 const tracks = new Map<string, unknown>();
+let volumes = new Map<number, number>();
+const tuned = new Set<string>();
 
 export function callState(): CallState {
   return state;
@@ -194,6 +207,13 @@ function collectPeople() {
   }
   const speakers = new Set(room.activeSpeakers.map((participant) => participant.sid));
   const local = room.localParticipant;
+  for (const participant of room.remoteParticipants.values()) {
+    const partner = partnerOf(participant, false);
+    const volume = partner === null ? undefined : volumes.get(partner);
+    if (volume === undefined || tuned.has(participant.sid)) continue;
+    participant.setVolume(volume);
+    tuned.add(participant.sid);
+  }
   const rows = [local, ...room.remoteParticipants.values()].map((participant) => ({
     sid: participant.sid,
     name: participant.name || participant.identity,
@@ -203,6 +223,8 @@ function collectPeople() {
     cameraOn: participant.isCameraEnabled,
     micOn: participant.isMicrophoneEnabled,
     screenOn: participant.isScreenShareEnabled,
+    hand: participant.attributes?.hand === '1',
+    deaf: participant.attributes?.deaf === '1',
   }));
   publish({ people: rows, speaking: [...speakers] });
 }
@@ -301,7 +323,7 @@ export async function startCall(input: { channelId: number; channelName: string;
   await connect(api, input.channelId, input.video, started);
 }
 
-export async function answer() {
+export async function answer(camera = state.video) {
   if (state.phase !== 'incoming') return;
   const api = sessionClient();
   if (!api) return;
@@ -316,7 +338,7 @@ export async function answer() {
     return;
   }
   if (stale(started)) return;
-  const video = state.video && (await ensureCamera());
+  const video = camera && (await ensureCamera());
   if (stale(started)) return;
   publish({ phase: 'connecting', video, cameraOn: video, ringing: false });
   await connect(api, state.channelId, video, started);
@@ -369,6 +391,14 @@ async function connect(api: CallClient, channelId: number, video: boolean, start
     void callNative()?.setInCall(true);
     void callNative()?.startCall(video, state.channelName || state.callerName, i18n.t('call:inCall'), channelId);
     startPing(api, started);
+    void loadVolumes(api.account)
+      .then((saved) => {
+        if (stale(started)) return;
+        volumes = saved;
+        tuned.clear();
+        collectPeople();
+      })
+      .catch(() => undefined);
   } catch (error) {
     if (started !== generation) return;
     const code = typeof error === 'object' && error !== null && 'code' in error ? String((error as { code: unknown }).code) : 'call_failed';
@@ -386,7 +416,11 @@ function bind(instance: LiveRoom, sdk: Awaited<ReturnType<typeof loadClient>>) {
   const handlers: [string, () => void][] = [
     [event.ParticipantConnected, collect],
     [event.ParticipantDisconnected, collect],
-    [event.TrackSubscribed, collect],
+    [event.TrackSubscribed, () => {
+      applyDeaf();
+      collect();
+    }],
+    [event.ParticipantAttributesChanged, collectPeople],
     [event.TrackUnsubscribed, collect],
     [event.TrackMuted, collect],
     [event.TrackUnmuted, collect],
@@ -467,6 +501,7 @@ async function teardown() {
   room = null;
   joined = null;
   tracks.clear();
+  tuned.clear();
   if (held) {
     const local = held.localParticipant;
     if (local.isScreenShareEnabled) await local.setScreenShareEnabled(false).catch(() => undefined);
@@ -567,6 +602,74 @@ async function setScreenShare(on: boolean) {
     shareStarting = false;
     if (room === instance) collect();
     if (on && !state.screenSharing) presence();
+  }
+}
+
+function tell(changes: Record<string, string>) {
+  const participant = room?.localParticipant;
+  if (!participant) return;
+  void participant.setAttributes({ ...participant.attributes, ...changes }).catch(() => undefined);
+}
+
+function applyDeaf() {
+  if (!room) return;
+  for (const participant of room.remoteParticipants.values()) {
+    for (const publication of participant.audioTrackPublications.values()) publication.setEnabled(!state.deaf);
+  }
+}
+
+export function toggleHand() {
+  if (!room || state.phase !== 'active') return;
+  const next = !state.hand;
+  publish({ hand: next });
+  tell({ hand: next ? '1' : '0' });
+  collectPeople();
+}
+
+export function toggleDeafen() {
+  if (!room || state.phase !== 'active') return;
+  const next = !state.deaf;
+  publish({ deaf: next });
+  applyDeaf();
+  tell({ deaf: next ? '1' : '0' });
+  void send({ is_deaf: next });
+  collectPeople();
+}
+
+export function toggleVideoOnly() {
+  publish({ videoOnly: !state.videoOnly });
+}
+
+export function personVolume(partnerId: number | null): number {
+  return partnerId === null ? 1 : (volumes.get(partnerId) ?? 1);
+}
+
+export function setPersonVolume(sid: string, volume: number) {
+  const participant = room ? [...room.remoteParticipants.values()].find((item) => item.sid === sid) : undefined;
+  if (!participant) return;
+  const level = Math.max(0, Math.min(1, volume));
+  participant.setVolume(level);
+  tuned.add(sid);
+  const partner = partnerOf(participant, false);
+  if (partner === null) return;
+  volumes.set(partner, level);
+  if (callAccount) void saveVolume(callAccount, partner, level).catch(() => undefined);
+}
+
+export async function audioOutputs(): Promise<string[]> {
+  try {
+    return await (await loadLiveKit()).AudioSession.getAudioOutputs();
+  } catch {
+    return [];
+  }
+}
+
+export async function chooseAudioOutput(output: string) {
+  try {
+    await (await loadLiveKit()).AudioSession.selectAudioOutput(output);
+    publish({ output, speaker: output === 'speaker' || output === 'force_speaker' });
+  } catch {
+    return;
   }
 }
 

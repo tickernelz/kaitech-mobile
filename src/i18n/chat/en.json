@@ -79,7 +79,11 @@
     "shareInstead": "Share",
     "table": "Table, {{columns}} columns and {{rows}} rows. Scroll sideways to see all of it.",
     "background": "Chat background",
-    "openPerson": "Open {{name}}"
+    "openPerson": "Open {{name}}",
+    "callOngoing": "Call in progress",
+    "callJoin": "Join",
+    "callMinutes_one": "{{count}} min",
+    "callMinutes_other": "{{count}} min"
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",

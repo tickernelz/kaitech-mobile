@@ -628,5 +628,8 @@
     "email": "Email",
     "phone": "Telepon",
     "viewProfile": "Lihat profil di web"
+  },
+  "sheet": {
+    "close": "Tutup"
   }
 }

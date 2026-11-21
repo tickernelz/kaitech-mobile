@@ -50,7 +50,10 @@ export type Message = {
   attachments: Attachment[];
   parentId: number | null;
   reactions: Reaction[];
+  call?: CallRecord;
 };
+
+export type CallRecord = { minutes: number; ongoing: boolean };
 
 export type Mention = { id: number; name: string; token: string | null };
 

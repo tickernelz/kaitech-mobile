@@ -79,7 +79,11 @@
     "shareInstead": "Bagikan",
     "table": "Tabel, {{columns}} kolom dan {{rows}} baris. Geser ke samping untuk melihat semuanya.",
     "background": "Latar chat",
-    "openPerson": "Buka {{name}}"
+    "openPerson": "Buka {{name}}",
+    "callOngoing": "Panggilan berlangsung",
+    "callJoin": "Gabung",
+    "callMinutes_one": "{{count}} mnt",
+    "callMinutes_other": "{{count}} mnt"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",

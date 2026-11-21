@@ -18,6 +18,8 @@ import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
 import { recordingIdOf } from '../../call/recording';
 import { RecordingCard } from '../../call/ui/RecordingCard';
+import { startCall } from '../../call/call';
+import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
 
 export type AuthorFace = 'show' | 'space' | 'none';
@@ -209,13 +211,30 @@ export const MessageBubble = memo(function MessageBubble({
   const time = clock(message.date);
   const text = bodyPreview(message.body);
   if (isCallNotice(message)) {
+    const call = message.call;
+    const label = [t(call?.ongoing ? 'thread.callOngoing' : 'thread.call'), call && !call.ongoing ? t('thread.callMinutes', { count: Math.max(1, call.minutes) }) : null, time].filter(Boolean).join(' · ');
     return (
-      <View style={styles.notice} accessible accessibilityLabel={`${t('thread.call')}, ${time}`} testID={`call-notice-${message.id}`}>
+      <View style={styles.notice} accessible={!call?.ongoing} accessibilityLabel={label} testID={`call-notice-${message.id}`}>
         <View style={[styles.noticePill, styles.callNotice, { backgroundColor: colors.surface2 }]}>
           <Icon name="phone" size={16} color={colors.inkSoft} />
           <Text variant="footnote" tone="inkSoft">
-            {t('thread.call')} · {time}
+            {label}
           </Text>
+          {call?.ongoing ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('thread.callJoin')}
+              hitSlop={8}
+              onPress={() => {
+                router.push({ pathname: '/call/[id]', params: { id: String(message.channelId) } });
+                void startCall({ channelId: message.channelId, channelName: conversationById(getChat(), message.channelId)?.name ?? '', video: false });
+              }}
+              testID={`call-notice-${message.id}-join`}>
+              <Text variant="footnote" tone="link">
+                {t('thread.callJoin')}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
     );

@@ -628,5 +628,8 @@
     "email": "Email",
     "phone": "Phone",
     "viewProfile": "View profile on the web"
+  },
+  "sheet": {
+    "close": "Close"
   }
 }
