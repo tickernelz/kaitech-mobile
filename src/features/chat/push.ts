@@ -2,16 +2,39 @@ import * as Notifications from 'expo-notifications';
 import { AndroidImportance } from 'expo-notifications';
 import Storage from 'expo-sqlite/kv-store';
 import { Platform } from 'react-native';
-import { onAccountForgotten } from '../../auth/session';
+import { getSession, onAccountForgotten } from '../../auth/session';
 import i18n from '../../i18n';
+import { lockEnabled, onLockChange } from '../../lock/lock';
+import { ChatClient } from './api';
 import { chatClient, getChat } from './chat';
-import { registeredKey, syncPushToken } from './pushAccount';
+import { previewKey, registeredKey, syncPreview, syncPushToken } from './pushAccount';
 
 export const channelId = 'messages';
 const askedKey = 'chat.pushAsked';
 const store = { get: (key: string) => Storage.getItemSync(key), set: (key: string, value: string) => Storage.setItemSync(key, value) };
 
 export const pushSupported = Platform.OS === 'android';
+
+function previewAllowed(): boolean {
+  return !lockEnabled();
+}
+
+async function syncPreviews() {
+  if (!pushSupported) return;
+  await syncPreview({
+    store,
+    accounts: getSession().accounts,
+    preview: previewAllowed(),
+    setPreview: (account, preview) => new ChatClient(account).setPushPreview(preview),
+  });
+}
+
+let previewShown = previewAllowed();
+onLockChange(() => {
+  if (previewAllowed() === previewShown) return;
+  previewShown = previewAllowed();
+  void syncPreviews();
+});
 
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
@@ -41,7 +64,8 @@ async function register(accountId: string) {
     account: client.account,
     token: token.data,
     language: i18n.language === 'id' ? 'id' : 'en',
-    registerPush: (value, language) => client.registerPush(value, language),
+    preview: previewAllowed(),
+    registerPush: (value, language, preview) => client.registerPush(value, language, preview),
   });
 }
 
@@ -52,6 +76,8 @@ export async function refreshPush(accountId: string) {
     if (permission.granted) await register(accountId);
   } catch {
     return;
+  } finally {
+    await syncPreviews();
   }
 }
 
@@ -69,6 +95,8 @@ export async function askForPushOnce(accountId: string) {
 
 onAccountForgotten((accountId) => {
   if (Storage.getItemSync(registeredKey)?.startsWith(`${accountId}|`)) Storage.removeItemSync(registeredKey);
+  const account = getSession().accounts.find((candidate) => candidate.id === accountId);
+  if (account) Storage.removeItemSync(previewKey(account));
 });
 
 export function pushData(response: Notifications.NotificationResponse | null): Record<string, unknown> {

@@ -137,8 +137,12 @@ export class ChatClient {
     return { attachmentId: body.attachment_id, ownershipToken: body.ownership_token };
   }
 
-  registerPush(fcm: string, locale: string) {
-    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/push', { method: 'POST', body: { fcm, locale } });
+  registerPush(fcm: string, locale: string, preview: boolean) {
+    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/push', { method: 'POST', body: { fcm, locale, preview } });
+  }
+
+  setPushPreview(preview: boolean) {
+    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/push', { method: 'POST', body: { preview } });
   }
 
   websocketUrl(): string {

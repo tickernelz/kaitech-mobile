@@ -7,7 +7,7 @@ const mockMarkExpired = jest.fn();
 jest.mock('../src/auth/session', () => {
   const forgotten: ((id: string) => void)[] = [];
   return {
-    markExpired: () => mockMarkExpired(),
+    markExpired: (id?: string) => mockMarkExpired(id),
     onAccountForgotten: (listener: (id: string) => void) => forgotten.push(listener),
     forget: (id: string) => forgotten.forEach((listener) => listener(id)),
     tokenFor: async () => 'device-token',
@@ -93,6 +93,6 @@ describe('bearer', () => {
     const failure = await bearer(account, '/kaitech_mobile/search', { query: { q: 'lembur' } }).catch((error: unknown) => error);
     expect(failure).toBeInstanceOf(AppError);
     expect((failure as AppError).code).toBe('sessionEnded');
-    expect(mockMarkExpired).toHaveBeenCalledTimes(1);
+    expect(mockMarkExpired.mock.calls).toEqual([['u2_test']]);
   });
 });

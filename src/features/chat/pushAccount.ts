@@ -8,18 +8,42 @@ export function registrationMarker(account: Pick<Account, 'id' | 'deviceId'>, to
   return `${account.id}|${account.deviceId}|${token}|${language}`;
 }
 
+export function previewKey(account: Pick<Account, 'deviceId'>): string {
+  return `chat.pushPreview.${account.deviceId}`;
+}
+
 export async function syncPushToken(input: {
   store: KeyValue;
   account: Pick<Account, 'id' | 'deviceId'>;
   token: string;
   language: 'en' | 'id';
-  registerPush: (token: string, language: 'en' | 'id') => Promise<unknown>;
+  preview: boolean;
+  registerPush: (token: string, language: 'en' | 'id', preview: boolean) => Promise<unknown>;
 }): Promise<boolean> {
   const marker = registrationMarker(input.account, input.token, input.language);
-  if (input.store.get(registeredKey) === marker) return false;
-  await input.registerPush(input.token, input.language);
+  if (input.store.get(registeredKey) === marker && input.store.get(previewKey(input.account)) === String(input.preview)) return false;
+  await input.registerPush(input.token, input.language, input.preview);
   input.store.set(registeredKey, marker);
+  input.store.set(previewKey(input.account), String(input.preview));
   return true;
+}
+
+export async function syncPreview<A extends Pick<Account, 'deviceId'>>(input: {
+  store: KeyValue;
+  accounts: A[];
+  preview: boolean;
+  setPreview: (account: A, preview: boolean) => Promise<unknown>;
+}): Promise<void> {
+  for (const account of input.accounts) {
+    const key = previewKey(account);
+    if (input.store.get(key) === String(input.preview)) continue;
+    try {
+      await input.setPreview(account, input.preview);
+      input.store.set(key, String(input.preview));
+    } catch {
+      continue;
+    }
+  }
 }
 
 export type PushTarget = { accountId: string; switchTo: boolean } | null;

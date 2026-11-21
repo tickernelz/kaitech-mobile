@@ -79,7 +79,6 @@ object CallNotifications {
       .setOngoing(true)
       .setAutoCancel(false)
       .setOnlyAlertOnce(true)
-      .setSilent(true)
       .setTimeoutAfter(timeoutMs)
       .setContentIntent(open)
       .setFullScreenIntent(fullScreen, true)

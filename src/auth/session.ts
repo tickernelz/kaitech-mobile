@@ -99,8 +99,8 @@ export function markOnboarded() {
   set({ onboarded: true });
 }
 
-export function markExpired() {
-  if (state.activeId) set({ expired: true });
+export function markExpired(id?: string) {
+  if (state.activeId && (id === undefined || id === state.activeId)) set({ expired: true });
 }
 
 const forgetListeners = new Set<(id: string) => void>();
