@@ -33,6 +33,9 @@ import { ask, cards as readCards, panel, transcript, type Card, type Cursor, typ
 import { DecisionCard } from './DecisionCard';
 import { chatAttachments } from './files';
 import { Markdown } from './Markdown';
+import { sourceBlocks } from '../chat/markdown';
+import { FormatBar, FormatToggle, useMarkup } from '../chat/ui/FormatBar';
+import { RichText } from '../chat/ui/RichText';
 import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
 import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread';
 import { IconButton, StateView, useErrorText } from './ui';
@@ -152,7 +155,7 @@ function Bubble({ mine, children, testID }: { mine: boolean; children: React.Rea
         styles.bubble,
         mine
           ? [styles.mine, { backgroundColor: colors.select }]
-          : [styles.theirs, { backgroundColor: colors.surface, borderColor: colors.line, borderLeftColor: colors.primary }],
+          : [styles.theirs, { backgroundColor: colors.surface, borderColor: colors.line }],
       ]}>
       {children}
     </View>
@@ -241,6 +244,7 @@ export function CoworkerThread({
   const programmePanel = useResource(`discovery.panel.${programme}`, (signedIn) => panel(signedIn, programme));
   const list = useRef<FlatList<Entry | Pending | Card>>(null);
   const input = useRef<ComponentRef<typeof TextInput>>(null);
+  const markup = useMarkup(draft, setDraft, input);
   const { windowClass, width } = useWindowClass();
 
   useEffect(() => {
@@ -332,7 +336,7 @@ export function CoworkerThread({
             {item.files.map((file) => (
               <PendingFile key={file.uri} file={file} sent={item.failed ? null : item.sent} />
             ))}
-            {item.text ? <Text>{item.text}</Text> : null}
+            {item.text ? <RichText blocks={sourceBlocks(item.text, false)} tint={colors.surface} /> : null}
           </Bubble>
           {item.failed ? (
             <Pressable accessibilityRole="button" onPress={() => void send(item)} style={styles.retry} testID={`${testID}-retry`}>
@@ -352,7 +356,7 @@ export function CoworkerThread({
       return (
         <Bubble mine testID={`${testID}-request`}>
           <Attachments attachments={chatAttachments(item.item.attachments)} origin={active?.origin ?? ''} mine />
-          {item.item.body ? <Text selectable>{item.item.body}</Text> : null}
+          {item.item.body ? <RichText blocks={sourceBlocks(item.item.body, false)} tint={colors.surface} selectable /> : null}
         </Bubble>
       );
     }
@@ -429,10 +433,12 @@ export function CoworkerThread({
         ) : (
           <>
             <IconButton icon="attach" label={t('discovery.thread.attach')} onPress={() => setSheet(true)} testID={`${testID}-attach`} />
+            {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
             <TextInput
               ref={input}
-              defaultValue={draft}
+              value={draft}
               onChangeText={setDraft}
+              {...markup.inputProps}
               placeholder={t('discovery.thread.placeholder')}
               placeholderTextColor={colors.inkFaint}
               accessibilityLabel={t('discovery.thread.placeholder')}
@@ -450,6 +456,11 @@ export function CoworkerThread({
         {canSend ? <IconButton icon="send" label={t('discovery.thread.send')} filled onPress={submit} testID={`${testID}-send`} /> : null}
         <MicButton voice={voice} hidden={canSend} testID={`${testID}-mic`} />
       </View>
+      {markup.showBar && !voice.recording ? (
+        <View style={[styles.formatBar, { backgroundColor: colors.canvas }]}>
+          <FormatBar onApply={markup.apply} onHide={markup.hide} />
+        </View>
+      ) : null}
       <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} />
     </KeyboardAvoidingView>
   );
@@ -464,13 +475,14 @@ const styles = StyleSheet.create({
   list: { padding: space.lg, gap: space.md, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   bubble: { borderRadius: radius.card, paddingHorizontal: space.lg, paddingVertical: space.md, maxWidth: '88%' },
   mine: { alignSelf: 'flex-end', borderBottomRightRadius: radius.sm },
-  theirs: { alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth, borderLeftWidth: 3, borderBottomLeftRadius: radius.sm },
+  theirs: { alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: radius.sm },
   steps: { borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   failure: { borderRadius: radius.card, padding: space.lg, gap: space.xs },
   pendingWrap: { gap: space.xs },
   status: { alignSelf: 'flex-end' },
   retry: { alignSelf: 'flex-end', minHeight: 44, justifyContent: 'center' },
   working: { textAlign: 'center', paddingVertical: space.sm },
+  formatBar: { paddingHorizontal: space.lg, paddingBottom: space.sm },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',

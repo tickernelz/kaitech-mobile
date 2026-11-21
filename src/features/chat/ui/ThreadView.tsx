@@ -11,6 +11,7 @@ import { Text } from '../../../ui/Text';
 import { conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat, type Delivered } from '../chat';
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
+import { bodyPreview } from '../markdown';
 import { readersOf, readState } from '../odoo';
 import type { Message, Pending } from '../types';
 import { CallButtons } from '../../call/ui/CallButtons';
@@ -128,7 +129,7 @@ export function ThreadView({
       if (!message.parentId) return null;
       const parent = byId.get(message.parentId);
       if (!parent) return { author: '', authorId: null, text: t('thread.olderMessage') };
-      return { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: plainText(parent.body) || t('list.files', { count: parent.attachments.length }) };
+      return { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) };
     },
     [byId, partnerId, t],
   );

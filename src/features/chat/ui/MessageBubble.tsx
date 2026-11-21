@@ -1,16 +1,17 @@
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
 import { readableWidth } from '../../../layout/windowClass';
 import { personColors, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { parseBody, plainText, type Block } from '../html';
+import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
 import { attachmentUrl, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
 import type { Attachment, Message, Pending, PendingFile } from '../types';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { UploadProgress } from './MediaControls';
+import { RichText } from './RichText';
 import { useCookie } from './useCookie';
 import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
@@ -18,37 +19,6 @@ import { recordingIdOf } from '../../call/recording';
 import { RecordingCard } from '../../call/ui/RecordingCard';
 
 export const bubbleMaxWidth = Math.round(readableWidth * 0.8);
-
-function Body({ blocks, mine }: { blocks: Block[]; mine: boolean }) {
-  const { colors } = useTheme();
-  return (
-    <View style={styles.body}>
-      {blocks.map((block, index) => (
-        <View key={index} style={[block.quote && [styles.quote, { borderColor: colors.lineStrong }], block.item && styles.item]}>
-          <Text variant="body" style={{ color: mine ? colors.selectInk : colors.ink }}>
-            {block.item ? '\u2022 ' : ''}
-            {block.spans.map((span, spanIndex) => (
-              <Text
-                key={spanIndex}
-                variant="body"
-                onPress={span.href ? () => void Linking.openURL(span.href as string) : undefined}
-                accessibilityRole={span.href ? 'link' : undefined}
-                style={[
-                  span.bold && styles.bold,
-                  span.italic && styles.italic,
-                  span.code && [styles.code, { backgroundColor: colors.surface2 }],
-                  span.href && { color: colors.link, textDecorationLine: 'underline' },
-                  span.mention && [styles.mention, { color: colors.link, backgroundColor: colors.select }],
-                ]}>
-                {span.text}
-              </Text>
-            ))}
-          </Text>
-        </View>
-      ))}
-    </View>
-  );
-}
 
 function ShareButton({ name, onPress, raised }: { name: string; onPress: () => void; raised?: boolean }) {
   const { t } = useTranslation('chat');
@@ -188,7 +158,7 @@ function QuoteBlock({ quote, mine, onPress }: { quote: Quote; mine: boolean; onP
   if (!quote) return null;
   const tint = authorColor(quote.authorId, scheme, colors);
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={[styles.quoteBox, { backgroundColor: mine ? colors.surface : colors.surface2, borderColor: tint }]}>
+    <Pressable onPress={onPress} accessibilityRole="button" style={[styles.quoteBox, { backgroundColor: mine ? colors.surface : colors.surface2 }]}>
       <Text variant="footnote" style={[styles.bold, { color: tint }]} numberOfLines={1}>
         {quote.author}
       </Text>
@@ -227,10 +197,10 @@ export const MessageBubble = memo(function MessageBubble({
   const { t } = useTranslation('chat');
   const { colors, scheme } = useTheme();
   const { clock } = useChatFormat();
-  const blocks = parseBody(message.body);
+  const blocks = bodyBlocks(message.body);
   const notification = message.type === 'notification';
   const time = clock(message.date);
-  const text = plainText(message.body);
+  const text = bodyPreview(message.body);
   if (notification) {
     return (
       <View style={styles.notice}>
@@ -254,7 +224,7 @@ export const MessageBubble = memo(function MessageBubble({
         ) : null}
         <QuoteBlock quote={quote} mine={mine} onPress={message.parentId ? () => onQuotePress(message.parentId as number) : undefined} />
         <Attachments attachments={message.attachments} origin={origin} mine={mine} />
-        {blocks.length ? <Body blocks={blocks} mine={mine} /> : null}
+        {blocks.length ? <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} /> : null}
         <View style={styles.meta}>
           <Text variant="label" tone="inkFaint" style={styles.time}>
             {time}
@@ -335,11 +305,7 @@ export const PendingBubble = memo(function PendingBubble({
         {pending.files.map((file) => (
           <PendingFileRow key={file.key} file={file} />
         ))}
-        {pending.text ? (
-          <Text variant="body" style={{ color: colors.selectInk }}>
-            {pending.text}
-          </Text>
-        ) : null}
+        {pending.text ? <RichText blocks={sourceBlocks(pending.text, false)} color={colors.selectInk} tint={colors.surface} /> : null}
         <View style={styles.meta}>
           <Text variant="label" tone={failed ? 'dangerInk' : 'inkFaint'}>
             {status}
@@ -371,19 +337,13 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
   bold: { fontWeight: '600' },
-  italic: { fontStyle: 'italic' },
-  code: { fontFamily: 'monospace' },
-  mention: { fontWeight: '600', borderRadius: 4 },
   wrap: { paddingHorizontal: space.lg, marginTop: 2, maxWidth: '100%' },
   wrapMine: { alignItems: 'flex-end' },
   wrapTheirs: { alignItems: 'flex-start' },
   bubble: { maxWidth: bubbleMaxWidth, minWidth: 88, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   mine: { borderBottomRightRadius: radius.sm },
   theirs: { borderBottomLeftRadius: radius.sm },
-  body: { gap: space.xs },
-  quote: { borderLeftWidth: 3, paddingLeft: space.sm },
-  item: { paddingLeft: space.xs },
-  quoteBox: { borderLeftWidth: 3, borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
+  quoteBox: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
   file: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48, width: 260, maxWidth: '100%' },
   fileText: { flexShrink: 1, flexGrow: 1 },

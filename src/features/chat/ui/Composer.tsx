@@ -9,7 +9,7 @@ import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, type Outgoing } from '../chat';
 import { clearDraft, readDraft, writeDraft } from '../drafts';
 import { dropFile } from '../files';
-import { plainText } from '../html';
+import { bodyPreview } from '../markdown';
 import { useUploadLimit } from '../limits';
 import { askForPushOnce } from '../push';
 import type { Mention, Message } from '../types';
@@ -20,6 +20,7 @@ import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
 import { AttachSheet, MicButton, RecordingStrip, StagedFile } from './MediaControls';
 import { useVoiceHold, type Voice } from './useVoiceHold';
+import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 
 type Staged = Outgoing['files'][number];
 
@@ -134,6 +135,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
       notifyTyping(channelId, true);
     }
   };
+  const markup = useMarkup(text, changeText, input);
 
   const delivered = useCallback(
     (key: string | null) => {
@@ -198,13 +200,13 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
         </View>
       ) : null}
       {parentId ? (
-        <View style={[styles.replyBar, { backgroundColor: colors.surface2, borderColor: replyTint }]} testID="composer-reply">
+        <View style={[styles.replyBar, { backgroundColor: colors.surface2 }]} testID="composer-reply">
           <View style={styles.flex}>
             <Text variant="footnote" style={[styles.strong, { color: replyTint }]}>
               {t('composer.replyingTo', { name: parent?.author ?? '' })}
             </Text>
             <Text variant="footnote" tone="inkSoft" numberOfLines={1}>
-              {parent ? plainText(parent.body) || t('list.files', { count: parent.attachments.length }) : ''}
+              {parent ? bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) : ''}
             </Text>
           </View>
           <RoundButton icon="close" label={t('composer.cancelReply')} onPress={() => setParentId(null)} />
@@ -231,12 +233,18 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
         ) : (
           <>
             <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />
+            {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
             <View style={[styles.field, { backgroundColor: colors.surface, borderColor: colors.line }]}>
               <TextInput
                 ref={input}
                 value={text}
                 onChangeText={changeText}
-                onSelectionChange={(event: TextInputSelectionChangeEvent) => setCursor(event.nativeEvent.selection.end)}
+                onSelectionChange={(event: TextInputSelectionChangeEvent) => {
+                  setCursor(event.nativeEvent.selection.end);
+                  markup.inputProps.onSelectionChange(event);
+                }}
+                onFocus={markup.inputProps.onFocus}
+                onBlur={markup.inputProps.onBlur}
                 placeholder={t('composer.placeholder')}
                 placeholderTextColor={colors.inkFaint}
                 multiline
@@ -254,6 +262,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
         {canSend ? <RoundButton icon="send" label={t('composer.send')} filled onPress={submit} testID="composer-send" /> : null}
         <MicButton voice={voice} hidden={canSend} />
       </View>
+      {markup.showBar && !recording ? <FormatBar onApply={markup.apply} onHide={markup.hide} /> : null}
       <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} />
     </View>
   );
@@ -269,6 +278,6 @@ const styles = StyleSheet.create({
   input: { fontSize: 16, lineHeight: 22, maxHeight: 132, paddingTop: Platform.OS === 'ios' ? 11 : 8, paddingBottom: Platform.OS === 'ios' ? 11 : 8 },
   suggestions: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   suggestion: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, paddingHorizontal: space.md },
-  replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderLeftWidth: 3, borderRadius: radius.sm, paddingLeft: space.sm },
+  replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.sm, paddingLeft: space.md },
   staged: { gap: space.sm },
 });
