@@ -26,7 +26,7 @@ export function useOpenAttachment() {
         );
         await then(file);
       } catch {
-        Alert.alert(t('errors.network'));
+        Alert.alert('', t('errors.network'));
       } finally {
         setOpening(null);
       }
@@ -36,7 +36,7 @@ export function useOpenAttachment() {
   const handOver = useCallback(
     async (attachment: Attachment, uri: string) => {
       if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert(t('thread.cannotShare'));
+        Alert.alert('', t('thread.cannotShare'));
         return;
       }
       await Sharing.shareAsync(uri, { mimeType: attachment.mimetype || undefined, dialogTitle: attachment.name });
@@ -49,7 +49,7 @@ export function useOpenAttachment() {
         const mimeType = attachment.mimetype || undefined;
         if (await file.canPreview({ mimeType })) await file.preview({ mimeType, title: attachment.name });
         else
-          Alert.alert(t('thread.cannotOpen', { name: attachment.name }), undefined, [
+          Alert.alert('', t('thread.cannotOpen', { name: attachment.name }), [
             { text: t('thread.close'), style: 'cancel' },
             { text: t('thread.shareInstead'), onPress: () => void handOver(attachment, file.uri) },
           ]);

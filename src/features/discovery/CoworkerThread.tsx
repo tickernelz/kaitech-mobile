@@ -298,7 +298,7 @@ export function CoworkerThread({
     const staged = await pickAttachments(source, chatT, maxBytes, size);
     const { kept, refused } = withinBudget(held.current.files, staged, maxBytes);
     refused.forEach((file) => dropFile(file.uri));
-    if (refused.length) Alert.alert(chatT('composer.tooMuch', { count: refused.length, names: refused.map((file) => file.name).join(', '), limit: size(maxBytes) }));
+    if (refused.length) Alert.alert('', chatT('composer.tooMuch', { count: refused.length, names: refused.map((file) => file.name).join(', '), limit: size(maxBytes) }));
     if (kept.length) setFiles((current) => [...current, ...kept]);
   };
 

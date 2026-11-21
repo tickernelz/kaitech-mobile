@@ -59,9 +59,9 @@ export async function pickAttachments(source: AttachSource, t: TFunction<'chat'>
       }
       staged.push({ uri: copy.uri, name: item.name, mimetype: item.mimeType, size: copy.size, voice: false, durationMs: null });
     } catch {
-      Alert.alert(t('composer.fileFailed', { name: item.name }));
+      Alert.alert('', t('composer.fileFailed', { name: item.name }));
     }
   }
-  if (refused.length && maxBytes !== null) Alert.alert(t('composer.tooBig', { count: refused.length, names: refused.join(', '), limit: size(maxBytes) }));
+  if (refused.length && maxBytes !== null) Alert.alert('', t('composer.tooBig', { count: refused.length, names: refused.join(', '), limit: size(maxBytes) }));
   return staged;
 }

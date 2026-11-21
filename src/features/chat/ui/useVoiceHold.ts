@@ -30,7 +30,7 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
 
   const startRecording = async () => {
     if (meetingRecording()) {
-      Alert.alert(t('composer.micBusy'));
+      Alert.alert('', t('composer.micBusy'));
       return;
     }
     const permission = await requestRecordingPermissionsAsync();
@@ -64,7 +64,7 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
     if (!uri) return;
     if (cancel || elapsed < shortestVoiceMs) {
       dropFile(uri);
-      if (!cancel) Alert.alert(t('composer.holdToRecord'));
+      if (!cancel) Alert.alert('', t('composer.holdToRecord'));
       return;
     }
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
