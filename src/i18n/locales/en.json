@@ -451,5 +451,21 @@
       "empty": "The final minutes aren't ready yet.",
       "close": "Close"
     }
+  },
+  "appearance": {
+    "wallpapers": {
+      "doodle": "Lab0 doodle",
+      "keylines": "Keylines",
+      "bars": "Brand bars",
+      "monogram": "K monogram",
+      "kaitech": "Kaitech",
+      "dusk": "Dusk",
+      "mist": "Mist",
+      "lavender": "Lavender",
+      "slate": "Slate",
+      "blush": "Blush",
+      "midnight": "Midnight",
+      "ink": "Ink"
+    }
   }
 }
