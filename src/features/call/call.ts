@@ -330,7 +330,7 @@ async function connect(api: CallClient, channelId: number, video: boolean, start
     }
     joined = session;
     known = new Set([session.sessionId]);
-    const instance = new sdk.Room({ adaptiveStream: true, dynacast: true });
+    const instance = new sdk.Room({ adaptiveStream: true, dynacast: true, singlePeerConnection: false });
     room = instance;
     bind(instance, sdk);
     await livekit.AudioSession.startAudioSession();
