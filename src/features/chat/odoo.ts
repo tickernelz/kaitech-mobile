@@ -91,6 +91,7 @@ function attachmentFrom(value: Raw): Attachment | null {
     voice: Array.isArray(value.voice_ids) && value.voice_ids.length > 0,
     accessToken: text(value.raw_access_token) || null,
     checksum: text(value.checksum) || null,
+    url: value.type === 'url' ? text(value.url) || null : null,
   };
 }
 

@@ -1,0 +1,18 @@
+appId: io.kaitech.mobile
+name: Record, part 1 - join the web peer's voice call and start recording from the phone (local only)
+---
+- runFlow: ../shared/join-peer-call.yaml
+- extendedWaitUntil:
+    visible:
+      id: call-record
+    timeout: 60000
+- tapOn:
+    id: call-record
+- extendedWaitUntil:
+    visible:
+      id: call-recording
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r1-recording

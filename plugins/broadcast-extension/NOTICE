@@ -1,0 +1,7 @@
+SampleHandler.swift is adapted from the Jitsi Meet SDK screen sharing sample
+(https://github.com/jitsi/jitsi-meet-sdk-samples, ios/swift-screensharing, Broadcast Extension),
+Copyright 2021 8x8, Inc. and Atlassian Inc., licensed under the Apache License, Version 2.0
+(https://www.apache.org/licenses/LICENSE-2.0).
+
+Changed for Kaitech: the five sample files are merged into one, the app group comes from the
+extension's Info.plist, and the start and stop notifications use Kaitech names.

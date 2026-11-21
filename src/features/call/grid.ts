@@ -44,6 +44,10 @@ export function pagesFor(ids: string[], speaking: string[], perPage: number): st
   return pages;
 }
 
+export function presenterOf<T extends { local: boolean; screenOn: boolean }>(people: T[]): T | null {
+  return people.find((person) => person.screenOn && !person.local) ?? people.find((person) => person.screenOn) ?? null;
+}
+
 export function layoutFor(width: number, height: number): CallLayout {
   return {
     pip: Math.min(width, height) < pipMaxSide,

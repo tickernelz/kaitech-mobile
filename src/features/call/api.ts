@@ -3,7 +3,7 @@ import { bearer, route } from '../../api/odoo';
 
 export type Joined = { sessionId: number; channelId: number; url: string; token: string };
 
-export type SessionValues = { is_muted?: boolean; is_camera_on?: boolean; is_deaf?: boolean };
+export type SessionValues = { is_muted?: boolean; is_camera_on?: boolean; is_deaf?: boolean; is_screen_sharing_on?: boolean };
 
 export class CallClient {
   constructor(readonly account: Account) {}

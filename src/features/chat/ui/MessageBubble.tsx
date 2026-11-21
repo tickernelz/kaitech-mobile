@@ -11,6 +11,8 @@ import { useChatFormat } from './format';
 import { Icon } from './icons';
 import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
+import { recordingIdOf } from '../../call/recording';
+import { RecordingCard } from '../../call/ui/RecordingCard';
 
 export const bubbleMaxWidth = Math.round(readableWidth * 0.8);
 
@@ -89,15 +91,18 @@ function Attachments({ attachments, origin, mine }: { attachments: Attachment[];
   if (!attachments.length) return null;
   return (
     <View style={styles.attachments}>
-      {attachments.map((attachment) =>
-        attachment.voice || attachment.mimetype.startsWith('audio/') ? (
+      {attachments.map((attachment) => {
+        const recordingId = recordingIdOf(attachment.url);
+        return recordingId !== null ? (
+          <RecordingCard key={attachment.id} recordingId={recordingId} mine={mine} />
+        ) : attachment.voice || attachment.mimetype.startsWith('audio/') ? (
           <VoiceNote key={attachment.id} id={`a${attachment.id}`} uri={attachmentUrl(origin, attachment)} mine={mine} seed={attachment.id} />
         ) : attachment.mimetype.startsWith('image/') ? (
           <Picture key={attachment.id} attachment={attachment} origin={origin} />
         ) : (
           <FileChip key={attachment.id} attachment={attachment} mine={mine} />
-        ),
-      )}
+        );
+      })}
     </View>
   );
 }

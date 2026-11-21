@@ -1,0 +1,29 @@
+appId: io.kaitech.mobile
+name: Screen share, part 4 - the web peer shares, the phone shows it, the share ends, hang up (local only)
+---
+- extendedWaitUntil:
+    visible:
+      id: call-screen-share
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      text: .*(screen|Layar).*
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: s5-web-screen
+- extendedWaitUntil:
+    notVisible:
+      id: call-screen-share
+    timeout: ${VIEW_TIMEOUT}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: s6-web-stopped
+- tapOn:
+    id: call-hangup
+- extendedWaitUntil:
+    notVisible:
+      id: call-screen
+    timeout: 30000

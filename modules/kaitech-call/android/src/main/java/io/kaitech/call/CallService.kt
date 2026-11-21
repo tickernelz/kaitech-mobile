@@ -39,6 +39,7 @@ class CallService : Service() {
     val channelId: Int,
     val muted: Boolean,
     val camera: Boolean,
+    val sharing: Boolean = false,
     val startedAt: Long = System.currentTimeMillis(),
   ) {
     fun ring() = Ring(title, body, channelId, 0, video, "", 0, system = false)
@@ -84,6 +85,7 @@ class CallService : Service() {
       intent.getIntExtra(CallIntents.EXTRA_CHANNEL_ID, 0),
       intent.getBooleanExtra(EXTRA_MUTED, false),
       intent.getBooleanExtra(EXTRA_CAMERA, false),
+      intent.getBooleanExtra(EXTRA_SHARING, false),
     )
     stopRingtone()
     main.removeCallbacks(timeout)
@@ -159,6 +161,7 @@ class CallService : Service() {
     private const val EXTRA_BODY = "kaitech.call.notificationBody"
     private const val EXTRA_MUTED = "kaitech.call.muted"
     private const val EXTRA_CAMERA = "kaitech.call.camera"
+    private const val EXTRA_SHARING = "kaitech.call.sharing"
     const val ACTION_RING = "io.kaitech.call.RING"
     const val ACTION_CALL = "io.kaitech.call.CALL"
     const val ACTION_STOP = "io.kaitech.call.STOP"
@@ -183,6 +186,7 @@ class CallService : Service() {
         .putExtra(EXTRA_BODY, call.body)
         .putExtra(EXTRA_MUTED, call.muted)
         .putExtra(EXTRA_CAMERA, call.camera)
+        .putExtra(EXTRA_SHARING, call.sharing)
       CallIntents.fill(intent, call.ring())
       start(context, intent)
     }

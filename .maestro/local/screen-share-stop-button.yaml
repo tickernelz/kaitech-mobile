@@ -1,0 +1,13 @@
+appId: io.kaitech.mobile
+name: Screen share, part 2 - stop sharing from the button on the call screen (local only)
+---
+- tapOn:
+    id: call-screen-share-stop
+- extendedWaitUntil:
+    notVisible:
+      id: call-screen-share-own
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: s2-stopped-button

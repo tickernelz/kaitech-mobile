@@ -31,6 +31,7 @@ export type Attachment = {
   voice: boolean;
   accessToken: string | null;
   checksum: string | null;
+  url: string | null;
 };
 
 export type Reaction = { content: string; count: number; mine: boolean };

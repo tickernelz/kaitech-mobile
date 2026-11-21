@@ -53,8 +53,8 @@ class KaitechCallModule : Module() {
       true
     }
 
-    AsyncFunction("updateCall") { video: Boolean, title: String, body: String, channelId: Int, muted: Boolean, camera: Boolean ->
-      CallService.call(requireContext(), CallService.Ongoing(video, title, body, channelId, muted, camera))
+    AsyncFunction("updateCall") { video: Boolean, title: String, body: String, channelId: Int, muted: Boolean, camera: Boolean, sharing: Boolean ->
+      CallService.call(requireContext(), CallService.Ongoing(video, title, body, channelId, muted, camera, sharing))
       true
     }
 
