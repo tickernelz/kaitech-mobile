@@ -9,7 +9,7 @@ import type { Message } from '../types';
 
 const quick = ['\u{1F44D}', '\u2764\uFE0F', '\u{1F602}', '\u{1F64F}', '\u2705'];
 
-export type MessageAction = 'reply' | 'copy' | 'forward' | 'edit' | 'delete' | 'thread' | 'pin' | 'star' | 'unread' | 'link' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers' | 'emoji';
+export type MessageAction = 'reply' | 'copy' | 'forward' | 'edit' | 'delete' | 'thread' | 'pin' | 'star' | 'unread' | 'link' | 'translate' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers' | 'emoji';
 
 export type ActionOptions = Partial<Record<MessageAction, boolean>>;
 
@@ -50,6 +50,7 @@ export function MessageActions({
     row('star', 'star', message.starred ? t('actions.unstar') : t('actions.star')),
     row('unread', 'unread', t('actions.unread')),
     row('link', 'link', t('actions.link')),
+    row('translate', 'globe', message.translated ? t('actions.original') : t('actions.translate')),
     row('task', 'task', t('actions.task')),
     row('activity', 'clock', t('actions.activity')),
     row('meeting', 'calendar', t('actions.meeting')),

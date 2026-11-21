@@ -36,7 +36,7 @@ describe('edited, pinned and starred messages', () => {
       'ir.attachment': [{ id: 31, name: 'a.pdf', mimetype: 'application/pdf', file_size: 10 }],
     });
     expect([...patches.keys()]).toEqual([5, 6]);
-    expect(patches.get(6)).toEqual({ body: '', edited: true, attachments: [] });
+    expect(patches.get(6)).toEqual({ body: '', edited: true, translation: null, translated: false, attachments: [] });
     expect(patches.get(5)).toMatchObject({ body: '<p>baru</p>', edited: true, pinnedAt: null, attachments: [{ id: 31, name: 'a.pdf' }] });
   });
 

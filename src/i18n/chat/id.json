@@ -82,7 +82,9 @@
     "removed": "Pesan ini sudah dihapus",
     "edited": "diedit",
     "pinned": "Disematkan",
-    "starred": "Berbintang"
+    "starred": "Berbintang",
+    "translatedFrom": "Diterjemahkan dari {{lang}}",
+    "translated": "Diterjemahkan"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",
@@ -163,7 +165,9 @@
     "task": "Jadikan task",
     "activity": "Jadikan aktivitas",
     "meeting": "Jadwalkan rapat",
-    "reactions": "Siapa yang bereaksi"
+    "reactions": "Siapa yang bereaksi",
+    "translate": "Terjemahkan",
+    "original": "Tampilkan asli"
   },
   "push": {
     "channel": "Pesan"
@@ -195,7 +199,8 @@
     "deleteBody": "Semua orang di percakapan ini akan melihat bahwa pesan ini dihapus.",
     "cancel": "Batal",
     "failed": "Belum berhasil. Coba lagi.",
-    "forbidden": "Anda tidak punya akses untuk itu."
+    "forbidden": "Anda tidak punya akses untuk itu.",
+    "noTranslation": "Pesan ini sudah dalam bahasa Anda."
   },
   "emoji": {
     "title": "Reaksi",

@@ -89,6 +89,7 @@ export const glyphs = {
   calendar: { parts: [body(tile(3, 5, 21, 21)), cut('M3 10h18'), line('M8 2.5v4M16 2.5v4')] },
   emoji: { parts: [body(circle(12, 12, 9)), cut('M8.5 14.5a4.5 4.5 0 0 0 7 0'), cutDot(`${circle(9, 10, 1.25)}${circle(15, 10, 1.25)}`)] },
   unread: { parts: [body('M3 21V7a3 3 0 0 1 3-3h8v2a5 5 0 0 0 7 4.6V15a3 3 0 0 1-3 3H8Z'), dot(circle(19, 5, 3))] },
+  globe: { parts: [line(circle(12, 12, 9)), line('M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18')] },
   forwardMessage: { parts: [line('M14 5l6 6-6 6'), line('M20 11H10a6 6 0 0 0-6 6v2')] },
   share: { parts: [line('M12 3v12'), line('M7.5 7.5 12 3l4.5 4.5'), line('M7 10H5v11h14V10h-2')] },
   sign: { parts: [body('M4 17v-3.5L13.5 4 17 7.5 7.5 17Z'), dot('M12 19h9v2h-9Z')] },

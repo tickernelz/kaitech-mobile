@@ -204,7 +204,8 @@ export const MessageBubble = memo(function MessageBubble({
   const { colors, scheme } = useTheme();
   const { clock } = useChatFormat();
   const removed = isRemoved(message);
-  const blocks = removed ? [] : bodyBlocks(message.body);
+  const shownBody = message.translated && message.translation ? message.translation.body : message.body;
+  const blocks = removed ? [] : bodyBlocks(shownBody);
   const notification = message.type === 'notification';
   const time = clock(message.date);
   const text = bodyPreview(message.body);
@@ -253,6 +254,11 @@ export const MessageBubble = memo(function MessageBubble({
         <QuoteBlock quote={quote} mine={mine} onPress={message.parentId ? () => onQuotePress(message.parentId as number) : undefined} />
         <Attachments attachments={message.attachments} origin={origin} mine={mine} />
         {blocks.length ? <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} /> : null}
+        {message.translated && message.translation ? (
+          <Text variant="label" tone="inkFaint" testID={`translated-${message.id}`}>
+            {message.translation.lang ? t('thread.translatedFrom', { lang: message.translation.lang }) : t('thread.translated')}
+          </Text>
+        ) : null}
         {removed ? (
           <Text variant="callout" tone="inkSoft" style={styles.removed} testID={`removed-${message.id}`}>
             {t('thread.removed')}

@@ -21,7 +21,7 @@ import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { MessageActions, type ActionOptions, type MessageAction } from './MessageActions';
 import { hasFeature } from '../features';
-import { markUnreadFrom, messageLink, removeMessage, setPinned, toggleStar, type Result } from '../messageActions';
+import { markUnreadFrom, messageLink, removeMessage, setPinned, toggleStar, toggleTranslation, type Result } from '../messageActions';
 import { failureText } from './actions/failure';
 import { EmojiPicker } from './EmojiPicker';
 import { ActivitySheet } from './actions/ActivitySheet';
@@ -201,6 +201,7 @@ export function ThreadView({
       star: !removed,
       unread: true,
       link: true,
+      translate: !!features.translateLanguage && comment && !removed && !!plainText(message.body),
       task: fromMessage && features.canMakeTask,
       activity: fromMessage,
       meeting: hasFeature(features, 'meeting') && comment,
@@ -232,6 +233,12 @@ export function ThreadView({
         return;
       case 'star':
         void toggleStar(message).then((result) => report(result, message.starred ? t('act.unstarred') : t('act.starred')));
+        return;
+      case 'translate':
+        void toggleTranslation(message).then((result) => {
+          if (!result.ok) report(result);
+          else if (!result.value && !message.translated) setNotice(t('act.noTranslation'));
+        });
         return;
       case 'unread':
         void markUnreadFrom(message).then((result) => {

@@ -82,7 +82,9 @@
     "removed": "This message was deleted",
     "edited": "edited",
     "pinned": "Pinned",
-    "starred": "Starred"
+    "starred": "Starred",
+    "translatedFrom": "Translated from {{lang}}",
+    "translated": "Translated"
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",
@@ -163,7 +165,9 @@
     "task": "Make a task",
     "activity": "Make an activity",
     "meeting": "Schedule a meeting",
-    "reactions": "Who reacted"
+    "reactions": "Who reacted",
+    "translate": "Translate",
+    "original": "Show original"
   },
   "push": {
     "channel": "Messages"
@@ -195,7 +199,8 @@
     "deleteBody": "Everyone in this conversation will see that it was deleted.",
     "cancel": "Cancel",
     "failed": "That didn't work. Try again.",
-    "forbidden": "You don't have access to do that."
+    "forbidden": "You don't have access to do that.",
+    "noTranslation": "This message is already in your language."
   },
   "emoji": {
     "title": "Reactions",

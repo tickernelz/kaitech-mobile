@@ -102,6 +102,24 @@ export function toggleStar(message: Message) {
   });
 }
 
+export function toggleTranslation(message: Message) {
+  return run(async (account) => {
+    if (message.translated) {
+      patchMessages(new Map([[message.id, { translated: false }]]));
+      return false;
+    }
+    if (message.translation) {
+      patchMessages(new Map([[message.id, { translated: true }]]));
+      return true;
+    }
+    const raw = await route<Record<string, unknown> | null>(account, '/mail/message/translate', { message_id: message.id });
+    const body = typeof raw?.body === 'string' ? raw.body : '';
+    if (!body) return false;
+    patchMessages(new Map([[message.id, { translation: { body, lang: typeof raw?.lang_name === 'string' ? raw.lang_name : '' }, translated: true }]]));
+    return true;
+  });
+}
+
 export function markUnreadFrom(message: Message) {
   return run(async (account) => {
     await route(account, '/discuss/channel/set_new_message_separator', { channel_id: message.channelId, message_id: message.id });

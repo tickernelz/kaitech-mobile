@@ -177,7 +177,7 @@ export function editedBody(html: string): { body: string; edited: boolean } {
   return { body, edited: body.length !== html.length };
 }
 
-export type MessagePatch = Partial<Pick<Message, 'body' | 'edited' | 'attachments' | 'pinnedAt' | 'starred'>>;
+export type MessagePatch = Partial<Pick<Message, 'body' | 'edited' | 'attachments' | 'pinnedAt' | 'starred' | 'translation' | 'translated'>>;
 
 export function messagePatches(data: unknown): Map<number, MessagePatch> {
   const attachments = new Map<number, Attachment>();
@@ -190,7 +190,7 @@ export function messagePatches(data: unknown): Map<number, MessagePatch> {
     const messageId = id(raw.id);
     if (!messageId) continue;
     const patch: MessagePatch = {};
-    if ('body' in raw) Object.assign(patch, editedBody(text(raw.body)));
+    if ('body' in raw) Object.assign(patch, editedBody(text(raw.body)), { translation: null, translated: false });
     if ('attachment_ids' in raw) patch.attachments = ids(raw.attachment_ids).map((attachmentId) => attachments.get(attachmentId)).filter((item): item is Attachment => item !== undefined);
     if ('pinned_at' in raw) patch.pinnedAt = text(raw.pinned_at) || null;
     if ('starred' in raw) patch.starred = raw.starred === true;

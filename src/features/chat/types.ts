@@ -53,6 +53,8 @@ export type Message = {
   starred?: boolean;
   pinnedAt?: string | null;
   edited?: boolean;
+  translation?: { body: string; lang: string } | null;
+  translated?: boolean;
 };
 
 export type Mention = { id: number; name: string; token: string | null };
