@@ -207,7 +207,7 @@ export function ThreadView({
           <Icon name="back" color={colors.ink} />
         </Pressable>
       )}
-      <Avatar name={name} seed={channelId} size={40} path={type === 'chat' ? conversation?.avatar : undefined} icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined} />
+      <Avatar name={name} seed={conversation?.partnerId ?? channelId} size={40} path={type === 'chat' ? conversation?.avatar : undefined} icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined} />
       <View style={styles.flex}>
         <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
           {name}
