@@ -109,6 +109,14 @@ split-screen, fold/unfold and moving between screens never reconnects a call or 
 - `src/features/call/native.ts` wraps the local Expo module `modules/kaitech-call`, Android only: the ringing
   notification (CallStyle, full-screen intent, a looping ringtone in a foreground service), the ongoing call
   notification, picture-in-picture, and the channel that turns an FCM data ring into an in-app invitation.
+- `src/features/call/blur.ts` turns the background blur of the local camera on and off through the local Expo module
+  `modules/kaitech-video-effects`, which registers a frame processor with `@livekit/react-native-webrtc`
+  (`ProcessorProvider` on Android, `LKRNProcessorProvider` on iOS). Android segments the person with ML Kit Selfie
+  Segmentation (`16.0.0-beta6`, about 4.5 MB) ten times a second on a worker thread and blurs and blends the I420 planes
+  in `BackgroundBlur.java`; iOS uses Vision person segmentation and Core Image. Before the first mask arrives the whole
+  frame is blurred. The choice is kept per device, like the web's local setting, and re-applied whenever LiveKit restarts
+  the camera track (mute, flip). The pinned `@livekit/react-native-webrtc` version matters: the processor API is
+  internal (`_setVideoEffects`).
 - Screen: `src/app/call/[id].tsx`, which renders `src/features/call/ui/CallScreen.tsx`. The in-app ring overlay
   for an incoming call is `CallRuntime` in the root layout, so it works on every screen and above the app lock.
 

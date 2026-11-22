@@ -31,6 +31,7 @@ import {
   toggleHand,
   toggleSpeaker,
   toggleVideoOnly,
+  toggleBlur,
   useCallState,
   type CallPerson,
 } from '../call';
@@ -38,6 +39,7 @@ import { conversationById, getChat } from '../../chat/chat';
 import { InviteSheet, OutputSheet } from './CallSheets';
 import { usePictureInPictureAllowed } from '../pipSetting';
 import { useElapsed } from '../clock';
+import { blurSupported } from '../blur';
 import { controlsFor, type CallAction } from '../controls';
 import { CallPill, MoreSheet, RoundButton, type ControlState } from './CallControls';
 import { CallTile } from './CallTile';
@@ -93,6 +95,7 @@ export function CallScreen() {
     wide: width >= wideMin,
     invite: canInvite,
     crowd: call.people.length > 2,
+    blur: blurSupported(),
   });
   const state: ControlState = {
     muted: call.muted || call.deaf,
@@ -104,6 +107,7 @@ export function CallScreen() {
     hand: call.hand,
     spotlight,
     videoOnly: call.videoOnly,
+    blur: call.blur,
   };
 
   const [measured, setMeasured] = useState<{ width: number; height: number } | null>(null);
@@ -162,6 +166,7 @@ export function CallScreen() {
     if (action === 'deafen') void toggleDeafen();
     if (action === 'hand') toggleHand();
     if (action === 'videoOnly') toggleVideoOnly();
+    if (action === 'blur') toggleBlur();
     if (action === 'spotlight') setSpotlight((current) => !current);
     if (action === 'invite' || action === 'output') setPanel(action);
     if (action === 'close') router.back();
