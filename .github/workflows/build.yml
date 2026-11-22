@@ -407,6 +407,8 @@ jobs:
     env:
       E2E_APK_ARTIFACT: e2e-apk-x86_64
       E2E_LABEL: chat-
+      E2E_MEETING: 'yes'
+      E2E_URGENT: 'yes'
       E2E_FLOWS: .maestro/signed-in/message-actions.yaml .maestro/signed-in/thread-actions.yaml .maestro/signed-in/composer-extras.yaml .maestro/signed-in/new-conversation.yaml
       E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
       E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
