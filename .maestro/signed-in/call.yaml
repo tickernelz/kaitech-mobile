@@ -17,20 +17,38 @@ onFlowStart:
         id: welcome-sign-in
     commands:
       - runFlow: ../shared/sign-in.yaml
-- tapOn:
-    id: tab-button-chat
 - extendedWaitUntil:
     visible:
-      id: chat-list
+      id: (incoming-call|tab-button-chat)
     timeout: 30000
-- tapOn:
-    text: ${PEER}
-- extendedWaitUntil:
-    visible:
-      id: call-voice
-    timeout: 30000
-- tapOn:
-    id: call-voice
+- runFlow:
+    when:
+      visible:
+        id: incoming-call
+    commands:
+      - assertVisible:
+          id: incoming-answer-other
+      - tapOn:
+          id: incoming-answer
+- runFlow:
+    when:
+      notVisible:
+        id: call-screen
+    commands:
+      - tapOn:
+          id: tab-button-chat
+      - extendedWaitUntil:
+          visible:
+            id: chat-list
+          timeout: 30000
+      - tapOn:
+          text: ${PEER}
+      - extendedWaitUntil:
+          visible:
+            id: call-voice
+          timeout: 30000
+      - tapOn:
+          id: call-voice
 - extendedWaitUntil:
     visible:
       id: call-screen
@@ -45,8 +63,13 @@ onFlowStart:
       SCREEN: k1-live
 - tapOn:
     id: call-mute
-- tapOn:
-    id: call-speaker
+- runFlow:
+    when:
+      visible:
+        id: call-speaker
+    commands:
+      - tapOn:
+          id: call-speaker
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
