@@ -696,7 +696,6 @@
       "progress": "Kemajuan",
       "topic": "Dibahas dalam",
       "minutes": "Notulen",
-      "draftedBy": "Diusulkan oleh",
       "recordProgress": "Catat kemajuan",
       "note": "Catatan",
       "saveProgress": "Simpan kemajuan",
@@ -707,7 +706,8 @@
       "meeting": "Rapat",
       "name": "Yang harus dikerjakan",
       "detail": "Rincian",
-      "save": "Simpan"
+      "save": "Simpan",
+      "draftedByCoworker": "Disusun Coworker dari notulen"
     },
     "finalTools": {
       "content": {
@@ -1055,7 +1055,6 @@
       "tasks": {
         "title": "Tugas",
         "detail": "Draf tugas dari solusi atau notulen",
-        "approvedWaiting": "Solusi yang disetujui menunggu dijadikan tugas.",
         "fromSolusi": "Draf dari solusi",
         "fromMinutes": "Draf dari notulen",
         "none": "Belum ada tugas",
@@ -1063,8 +1062,13 @@
         "saveDue": "Simpan jatuh tempo",
         "drop": "Hapus draf",
         "dropTitle": "Hapus draf tugas ini?",
-        "missing": "Isi penanggung jawab dan jatuh tempo, lalu setujui."
-      }
+        "missing": "Isi penanggung jawab dan jatuh tempo, lalu setujui.",
+        "said": "Kata rapat: {{said}}",
+        "saidDiffers": "Berbeda dari kata rapat: {{said}}",
+        "approvedWaiting_one": "{{count}} solusi disetujui menunggu dijadikan tugas.",
+        "approvedWaiting_other": "{{count}} solusi disetujui menunggu dijadikan tugas."
+      },
+      "coworker": "Coworker"
     },
     "clientOrg": {
       "title": "Organisasi klien",

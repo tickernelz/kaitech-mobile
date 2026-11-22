@@ -696,7 +696,6 @@
       "progress": "Progress",
       "topic": "Discussed under",
       "minutes": "Minutes",
-      "draftedBy": "Proposed by",
       "recordProgress": "Record progress",
       "note": "Note",
       "saveProgress": "Save progress",
@@ -707,7 +706,8 @@
       "meeting": "Meeting",
       "name": "What has to be done",
       "detail": "Detail",
-      "save": "Save"
+      "save": "Save",
+      "draftedByCoworker": "Drafted by the Coworker from the minutes"
     },
     "finalTools": {
       "content": {
@@ -1055,7 +1055,6 @@
       "tasks": {
         "title": "Tasks",
         "detail": "Draft tasks from the solutions or the minutes",
-        "approvedWaiting": "Approved solutions wait to become tasks.",
         "fromSolusi": "Draft from solutions",
         "fromMinutes": "Draft from minutes",
         "none": "No tasks yet",
@@ -1063,8 +1062,13 @@
         "saveDue": "Save the due date",
         "drop": "Delete draft",
         "dropTitle": "Delete this draft task?",
-        "missing": "Set who is accountable and the due date, then agree it."
-      }
+        "missing": "Set who is accountable and the due date, then agree it.",
+        "said": "The meeting said: {{said}}",
+        "saidDiffers": "Differs from what the meeting said: {{said}}",
+        "approvedWaiting_one": "{{count}} approved solution waits to become a task.",
+        "approvedWaiting_other": "{{count}} approved solutions wait to become tasks."
+      },
+      "coworker": "Coworker"
     },
     "clientOrg": {
       "title": "Client organisation",

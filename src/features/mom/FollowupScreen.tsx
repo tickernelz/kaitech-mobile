@@ -106,7 +106,7 @@ export function FollowupScreen({ id }: { id: number }) {
           <Row title={t('mom.followups.progress')} detail={`${data.progress}%`} />
           {data.topic ? <Row title={t('mom.followups.topic')} detail={data.topic} /> : null}
           {data.minutes.id ? <Row title={t('mom.followups.minutes')} detail={data.minutes.name} /> : null}
-          {data.draftedBy ? <Row title={t('mom.followups.draftedBy')} detail={data.draftedBy} /> : null}
+          {data.draftedBy === 'coworker' ? <Row title={t('mom.followups.draftedByCoworker')} /> : null}
         </Section>
         {data.detail ? <Text>{data.detail}</Text> : null}
         {[data.settledNote, data.reportedNote].filter(Boolean).map((line) => (

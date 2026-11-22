@@ -181,10 +181,10 @@ export type DraftTask = {
   reason: string;
   quote: string;
   missing: string[];
-  meetingSaid: string;
+  meetingSaid: { owner: string; due: string; differs: boolean } | false;
 };
 
-export type TasksOverview = { meeting: string; generated: boolean; tasks: DraftTask[]; people: { id: number; name: string }[]; approvedWaiting: boolean; job: Job | false; canChange: boolean; canAccept: boolean };
+export type TasksOverview = { meeting: string; generated: boolean; tasks: DraftTask[]; people: { id: number; name: string }[]; approvedWaiting: number; job: Job | false; canChange: boolean; canAccept: boolean };
 
 export function tasksOverview(account: Account, meeting: number): Promise<TasksOverview> {
   return rpc(account, MODEL, 'tasks_overview', [meeting]);

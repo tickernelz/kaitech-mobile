@@ -73,7 +73,7 @@ export function SolusiPanel({ meeting }: { meeting: number }) {
   return (
     <>
       <Scroll refreshing={overview.loading} onRefresh={() => void overview.refresh()}>
-        {data.job ? (
+        {data.job && (data.job.label || data.job.message) ? (
           <Text variant="footnote" tone="inkSoft" accessibilityRole="alert">
             {[data.job.kindLabel, data.job.label, data.job.message].filter(Boolean).join(' · ')}
           </Text>
@@ -103,7 +103,7 @@ export function SolusiPanel({ meeting }: { meeting: number }) {
           <Row
             key={item.id}
             title={`${item.sequence}. ${item.title}`}
-            detail={[item.need, t(`mom.assist.solusi.approach.${item.approach}` as never, { defaultValue: item.approach }) as string, item.approved ? t('mom.assist.solusi.approved') : '', item.job ? item.job.label : '']
+            detail={[item.need, t(`mom.assist.solusi.approach.${item.approach}` as never, { defaultValue: item.approach }) as string, item.approved ? t('mom.assist.solusi.approved') : '', isLive(item.job) && item.job ? item.job.label : '']
               .filter(Boolean)
               .join(' · ')}
             onPress={() => setChosen(item)}
@@ -257,8 +257,8 @@ function ItemSheet({ item, data, meeting, older, onClose }: { item: SolusiItem; 
           {item.customWithoutReason ? <Text variant="footnote" tone="warnInk">{t('mom.assist.solusi.customWithoutReason')}</Text> : null}
           {item.notes ? <Text variant="footnote">{item.notes}</Text> : null}
           {item.scope ? <Text variant="footnote" tone="inkSoft">{[item.scope.label, item.scope.rationale].filter(Boolean).join(' · ')}</Text> : null}
-          {item.job ? <Text variant="footnote" tone="inkSoft">{[item.job.label, item.job.message].filter(Boolean).join(' · ')}</Text> : null}
-          <Text variant="footnote" tone="inkSoft">{[item.draftedBy, item.reusedFrom].filter(Boolean).join(' · ')}</Text>
+          {item.job && (isLive(item.job) || item.job.state === 'failed') ? <Text variant="footnote" tone="inkSoft">{[item.job.label, item.job.message].filter(Boolean).join(' · ')}</Text> : null}
+          <Text variant="footnote" tone="inkSoft">{[item.draftedBy === 'coworker' ? t('mom.assist.coworker') : '', item.reusedFrom].filter(Boolean).join(' · ')}</Text>
           {editable && !older && data.canApprove && !item.approved ? <Button label={t('mom.assist.solusi.approve')} onPress={approve} busy={action.busy === 'approve'} testID="solusi-approve" /> : null}
           {more.length ? <SmallButton label={t('mom.menu.title')} onPress={() => setMoreOpen(true)} testID="solusi-item-more" /> : null}
         </>

@@ -143,12 +143,12 @@ function Tasks({ meeting }: { meeting: number }) {
   if (!data) return <StateView loading={!tasks.error} error={tasks.error} onRetry={() => void tasks.refresh()} testID="assist-tasks" />;
   return (
     <Scroll refreshing={tasks.loading} onRefresh={() => void tasks.refresh()}>
-      {data.job ? (
+      {data.job && (data.job.label || data.job.message) ? (
         <Text variant="footnote" tone="inkSoft" accessibilityRole="alert">
           {[data.job.label, data.job.message].filter(Boolean).join(' · ')}
         </Text>
       ) : null}
-      {data.approvedWaiting ? <Text tone="inkSoft">{t('mom.assist.tasks.approvedWaiting')}</Text> : null}
+      {data.approvedWaiting ? <Text tone="inkSoft">{t('mom.assist.tasks.approvedWaiting', { count: data.approvedWaiting })}</Text> : null}
       {data.canChange && !isLive(data.job) ? (
         <View style={styles.row}>
           <Button kind="secondary" label={t('mom.assist.tasks.fromSolusi')} onPress={() => void action.run('solusi', (account) => draftTasks(account, meeting, 'solusi'))} busy={action.busy === 'solusi'} style={styles.flex} testID="tasks-from-solusi" />
@@ -177,8 +177,13 @@ function TaskCard({ task, data, meeting }: { task: DraftTask; data: TasksOvervie
       <Text variant="headline">{task.name}</Text>
       {task.description ? <Text variant="callout">{task.description}</Text> : null}
       <Text variant="footnote" tone="inkSoft">
-        {[task.solusiItem, task.draftedBy, task.meetingSaid].filter(Boolean).join(' · ')}
+        {[task.solusiItem, task.draftedBy === 'coworker' ? t('mom.assist.coworker') : ''].filter(Boolean).join(' · ')}
       </Text>
+      {task.meetingSaid ? (
+        <Text variant="footnote" tone={task.meetingSaid.differs ? 'warnInk' : 'inkSoft'}>
+          {t(task.meetingSaid.differs ? 'mom.assist.tasks.saidDiffers' : 'mom.assist.tasks.said', { said: [task.meetingSaid.owner, task.meetingSaid.due].filter(Boolean).join(' · ') })}
+        </Text>
+      ) : null}
       {task.quote ? <Text variant="callout">{`"${task.quote}"`}</Text> : null}
       {task.reason ? <Text variant="footnote" tone="inkSoft">{task.reason}</Text> : null}
       {task.duplicateOf ? (
