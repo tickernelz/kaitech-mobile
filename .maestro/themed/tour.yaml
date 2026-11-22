@@ -48,6 +48,10 @@ onFlowStart:
     visible:
       id: tab-discovery
     timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: (open-evidence|discovery-programmes|programme-summary)
+    timeout: 30000
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
