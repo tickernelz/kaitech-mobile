@@ -79,7 +79,7 @@ if [ "$runner" = auto ]; then
 fi
 case "$runner" in
   maestro) run=(maestro) ;;
-  maestro-runner) run=(maestro-runner --no-ansi --platform android --driver devicelab) ;;
+  maestro-runner) run=(maestro-runner --no-ansi --platform android --driver devicelab ${ANDROID_SERIAL:+--device "$ANDROID_SERIAL"}) ;;
 esac
 rotation_state() { adb shell dumpsys window displays | tr -d '\r' | grep -oE '(mUserRotationMode|mUserRotation|mRotation|mCurrentAppOrientation|mLastOrientation)=[A-Z_0-9]+' | sort -u | tr '\n' ' '; echo; }
 adb shell cmd window user-rotation lock "$rotation"

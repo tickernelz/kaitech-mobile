@@ -39,14 +39,12 @@ jobs:
           if [ -n "$other" ]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Docs-only pull request: every check reports skipped."
+            echo "Docs-only pull request: lint, typecheck and unit report skipped."
             echo "code=false" >> "$GITHUB_OUTPUT"
           fi
 
   gitleaks:
     name: gitleaks diff
-    needs: changes
-    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -73,7 +71,7 @@ jobs:
   lint:
     name: lint
     needs: changes
-    if: needs.changes.outputs.code == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -92,7 +90,7 @@ jobs:
   typecheck:
     name: typecheck
     needs: changes
-    if: needs.changes.outputs.code == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -112,7 +110,7 @@ jobs:
   unit:
     name: unit
     needs: changes
-    if: needs.changes.outputs.code == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

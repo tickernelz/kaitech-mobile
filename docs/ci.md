@@ -23,7 +23,7 @@ Jobs run in parallel and are the only required checks for merging into `main`:
 
 A new push to a pull request cancels its run in progress. Target: under 3 minutes wall time.
 
-Docs-only changes (`docs/**`, `*.md`): pushes to `main` are skipped through `paths-ignore`. Pull requests are not filtered at the trigger, because a required check of a workflow that never starts stays "Expected" and blocks the merge. Instead the `changes` job lists the pull request files, and on a docs-only pull request every required job reports skipped, which branch protection accepts.
+Docs-only changes (`docs/**`, `*.md`): pushes to `main` are skipped through `paths-ignore`. Pull requests are not filtered at the trigger, because a required check of a workflow that never starts stays "Expected" and blocks the merge. Instead the `changes` job lists the pull request files, and on a docs-only pull request `lint`, `typecheck` and `unit` report skipped, which branch protection accepts. `gitleaks diff` always runs, docs-only or not. The three gated jobs run unless `changes` explicitly answered docs-only (`!cancelled() && needs.changes.outputs.code != 'false'`): a failed `changes` job must not turn them into skipped checks, which branch protection would count as passed.
 
 ## E2E
 
@@ -38,13 +38,13 @@ The `plan` job picks a mode:
 
 Smoke: one Android emulator (`pixel_6`, portrait, `en-US`) runs `.maestro/welcome.yaml` and `.maestro/sign-in-form.yaml` with a screen recording, and measures cold start (perf gate `android.cold_start_ms`). It never uses the test account.
 
-Full: four Android jobs (`pixel_6` and `pixel_tablet`, `en-US` and `id-ID`), each running portrait then landscape on the same emulator; five signed-in rows jobs (`.maestro/signed-in/rows-*.yaml`, phone and tablet, both locales, plus phone `en-US` with direct chats hidden); and the iPad simulator on `macos-26`. Full runs share the concurrency group `kaitech-e2e-account` with `queue: max` because the rows jobs sign in with the one test account: full runs never overlap, and a new one waits behind every pending one instead of replacing it. Pull request runs use `queue: single`, since GitHub rejects `queue: max` with `cancel-in-progress: true`.
+Full: four Android jobs (`pixel_6` and `pixel_tablet`, `en-US` and `id-ID`), each running portrait then landscape on the same emulator; four signed-in rows jobs (`.maestro/signed-in/rows-*.yaml`, phone and tablet, both locales; phone `en-US` runs with direct chats hidden); and the iPad simulator on `macos-26`. Full runs share the concurrency group `kaitech-e2e-account` with `queue: max` because the rows jobs sign in with the one test account: full runs never overlap, and a new one waits behind every pending one instead of replacing it. Pull request runs use `queue: single`, since GitHub rejects `queue: max` with `cancel-in-progress: true`.
 
 Pull request runs of the same pull request cancel each other; labelling a pull request with another label does not cancel a running E2E run.
 
 ### Native fingerprint cache
 
-`@expo/fingerprint` hashes everything that decides the native build: native dependencies and autolinking, config plugins, the resolved Expo config, `patches/`, and through `fingerprint.config.js` the whole of `modules/kaitech-call/`, `plugins/`, and `app.config.ts`. Code under `src/` is not part of it.
+`@expo/fingerprint` hashes everything that decides the native build: native dependencies and autolinking, config plugins, the resolved Expo config (so every value `app.config.ts` and `app.json` produce), `patches/`, and through `fingerprint.config.js` the whole of `modules/kaitech-call/` and `plugins/`. Code under `src/` is not part of it.
 
 - Android: the `android apk x86_64` job restores the x86_64 release APK cached under `native-apk-x86_64-<signing>-<fingerprint>`. On a hit, `@expo/repack-app` (`--js-bundle-only`) puts this commit's Hermes bundle into it and signs it with the same key, skipping prebuild and Gradle. On a miss, the APK is built (Gradle cache, ccache) and saved under that key.
 - iOS: the iPad job restores the simulator `Kaitech.app` cached under `ios-simulator-app-<fingerprint>` and repacks only the JS bundle on a hit. On a miss it restores `ios/Pods`, `Podfile.lock` and the CocoaPods and React Native download caches under `ios-pods-<fingerprint>`, runs `pod install` and `xcodebuild`, and saves both.
@@ -71,7 +71,7 @@ Every artifact is scanned by gitleaks before upload; nothing is uploaded when th
 
 1. `gitleaks`: the ref must be a commit on `main`; gitleaks over the full git history and the working tree.
 2. `android apk universal` (four ABIs) and `android apk arm64-v8a`, signed with the release keystore and checked against `.github/android-release-cert.sha256`, ABIs, bundled JS secrets, perf gate; `ios ipa (unsigned)` and `ios bundle secret scan`.
-3. Tags only: draft GitHub Release with the APKs, IPA and `SHA256SUMS.txt`; the draft is downloaded again for checksums, rotation, multi-window and iPad config inside the files (`scripts/check-release-artifacts.py`), and gitleaks over the unpacked APK and IPA; the universal APK is installed on a fresh emulator in eight cells (phone and tablet, portrait and landscape, `en-US` and `id-ID`); then the release is published.
+3. Tags only: draft GitHub Release with the APKs, IPA and `SHA256SUMS.txt`; the draft is downloaded again for checksums, rotation, multi-window and iPad config inside the files (`scripts/check-release-artifacts.py`), and gitleaks over the unpacked APK and IPA; the universal APK is installed on a fresh emulator in eight cells (phone and tablet, portrait and landscape, `en-US` and `id-ID`), and the four signed-in rows cells run on it too (`rows from release`, fresh emulator, one at a time in `kaitech-e2e-account`); the release is published only when both pass.
 
 A manual run from `main` stops after step 2: it builds the release APKs and IPA as run artifacts (`kaitech-android-apk`, `kaitech-android-apk-arm64-v8a`, `kaitech-ios-ipa`) without creating a release. Use it for a build of `main` between releases.
 
@@ -79,7 +79,7 @@ To release: raise `version` in `app.json` through a pull request, then after the
 
 ## Caches
 
-Written outside pull requests and read by them, except the native APK cache, which pull requests also write for their own later pushes.
+Written outside pull requests and read by them.
 
 | Cache | Content | Key |
 |---|---|---|
