@@ -1,0 +1,35 @@
+appId: io.kaitech.mobile
+name: Confirm a removal with the account password, waiting out the server limit of five removal attempts a minute per account that parallel cells share
+---
+- tapOn:
+    id: mom-remove-confirm
+- repeat:
+    times: 6
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: mom-remove-problem
+            text: .*Too many removal attempts.*
+          timeout: 5000
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              id: mom-remove-problem
+              text: .*Too many removal attempts.*
+          commands:
+            - extendedWaitUntil:
+                visible:
+                  id: never-visible-removal-wait
+                timeout: 20000
+                optional: true
+            - tapOn:
+                id: mom-remove-password
+            - inputText: ${PASSWORD}
+            - runFlow: dismiss-keyboard.yaml
+            - tapOn:
+                id: mom-remove-confirm
+- extendedWaitUntil:
+    notVisible:
+      id: mom-remove
+    timeout: 30000

@@ -243,9 +243,4 @@ onFlowStart:
     id: mom-remove-password
 - inputText: ${PASSWORD}
 - runFlow: ../shared/dismiss-keyboard.yaml
-- tapOn:
-    id: mom-remove-confirm
-- extendedWaitUntil:
-    notVisible:
-      id: mom-remove
-    timeout: 30000
+- runFlow: ../shared/confirm-removal.yaml

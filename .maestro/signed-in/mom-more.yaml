@@ -222,12 +222,7 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: m9-remove
-- tapOn:
-    id: mom-remove-confirm
-- extendedWaitUntil:
-    notVisible:
-      id: mom-remove
-    timeout: 30000
+- runFlow: ../shared/confirm-removal.yaml
 - tapOn:
     id: meeting-more
 - extendedWaitUntil:
