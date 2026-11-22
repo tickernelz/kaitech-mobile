@@ -54,6 +54,7 @@ export type Message = {
   attachments: Attachment[];
   parentId: number | null;
   reactions: Reaction[];
+  call?: CallRecord;
   starred?: boolean;
   pinnedAt?: string | null;
   edited?: boolean;
@@ -61,6 +62,8 @@ export type Message = {
   translated?: boolean;
   urgent?: boolean;
 };
+
+export type CallRecord = { minutes: number; ongoing: boolean };
 
 export type Mention = { id: number; name: string; token: string | null };
 
