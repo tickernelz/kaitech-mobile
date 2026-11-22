@@ -5,13 +5,32 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 const mockHaptic = jest.fn();
 jest.mock('expo-haptics', () => ({ impactAsync: (...args: unknown[]) => mockHaptic(...args), ImpactFeedbackStyle: { Medium: 'medium' } }));
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
+const mockReset = jest.fn();
+type MockSwipeableProps = {
+  children: unknown;
+  testID: string;
+  onSwipeableOpenStartDrag?: () => void;
+  renderLeftActions?: (...args: unknown[]) => unknown;
+  renderRightActions?: (...args: unknown[]) => unknown;
+  ref?: unknown;
+};
 jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
-  const { View } = require('react-native');
-  const methods = { close: () => undefined, openLeft: () => undefined, openRight: () => undefined, reset: () => undefined };
+  const React = require('react');
+  const { Pressable, View } = require('react-native');
+  const methods = { close: () => undefined, openLeft: () => undefined, openRight: () => undefined, reset: () => mockReset() };
   return {
     __esModule: true,
-    default: ({ children, renderLeftActions, renderRightActions }: { children: unknown; renderLeftActions?: (...args: unknown[]) => unknown; renderRightActions?: (...args: unknown[]) => unknown }) =>
-      require('react').createElement(View, null, renderLeftActions?.(null, null, methods), children, renderRightActions?.(null, null, methods)),
+    default: function MockSwipeable({ children, testID, onSwipeableOpenStartDrag, renderLeftActions, renderRightActions, ref }: MockSwipeableProps) {
+      React.useImperativeHandle(ref, () => methods);
+      return React.createElement(
+        View,
+        null,
+        React.createElement(Pressable, { testID: `${testID}-drag`, onPress: () => onSwipeableOpenStartDrag?.() }),
+        renderLeftActions?.(null, null, methods),
+        children,
+        renderRightActions?.(null, null, methods),
+      );
+    },
   };
 });
 
@@ -21,10 +40,10 @@ type SheetAction = import('../src/ui/ActionSheet').SheetAction;
 
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
 
-function row(actions: SheetAction[], start: string[] = [], end?: string[]) {
+function row(actions: SheetAction[], start: string[] = [], end?: string[], id = 4) {
   return (
     <SafeAreaProvider initialMetrics={metrics}>
-      <RowActions title="Room 4" actions={actions} start={start} end={end} testID="conversation-4">
+      <RowActions title={`Room ${id}`} actions={actions} start={start} end={end} testID={`conversation-${id}`}>
         {(bind) => (
           <Pressable {...bind} testID="row" accessibilityLabel="Room 4">
             <Text>Room 4</Text>
@@ -86,8 +105,27 @@ describe('row actions', () => {
     expect(screen.getByTestId('conversation-4-swipe-end', { includeHiddenElements: true }).props.importantForAccessibility).toBe('no-hide-descendants');
   });
 
+  it('draws no swipe buttons until a drag starts', async () => {
+    await render(row(actions, ['read'], ['archive', 'more']));
+    expect(screen.queryByTestId('conversation-4-swipe-archive', { includeHiddenElements: true })).toBeNull();
+    expect(screen.getByTestId('conversation-4-swipe-end', { includeHiddenElements: true })).toBeTruthy();
+  });
+
+  it('closes a half-open row and its sheet when the list reuses the cell for another conversation', async () => {
+    const view = await render(row(actions, ['read'], ['archive', 'more']));
+    await act(async () => fireEvent.press(screen.getByTestId('conversation-4-swipeable-drag', { includeHiddenElements: true })));
+    await act(async () => fireEvent(screen.getByTestId('row'), 'longPress'));
+    expect(screen.getByTestId('row-sheet')).toBeTruthy();
+    mockReset.mockClear();
+    await act(async () => view.rerender(row(actions, ['read'], ['archive', 'more'], 5)));
+    expect(mockReset).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('row-sheet')).toBeNull();
+    expect(screen.queryByTestId('conversation-5-swipe-archive', { includeHiddenElements: true })).toBeNull();
+  });
+
   it('shows the swipe actions it was given on each side, with More on the end side', async () => {
     await render(row(actions, ['read'], ['archive', 'more']));
+    await act(async () => fireEvent.press(screen.getByTestId('conversation-4-swipeable-drag', { includeHiddenElements: true })));
     expect(screen.getByTestId('conversation-4-swipe-read', { includeHiddenElements: true })).toBeTruthy();
     expect(screen.getByTestId('conversation-4-swipe-archive', { includeHiddenElements: true })).toBeTruthy();
     expect(screen.queryByTestId('conversation-4-swipe-mute')).toBeNull();

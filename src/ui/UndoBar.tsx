@@ -1,10 +1,11 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWindowClass } from '../layout/windowClass';
 import { radius, space, useTheme } from '../theme';
 import { Text } from './Text';
-import { undoLast, useUndo } from './undo';
+import { flushUndo, primeUndoWindow, undoLast, useUndo } from './undo';
 
 const tabBarClearance = 76;
 
@@ -14,6 +15,13 @@ export function UndoBar() {
   const insets = useSafeAreaInsets();
   const { windowClass } = useWindowClass();
   const shown = useUndo();
+  useEffect(() => {
+    primeUndoWindow();
+    const subscription = AppState.addEventListener('change', (next) => {
+      if (next === 'background') flushUndo();
+    });
+    return () => subscription.remove();
+  }, []);
   if (!shown) return null;
   const bottom = insets.bottom + (windowClass === 'compact' ? tabBarClearance : space.lg);
   return (

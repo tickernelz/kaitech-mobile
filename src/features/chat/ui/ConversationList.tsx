@@ -58,7 +58,6 @@ const Row = memo(function Row({
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const { listTime } = useChatFormat();
-  const [now] = useState(() => Date.now());
   const preview = usePreview()(conversation);
   const unread = conversation.unread > 0;
   const muted = !!conversation.mutedUntil;
@@ -74,7 +73,7 @@ const Row = memo(function Row({
   return (
     <RowActions
       title={conversation.name}
-      actions={conversationActions(t, conversation, now, inArchive)}
+      actions={conversationActions(t, conversation, inArchive)}
       start={['read', 'pin']}
       end={['archive', 'more']}
       testID={`conversation-${conversation.id}`}>

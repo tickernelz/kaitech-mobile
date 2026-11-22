@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next';
 import type { SheetAction } from '../../../ui/ActionSheet';
 import { deferUndoable, showFailure } from '../../../ui/undo';
 import { muteConversation, removalOf, setConversationPinned, setConversationRead, type Removal } from '../chat';
-import { muteChoices, mutedUntilMs } from '../notify';
+import { muteChoices } from '../notify';
 import type { Conversation } from '../types';
 
 type ChatT = TFunction<'chat'>;
@@ -25,7 +25,7 @@ function remove(t: ChatT, conversation: Conversation, kind: Removal) {
   deferUndoable({ label: labels[kind], ...removal });
 }
 
-export function conversationActions(t: ChatT, conversation: Conversation, now: number, inArchive = false): SheetAction[] {
+export function conversationActions(t: ChatT, conversation: Conversation, inArchive = false): SheetAction[] {
   const done = settled(t);
   const actions: SheetAction[] = [];
   if (conversation.pinned !== null && !inArchive) {
@@ -37,7 +37,7 @@ export function conversationActions(t: ChatT, conversation: Conversation, now: n
       onPress: () => void setConversationPinned(conversation.id, !pinned).then(done),
     });
   }
-  if (mutedUntilMs(conversation.mutedUntil, now)) {
+  if (conversation.mutedUntil) {
     actions.push({ key: 'mute', icon: 'bell', label: t('rowActions.unmute'), onPress: () => void muteConversation(conversation.id, 0).then(done) });
   } else {
     actions.push({

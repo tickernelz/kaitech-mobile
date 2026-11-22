@@ -146,7 +146,7 @@ node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$l
 
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"
-  find "$out/maestro" -path '*/screenshots/*.png' -exec cp {} "$out/failures/" \;
+  find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
   find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out"; then

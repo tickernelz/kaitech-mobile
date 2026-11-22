@@ -8,6 +8,16 @@ beforeEach(() => jest.useFakeTimers());
 afterEach(() => jest.useRealTimers());
 
 describe('undo window', () => {
+  it('sends a waiting action at once when the app goes to the background', async () => {
+    const item = { apply: jest.fn(), revert: jest.fn(), commit: jest.fn(async () => true) };
+    undo.deferUndoable({ label: 'one', ...item });
+    undo.flushUndo();
+    await settle();
+    expect(item.commit).toHaveBeenCalledTimes(1);
+    undo.undoLast();
+    expect(item.revert).not.toHaveBeenCalled();
+  });
+
   it('sends the earlier action at once when a second destructive action starts', async () => {
     const first = { apply: jest.fn(), revert: jest.fn(), commit: jest.fn(async () => true) };
     const second = { apply: jest.fn(), revert: jest.fn(), commit: jest.fn(async () => true) };

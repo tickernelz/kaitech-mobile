@@ -15,7 +15,7 @@ let nextId = 1;
 let windowMs: number = undoWindowMs;
 let windowAsked = false;
 
-function askWindow() {
+export function primeUndoWindow() {
   if (windowAsked) return;
   windowAsked = true;
   void AccessibilityInfo?.getRecommendedTimeoutMillis?.(undoWindowMs)
@@ -62,7 +62,7 @@ export function deferUndoable({ label, apply, revert, commit }: { label: string;
     void settle(previous);
   }
   if (hideTimer) clearTimeout(hideTimer);
-  askWindow();
+  primeUndoWindow();
   const id = nextId++;
   apply();
   const item: Pending = { id, revert, commit, timer: setTimeout(() => void settle(item), windowMs) };
@@ -78,6 +78,13 @@ export function undoLast() {
   pending = null;
   item.revert();
   show(null);
+}
+
+export function flushUndo() {
+  const item = pending;
+  if (!item) return;
+  clearTimeout(item.timer);
+  void settle(item);
 }
 
 export function useUndo(): UndoState {
