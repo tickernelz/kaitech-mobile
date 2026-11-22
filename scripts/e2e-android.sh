@@ -97,33 +97,63 @@ echo "app in front: $(rotation_state)" | tee -a "$out/display.txt"
 adb shell dumpsys window displays | tr -d '\r' | sed -n '/DisplayRotation/,/^ *$/p' > "$out/rotation-dump.txt" || true
 [ "$stable" -ge 10 ] || { echo "rotation did not hold at $((rotation * 90)) degrees" >&2; exit 1; }
 
+read -ra flows <<< "${E2E_FLOWS:-.maestro}"
+signed_in=()
+if [ -n "${E2E_LOGIN:-}" ]; then
+  signed_in=(
+    -e LOGIN="$E2E_LOGIN" -e PASSWORD="$E2E_PASSWORD"
+    -e SERVER="$E2E_SERVER" -e DB="$E2E_DB"
+    -e WEB_LOGIN="$E2E_WEB_LOGIN" -e WEB_PASSWORD="$E2E_WEB_PASSWORD"
+    -e CHANNEL_ID="$E2E_CHANNEL_ID" -e PEER="$E2E_PEER"
+    -e PROGRAMME="$E2E_PROGRAMME" -e SEARCH="$E2E_SEARCH"
+    -e HIDE_DIRECT="${E2E_HIDE_DIRECT:-false}" -e RUN="E2E$(date +%s)${RANDOM}"
+  )
+fi
+
 recording="e2e-android-$cell.mp4"
-adb shell screenrecord --bit-rate 4000000 --time-limit 170 "/sdcard/$recording" &
-recorder=$!
-sleep 1
+if [ -z "${E2E_LOGIN:-}" ]; then
+  adb shell screenrecord --bit-rate 4000000 --time-limit 170 "/sdcard/$recording" &
+  recorder=$!
+  sleep 1
+fi
 
 status=0
-maestro test .maestro \
+maestro test "${flows[@]}" \
   -e APP_LANGUAGE="$language" \
   -e DEVICE_SIZE="$size" \
   -e ORIENTATION="$orientation" \
+  "${signed_in[@]}" \
   --format junit \
   --output "$out/junit.xml" \
   --test-output-dir "$out/maestro" || status=$?
 
 sleep 2
-adb shell pkill -INT screenrecord || true
-wait "$recorder" || true
-sleep 2
-adb pull "/sdcard/$recording" "$out/$recording"
-app_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
-adb logcat -d -b main,crash --uid="$app_uid" > "$out/logcat.txt" || true
+if [ -z "${E2E_LOGIN:-}" ]; then
+  adb shell pkill -INT screenrecord || true
+  wait "$recorder" || true
+  sleep 2
+  adb pull "/sdcard/$recording" "$out/$recording"
+  app_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
+  adb logcat -d -b main,crash --uid="$app_uid" > "$out/logcat.txt" || true
+fi
 find "$out/maestro" -name device-logcat.txt -delete
 echo "after maestro: $(rotation_state)" | tee -a "$out/display.txt"
 
 mkdir -p "$out/screenshots"
 find "$out/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$out/screenshots/" \;
 node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
+
+if [ -n "${E2E_LOGIN:-}" ]; then
+  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt -exec rm -rf {} +
+  for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
+    if grep -rqF -- "$secret" "$out"; then
+      echo "a test account value is in the E2E output; it was not uploaded" >&2
+      rm -rf "$out"
+      status=1
+      break
+    fi
+  done
+fi
 
 if [ "${COLD_START_RUNS:-0}" -gt 0 ]; then
   adb shell am start -W -S -n "$activity" > /dev/null

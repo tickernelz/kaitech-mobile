@@ -212,30 +212,34 @@ onFlowStart:
     env:
       ACTION: left
       TARGET: ${String(output.peer.group)}
-- scrollUntilVisible:
-    element:
-      text: ${PEER}
-    timeout: 60000
-- longPressOn:
-    text: ${PEER}
-- tapOn:
-    id: row-action-remove
-- extendedWaitUntil:
-    notVisible:
-      id: undo-bar
-    timeout: 15000
-- assertNotVisible:
-    text: ${PEER}
-- runScript:
-    file: ../scripts/web-peer.js
-    env:
-      ACTION: say
-      TARGET: ${CHANNEL_ID}
-- extendedWaitUntil:
-    visible:
-      text: ${PEER}
-    timeout: 60000
 - runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: r8-chat-back-after-message
+    when:
+      true: ${HIDE_DIRECT === 'true'}
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: ${PEER}
+          timeout: 60000
+      - longPressOn:
+          text: ${PEER}
+      - tapOn:
+          id: row-action-remove
+      - extendedWaitUntil:
+          notVisible:
+            id: undo-bar
+          timeout: 15000
+      - assertNotVisible:
+          text: ${PEER}
+      - runScript:
+          file: ../scripts/web-peer.js
+          env:
+            ACTION: say
+            TARGET: ${CHANNEL_ID}
+      - extendedWaitUntil:
+          visible:
+            text: ${PEER}
+          timeout: 60000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: r8-chat-back-after-message
