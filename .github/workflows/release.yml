@@ -229,16 +229,16 @@ jobs:
             cat .github/release-notes.md
             echo
             if [ "$LINK_HOST_SET" != true ]; then
-              echo "- **Masuk belum bisa di build ini**: dibangun tanpa domain tautan (\`KAITECH_LINK_HOST\`), jadi layar masuk memberi tahu bahwa domain tautan belum diatur."
+              echo "- **Sign-in does not work in this build**: built without a link domain (\`KAITECH_LINK_HOST\`), so the sign-in screen says the link domain is not set."
             fi
             if [ "$LINK_HOST_SET" = true ] && [ "$DEFAULT_DB_SET" != true ]; then
-              echo "- **Masuk meminta alamat server di build ini**: dibangun tanpa basis data bawaan (\`KAITECH_DEFAULT_DB\`), jadi tombol Masuk membuka isian server dan basis data."
+              echo "- **Sign-in asks for a server address in this build**: built without a default database (\`KAITECH_DEFAULT_DB\`), so the Sign in button opens the server and database form."
             fi
             if [ "$PUSH_SET" != true ]; then
-              echo "- **Push Android mati di build ini**: dibangun tanpa \`google-services.json\`, jadi pesan dan dering baru tampil hanya saat aplikasi terbuka."
+              echo "- **Android push is off in this build**: built without \`google-services.json\`, so new messages and rings only show while the app is open."
             fi
             echo
-            echo "Build dari \`$GITHUB_SHA\`. Run rilis (APK dan IPA, pindai gitleaks, uji pasang dari Release di emulator ponsel dan tablet, rekaman per sel): $RUN_URL"
+            echo "Built from \`$GITHUB_SHA\`. Release run (APK and IPA, gitleaks scan, install test from the Release on phone and tablet emulators, recording per cell): $RUN_URL"
           } > "$RUNNER_TEMP/notes.md"
           draft="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null || echo none)"
           case "$draft" in

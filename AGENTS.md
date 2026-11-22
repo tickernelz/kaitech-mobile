@@ -49,6 +49,14 @@ These rules bind every agent and contributor on every change. `docs/ci.md` descr
 - **Pre-PR verification.** Before opening or updating a pull request run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run i18n:check` locally; for changed workflows also `actionlint`, for changed flows `maestro check-syntax`.
 - **E2E roadmap.** Use `.maestro/` flows with `maestro-runner` (Maestro CLI where `docs/ci.md` names it). When a scenario needs more than Maestro can drive, such as multi-device WebRTC calls or full control over OS permission dialogs, write it with Appium and WebdriverIO in TypeScript instead of stretching Maestro.
 
+## Documentation
+
+- Write all repo documentation, README included, in English.
+- All documentation lives in `docs/`, indexed by `docs/README.md`. Do not add documentation anywhere else.
+- `README.md` is only a summary: the banner (`docs/assets/banner.svg`), one paragraph about the app, key facts, install links, a link to `docs/README.md`, and the license. No technical detail there.
+- A new feature or a change in behaviour updates the matching `docs/` page in the same PR.
+- App display text (`src/i18n/locales/en.json`, `id.json`, and the other catalogue pairs under `src/i18n/`) is not documentation and stays in both languages.
+
 ## Rules
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
