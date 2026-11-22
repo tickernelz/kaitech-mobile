@@ -38,7 +38,7 @@ The `plan` job picks a mode:
 
 Smoke: one Android emulator (`pixel_6`, portrait, `en-US`) runs `.maestro/welcome.yaml` and `.maestro/sign-in-form.yaml` with a screen recording, and measures cold start (perf gate `android.cold_start_ms`). It never uses the test account.
 
-Full: four Android jobs (`pixel_6` and `pixel_tablet`, `en-US` and `id-ID`), each running portrait then landscape on the same emulator; five signed-in rows jobs (`.maestro/signed-in/rows-*.yaml`, phone and tablet, both locales, plus phone `en-US` with direct chats hidden); and the iPad simulator on `macos-26`. Full runs share the concurrency group `kaitech-e2e-account` because the rows jobs sign in with the one test account, so full runs never overlap each other.
+Full: four Android jobs (`pixel_6` and `pixel_tablet`, `en-US` and `id-ID`), each running portrait then landscape on the same emulator; five signed-in rows jobs (`.maestro/signed-in/rows-*.yaml`, phone and tablet, both locales, plus phone `en-US` with direct chats hidden); and the iPad simulator on `macos-26`. Full runs share the concurrency group `kaitech-e2e-account` with `queue: max` because the rows jobs sign in with the one test account: full runs never overlap, and a new one waits behind every pending one instead of replacing it. Pull request runs use `queue: single`, since GitHub rejects `queue: max` with `cancel-in-progress: true`.
 
 Pull request runs of the same pull request cancel each other; labelling a pull request with another label does not cancel a running E2E run.
 
@@ -53,7 +53,7 @@ Release builds never use these caches: every release artifact is compiled from s
 
 ### Emulator
 
-`reactivecircus/android-emulator-runner`, API 35, `x86_64`, `google_apis`. E2E jobs boot from an AVD snapshot cached per profile (`avd-api35-x86_64-google_apis-<profile>-v1`, written outside pull requests) and never save it back (`-no-snapshot-save`). Release install checks boot a fresh, wiped emulator without snapshots.
+`reactivecircus/android-emulator-runner`, API 35, `x86_64`, `google_apis`. Account-free E2E jobs (smoke and full cells) boot from an AVD snapshot cached per profile (`avd-api35-x86_64-google_apis-<profile>-v1`, written outside pull requests) and never save it back (`-no-snapshot-save`). Signed-in rows jobs and release install checks boot a fresh, wiped emulator without snapshots: rows need emulator audio for recording, and a snapshot taken without audio is not the device they were proven on (probe run 45043443333, rows phone en-US hide-direct, failed the first check of all three flows on a snapshot boot while the other three rows cells passed).
 
 ### Flow runner
 
