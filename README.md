@@ -111,9 +111,12 @@ split-screen, fold/unfold and moving between screens never reconnects a call or 
   notification, picture-in-picture, and the channel that turns an FCM data ring into an in-app invitation.
 - `src/features/call/blur.ts` turns the background blur of the local camera on and off through the local Expo module
   `modules/kaitech-video-effects`, which registers a frame processor with `@livekit/react-native-webrtc`
-  (`ProcessorProvider` on Android, `LKRNProcessorProvider` on iOS). Android segments the person with ML Kit Selfie
-  Segmentation (`16.0.0-beta6`, about 4.5 MB) ten times a second on a worker thread and blurs and blends the I420 planes
-  in `BackgroundBlur.java`; iOS uses Vision person segmentation and Core Image. Before the first mask arrives the whole
+  (`ProcessorProvider` on Android, `LKRNProcessorProvider` on iOS). Android segments the person with the MediaPipe selfie
+  segmenter model (`kaitech_selfie_segmenter.tflite`, 249 KB, Apache-2.0, from `storage.googleapis.com/mediapipe-models`)
+  run by TensorFlow Lite from Google Play services ten times a second on a worker thread, and blurs and blends the I420
+  planes in `BackgroundBlur.java`. ML Kit Selfie Segmentation was measured first and dropped: its runtime
+  (`libxeno_native.so`) added 11.9 MB to the x86_64 APK (57.3 to 69.2 MB, over the 15 percent size gate), while the Play
+  services runtime adds under 1 MB. Phones without Play services do not offer the blur; iOS uses Vision person segmentation and Core Image. Before the first mask arrives the whole
   frame is blurred. The choice is kept per device, like the web's local setting, and re-applied whenever LiveKit restarts
   the camera track (mute, flip). The pinned `@livekit/react-native-webrtc` version matters: the processor API is
   internal (`_setVideoEffects`).

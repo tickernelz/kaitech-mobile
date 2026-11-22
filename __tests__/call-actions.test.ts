@@ -2,7 +2,7 @@ const mockUpdates: Record<string, boolean>[] = [];
 const mockRooms: MockRoom[] = [];
 const mockSaved: [number, number][] = [];
 const mockOutputs: string[] = [];
-const mockEffects = { blurName: () => 'kaitechBackgroundBlur', clearBlur: jest.fn() };
+const mockEffects = { blurName: () => 'kaitechBackgroundBlur', clearBlur: jest.fn(), blurAvailable: jest.fn(() => true) };
 const mockStored = new Map<string, string>();
 
 type Handler = () => void;
@@ -323,6 +323,20 @@ describe('call actions from More', () => {
     expect(camera.mediaStreamTrack.effects).toEqual([]);
     expect(mockEffects.clearBlur).toHaveBeenCalled();
     expect(mockStored.get('call.backgroundBlur')).toBe('0');
+  });
+
+  it('leaves the camera untouched when the phone cannot segment a person', async () => {
+    mockEffects.blurAvailable.mockReturnValue(false);
+    mockStored.set('call.backgroundBlur', '1');
+    const { call, room } = await activeCall();
+    expect(call.callState().blur).toBe(false);
+    const camera = { mediaStreamTrack: { effects: [] as string[], _setVideoEffects(names: string[]) { this.effects = names; } } };
+    room.localParticipant.trackPublications.set('cam', { source: 'camera', videoTrack: camera });
+    room.emit('localTrackPublished');
+    call.toggleBlur();
+    expect(camera.mediaStreamTrack.effects).toEqual([]);
+    expect(call.callState().blur).toBe(false);
+    mockEffects.blurAvailable.mockReturnValue(true);
   });
 
   it('starts the next call with the blur the user chose last time', async () => {

@@ -9,5 +9,9 @@ public final class KaitechVideoEffectsModule: Module {
     }
 
     Function("clearBlur") {}
+
+    Function("blurAvailable") {
+      true
+    }
   }
 }

@@ -13,6 +13,11 @@ class KaitechVideoEffectsModule : Module() {
 
     OnCreate {
       ProcessorProvider.addProcessor(BLUR, VideoFrameProcessorFactoryInterface { BlurProcessor() })
+      appContext.reactContext?.let { Segmenter.prepare(it) }
+    }
+
+    Function("blurAvailable") {
+      Segmenter.ready
     }
 
     Function("blurName") {
