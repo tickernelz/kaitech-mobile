@@ -183,6 +183,8 @@ onFlowStart:
     id: search-close
 - tapOn:
     id: tab-button-activity
+- tapOn:
+    id: activity-source-discovery
 - extendedWaitUntil:
     visible:
       id: (activity-.*-[0-9]+|activity-empty)

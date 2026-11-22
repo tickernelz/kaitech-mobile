@@ -1,0 +1,44 @@
+appId: io.kaitech.mobile
+name: Sign out everywhere signs this phone out too and asks to sign in again
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: open-settings
+    timeout: 30000
+- tapOn:
+    id: open-settings
+- tapOn:
+    id: settings-security
+- tapOn:
+    id: security-devices
+- scrollUntilVisible:
+    element:
+      id: devices-revoke-all
+- tapOn:
+    id: devices-revoke-all
+- tapOn:
+    text: (Sign out everywhere|Keluar di semua perangkat)
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: (identity-password|expired)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: identity-password
+    commands:
+      - tapOn:
+          id: identity-password
+      - inputText: ${PASSWORD}
+      - tapOn:
+          id: identity-confirm
+- extendedWaitUntil:
+    visible:
+      id: expired
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: v4-everywhere-out

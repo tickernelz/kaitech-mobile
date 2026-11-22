@@ -190,7 +190,7 @@ export async function rpc<T>(
         jsonrpc: '2.0',
         method: 'call',
         id: attempt,
-        params: { model, method, args, kwargs: { ...kwargs, context: { lang } } },
+        params: { model, method, args, kwargs: { ...kwargs, context: { ...(kwargs.context as Record<string, unknown> | undefined), lang } } },
       }),
     });
     if (status !== 200) refused(account, status, body);
