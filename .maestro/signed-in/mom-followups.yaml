@@ -16,8 +16,59 @@ onFlowStart:
     id: tab-button-mom
 - extendedWaitUntil:
     visible:
-      id: mom-more
+      id: mom-record
     timeout: 60000
+- tapOn:
+    id: mom-record
+- extendedWaitUntil:
+    visible:
+      id: setup-name
+    timeout: 30000
+- tapOn:
+    id: setup-name
+- inputText: ${'E2E FU ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: setup-consent
+- tapOn:
+    id: setup-consent
+- scrollUntilVisible:
+    element:
+      id: setup-start
+- tapOn:
+    id: setup-start
+- runFlow:
+    when:
+      visible:
+        text: (While using the app|Saat aplikasi digunakan)
+    commands:
+      - tapOn:
+          text: (While using the app|Saat aplikasi digunakan)
+- runFlow:
+    when:
+      visible:
+        text: (Allow|Izinkan)
+    commands:
+      - tapOn:
+          text: (Allow|Izinkan)
+- extendedWaitUntil:
+    visible:
+      id: recorder-stop
+    timeout: 30000
+- tapOn:
+    id: recorder-stop
+- tapOn:
+    text: (?i)(finish|selesai)
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: upload-done
+    timeout: 180000
+- scrollUntilVisible:
+    element:
+      id: mom-more
+    direction: UP
 - tapOn:
     id: mom-more
 - tapOn:
@@ -67,9 +118,10 @@ onFlowStart:
     commands:
       - tapOn:
           id: mom-more-sheet-search
-      - inputText: Kickoff Payroll
+      - inputText: ${'E2E FU ' + DEVICE_SIZE + ' ' + ORIENTATION}
 - tapOn:
-    id: mom-more-meeting-${MINUTES_MEETING}
+    text: ${'E2E FU ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
+    index: 0
 - tapOn:
     id: followup-name-field
 - inputText: ${'E2E follow-up ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
@@ -152,4 +204,57 @@ onFlowStart:
 - extendedWaitUntil:
     visible:
       text: (?i)(archived|diarsipkan)
+    timeout: 30000
+- tapOn:
+    id: header-back
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      visible:
+        id: header-back
+    commands:
+      - tapOn:
+          id: header-back
+- tapOn:
+    id: tab-button-mom
+- repeat:
+    while:
+      notVisible:
+        id: mom-more
+    times: 20
+    commands:
+      - swipe:
+          start: 22%, 30%
+          end: 22%, 80%
+          duration: 400
+- tapOn:
+    text: ${'E2E FU ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: meeting-more
+    timeout: 30000
+- tapOn:
+    id: meeting-more
+- tapOn:
+    id: mom-more-remove-[0-9]+
+- extendedWaitUntil:
+    visible:
+      id: mom-remove-name
+    timeout: 30000
+- copyTextFrom:
+    id: mom-remove-name
+- tapOn:
+    id: mom-remove-title
+- inputText: ${maestro.copiedText}
+- tapOn:
+    id: mom-remove-password
+- inputText: ${PASSWORD}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: mom-remove-confirm
+- extendedWaitUntil:
+    notVisible:
+      id: mom-remove
     timeout: 30000
