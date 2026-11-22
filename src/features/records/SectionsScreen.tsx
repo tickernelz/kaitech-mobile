@@ -78,7 +78,7 @@ export function SectionsScreen({ programme, name }: { programme: number; name?: 
         </Section>
         <View style={styles.searchRow}>
           <View style={styles.fill}>
-            <TextField label={t('records.findSection')} value={query} onChangeText={setQuery} testID="sections-search" />
+            <TextField label={t('records.findSection')} value={query} onChangeText={setQuery} autoCorrect={false} autoCapitalize="none" testID="sections-search" />
           </View>
           {query ? <IconButton icon="close" label={t('records.clear')} onPress={() => setQuery('')} testID="sections-search-clear" /> : null}
         </View>

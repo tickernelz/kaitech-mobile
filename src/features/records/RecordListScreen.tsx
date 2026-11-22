@@ -222,7 +222,7 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
         }
       />
       <View style={styles.search}>
-        <TextField label={t('records.search')} value={query} onChangeText={setQuery} returnKeyType="search" testID="list-search" />
+        <TextField label={t('records.search')} value={query} onChangeText={setQuery} autoCorrect={false} returnKeyType="search" testID="list-search" />
         {chosen.length || (linked && !onlyProgramme) || grouping ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
             {linked && !onlyProgramme ? (
