@@ -188,6 +188,11 @@ export function SetupScreen() {
             </Text>
           ) : null}
           {outcome === 'denied' ? <Button kind="secondary" label={t('mom.setup.openSettings')} onPress={() => void Linking.openSettings()} /> : null}
+          {problem ? (
+            <Text variant="callout" tone="dangerInk" accessibilityRole="alert" testID="setup-problem">
+              {problem}
+            </Text>
+          ) : null}
           {lark === null ? (
             <>
               <Button label={t('mom.setup.start')} onPress={() => void begin()} busy={busy} testID="setup-start" />
@@ -299,11 +304,6 @@ export function SetupScreen() {
           {t('mom.setup.consentKnown')}
         </Text>
       )}
-      {problem ? (
-        <Text variant="callout" tone="dangerInk" accessibilityRole="alert" testID="setup-problem">
-          {problem}
-        </Text>
-      ) : null}
     </Screen>
   );
 }

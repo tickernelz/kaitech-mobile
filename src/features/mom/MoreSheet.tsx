@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../theme';
 import { Icon, type IconName } from '../../ui/icons';
@@ -29,7 +29,9 @@ export function MoreSheet({
   const { t } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
   const [query, setQuery] = useState('');
+  const [typing, setTyping] = useState(false);
   const total = groups.reduce((sum, group) => sum + group.actions.length, 0);
   const searchable = total > searchFrom;
   const said = query.trim().toLowerCase();
@@ -38,9 +40,17 @@ export function MoreSheet({
     .filter((group) => group.actions.length);
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
+      <Pressable
+        style={[styles.scrim, typing && { justifyContent: 'flex-start', paddingTop: Math.max(insets.top, space.lg) }, { backgroundColor: colors.scrim }]}
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel={t('mom.menu.close')}>
         <Pressable
-          style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]}
+          style={[
+            styles.sheet,
+            typing ? [styles.raised, { maxHeight: height * 0.42 }] : null,
+            { backgroundColor: colors.surface, paddingBottom: typing ? space.sm : Math.max(insets.bottom, space.lg) },
+          ]}
           onPress={() => undefined}
           accessibilityViewIsModal
           testID={testID}>
@@ -49,7 +59,15 @@ export function MoreSheet({
           </Text>
           {searchable ? (
             <View style={styles.search}>
-              <TextField label={t('mom.records.search')} value={query} onChangeText={setQuery} autoCorrect={false} testID={`${testID}-search`} />
+              <TextField
+                label={t('mom.records.search')}
+                value={query}
+                onChangeText={setQuery}
+                onFocus={() => setTyping(true)}
+                onBlur={() => setTyping(false)}
+                autoCorrect={false}
+                testID={`${testID}-search`}
+              />
             </View>
           ) : null}
           <ScrollView style={styles.scroll} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
@@ -98,6 +116,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1, gap: 2 },
   scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 560, maxHeight: '85%', borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.lg, paddingHorizontal: space.lg },
+  raised: { borderRadius: radius.sheet },
   title: { paddingHorizontal: space.sm, paddingBottom: space.sm },
   search: { paddingHorizontal: space.sm, paddingBottom: space.sm },
   scroll: { flexGrow: 0, flexShrink: 1 },

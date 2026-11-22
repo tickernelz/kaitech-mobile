@@ -13,6 +13,8 @@ describe('MoreSheet', () => {
   it('offers a search once a list is long and keeps only what matches', async () => {
     await render(createElement(MoreSheet, { title: 'Owner', groups: [{ key: 'people', actions: people(14) }], onClose: jest.fn(), testID: 'pick' }));
     expect(screen.getByTestId('mom-more-person-13')).toBeTruthy();
+    await fireEvent(screen.getByTestId('pick-search'), 'focus');
+    expect(screen.getByTestId('pick')).toHaveStyle({ borderRadius: 28 });
     await fireEvent.changeText(screen.getByTestId('pick-search'), 'payroll');
     expect(screen.getByTestId('mom-more-person-3')).toBeTruthy();
     expect(screen.queryByTestId('mom-more-person-13')).toBeNull();
