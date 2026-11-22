@@ -848,7 +848,8 @@
       "appsHint": "Signing out a phone here ends its Kaitech app session at once.",
       "browsers": "Browsers and other sessions",
       "browsersHint": "Signing out a browser session ends that web session. A Kaitech app opens a new one by itself; sign it out under Kaitech app.",
-      "revokeAppConfirm": "Sign {{name}} out of the Kaitech app?"
+      "revokeAppConfirm": "Sign {{name}} out of the Kaitech app?",
+      "showMore": "Show {{count}} more"
     }
   },
   "person": {

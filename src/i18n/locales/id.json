@@ -848,7 +848,8 @@
       "appsHint": "Mengeluarkan HP di sini langsung mengakhiri sesi aplikasi Kaitech-nya.",
       "browsers": "Browser dan sesi lain",
       "browsersHint": "Mengeluarkan sesi browser mengakhiri sesi web itu. Aplikasi Kaitech membuka sesi baru sendiri; keluarkan lewat bagian Aplikasi Kaitech.",
-      "revokeAppConfirm": "Keluarkan {{name}} dari aplikasi Kaitech?"
+      "revokeAppConfirm": "Keluarkan {{name}} dari aplikasi Kaitech?",
+      "showMore": "Tampilkan {{count}} lagi"
     }
   },
   "person": {
