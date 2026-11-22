@@ -1,0 +1,13 @@
+{
+  "name": "kaitech-passkey",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Creates a passkey for the Odoo server with the platform passkey manager",
+  "main": "src/index.ts",
+  "files": [
+    "android",
+    "ios",
+    "src",
+    "expo-module.config.json"
+  ]
+}
