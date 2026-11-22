@@ -30,7 +30,11 @@ export function accessibilityActionsFor(actions: SheetAction[], moreLabel: strin
 function SwipePanel({ actions, side, testID, methods, onRun }: { actions: SheetAction[]; side: 'start' | 'end'; testID: string; methods: SwipeableMethods; onRun: (action: SheetAction) => void }) {
   const { colors } = useTheme();
   return (
-    <View style={[styles.panel, side === 'end' && styles.panelEnd]} testID={`${testID}-swipe-${side}`}>
+    <View
+      style={[styles.panel, side === 'end' && styles.panelEnd]}
+      importantForAccessibility="no-hide-descendants"
+      accessibilityElementsHidden
+      testID={`${testID}-swipe-${side}`}>
       {actions.map((action) => {
         const danger = action.tone === 'danger';
         const neutral = action.key === moreKey;
