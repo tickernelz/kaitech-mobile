@@ -26,6 +26,8 @@ export type Conversation = {
   last: LastMessage | null;
   pinned: boolean | null;
   archived: boolean | null;
+  mentioned?: boolean;
+  agent?: boolean;
 };
 
 export type Attachment = {
@@ -58,6 +60,7 @@ export type Message = {
   edited?: boolean;
   translation?: { body: string; lang: string } | null;
   translated?: boolean;
+  urgent?: boolean;
 };
 
 export type CallRecord = { minutes: number; ongoing: boolean };
@@ -88,6 +91,7 @@ export type Pending = {
   files: PendingFile[];
   createdAt: number;
   attempts: number;
+  urgent?: boolean;
   state: PendingState;
   error: string | null;
 };

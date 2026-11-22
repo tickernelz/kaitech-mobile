@@ -5,10 +5,13 @@ import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { attachSources, type AttachSource } from './attach';
 import { useChatFormat } from './format';
-import { Icon } from '../../../ui/icons';
+import { Icon, type IconName } from '../../../ui/icons';
+import { SheetItem } from '../../../ui/Sheet';
 import { cancelDistance, type Recording, type useVoiceHold } from './useVoiceHold';
 
-export function AttachSheet({ visible, onClose, onPick }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void }) {
+export type Extra = { key: string; icon: IconName; label: string; detail?: string; onPress: () => void };
+
+export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[] }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -31,6 +34,9 @@ export function AttachSheet({ visible, onClose, onPick }: { visible: boolean; on
               </Pressable>
             ))}
           </View>
+          {extras.map((extra) => (
+            <SheetItem key={extra.key} icon={extra.icon} label={extra.label} detail={extra.detail} onPress={extra.onPress} testID={`extra-${extra.key}`} />
+          ))}
         </Pressable>
       </Pressable>
     </Modal>
