@@ -23,7 +23,9 @@
       "all": "Semua",
       "unread": "Belum dibaca",
       "people": "Pribadi",
-      "rooms": "Grup"
+      "rooms": "Grup",
+      "mention": "Sebutan",
+      "agent": "Coworker"
     },
     "offline": "Tidak ada koneksi. Pesan terkirim saat tersambung lagi.",
     "offlineQueued_one": "Tidak ada koneksi. {{count}} pesan terkirim saat tersambung lagi.",
@@ -33,7 +35,9 @@
       "all": "Belum ada percakapan.",
       "unread": "Semua pesan sudah dibaca.",
       "people": "Belum ada percakapan pribadi.",
-      "rooms": "Belum ikut grup atau channel."
+      "rooms": "Belum ikut grup atau channel.",
+      "mention": "Belum ada yang menyebut Anda.",
+      "agent": "Belum ada percakapan dengan Coworker."
     },
     "loading": "Memuat percakapan…"
   },
@@ -90,7 +94,8 @@
     "pinned": "Disematkan",
     "starred": "Berbintang",
     "translatedFrom": "Diterjemahkan dari {{lang}}",
-    "translated": "Diterjemahkan"
+    "translated": "Diterjemahkan",
+    "urgent": "Mendesak"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",
@@ -191,7 +196,12 @@
     "bubble": "Gelembung",
     "failed": "Belum bisa diubah. Coba lagi nanti.",
     "bubbleClosed": "Buka Kaitech untuk membaca percakapan ini.",
-    "failedNetwork": "Belum bisa diubah. Periksa koneksi lalu coba lagi."
+    "failedNetwork": "Belum bisa diubah. Periksa koneksi lalu coba lagi.",
+    "level": {
+      "all": "Semua pesan",
+      "mentions": "Hanya saat disebut",
+      "no_notif": "Tidak ada"
+    }
   },
   "rowActions": {
     "pin": "Sematkan",
@@ -312,5 +322,162 @@
     "busy": "Sedang sibuk: {{names}}",
     "schedule": "Jadwalkan",
     "done": "Rapat dijadwalkan {{when}}"
+  },
+  "threadActions": {
+    "more": "Lainnya",
+    "notifications": "Notifikasi",
+    "search": "Cari di percakapan",
+    "searchHint": "Cari pesan",
+    "noResults": "Tidak ada pesan yang cocok.",
+    "pinned": "Pesan tersemat",
+    "noPinned": "Belum ada yang disematkan.",
+    "files": "Berkas",
+    "noFiles": "Belum ada berkas di sini.",
+    "threads": "Thread",
+    "noThreads": "Belum ada thread. Tahan sebuah pesan untuk memulai.",
+    "members_one": "{{count}} anggota",
+    "members_other": "{{count}} anggota",
+    "scheduled": "Pesan terjadwal",
+    "meeting": "Jadwalkan rapat",
+    "pinConversation": "Sematkan percakapan",
+    "unpinConversation": "Lepas sematan percakapan",
+    "pinnedDone": "Percakapan disematkan",
+    "unpinned": "Sematan percakapan dilepas",
+    "translateOn": "Terjemahkan otomatis ke {{language}}",
+    "translateOff": "Hentikan terjemahan otomatis",
+    "translateStarted": "Pesan akan diterjemahkan",
+    "translateStopped": "Terjemahan otomatis mati",
+    "announcementOn": "Jadikan channel pengumuman",
+    "announcementOff": "Izinkan semua anggota menulis",
+    "announcementChanged": "Jenis channel diubah",
+    "rename": "Ganti nama",
+    "info": "Nama dan deskripsi",
+    "markRead": "Tandai semua sudah dibaca",
+    "leave": "Keluar",
+    "leaveTitle": "Keluar dari {{name}}?",
+    "leaveBody": "Anda tidak akan melihat percakapan ini lagi kecuali diundang kembali.",
+    "hide": "Sembunyikan percakapan",
+    "hideTitle": "Sembunyikan percakapan ini?",
+    "hideBody": "Percakapan muncul lagi saat ada pesan baru.",
+    "delete": "Hapus thread",
+    "deleteTitle": "Hapus thread ini?",
+    "deleteBody": "Pesan di dalamnya terhapus untuk semua orang."
+  },
+  "members": {
+    "title": "Anggota",
+    "invite": "Undang orang",
+    "inviteSearch": "Cari orang",
+    "inviteSend_one": "Undang {{count}} orang",
+    "inviteSend_other": "Undang {{count}} orang",
+    "invited_one": "{{count}} orang diundang",
+    "invited_other": "{{count}} orang diundang",
+    "roleTitle": "Ubah peran",
+    "role": {
+      "owner": "Pemilik",
+      "admin": "Admin",
+      "member": "Anggota"
+    }
+  },
+  "rename": {
+    "title": "Ganti nama",
+    "titleInfo": "Nama dan deskripsi",
+    "name": "Nama",
+    "chatHint": "Hanya Anda yang melihat nama ini.",
+    "description": "Deskripsi",
+    "save": "Simpan",
+    "done": "Tersimpan"
+  },
+  "scheduled": {
+    "title": "Pesan terjadwal",
+    "none": "Belum ada yang dijadwalkan di sini.",
+    "sendNow": "Kirim sekarang",
+    "edit": "Ubah",
+    "cancel": "Hapus",
+    "sent": "Terkirim",
+    "cancelled": "Pesan terjadwal dihapus"
+  },
+  "extras": {
+    "emoji": "Emoji",
+    "gif": "GIF",
+    "gifSearch": "Cari GIF",
+    "gifSend": "Kirim GIF ini",
+    "canned": "Balasan siap pakai",
+    "later": "Kirim nanti",
+    "laterEmpty": "Tulis pesan atau lampirkan berkas dulu.",
+    "laterPick": "Pilih waktu",
+    "laterAt": "Kirim {{when}}",
+    "laterCustom": "Waktu lain",
+    "quick": {
+      "tomorrow": "Besok pagi",
+      "monday": "Senin pagi"
+    },
+    "scheduled": "Terjadwal. Hanya Anda yang melihatnya sampai terkirim.",
+    "urgent": "Tandai mendesak",
+    "notUrgent": "Tidak mendesak",
+    "urgentOn": "Mendesak: orang di sini mendapat peringatan keras",
+    "urgentLeft_one": "Sisa {{count}} hari ini",
+    "urgentLeft_other": "Sisa {{count}} hari ini"
+  },
+  "work": {
+    "title": "Pekerjaan Coworker",
+    "none": "Tidak ada yang sedang berjalan.",
+    "many_one": "{{count}} tugas Coworker berjalan",
+    "many_other": "{{count}} tugas Coworker berjalan",
+    "step": "{{agent}}: {{step}}",
+    "state": {
+      "queued": "{{agent}} menunggu giliran",
+      "running": "{{agent}} sedang bekerja",
+      "away": "{{agent}} menyerahkannya ke Wardmote"
+    },
+    "stopped": "{{agent}} dihentikan oleh {{name}}",
+    "askedBy": "Diminta oleh {{name}}",
+    "stop": "Hentikan pekerjaan ini",
+    "stopping": "Menghentikan"
+  },
+  "cards": {
+    "wardmote": "{{agent}} minta izin meneruskan ini",
+    "state": {
+      "proposed": "Menunggu jawaban Anda",
+      "away": "Terkirim",
+      "stopped": "Tidak dikirim",
+      "other": "Selesai"
+    },
+    "approve": "Kirim",
+    "refuse": "Jangan kirim",
+    "openIssue": "Buka issue",
+    "locked": "Anda tidak bisa membuka rekaman ini",
+    "kind": {
+      "task": "Task",
+      "project": "Proyek",
+      "programme": "Program",
+      "meeting": "Rapat",
+      "email": "Email",
+      "recording": "Rekaman",
+      "other": "Rekaman"
+    }
+  },
+  "linked": {
+    "project": "Proyek",
+    "programme": "Program"
+  },
+  "threadActionsWork": {
+    "label": "Pekerjaan Coworker"
+  },
+  "newChat": {
+    "title": "Percakapan baru",
+    "kind": {
+      "chat": "Chat atau grup",
+      "channel": "Channel"
+    },
+    "name": "Nama channel",
+    "announcement": "Channel pengumuman",
+    "announcementHint": "Hanya pemilik dan admin yang menulis",
+    "with": "Dengan",
+    "members": "Anggota",
+    "search": "Cari orang",
+    "groupHint": "Lebih dari satu orang membuat grup.",
+    "startChat": "Mulai chat",
+    "createGroup": "Buat grup",
+    "createChannel": "Buat channel"
   }
 }
