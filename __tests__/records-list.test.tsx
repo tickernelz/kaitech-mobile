@@ -72,12 +72,12 @@ beforeEach(() => {
   });
 });
 
-it('lists this programme with the default filters, skips grouping by the programme, and opens a record', async () => {
+it('lists this programme and shared rows with the default filters, skips grouping by the programme, and opens a record', async () => {
   mocked.searchRecords.mockResolvedValue({ length: 1, records: [{ id: 5, name: 'SPK', state: 'draft', engagement_id: { id: 48, display_name: 'Uji' }, display_name: 'SPK' }] });
   const view = await render(<RecordListScreen programme={48} stashKey={stash({ action })} />);
   await view.findByText('SPK');
   const query = mocked.searchRecords.mock.calls[0][2];
-  expect(query.domain).toEqual(['&', ['engagement_id', '=', 48], ['state', '=', 'draft']]);
+  expect(query.domain).toEqual(['&', '|', ['engagement_id', '=', 48], ['engagement_id', '=', false], ['state', '=', 'draft']]);
   expect(mocked.readGroups).not.toHaveBeenCalled();
   await fireEvent.press(view.getByTestId('list-row-5'));
   expect(mockRouter.push).toHaveBeenCalledWith(expect.objectContaining({ pathname: '/program/[id]/record', params: expect.objectContaining({ model: 'ck.glossary.term', rid: '5' }) }));
@@ -105,7 +105,7 @@ it('groups by another field on request and opens one group as a filtered list', 
   await fireEvent.press(view.getByTestId('list-filters'));
   await fireEvent.press(view.getByTestId('list-filter-sheet-by_state'));
   await view.findByText('Accepted');
-  expect(mocked.readGroups).toHaveBeenCalledWith(account, 'ck.glossary.term', ['&', ['engagement_id', '=', 48], ['state', '=', 'draft']], 'state', expect.any(Object));
+  expect(mocked.readGroups).toHaveBeenCalledWith(account, 'ck.glossary.term', ['&', '|', ['engagement_id', '=', 48], ['engagement_id', '=', false], ['state', '=', 'draft']], 'state', expect.any(Object));
   await fireEvent.press(view.getByTestId('list-group'));
-  await waitFor(() => expect(mocked.searchRecords.mock.calls.at(-1)?.[2].domain).toEqual(['&', '&', ['engagement_id', '=', 48], ['state', '=', 'draft'], ['state', '=', 'accepted']]));
+  await waitFor(() => expect(mocked.searchRecords.mock.calls.at(-1)?.[2].domain).toEqual(['&', '&', '|', ['engagement_id', '=', 48], ['engagement_id', '=', false], ['state', '=', 'draft'], ['state', '=', 'accepted']]));
 });

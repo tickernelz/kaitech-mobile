@@ -93,7 +93,7 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
     const scope = { ...actionScope(loaded.base, uid, programme), context: actionContext };
     return andDomains([
       domainOf(loaded.action.domain, scope),
-      linked && onlyProgramme ? [['engagement_id', '=', programme]] : [],
+      linked && onlyProgramme ? ['|', ['engagement_id', '=', programme], ['engagement_id', '=', false]] : [],
       filtersDomain(loaded.search?.filters ?? [], active, scope),
       textDomain(loaded.search, query, scope),
     ]);
