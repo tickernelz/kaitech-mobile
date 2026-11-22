@@ -400,8 +400,8 @@ jobs:
 
   e2e-android-call:
     name: e2e android call ${{ matrix.size }} ${{ matrix.locale }}
-    needs: e2e-android-rows
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    needs: [android-e2e, e2e-android-rows]
+    if: always() && needs.android-e2e.result == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
