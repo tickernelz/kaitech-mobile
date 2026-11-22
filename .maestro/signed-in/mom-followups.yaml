@@ -60,10 +60,15 @@ onFlowStart:
     timeout: 30000
 - tapOn:
     id: followup-meeting
-- scrollUntilVisible:
-    element:
-      id: mom-more-meeting-${MINUTES_MEETING}
-    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: mom-more-sheet-search
+    commands:
+      - tapOn:
+          id: mom-more-sheet-search
+      - inputText: Kickoff Payroll
+      - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
     id: mom-more-meeting-${MINUTES_MEETING}
 - tapOn:
@@ -72,6 +77,15 @@ onFlowStart:
 - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
     id: followup-owner
+- runFlow:
+    when:
+      visible:
+        id: mom-more-sheet-search
+    commands:
+      - tapOn:
+          id: mom-more-sheet-search
+      - inputText: Budi
+      - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
     id: mom-more-owner-${FOLLOWUP_OWNER}
 - scrollUntilVisible:

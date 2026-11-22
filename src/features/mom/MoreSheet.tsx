@@ -1,10 +1,13 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../theme';
 import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
+import { TextField } from '../../ui/TextField';
+
+const searchFrom = 8;
 
 export type MoreAction = { key: string; icon: IconName; label: string; detail?: string; onPress: () => void; tone?: 'danger' };
 
@@ -26,7 +29,13 @@ export function MoreSheet({
   const { t } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const shown = groups.filter((group) => group.actions.length);
+  const [query, setQuery] = useState('');
+  const total = groups.reduce((sum, group) => sum + group.actions.length, 0);
+  const searchable = total > searchFrom;
+  const said = query.trim().toLowerCase();
+  const shown = groups
+    .map((group) => (said ? { ...group, actions: group.actions.filter((action) => `${action.label} ${action.detail ?? ''}`.toLowerCase().includes(said)) } : group))
+    .filter((group) => group.actions.length);
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
@@ -38,6 +47,11 @@ export function MoreSheet({
           <Text variant="headline" accessibilityRole="header" style={styles.title}>
             {title}
           </Text>
+          {searchable ? (
+            <View style={styles.search}>
+              <TextField label={t('mom.records.search')} value={query} onChangeText={setQuery} autoCorrect={false} testID={`${testID}-search`} />
+            </View>
+          ) : null}
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
             {shown.map((group) => (
               <View key={group.key} style={styles.group}>
@@ -85,6 +99,7 @@ const styles = StyleSheet.create({
   scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 560, maxHeight: '85%', borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.lg, paddingHorizontal: space.lg },
   title: { paddingHorizontal: space.sm, paddingBottom: space.sm },
+  search: { paddingHorizontal: space.sm, paddingBottom: space.sm },
   body: { gap: space.md, paddingBottom: space.sm },
   group: { gap: space.xs },
   groupTitle: { paddingHorizontal: space.sm, paddingTop: space.xs },
