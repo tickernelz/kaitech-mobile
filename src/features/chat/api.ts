@@ -1,5 +1,5 @@
 import { UploadType, type UploadProgress } from 'expo-file-system';
-import { bearer, route, sessionCookie, ApiError } from '../../api/odoo';
+import { bearer, route, rpc, sessionCookie, ApiError } from '../../api/odoo';
 import { AppError } from '../../auth/errors';
 import type { Account } from '../../auth/oauth';
 import { markExpired, tokenFor } from '../../auth/session';
@@ -42,8 +42,30 @@ export class ChatClient {
     return { Cookie: await this.cookie() };
   }
 
-  conversations(cursor: string | null, limit = 30) {
-    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/chat/conversations', { query: { limit, ...(cursor ? { cursor } : {}) } });
+  conversations(cursor: string | null, options: { archived?: boolean } = {}) {
+    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/chat/conversations', {
+      query: { limit: 30, ...(cursor ? { cursor } : {}), ...(options.archived ? { archived: 1 } : {}) },
+    });
+  }
+
+  markUnread(channelId: number, messageId: number) {
+    return route(this.account, '/discuss/channel/set_new_message_separator', { channel_id: channelId, message_id: messageId });
+  }
+
+  pin(channelId: number, pinned: boolean) {
+    return rpc<boolean>(this.account, 'discuss.channel', 'kaitech_chat_set_pinned', [[channelId], pinned]);
+  }
+
+  hide(channelId: number) {
+    return rpc<unknown>(this.account, 'discuss.channel', 'channel_pin', [[channelId]], { pinned: false });
+  }
+
+  leave(channelId: number) {
+    return rpc<unknown>(this.account, 'discuss.channel', 'action_unfollow', [[channelId]]);
+  }
+
+  archive(channelId: number, archived: boolean) {
+    return bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/chat/archive', { method: 'POST', body: { channel_id: channelId, archived } });
   }
 
   mentions(channelId: number, q: string) {
@@ -56,6 +78,10 @@ export class ChatClient {
 
   channel(channelId: number) {
     return route<Record<string, unknown>>(this.account, '/mail/data', { fetch_params: [['discuss.channel', [channelId]]] });
+  }
+
+  sessionInfo() {
+    return route<Record<string, unknown>>(this.account, '/web/session/get_session_info', {});
   }
 
   markAsRead(channelId: number, lastMessageId: number) {

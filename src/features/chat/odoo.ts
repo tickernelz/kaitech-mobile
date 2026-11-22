@@ -71,15 +71,24 @@ export function conversationFrom(value: unknown): Conversation | null {
     mutedUntil: typeof value.muted_until === 'string' ? value.muted_until : null,
     activityAt: utc(value.activity_at),
     last: lastMessage(value.last_message),
+    pinned: typeof value.pinned === 'boolean' ? value.pinned : null,
+    archived: typeof value.archived === 'boolean' ? value.archived : null,
   };
 }
 
-export function conversationPage(body: unknown): { conversations: Conversation[]; nextCursor: string | null } {
-  if (!isRecord(body) || !Array.isArray(body.conversations)) return { conversations: [], nextCursor: null };
+export type ArchivedSummary = { count: number; unread: number };
+
+export function conversationPage(body: unknown): { conversations: Conversation[]; nextCursor: string | null; archived: ArchivedSummary | null } {
+  if (!isRecord(body) || !Array.isArray(body.conversations)) return { conversations: [], nextCursor: null, archived: null };
   return {
     conversations: body.conversations.map(conversationFrom).filter((item): item is Conversation => item !== null),
     nextCursor: typeof body.next_cursor === 'string' ? body.next_cursor : null,
+    archived: typeof body.archived_count === 'number' ? { count: body.archived_count, unread: typeof body.archived_unread === 'number' ? body.archived_unread : 0 } : null,
   };
+}
+
+export function listOrder(conversations: Conversation[]): Conversation[] {
+  return [...conversations].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.activityAt - a.activityAt || b.id - a.id);
 }
 
 export function conversationPhotos(body: unknown): [number, Photo | null][] {
@@ -115,7 +124,9 @@ function attachmentFrom(value: Raw): Attachment | null {
 
 function reactionsFromStore(data: unknown, myPartnerId: number): Map<number, Reaction[]> {
   const byMessage = new Map<number, Reaction[]>();
-  for (const raw of records(data, 'mail.message.reaction')) {
+  const partners = new Map(records(data, 'res.partner').map((partner) => [id(partner.id), text(partner.name)]));
+  const guests = new Map(records(data, 'mail.guest').map((guest) => [id(guest.id), text(guest.name)]));
+  for (const raw of records(data, 'MessageReactions')) {
     const messageId = id(raw.message);
     const content = text(raw.content);
     if (!messageId || !content) continue;
@@ -124,6 +135,7 @@ function reactionsFromStore(data: unknown, myPartnerId: number): Map<number, Rea
       content,
       count: typeof raw.count === 'number' ? raw.count : ids(raw.partners).length + ids(raw.guests).length,
       mine: ids(raw.partners).includes(myPartnerId),
+      people: [...ids(raw.partners).map((partnerId) => partners.get(partnerId)), ...ids(raw.guests).map((guestId) => guests.get(guestId))].filter((name): name is string => !!name),
     });
     byMessage.set(messageId, list);
   }
@@ -152,7 +164,6 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
       channelId,
       authorId,
       author: (authorId ? partners.get(authorId) : guestId ? guests.get(guestId) : undefined) ?? text(raw.email_from),
-      body: text(raw.body),
       date: utc(raw.date),
       type: text(raw.message_type),
       attachments: ids(raw.attachment_ids)
@@ -160,9 +171,50 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
         .filter((item): item is Attachment => item !== undefined),
       parentId: id(raw.parent_id),
       reactions: reactions.get(messageId) ?? [],
+      ...editedBody(text(raw.body)),
+      starred: raw.starred === true,
+      pinnedAt: text(raw.pinned_at) || null,
     });
   }
   return messages.sort((a, b) => a.id - b.id);
+}
+
+const editedMark = /<span class=["']o-mail-Message-edited["']\s*(?:\/>|><\/span>)/g;
+
+export function editedBody(html: string): { body: string; edited: boolean } {
+  if (!html.includes('o-mail-Message-edited')) return { body: html, edited: false };
+  const body = html.replace(editedMark, '');
+  return { body, edited: body.length !== html.length };
+}
+
+export type MessagePatch = Partial<Pick<Message, 'body' | 'edited' | 'attachments' | 'pinnedAt' | 'starred' | 'translation' | 'translated'>>;
+
+export function messagePatches(data: unknown): Map<number, MessagePatch> {
+  const attachments = new Map<number, Attachment>();
+  for (const raw of records(data, 'ir.attachment')) {
+    const attachment = attachmentFrom(raw);
+    if (attachment) attachments.set(attachment.id, attachment);
+  }
+  const patches = new Map<number, MessagePatch>();
+  for (const raw of records(data, 'mail.message')) {
+    const messageId = id(raw.id);
+    if (!messageId) continue;
+    const patch: MessagePatch = {};
+    if ('body' in raw) Object.assign(patch, editedBody(text(raw.body)), { translation: null, translated: false });
+    if ('attachment_ids' in raw) patch.attachments = ids(raw.attachment_ids).map((attachmentId) => attachments.get(attachmentId)).filter((item): item is Attachment => item !== undefined);
+    if ('pinned_at' in raw) patch.pinnedAt = text(raw.pinned_at) || null;
+    if ('starred' in raw) patch.starred = raw.starred === true;
+    if (Object.keys(patch).length) patches.set(messageId, patch);
+  }
+  return patches;
+}
+
+const removedMax = 64;
+
+export function isRemoved(message: Pick<Message, 'type' | 'body' | 'attachments'>): boolean {
+  if (message.type !== 'comment' || message.attachments.length) return false;
+  if (message.body.length > removedMax) return false;
+  return !message.body.replace(/<[^>]*>|&nbsp;|\s/g, '');
 }
 
 export function membersFromStore(data: unknown): Map<number, Member[]> {
@@ -226,12 +278,37 @@ export function seenFromStore(data: unknown): { channelId: number; partnerId: nu
   return out;
 }
 
-export function reactionUpdates(data: unknown, myPartnerId: number): Map<number, Reaction[]> {
+function reactionContent(value: unknown): string {
+  return isRecord(value) ? text(value.content) : '';
+}
+
+export function reactionUpdates(data: unknown, myPartnerId: number, current: (messageId: number) => Reaction[] | undefined): Map<number, Reaction[]> {
   const byMessage = reactionsFromStore(data, myPartnerId);
   const updates = new Map<number, Reaction[]>();
   for (const raw of records(data, 'mail.message')) {
     const messageId = id(raw.id);
-    if (messageId && 'reactions' in raw && !('body' in raw)) updates.set(messageId, byMessage.get(messageId) ?? []);
+    if (!messageId || !('reactions' in raw) || 'body' in raw) continue;
+    const fresh = byMessage.get(messageId) ?? [];
+    const value = raw.reactions;
+    const commands = Array.isArray(value) && value.every((item) => Array.isArray(item) && typeof item[0] === 'string');
+    if (!commands) {
+      updates.set(messageId, fresh);
+      continue;
+    }
+    let list = [...(current(messageId) ?? [])];
+    for (const [op, payload] of value as [string, unknown][]) {
+      const items = Array.isArray(payload) ? payload : [payload];
+      for (const item of items) {
+        const content = reactionContent(item);
+        if (!content) continue;
+        const at = list.findIndex((reaction) => reaction.content === content);
+        const found = op === 'DELETE' ? undefined : fresh.find((reaction) => reaction.content === content);
+        if (!found) list = list.filter((reaction) => reaction.content !== content);
+        else if (at >= 0) list[at] = found;
+        else list.push(found);
+      }
+    }
+    updates.set(messageId, list);
   }
   return updates;
 }
