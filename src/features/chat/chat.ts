@@ -35,6 +35,7 @@ import type { Conversation, Member, Mention, Message, Pending, PendingFile, Reac
 import { setUploadProgress } from './progress';
 import { onPresenceChange, userInApp } from '../call/presence';
 import { notePhotoList, notePhotos } from '../people/photos';
+import { noteStatuses } from '../people/statuses';
 
 export type Typist = { partnerId: number; name: string; until: number };
 
@@ -164,6 +165,7 @@ async function flush() {
 
 function notePeople(store: unknown) {
   notePhotos(state.accountId, store);
+  noteStatuses(state.accountId, store);
 }
 
 function delivered(sent: Sent) {
