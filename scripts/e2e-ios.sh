@@ -26,20 +26,24 @@ IFS=$'\t' read -r udid device_name runtime_name < <(
       .filter((r) => r.platform === "iOS" && r.isAvailable && Number.parseFloat(r.version) >= minimum)
       .sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }));
     const preference = JSON.parse(process.env.PREFERENCE);
-    const byPreference = (list) => preference.map((p) => list.find((d) => d.name === p)).find(Boolean) ?? preference.map((p) => list.find((d) => d.name.startsWith(p))).find(Boolean);
+    const exact = (list) => preference.map((p) => list.find((d) => d.name === p)).find(Boolean);
+    const prefix = (list) => preference.map((p) => list.find((d) => d.name.startsWith(p))).find(Boolean);
+    const types = devicetypes.filter((d) => d.name.startsWith(family));
+    const existing = (runtime) => (devices[runtime.identifier] ?? []).filter((d) => d.isAvailable && d.name.startsWith(family));
     console.error(`iOS runtimes from ${minimum}: ${ios.map((r) => r.name).join(", ") || "none"}`);
-    for (const runtime of ios) {
-      const existing = (devices[runtime.identifier] ?? []).filter((d) => d.isAvailable && d.name.startsWith(family));
-      console.error(`${runtime.name} ${family}s: ${existing.map((d) => d.name).join(", ") || "none"}`);
-      const device = byPreference(existing);
-      if (device) {
-        console.log([device.udid, device.name, runtime.name].join("\t"));
-        process.exit(0);
+    if (ios.length === 0) throw new Error(`no iOS ${minimum}+ runtime on this runner`);
+    for (const runtime of ios) console.error(`${runtime.name} (${runtime.identifier}) ${family}s: ${existing(runtime).map((d) => d.name).join(", ") || "none"}`);
+    const pick = (find) => {
+      for (const runtime of ios) {
+        const device = find(existing(runtime));
+        if (device) return [device.udid, device.name, runtime.name];
       }
-    }
-    const type = byPreference(devicetypes.filter((d) => d.name.startsWith(family)));
-    if (!type || ios.length === 0) throw new Error(`no ${family} simulator device type or iOS ${minimum}+ runtime on this runner`);
-    console.log(["create:" + type.identifier + ":" + ios[0].identifier, type.name, ios[0].name].join("\t"));
+      return null;
+    };
+    const create = (type) => type && ["create:" + type.identifier + ":" + ios[0].identifier, type.name, ios[0].name];
+    const choice = pick(exact) ?? create(exact(types)) ?? pick(prefix) ?? create(prefix(types));
+    if (!choice) throw new Error(`no ${family} simulator device type on this runner`);
+    console.log(choice.join("\t"));
   '
 )
 if [[ "$udid" == create:* ]]; then
@@ -116,6 +120,7 @@ for appearance in $appearances; do
       else
         status=1
       fi
+      maestro --device "$udid" hierarchy 2> /dev/null | node scripts/screen-text.mjs > "$dir/screen-at-failure.txt" || true
     fi
 
     kill -INT "$recorder" 2> /dev/null || true
@@ -128,7 +133,7 @@ for appearance in $appearances; do
     if [ -n "${E2E_LOGIN:-}" ]; then
       mkdir -p "$dir/failures"
       find "$dir/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$dir/failures/" \;
-      find "$dir" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name screenshots ! -name failures -exec rm -rf {} +
+      find "$dir" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name screenshots ! -name failures ! -name screen-at-failure.txt -exec rm -rf {} +
     fi
   done
 done
