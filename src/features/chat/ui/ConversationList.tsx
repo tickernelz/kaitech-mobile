@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { radius, space, useTheme } from '../../../theme';
+import { CollapsedAppBar, useCollapsingTitle } from '../../../ui/AppBar';
 import { Text } from '../../../ui/Text';
 import { loadArchived, loadMoreConversations, refreshConversations, useChat } from '../chat';
 import { IconButton } from '../../../ui/IconButton';
@@ -160,6 +161,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
     void loadArchived();
   };
   const unreadTotal = useMemo(() => conversations.filter((conversation) => conversation.unread > 0).length, [conversations]);
+  const bar = useCollapsingTitle();
 
   const archiveHeader = (
     <View style={styles.header}>
@@ -263,6 +265,8 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
   return (
     <View style={styles.flex} testID="chat-list">
       <FlashList
+        onScroll={bar.onScroll}
+        scrollEventThrottle={16}
         data={shown}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <Row conversation={item} selected={item.id === selectedId} pending={waiting.get(item.id) ?? 0} onOpen={onOpen} inArchive={inArchive} />}
@@ -282,6 +286,11 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
             colors={[colors.primary]}
           />
         }
+      />
+      <CollapsedAppBar
+        title={inArchive ? t('rowActions.archivedTitle') : t('translation:tabs.chat')}
+        collapsed={bar.collapsed}
+        actions={inArchive ? null : <HeaderActions />}
       />
     </View>
   );

@@ -41,6 +41,7 @@ require('../src/i18n');
 const { Button } = require('../src/ui/Button.android') as typeof import('../src/ui/Button.android');
 const { TextField } = require('../src/ui/TextField.android') as typeof import('../src/ui/TextField.android');
 const { Fab } = require('../src/ui/Fab.android') as typeof import('../src/ui/Fab.android');
+const { CollapsedAppBar, useCollapsingTitle } = require('../src/ui/AppBar.android') as typeof import('../src/ui/AppBar.android');
 
 function labelLift(text: string): number {
   let node = screen.getByText(text).parent;
@@ -79,6 +80,39 @@ describe('Android Material 3 button', () => {
     await render(<Button label="Save" disabled onPress={onPress} testID="save" />);
     await act(async () => fireEvent.press(screen.getByTestId('save')));
     expect(onPress).not.toHaveBeenCalled();
+  });
+});
+
+describe('Android Material 3 collapsing top app bar', () => {
+  function Screen() {
+    const bar = useCollapsingTitle();
+    const { ScrollView, View } = require('react-native');
+    return (
+      <View>
+        <ScrollView testID="list" onScroll={bar.onScroll} />
+        <CollapsedAppBar title="Chat" collapsed={bar.collapsed} />
+      </View>
+    );
+  }
+  const scrollTo = (y: number) => fireEvent.scroll(screen.getByTestId('list'), { nativeEvent: { contentOffset: { x: 0, y } } });
+  const bar = () => screen.getByTestId('app-bar-collapsed', { includeHiddenElements: true });
+
+  test('at the top the small bar is invisible, untouchable and hidden from TalkBack', async () => {
+    await render(<Screen />);
+    expect(StyleSheet.flatten(bar().props.style).opacity).toBe(0);
+    expect(bar().props.pointerEvents).toBe('none');
+    expect(bar().props.importantForAccessibility).toBe('no-hide-descendants');
+  });
+
+  test('scrolling the large title away shows the small bar; scrolling back hides it', async () => {
+    await render(<Screen />);
+    await act(async () => scrollTo(30));
+    expect(bar().props.pointerEvents).toBe('none');
+    await act(async () => scrollTo(200));
+    expect(StyleSheet.flatten(bar().props.style).opacity).toBe(1);
+    expect(bar().props.importantForAccessibility).toBe('auto');
+    await act(async () => scrollTo(0));
+    expect(bar().props.pointerEvents).toBe('none');
   });
 });
 
