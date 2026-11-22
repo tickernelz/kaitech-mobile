@@ -1,0 +1,137 @@
+name: Android E2E
+description: Runs Maestro flows on an Android emulator for one size and locale, one orientation after another on the same emulator, scans the output for secrets and uploads it. Expects the APK in apk-dir; account values come from the job's E2E_* environment.
+inputs:
+  apk-dir:
+    description: Directory holding the APK to install.
+    required: true
+  artifact:
+    description: Name of the uploaded E2E output artifact.
+    required: true
+  output-prefix:
+    description: Prefix of each orientation's output folder under e2e-output/.
+    default: ''
+  size:
+    description: phone or tablet.
+    required: true
+  profile:
+    description: Emulator hardware profile, e.g. pixel_6 or pixel_tablet.
+    required: true
+  locale:
+    description: en-US or id-ID.
+    required: true
+  orientations:
+    description: Space-separated orientations run in turn, e.g. "portrait landscape".
+    required: true
+  flows:
+    description: Space-separated Maestro flows or folders; empty runs the top-level .maestro flows.
+    default: ''
+  runner:
+    description: auto (maestro-runner in the natural orientation, Maestro CLI when rotated), maestro, or maestro-runner.
+    default: auto
+  cold-start:
+    description: Cold starts measured after the portrait orientation; 0 skips the measurement.
+    default: '0'
+  audio:
+    description: true starts the emulator with audio; recording flows need it.
+    default: 'false'
+  call-peer:
+    description: true joins a headless web peer to the test call with its camera on and gives the emulator a front camera; call flows need it.
+    default: 'false'
+  snapshot:
+    description: true boots from a cached AVD snapshot; false boots a fresh, wiped emulator without snapshots.
+    default: 'true'
+  save-snapshot:
+    description: true creates and writes the AVD snapshot cache when it is missing; false boots without a snapshot on a cache miss.
+    default: 'false'
+  retention-days:
+    default: '30'
+runs:
+  using: composite
+  steps:
+    - name: Enable KVM
+      shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+    - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+      with:
+        distribution: temurin
+        java-version: '17'
+    - uses: ./.github/actions/setup-maestro
+    - uses: ./.github/actions/setup-maestro-runner
+    - uses: ./.github/actions/setup-gitleaks
+    - name: Restore the AVD snapshot
+      id: avd
+      if: inputs.snapshot == 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: avd-api35-x86_64-google_apis-${{ inputs.profile }}-v1
+    - name: Boot from a snapshot only when one is restored or will be saved
+      id: boot
+      shell: bash
+      env:
+        SNAPSHOT: ${{ inputs.snapshot }}
+        HIT: ${{ steps.avd.outputs.cache-hit }}
+        SAVE: ${{ inputs.save-snapshot }}
+      run: |
+        if [ "$SNAPSHOT" = true ] && { [ "$HIT" = true ] || [ "$SAVE" = true ]; }; then
+          echo "snapshot=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "snapshot=false" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Create a settled AVD snapshot
+      if: steps.boot.outputs.snapshot == 'true' && steps.avd.outputs.cache-hit != 'true'
+      uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+      with:
+        api-level: 35
+        arch: x86_64
+        target: google_apis
+        profile: ${{ inputs.profile }}
+        force-avd-creation: false
+        disable-animations: false
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        script: timeout 600 adb shell cmd package bg-dexopt-job || true
+    - if: steps.boot.outputs.snapshot == 'true' && steps.avd.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: avd-api35-x86_64-google_apis-${{ inputs.profile }}-v1
+    - name: Run Maestro flows, one orientation after another
+      uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+      env:
+        E2E_FLOWS: ${{ inputs.flows }}
+        E2E_RUNNER: ${{ inputs.runner }}
+        E2E_CALL_PEER: ${{ inputs.call-peer == 'true' && '1' || '' }}
+        PORTRAIT_COLD_START_RUNS: ${{ inputs.cold-start }}
+      with:
+        api-level: 35
+        arch: x86_64
+        target: google_apis
+        profile: ${{ inputs.profile }}
+        disable-animations: true
+        force-avd-creation: ${{ steps.boot.outputs.snapshot != 'true' }}
+        emulator-options: -no-window ${{ steps.boot.outputs.snapshot == 'true' && '-no-snapshot-save' || '-no-snapshot -wipe-data' }} -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '' }} -no-boot-anim -camera-back none -camera-front ${{ inputs.call-peer == 'true' && 'emulated' || 'none' }}
+        script: for o in ${{ inputs.orientations }}; do runs=0; [ "$o" = portrait ] && runs="$PORTRAIT_COLD_START_RUNS"; COLD_START_RUNS="$runs" bash scripts/e2e-android.sh "${{ inputs.apk-dir }}" "e2e-output/${{ inputs.output-prefix }}${{ inputs.size }}-$o-${{ inputs.locale }}" ${{ inputs.locale }} ${{ inputs.size }} "$o" || status=1; done; exit "${status:-0}"
+    - name: Scan E2E output for secrets
+      id: scan-e2e
+      if: always()
+      shell: bash
+      run: |
+        if [ ! -d e2e-output ]; then
+          echo "no E2E output"
+          exit 0
+        fi
+        gitleaks dir --redact --verbose --exit-code 1 e2e-output
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      if: always() && steps.scan-e2e.outcome == 'success'
+      with:
+        name: ${{ inputs.artifact }}
+        path: e2e-output/
+        if-no-files-found: warn
+        retention-days: ${{ inputs.retention-days }}
