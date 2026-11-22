@@ -632,8 +632,13 @@
     "usePhoto": "Pakai foto ini",
     "cancel": "Batal",
     "photo": "Foto profil {{name}}",
+    "status": "Status",
+    "statusEmpty": "Tanpa status",
+    "statusCount": "{{used}} dari {{limit}} karakter",
     "errors": {
       "name_invalid": "Pakai 1 sampai 64 karakter.",
+      "status_too_long": "Pakai paling banyak 80 karakter.",
+      "status_invalid": "Pakai satu baris tanpa karakter khusus.",
       "photo_type_unsupported": "Pakai foto JPEG atau PNG.",
       "photo_too_large": "Foto ini terlalu besar.",
       "photo_invalid": "Foto ini tidak bisa dibaca.",
