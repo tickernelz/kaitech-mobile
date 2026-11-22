@@ -154,7 +154,7 @@ onFlowStart:
 - tapOn:
     id: sections-search
 - inputText: "${APP_LANGUAGE === 'id' ? 'Glosarium' : 'Glossary'}"
-- runFlow: ../shared/dismiss-keyboard.yaml
+- pressKey: Enter
 - tapOn:
     text: "${APP_LANGUAGE === 'id' ? 'Glosarium' : 'Glossary'}"
     index: -1

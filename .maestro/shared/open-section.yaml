@@ -11,7 +11,7 @@ name: Find a Discovery section by its web menu name (SECTION in English, SECTION
 - tapOn:
     id: sections-search
 - inputText: "${APP_LANGUAGE === 'id' ? SECTION_ID : SECTION}"
-- runFlow: dismiss-keyboard.yaml
+- pressKey: Enter
 - tapOn:
     text: "${APP_LANGUAGE === 'id' ? SECTION_ID : SECTION}"
     index: -1

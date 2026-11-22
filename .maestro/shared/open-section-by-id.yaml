@@ -11,7 +11,7 @@ name: Find one Discovery section by its menu name (NAME, NAME_ID) and open it by
 - tapOn:
     id: sections-search
 - inputText: "${APP_LANGUAGE === 'id' ? NAME_ID : NAME}"
-- runFlow: dismiss-keyboard.yaml
+- pressKey: Enter
 - scrollUntilVisible:
     element:
       id: section-${MENU}
@@ -76,7 +76,15 @@ name: Find one Discovery section by its menu name (NAME, NAME_ID) and open it by
       notVisible:
         id: sections-screen
     commands:
-      - back
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - runFlow:
+          when:
+            notVisible:
+              id: sections-screen
+          commands:
+            - tapOn:
+                id: header-back
 - extendedWaitUntil:
     visible:
       id: sections-screen

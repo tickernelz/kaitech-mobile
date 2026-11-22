@@ -98,7 +98,7 @@ onFlowStart:
 - tapOn:
     id: sections-search
 - inputText: RAID
-- runFlow: ../shared/dismiss-keyboard.yaml
+- pressKey: Enter
 - tapOn:
     id: section-[0-9]+
     index: 0
@@ -109,7 +109,7 @@ onFlowStart:
 - tapOn:
     id: list-search
 - inputText: ${RAID_ACCEPT}
-- runFlow: ../shared/dismiss-keyboard.yaml
+- pressKey: Enter
 - extendedWaitUntil:
     visible:
       id: list-row-[0-9]+
@@ -138,7 +138,7 @@ onFlowStart:
 - tapOn:
     id: list-search
 - inputText: ${RAID_REJECT}
-- runFlow: ../shared/dismiss-keyboard.yaml
+- pressKey: Enter
 - extendedWaitUntil:
     visible:
       text: ${RAID_REJECT}
@@ -172,7 +172,7 @@ onFlowStart:
 - tapOn:
     id: sections-search
 - inputText: "${APP_LANGUAGE === 'id' ? 'Department' : 'Departments'}"
-- runFlow: ../shared/dismiss-keyboard.yaml
+- pressKey: Enter
 - tapOn:
     id: section-[0-9]+
     index: 0
@@ -193,7 +193,7 @@ onFlowStart:
 - tapOn:
     id: chatter-input
 - inputText: ${NOTE}
-- runFlow: ../shared/dismiss-keyboard.yaml
+- pressKey: Enter
 - tapOn:
     id: chatter-post
 - scrollUntilVisible:
