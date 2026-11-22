@@ -30,6 +30,7 @@ import {
   typingFromStore,
   type ChannelInfo,
 } from './odoo';
+import { isShownWork, workFrom, workOf, type Work } from './coworker';
 import { featuresFromSession, noFeatures, type ChatFeatures } from './features';
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
@@ -53,6 +54,7 @@ export type Thread = {
   hasNewer: boolean;
   info: ChannelInfo | null;
   subChannels: Record<number, number>;
+  works: Work[];
 };
 
 export type Delivered = { key: string; messageId: number; pending: Pending };
@@ -60,6 +62,7 @@ export type Delivered = { key: string; messageId: number; pending: Pending };
 export type ChatState = {
   accountId: string | null;
   partnerId: number;
+  userId: number;
   origin: string;
   conversations: Conversation[];
   nextCursor: string | null;
@@ -80,13 +83,14 @@ export type ChatState = {
   features: ChatFeatures;
 };
 
-const emptyThread: Thread = { messages: [], loading: false, loaded: false, hasOlder: true, loadingOlder: false, error: null, members: [], typing: [], hasNewer: false, info: null, subChannels: {} };
+const emptyThread: Thread = { messages: [], loading: false, loaded: false, hasOlder: true, loadingOlder: false, error: null, members: [], typing: [], hasNewer: false, info: null, subChannels: {}, works: [] };
 const pageSize = 30;
 const typingMs = 6000;
 
 let state: ChatState = {
   accountId: null,
   partnerId: 0,
+  userId: 0,
   origin: '',
   conversations: [],
   nextCursor: null,
@@ -189,6 +193,38 @@ function delivered(sent: Sent) {
   void fetchNewer(pending.channelId);
 }
 
+function takeWorks(channelId: number, incoming: Work[]) {
+  if (!state.threads[channelId]) return;
+  patchThread(channelId, (thread) => {
+    const byTurn = new Map(thread.works.map((work) => [work.turnId, work]));
+    for (const work of incoming) byTurn.set(work.turnId, work);
+    return { works: [...byTurn.values()].filter(isShownWork) };
+  });
+}
+
+export async function loadWorks(channelId: number) {
+  const result = await workOf(channelId);
+  if (result.ok) takeWorks(channelId, result.value);
+}
+
+export function patchInfo(channelId: number, patch: Partial<ChannelInfo>) {
+  const thread = state.threads[channelId];
+  if (!thread?.info) return;
+  patchThread(channelId, { info: { ...thread.info, ...patch } });
+}
+
+export function setFeatures(patch: Partial<ChatFeatures>) {
+  set({ features: { ...state.features, ...patch } });
+}
+
+export function forgetConversation(channelId: number) {
+  set({ conversations: state.conversations.filter((item) => item.id !== channelId) });
+}
+
+export async function reloadThread(channelId: number) {
+  await loadLatest(channelId);
+}
+
 export function patchMessages(patches: Map<number, MessagePatch>) {
   if (!patches.size) return;
   let threads: Record<number, Thread> | null = null;
@@ -271,6 +307,12 @@ function onNotifications(notifications: Notification[]) {
       const known = touchConversation(channelId, messages[messages.length - 1]);
       if (!known) void refreshConversations();
       if (active && state.openChannels.includes(channelId)) scheduleRead(channelId);
+      continue;
+    }
+    if (notification.type === 'kaitech_chat.work') {
+      const payload = notification.payload as { channel_id?: unknown; works?: unknown };
+      const works = Array.isArray(payload.works) ? payload.works.map(workFrom).filter((work): work is Work => work !== null) : [];
+      if (typeof payload.channel_id === 'number') takeWorks(payload.channel_id, works);
       continue;
     }
     if (notification.type === 'mail.message/toggle_star') {
@@ -370,6 +412,7 @@ export function startChat(account: Account) {
     ...state,
     accountId: account.id,
     partnerId: account.partnerId,
+    userId: account.userId,
     origin: account.origin,
     conversations: listOrder(cachedConversations(account.id)),
     nextCursor: null,
@@ -413,6 +456,7 @@ export function startChat(account: Account) {
             partnerIds: mentions.map((mention) => mention.id),
             mentionTokens: Object.fromEntries(mentions.filter((mention) => mention.token).map((mention) => [String(mention.id), mention.token as string])),
             files,
+            urgent: item.urgent === true,
           });
         } catch (error) {
           throw sendErrorFrom(error);
@@ -537,7 +581,7 @@ async function loadLatest(channelId: number) {
     notePeople(info);
     const fetched = messagesFromStore(page.data, state.partnerId).filter((message) => message.channelId === channelId);
     const members = info ? (membersFromStore(info).get(channelId) ?? []) : threadOf(state, channelId).members;
-    const channelInfo = info ? channelInfoFromStore(info, channelId) : threadOf(state, channelId).info;
+    const channelInfo = info ? channelInfoFromStore(info, channelId, state.partnerId) : threadOf(state, channelId).info;
     patchThread(channelId, (thread) => {
       const oldest = fetched[0]?.id ?? Infinity;
       const newestCached = thread.messages[thread.messages.length - 1]?.id ?? 0;
@@ -680,7 +724,7 @@ async function markRead(channelId: number) {
   }
 }
 
-export type Outgoing = { channelId: number; text: string; parentId: number | null; mentions: Mention[]; files: Omit<PendingFile, 'key' | 'attachmentId' | 'ownershipToken'>[] };
+export type Outgoing = { channelId: number; text: string; parentId: number | null; mentions: Mention[]; files: Omit<PendingFile, 'key' | 'attachmentId' | 'ownershipToken'>[]; urgent?: boolean };
 
 export function newKey(): string {
   return randomUUID();
@@ -709,6 +753,7 @@ export async function send(outgoing: Outgoing, startedAt?: number): Promise<stri
     files: outgoing.files.map((file) => ({ ...file, key: newKey(), attachmentId: null, ownershipToken: null })),
     createdAt: Date.now(),
     attempts: 0,
+    ...(outgoing.urgent ? { urgent: true } : {}),
     state: 'queued',
     error: null,
   };
