@@ -2,6 +2,8 @@ import { searchEmoji } from '../src/features/chat/emoji/emoji';
 import { featuresFromSession, hasFeature } from '../src/features/chat/features';
 import { editableSource } from '../src/features/chat/markdown';
 import { mentionsInBody, odooDate, odooDatetime } from '../src/features/chat/messageActions';
+import { messageOptions } from '../src/features/chat/messageOptions';
+import type { Message } from '../src/features/chat/types';
 import { editedBody, isRemoved, messagePatches, messagesFromStore, reactionUpdates } from '../src/features/chat/odoo';
 
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined }));
@@ -132,3 +134,43 @@ describe('featuresFromSession', () => {
     expect(featuresFromSession(null).isAdmin).toBe(false);
   });
 });
+
+describe('which message actions the sheet offers', () => {
+  const base: Message = { id: 5, channelId: 4, authorId: 3, author: 'Saya', body: '<p>halo</p>', date: Date.UTC(2026, 10, 21, 1), type: 'comment', attachments: [], parentId: null, reactions: [] };
+  const all = featuresFromSession({ storeData: { Store: { kaitech_chat_features: ['forward', 'meeting', 'read_by', 'task_from_message', 'recall_limit'], kaitech_chat_can_make_task: true } } });
+  const context = { partnerId: 3, features: all, channelType: 'channel', inSubThread: false, now: Date.UTC(2026, 10, 21, 2) };
+
+  it('lets the author edit and delete, and everyone forward, pin and star', () => {
+    expect(messageOptions(base, context)).toMatchObject({ edit: true, delete: true, forward: true, pin: true, star: true, task: true, activity: true, meeting: true, readers: true, thread: true });
+  });
+
+  it('does not let someone else edit or delete, unless they are an administrator', () => {
+    expect(messageOptions({ ...base, authorId: 9 }, context)).toMatchObject({ edit: false, delete: false, readers: false });
+    const admin = { ...context, features: { ...all, isAdmin: true } };
+    expect(messageOptions({ ...base, authorId: 9 }, admin)).toMatchObject({ edit: true, delete: true });
+  });
+
+  it('closes delete after 24 hours when the recall limit is on, but keeps edit', () => {
+    const later = { ...context, now: base.date + 25 * 3600 * 1000 };
+    expect(messageOptions(base, later)).toMatchObject({ edit: true, delete: false });
+    const unlimited = { ...later, features: { ...all, on: all.on.filter((name) => name !== 'recall_limit') } };
+    expect(messageOptions(base, unlimited).delete).toBe(true);
+  });
+
+  it('offers almost nothing on a deleted message', () => {
+    const removed = messageOptions({ ...base, body: '' }, context);
+    expect(removed).toMatchObject({ emoji: false, reply: false, copy: false, forward: false, edit: false, delete: false, pin: false, star: false, task: false });
+    expect(removed.link).toBe(true);
+  });
+
+  it('hides what the server switched off', () => {
+    const none = { ...context, features: featuresFromSession({}) };
+    expect(messageOptions(base, none)).toMatchObject({ forward: false, task: false, activity: false, meeting: false, readers: false, translate: false });
+  });
+
+  it('does not offer a thread inside a chat or a thread', () => {
+    expect(messageOptions(base, { ...context, channelType: 'chat' }).thread).toBe(false);
+    expect(messageOptions(base, { ...context, inSubThread: true }).thread).toBe(false);
+  });
+});
+
