@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useKeyboardState } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../theme';
+import { NativeSheet, useSheetPresentation } from './NativeSheet';
 import { Text } from './Text';
 import { Icon, type IconName } from './icons';
 
@@ -28,6 +29,7 @@ export function Sheet({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboard = useKeyboardState((state) => (state.isVisible ? state.height : 0));
+  const sheet = useSheetPresentation(onClose);
   const head = title ? (
     <View style={styles.head}>
       <View style={styles.fill}>
@@ -40,11 +42,31 @@ export function Sheet({
           </Text>
         ) : null}
       </View>
-      <Pressable accessibilityRole="button" accessibilityLabel={t('sheet.close')} onPress={onClose} hitSlop={8} style={styles.close} testID={testID ? `${testID}-close` : undefined}>
+      <Pressable accessibilityRole="button" accessibilityLabel={t('sheet.close')} onPress={() => sheet.close()} hitSlop={8} style={styles.close} testID={testID ? `${testID}-close` : undefined}>
         <Icon name="close" color={colors.inkSoft} />
       </Pressable>
     </View>
   ) : null;
+  const body = scroll ? (
+    <ScrollView style={styles.grow} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" bounces={false}>
+      {head}
+      {children}
+    </ScrollView>
+  ) : (
+    <View style={styles.body}>
+      {head}
+      {children}
+    </View>
+  );
+  const foot = footer ? <View style={styles.footer}>{footer}</View> : null;
+  if (sheet.native) {
+    return (
+      <NativeSheet presentation={sheet.presentation} testID={testID}>
+        {body}
+        {foot}
+      </NativeSheet>
+    );
+  }
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable
@@ -58,18 +80,8 @@ export function Sheet({
           onPress={() => undefined}
           accessibilityViewIsModal
           testID={testID}>
-          {scroll ? (
-            <ScrollView style={styles.grow} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" bounces={false}>
-              {head}
-              {children}
-            </ScrollView>
-          ) : (
-            <View style={styles.body}>
-              {head}
-              {children}
-            </View>
-          )}
-          {footer ? <View style={styles.footer}>{footer}</View> : null}
+          {body}
+          {foot}
         </Pressable>
       </Pressable>
     </Modal>
