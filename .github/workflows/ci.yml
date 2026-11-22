@@ -90,7 +90,7 @@ jobs:
         run: node scripts/check-tablet-config.mjs
       - uses: ./.github/actions/setup-maestro
       - name: Maestro flow syntax
-        run: find .maestro -name '*.yaml' ! -name config.yaml -print0 | xargs -0 -n1 maestro check-syntax
+        run: find .maestro -name '*.yaml' ! -name config.yaml -print0 | xargs -0 -n1 -P "$(nproc)" maestro check-syntax
 
   typecheck:
     name: typecheck
