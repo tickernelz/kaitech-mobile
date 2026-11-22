@@ -7,8 +7,11 @@ import { takeAppearance } from '../appearance/appearance';
 import { shrinkToJpeg } from '../media/shrink';
 import { photoFrom, type Photo } from '../people/photo';
 import { notePhoto } from '../people/photos';
+import { cleanStatus, statusFrom } from '../people/status';
 
-export type Profile = { userId: number; partnerId: number; name: string; login: string; photo: Photo | null };
+export type Profile = { userId: number; partnerId: number; name: string; login: string; photo: Photo | null; status: string | null };
+
+export type ProfileChanges = { name?: string; status?: string };
 
 const path = 'profile';
 const photoSide = 1024;
@@ -26,6 +29,7 @@ export function profileFrom(body: unknown): Profile | null {
     name: body.name,
     login: typeof body.login === 'string' ? body.login : '',
     photo: photoFrom(body.photo) ?? null,
+    status: statusFrom(body.status) ?? null,
   };
 }
 
@@ -56,8 +60,15 @@ export function refreshProfile(account: Account): Promise<void> {
   return load(`${account.id}:${path}`, () => fetchProfile(account));
 }
 
-export async function renameProfile(account: Account, name: string): Promise<Profile> {
-  return taken(account, await bearer<unknown>(account, '/kaitech_mobile/profile', { method: 'POST', body: { name: cleanName(name) } }));
+export function profileBody(changes: ProfileChanges): Record<string, string | null> {
+  const body: Record<string, string | null> = {};
+  if (changes.name !== undefined) body.name = cleanName(changes.name);
+  if (changes.status !== undefined) body.status = cleanStatus(changes.status) || null;
+  return body;
+}
+
+export async function saveProfile(account: Account, changes: ProfileChanges): Promise<Profile> {
+  return taken(account, await bearer<unknown>(account, '/kaitech_mobile/profile', { method: 'POST', body: profileBody(changes) }));
 }
 
 export async function removeProfilePhoto(account: Account): Promise<Profile> {
