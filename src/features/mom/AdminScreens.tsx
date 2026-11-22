@@ -35,6 +35,8 @@ import { SmallButton } from './parts';
 
 export type AdminPart = 'keys' | 'settings' | 'import';
 
+const vendors = ['deepgram', 'openai', 'elevenlabs'] as const;
+
 function useAdminRun(key: string) {
   const { active } = useSession();
   const errorText = useErrorText();
@@ -98,7 +100,7 @@ function SettingsForm({ data, refreshing, onRefresh }: { data: Settings; refresh
       <Button kind="secondary" label={t('mom.admin.settings.testLark')} busy={action.busy === 'lark'} onPress={() => void test()} testID="settings-lark" />
       <Card>
         <Text variant="headline">{t('mom.admin.settings.transcription')}</Text>
-        {(['deepgram', 'openai', 'elevenlabs'] as const).map((vendor) => (
+        {vendors.map((vendor) => (
           <TextField key={vendor} label={t(`mom.admin.settings.model.${vendor}`)} hint={data.transcription.defaults[vendor]} value={form.models[vendor]} onChangeText={model(vendor)} autoCapitalize="none" autoCorrect={false} />
         ))}
         <ChoiceRow
