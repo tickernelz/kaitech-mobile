@@ -41,7 +41,7 @@ done
 [ -n "$booted" ] || { echo "emulator did not finish booting" >&2; exit 1; }
 config="$(adb shell am get-config 2>/dev/null | tr -d '\r' | grep -m1 '^config:' || true)"
 echo "framework config: ${config:-none} (expected en-rUS)" | tee "$out/locale.txt"
-[[ "$config" == *" en-rUS-"* ]] || { echo "emulator is not in en-US" >&2; exit 1; }
+[[ "$config" =~ (^|[\ -])en-rUS- ]] || { echo "emulator is not in en-US" >&2; exit 1; }
 
 adb shell cmd window user-rotation lock 0
 adb shell settings put global heads_up_notifications_enabled 0
