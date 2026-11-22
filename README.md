@@ -6,7 +6,7 @@
 
 The Kaitech app for Android and iOS. It brings the Kaitech Odoo workspace to phones and tablets: Discovery Programmes and the Coworker, chat, voice and video calls, and recorded meeting minutes, in English and Indonesian, on phones and tablets in portrait and landscape. The app stores no server address, key, or token; it signs in to the Kaitech server through the system browser, and another server can be chosen with "Use another server".
 
-| | |
+| Key fact | Value |
 |---|---|
 | Platforms | Android, iOS and iPadOS |
 | Stack | React Native with Expo SDK 58 (development build, not Expo Go) |
