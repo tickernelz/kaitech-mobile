@@ -974,7 +974,8 @@
       "doesNotFit": "No longer fits the line as it reads now",
       "choose": "Choose",
       "reject": "Reject",
-      "applyChosen": "Apply {{count}} chosen"
+      "applyChosen": "Apply {{count}} chosen",
+      "noSpeakers": "No speakers in this transcript"
     },
     "assist": {
       "group": "Working on this meeting",

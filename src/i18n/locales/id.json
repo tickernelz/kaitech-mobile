@@ -974,7 +974,8 @@
       "doesNotFit": "Sudah tidak cocok dengan baris saat ini",
       "choose": "Pilih",
       "reject": "Tolak",
-      "applyChosen": "Terapkan {{count}} yang dipilih"
+      "applyChosen": "Terapkan {{count}} yang dipilih",
+      "noSpeakers": "Transkrip ini belum punya pembicara"
     },
     "assist": {
       "group": "Kerja rapat ini",

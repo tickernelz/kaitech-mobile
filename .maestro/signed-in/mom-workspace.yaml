@@ -74,13 +74,10 @@ onFlowStart:
     id: header-back
 - tapOn:
     id: header-back
-- runFlow:
-    when:
-      notVisible:
-        id: mom-more
-    commands:
-      - tapOn:
-          id: tab-button-mom
+- scrollUntilVisible:
+    element:
+      id: mom-more
+    direction: UP
 - tapOn:
     id: mom-more
 - runFlow:

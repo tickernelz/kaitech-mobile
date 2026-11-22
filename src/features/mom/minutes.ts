@@ -25,7 +25,7 @@ export function whyNot(detail: Pick<Detail, 'why_not'>): string[] {
     .filter(Boolean);
 }
 
-export const itemFilters = ['awaiting', 'attention', 'APPROVED', 'REJECTED', 'all'] as const;
+export const itemFilters = ['all', 'awaiting', 'attention', 'APPROVED', 'REJECTED'] as const;
 export type ItemFilter = (typeof itemFilters)[number];
 
 export function filterItems(items: Item[], filter: ItemFilter, type: string): Item[] {

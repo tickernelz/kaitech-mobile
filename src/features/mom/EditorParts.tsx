@@ -47,6 +47,7 @@ function Speakers({ view }: { view: EditorView }) {
   return (
     <>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {view.speakers.length ? null : <StateView empty={{ title: t('mom.editor.noSpeakers'), icon: 'people' }} />}
         {view.speakers.map((speaker) => (
           <Card key={speaker.id} testID={`speaker-${speaker.id}`}>
             <Text variant="headline">{speaker.person || speaker.label}</Text>
@@ -79,7 +80,7 @@ function Speakers({ view }: { view: EditorView }) {
             ) : null}
           </Card>
         ))}
-        {editable ? (
+        {editable && view.speakers.length ? (
           <Button
             label={t('mom.editor.mapSave', { count: mappings.length })}
             disabled={!mappings.length}
