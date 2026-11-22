@@ -29,9 +29,16 @@ export function firstViewType(action: WindowAction): string {
   return first === 'tree' ? 'list' : first;
 }
 
-export async function openReport(account: Account, path: string, name: string) {
+function pathKey(path: string): string {
+  let hash = 0;
+  for (let at = 0; at < path.length; at += 1) hash = (Math.imul(hash, 31) + path.charCodeAt(at)) | 0;
+  return `p${(hash >>> 0).toString(36)}`;
+}
+
+export async function openReport(account: Account, path: string, name: string, attachmentId?: number) {
   const cookie = await sessionCookie(account);
-  const file = await downloadForOpening({ accountId: account.id, attachmentId: Date.now(), checksum: null }, `${account.origin}${path}`, name, { Cookie: cookie });
+  const key = attachmentId ? { accountId: account.id, attachmentId, checksum: null } : { accountId: account.id, attachmentId: 0, checksum: pathKey(path) };
+  const file = await downloadForOpening(key, `${account.origin}${path}`, name, { Cookie: cookie }, !attachmentId);
   if (await file.canPreview({ mimeType: 'application/pdf' })) await file.preview({ mimeType: 'application/pdf', title: name });
 }
 

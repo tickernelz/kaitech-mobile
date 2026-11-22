@@ -145,6 +145,14 @@ export function RecordScreen({ programme, model, rid, stashKey }: { programme: n
   const reload = useCallback(() => fetchState().then(apply).catch(setError), [fetchState, apply]);
 
   const values = useMemo(() => draft ?? record ?? { id: 0 }, [draft, record]);
+  const specsByName = useMemo(() => {
+    const map = new Map<string, FieldSpec[]>();
+    if (!loaded) return map;
+    for (const spec of [...loaded.form.title, ...loaded.form.blocks.flatMap((block) => block.items.filter((item): item is FieldSpec => item.kind === 'field'))]) {
+      map.set(spec.name, [...(map.get(spec.name) ?? []), spec]);
+    }
+    return map;
+  }, [loaded]);
   const editing = draft !== null;
   const fields = useMemo(() => loaded?.fields ?? {}, [loaded]);
   const scope = useMemo(() => scopeOf(values, fields, context, uid), [values, fields, context, uid]);
@@ -187,13 +195,15 @@ export function RecordScreen({ programme, model, rid, stashKey }: { programme: n
       Alert.alert(t('records.required'), absent.join(', '));
       return null;
     }
-    let vals: Values;
-    if (id) vals = changedValues(record ?? {}, draft, fields);
-    else {
-      vals = {};
+    const writable = (name: string) =>
+      (specsByName.get(name) ?? []).some((spec) => spec.forceSave || editable(spec, fields[name], scope));
+    const vals: Values = {};
+    if (id) {
+      for (const [name, value] of Object.entries(changedValues(record ?? {}, draft, fields))) if (writable(name)) vals[name] = value;
+    } else {
       for (const [name, value] of Object.entries(draft)) {
         const info = fields[name];
-        if (info && name !== 'id' && !(info.readonly && !loaded.form.names.includes(name))) vals[name] = writeValue(info, value);
+        if (info && name !== 'id' && writable(name)) vals[name] = writeValue(info, value);
       }
     }
     const saved = await saveRecord(account, model, id, vals, loaded.spec, context);
@@ -274,7 +284,7 @@ export function RecordScreen({ programme, model, rid, stashKey }: { programme: n
 
   const openFile = (row: Relation) => {
     if (!account) return;
-    void openReport(account, `/web/content/${row.id}?download=true`, row.display_name).catch(fail);
+    void openReport(account, `/web/content/${row.id}?download=true`, row.display_name, row.id).catch(fail);
   };
 
   if (!loaded || !record) {

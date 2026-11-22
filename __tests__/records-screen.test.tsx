@@ -109,3 +109,41 @@ it('shows the server reason when a button is refused and keeps the record as it 
   expect(view.getByText('Submit For Review')).toBeTruthy();
   alert.mockRestore();
 });
+
+const unreadableArch = `<form><header>
+  <button name="action_soon" type="object" string="Only Later" invisible="relativedelta(days=1)"/>
+  <button name="action_mystery" type="object" string="Unknown Rule" invisible="not_a_field"/>
+  <button name="action_submit" type="object" string="Submit For Review" invisible="state != 'draft'"/>
+  </header><sheet><group>
+  <field name="name"/>
+  <field name="note" readonly="relativedelta(days=1)"/>
+  </group></sheet></form>`;
+
+it('hides a button and locks a field whose condition the app cannot read, so a new server rule never opens them by mistake', async () => {
+  mocked.getViews.mockResolvedValue({ views: { form: { arch: unreadableArch, id: 1 } }, models: { 'ck.x': { fields } } });
+  mocked.readRecord.mockResolvedValue({ id: 7, name: 'Plan', state: 'draft', note: 'Locked text', display_name: 'Plan' });
+  const view = await render(<RecordScreen programme={1} model="ck.x" rid={7} />);
+  await view.findByText('Submit For Review');
+  expect(view.queryByText('Only Later')).toBeNull();
+  expect(view.queryByText('Unknown Rule')).toBeNull();
+  await fireEvent.press(view.getByTestId('record-edit'));
+  await view.findByDisplayValue('Plan');
+  expect(view.queryByDisplayValue('Locked text')).toBeNull();
+  expect(view.getByText('Locked text')).toBeTruthy();
+});
+
+it('saves only what the web would send: editable fields and force_save, never a readonly field an onchange filled', async () => {
+  const saveFields: api.Fields = { ...fields, code: { type: 'char', string: 'Code' }, ref: { type: 'char', string: 'Ref' } };
+  const saveArch = '<form><sheet><group><field name="name" on_change="1"/><field name="code" readonly="1"/><field name="ref" readonly="1" force_save="1"/><field name="note"/></group></sheet></form>';
+  mocked.getViews.mockResolvedValue({ views: { form: { arch: saveArch, id: 1 } }, models: { 'ck.x': { fields: saveFields } } });
+  mocked.readRecord.mockResolvedValue({ id: 7, name: 'Plan', code: 'C1', ref: 'R1', note: 'n', display_name: 'Plan' });
+  mocked.onchange.mockResolvedValue({ value: { code: 'C2', ref: 'R2' } });
+  mocked.saveRecord.mockResolvedValue({ id: 7, name: 'Plan B', code: 'C2', ref: 'R2', note: 'n', display_name: 'Plan B' });
+  const view = await render(<RecordScreen programme={1} model="ck.x" rid={7} />);
+  await fireEvent.press(await view.findByTestId('record-edit'));
+  await fireEvent.changeText(await view.findByDisplayValue('Plan'), 'Plan B');
+  await waitFor(() => expect(mocked.onchange).toHaveBeenCalled());
+  await fireEvent.press(view.getByTestId('record-save'));
+  await waitFor(() => expect(mocked.saveRecord).toHaveBeenCalled());
+  expect(mocked.saveRecord.mock.calls[0][3]).toEqual({ name: 'Plan B', ref: 'R2' });
+});

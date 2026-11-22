@@ -1,10 +1,16 @@
-import { groupsOfMenus, specOf, type Fields, type MenuRow } from '../src/features/records/api';
+import { rpc } from '../src/api/odoo';
+import type { Account } from '../src/auth/oauth';
+import { getViews, groupsOfMenus, specOf, type Fields, type MenuRow } from '../src/features/records/api';
 import { andDomains, defaultFilters, filtersDomain, normalize, orDomains, textDomain } from '../src/features/records/domain';
 import { changedValues, scopeOf, textOfValue, visible } from '../src/features/records/model';
 import { architectureBlock, processBlock } from '../src/features/records/shapes';
 import { compileForm, compileList, compileSearch } from '../src/features/records/views';
 
-jest.mock('../src/api/odoo', () => ({ rpc: jest.fn(), route: jest.fn(), serverLanguage: () => 'en_US' }));
+jest.mock('../src/api/odoo', () => ({ rpc: jest.fn(async () => ({ views: {}, models: {} })), route: jest.fn(), serverLanguage: () => 'en_US' }));
+jest.mock('../src/auth/session', () => {
+  const forgotten: ((id: string) => void)[] = [];
+  return { onAccountForgotten: (listener: (id: string) => void) => forgotten.push(listener), forget: (id: string) => forgotten.forEach((listener) => listener(id)) };
+});
 
 const fields: Fields = {
   name: { type: 'char', string: 'Name' },
@@ -203,5 +209,19 @@ describe('web screens drawn natively', () => {
     expect(block.lanes).toEqual(['Sales', 'Nobody']);
     expect(block.edges).toEqual([{ from: 'a', to: 'b', label: '' }]);
     expect(block.nodes[1]).toMatchObject({ lane: 'Nobody', tone: 'bad', detail: 'Nobody' });
+  });
+});
+
+describe('view cache', () => {
+  it('asks the server again after the account signs out, so a changed group never shows stale buttons', async () => {
+    const account = { id: 'u2_x' } as Account;
+    const mockedRpc = rpc as jest.Mock;
+    mockedRpc.mockClear();
+    await getViews(account, 'ck.raid', [[false, 'form']]);
+    await getViews(account, 'ck.raid', [[false, 'form']]);
+    expect(mockedRpc).toHaveBeenCalledTimes(1);
+    jest.requireMock<{ forget: (id: string) => void }>('../src/auth/session').forget('u2_x');
+    await getViews(account, 'ck.raid', [[false, 'form']]);
+    expect(mockedRpc).toHaveBeenCalledTimes(2);
   });
 });

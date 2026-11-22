@@ -27,6 +27,7 @@ export type FieldSpec = {
   domain?: string;
   options?: string;
   placeholder?: string;
+  forceSave: boolean;
 };
 
 export type TextSpec = { kind: 'text'; text: string; invisible: string[]; tone: 'info' | 'warn' | 'danger' | 'plain' };
@@ -114,6 +115,7 @@ function fieldOf(node: XmlNode, invisible: string[]): FieldSpec {
     domain: node.attrs.domain,
     options: node.attrs.options,
     placeholder: node.attrs.placeholder,
+    forceSave: node.attrs.force_save === '1' || node.attrs.force_save === 'True',
   };
 }
 

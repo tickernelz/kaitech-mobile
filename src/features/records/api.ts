@@ -1,5 +1,6 @@
 import { route, rpc, serverLanguage } from '../../api/odoo';
 import type { Account } from '../../auth/oauth';
+import { onAccountForgotten } from '../../auth/session';
 
 export type FieldInfo = {
   type: string;
@@ -128,9 +129,9 @@ export function getViews(account: Account, model: string, refs: ViewRef[]): Prom
   return held;
 }
 
-export function forgetViews() {
-  viewCache.clear();
-}
+onAccountForgotten((accountId) => {
+  for (const key of [...viewCache.keys()]) if (key.startsWith(`${accountId}|`)) viewCache.delete(key);
+});
 
 export function specOf(names: Iterable<string>, fields: Fields): Spec {
   const spec: Spec = {};
