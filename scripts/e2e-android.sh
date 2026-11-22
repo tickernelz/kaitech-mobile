@@ -100,6 +100,7 @@ adb shell dumpsys window displays | tr -d '\r' | sed -n '/DisplayRotation/,/^ *$
 read -ra flows <<< "${E2E_FLOWS:-.maestro}"
 signed_in=()
 if [ -n "${E2E_LOGIN:-}" ]; then
+  adb shell settings put global heads_up_notifications_enabled 0
   signed_in=(
     -e LOGIN="$E2E_LOGIN" -e PASSWORD="$E2E_PASSWORD"
     -e SERVER="$E2E_SERVER" -e DB="$E2E_DB"
