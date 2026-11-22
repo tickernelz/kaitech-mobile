@@ -60,7 +60,7 @@ boot() {
   ensure_avd "$size"
   echo "$size" > "$state/slot$slot.size"
   echo "booting kaitech-$size as $device (gpu $gpu)" >&2
-  systemd-run --user --collect -q -u "$(unit "$slot")" -p Nice=10 -p CPUQuota=400% -p MemoryMax=6G \
+  systemd-run --user --collect -q -u "$(unit "$slot")" -p Nice=10 -p CPUQuota=400% -p MemoryMax=8G \
     "$emulator_bin" -avd "kaitech-$size" -port "$(port "$slot")" -read-only -no-snapshot -gpu "$gpu" \
     -no-window -no-audio -no-boot-anim -no-metrics -camera-back none
   for _ in $(seq 1 150); do

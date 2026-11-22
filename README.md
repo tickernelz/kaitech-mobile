@@ -265,7 +265,7 @@ scripts/emulator.sh stop
 ```
 
 - Dua AVD bersama, `kaitech-phone` (`pixel_6`) dan `kaitech-tablet` (`pixel_tablet`), Android 15 `google_apis` x86_64, dibuat otomatis saat pertama dipakai dengan RAM bawaan profil, sama dengan CI.
-- Emulator jalan dengan `-gpu host -read-only -no-snapshot -no-window -no-audio -no-boot-anim` sebagai unit systemd pengguna `kaitech-emulator-<slot>` (`Nice=10`, `CPUQuota=400%`, `MemoryMax=6G`). `-read-only` membuat setiap boot bersih dan membolehkan beberapa emulator dari AVD yang sama.
+- Emulator jalan dengan `-gpu host -read-only -no-snapshot -no-window -no-audio -no-boot-anim` sebagai unit systemd pengguna `kaitech-emulator-<slot>` (`Nice=10`, `CPUQuota=400%`, `MemoryMax=8G`). `-read-only` membuat setiap boot bersih dan membolehkan beberapa emulator dari AVD yang sama.
 - Paling banyak `KAITECH_EMULATOR_SLOTS` (bawaan 3) emulator hidup di PC, dijaga `flock` per slot di `$XDG_RUNTIME_DIR/kaitech-emulator`. Perintah yang datang saat semua slot terpakai menunggu giliran.
 - Emulator yang sudah hidup dengan ukuran yang sama dipakai ulang: launcher menjalankan `pm clear io.kaitech.mobile`, lalu perintahmu dengan `ANDROID_SERIAL` menunjuk emulator itu, di bawah `nice`. `adb` mengikuti `ANDROID_SERIAL`, Maestro tidak: selalu beri `maestro --device "$ANDROID_SERIAL"`, karena tanpa itu Maestro memilih perangkat lain yang tersambung, termasuk ponsel fisik lewat USB. Emulator yang menganggur `KAITECH_EMULATOR_IDLE_MINUTES` (bawaan 30) menit dimatikan oleh timer `kaitech-emulator-reap-<slot>`.
 - `KAITECH_EMULATOR_GPU=swangle_indirect` hanya untuk membandingkan atau bila GPU host bermasalah; render software adalah biaya CPU terbesar emulator.
