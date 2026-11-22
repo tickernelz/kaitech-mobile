@@ -37,6 +37,16 @@ Never commit secrets, server addresses, client data, or credential files. Sign-i
 
 E2E flows live in `.maestro/` and run on an Android emulator in CI with a screen recording artifact.
 
+## Pull requests and CI
+
+CI runners are the bottleneck; `docs/ci.md` has the details.
+
+- Open pull requests as drafts. Drafts run only gitleaks and lint, typecheck, unit; the e2e matrix, iOS and APK run once the pull request is marked ready, and on every push after.
+- Push once per step, after lint, typecheck and the related unit tests pass locally. Never push an intermediate commit just to see CI.
+- At most two ready pull requests per author; the rest stay drafts.
+- Request review when CI is green on the final SHA, not when the pull request opens.
+- Update a pull request from `main` once, when it is next in line, green and approved, and merge in the order in `docs/ci.md`.
+
 ## Rules
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.

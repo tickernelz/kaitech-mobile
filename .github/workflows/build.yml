@@ -2,6 +2,11 @@ name: Build
 
 on:
   workflow_call:
+    inputs:
+      docs_only:
+        description: The pull request changes only docs/** or README.md, so the app is not built or run.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -14,6 +19,7 @@ env:
 jobs:
   android-e2e:
     name: android apk x86_64 (e2e)
+    if: ${{ !inputs.docs_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -178,6 +184,7 @@ jobs:
 
   ios:
     name: ios ipa (unsigned)
+    if: ${{ !inputs.docs_only }}
     runs-on: xcode-27
     timeout-minutes: 75
     steps:
@@ -420,7 +427,7 @@ jobs:
   e2e-android:
     name: e2e android ${{ matrix.locale }}
     needs: [e2e-android-cell, e2e-android-rows]
-    if: always()
+    if: always() && !inputs.docs_only
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
