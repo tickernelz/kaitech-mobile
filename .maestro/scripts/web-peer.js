@@ -18,7 +18,7 @@ function sessionCookie(login, password) {
   return 'session_id=' + match[1];
 }
 
-var asPhone = ACTION === 'conversation' || ACTION === 'conversationGone';
+var asPhone = ACTION === 'conversation' || ACTION === 'conversationGone' || ACTION === 'tidy';
 var cookie = asPhone ? sessionCookie(LOGIN, PASSWORD) : sessionCookie(WEB_LOGIN, WEB_PASSWORD);
 var channel = Number(CHANNEL_ID);
 
@@ -139,4 +139,37 @@ if (ACTION === 'conversationGone') {
   var left = callKw('ck.conversation', 'search_count', [[['id', '=', Number(TARGET)], ['active', 'in', [true, false]]]]);
   if (left !== 0) throw new Error('conversation ' + TARGET + ' still exists');
   output.peer = { gone: Number(TARGET) };
+}
+
+if (ACTION === 'tidy') {
+  var me = rpc('/web/session/get_session_info', {}, cookie).result.uid;
+  var hourAgo = new Date(Date.now() - 3600000).toISOString().replace('T', ' ').slice(0, 19);
+  var stale = callKw('mail.activity', 'search', [[
+    '&', ['user_id', '=', me],
+    '|', ['create_date', '<', hourAgo],
+    '|', ['summary', 'ilike', RUN],
+    ['res_name', '=', 'Rekaman ' + RUN.slice(-6)],
+  ]]);
+  var kept = [];
+  for (var t = 0; t < stale.length; t++) {
+    try {
+      callKw('mail.activity', 'action_feedback', [[stale[t]]], { feedback: 'e2e cleanup ' + RUN });
+    } catch (error) {
+      try {
+        callKw('mail.activity', 'unlink', [[stale[t]]]);
+      } catch (again) {
+        kept.push(stale[t]);
+      }
+    }
+  }
+  if (kept.length) throw new Error('could not close activities ' + kept.join(','));
+  var partner = rpc('/web/session/get_session_info', {}, cookie).result.partner_id;
+  var memberships = callKw('discuss.channel.member', 'search_read', [[
+    ['partner_id', '=', partner],
+    ['channel_id.channel_type', '=', 'group'],
+    '|', ['channel_id.name', 'ilike', RUN],
+    '&', ['channel_id.name', 'ilike', 'E2E'], ['channel_id.create_date', '<', hourAgo],
+  ]], { fields: ['channel_id'] });
+  for (var g = 0; g < memberships.length; g++) callKw('discuss.channel', 'action_unfollow', [[memberships[g].channel_id[0]]]);
+  output.peer = { tidied: stale.length, left: memberships.length };
 }

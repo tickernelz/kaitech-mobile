@@ -182,6 +182,7 @@ jobs:
           orientations: portrait
           flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
+          audio: 'true'
           save-snapshot: 'true'
 
   ipad:
