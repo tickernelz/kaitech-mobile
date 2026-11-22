@@ -1,6 +1,6 @@
 # Pull requests and CI
 
-CI runners are the bottleneck of this repository: one full CI run takes about 110 to 120 runner minutes (12 to 13 Android emulator jobs, an iOS build on `xcode-27`, an x86_64 APK, lint and unit tests). Every rule below keeps that capacity for runs that can merge, without skipping a check on code that ships.
+CI runners are the bottleneck of this repository: one full CI run holds a runner for every Android emulator job (one per size and locale, both orientations on the same emulator, plus the signed-in rows cells), an iOS build on `xcode-27`, an x86_64 APK, and lint and unit tests; `scripts/ci-metrics.mjs` measures its runner minutes. Every rule below keeps that capacity for runs that can merge, without skipping a check on code that ships.
 
 ## What runs when
 
