@@ -27,8 +27,10 @@ name: Open the seeded test meeting through MoM menu, All minutes, search by its 
 - runFlow: dismiss-keyboard.yaml
 - extendedWaitUntil:
     visible:
+      id: mom-record-[0-9]+
       text: .*${MINUTES_NAME}.*
     timeout: 30000
 - tapOn:
+    id: mom-record-[0-9]+
     text: .*${MINUTES_NAME}.*
     index: 0
