@@ -56,6 +56,18 @@ describe('Material 3 colour roles', () => {
     expect(failing).toEqual([]);
   });
 
+  test('Android titles keep Plus Jakarta Sans while body text takes the M3 scale', () => {
+    jest.isolateModules(() => {
+      const { Platform } = require('react-native') as typeof import('react-native');
+      Object.defineProperty(Platform, 'OS', { value: 'android', configurable: true });
+      const { type } = require('../src/theme') as typeof import('../src/theme');
+      expect(type.display.fontFamily).toBe('Plus Jakarta Sans');
+      expect(type.title.fontFamily).toBe('Plus Jakarta Sans');
+      expect(type.body).toMatchObject({ fontSize: 16, lineHeight: 24 });
+      expect('fontFamily' in type.body).toBe(false);
+    });
+  });
+
   test.each(schemes)('%s: every role is an opaque hex colour Compose accepts', (scheme) => {
     const bad = Object.entries(materialColors(scheme)).filter(([, value]) => !/^#[0-9A-F]{6}$/i.test(value));
     expect(bad).toEqual([]);

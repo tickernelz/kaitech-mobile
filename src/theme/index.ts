@@ -20,7 +20,7 @@ function brand(weight: keyof typeof brandFaces): TextStyle {
     : { fontFamily: 'Plus Jakarta Sans', fontWeight: weight };
 }
 
-export const type = {
+const kaitechType = {
   display: { ...brand('800'), fontSize: 34, lineHeight: 40, letterSpacing: -0.6 },
   title: { ...brand('700'), fontSize: 22, lineHeight: 28, letterSpacing: -0.2 },
   headline: { fontSize: 17, lineHeight: 22, fontWeight: '600' },
@@ -29,3 +29,15 @@ export const type = {
   footnote: { fontSize: 13, lineHeight: 18 },
   label: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
 } satisfies Record<string, TextStyle>;
+
+const materialType = {
+  display: { ...brand('800'), fontSize: 32, lineHeight: 40, letterSpacing: -0.4 },
+  title: { ...brand('700'), fontSize: 22, lineHeight: 28, letterSpacing: 0 },
+  headline: { fontSize: 16, lineHeight: 24, fontWeight: '600', letterSpacing: 0.15 },
+  body: { fontSize: 16, lineHeight: 24, letterSpacing: 0.5 },
+  callout: { fontSize: 14, lineHeight: 20, letterSpacing: 0.25 },
+  footnote: { fontSize: 12, lineHeight: 16, letterSpacing: 0.4 },
+  label: { fontSize: 12, lineHeight: 16, fontWeight: '500', letterSpacing: 0.5 },
+} satisfies Record<keyof typeof kaitechType, TextStyle>;
+
+export const type = Platform.OS === 'android' ? materialType : kaitechType;
