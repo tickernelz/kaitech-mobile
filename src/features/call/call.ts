@@ -289,6 +289,7 @@ export async function toggleRecording() {
 }
 
 export async function startCall(input: { channelId: number; channelName: string }) {
+  if (state.phase === 'incoming' && state.channelId === input.channelId) return answer();
   if (state.phase !== 'idle' && state.phase !== 'ended') return;
   const api = callClient();
   if (!api) return;

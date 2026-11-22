@@ -386,6 +386,20 @@ describe('an incoming call from the web or an older app', () => {
     expect(mockNative.ring[0]).toEqual(['Web Caller', 'call:incoming', 7, 30, 'dbA', 1]);
   });
 
+  it('joins the ringing call when Call is pressed in the same conversation, and ignores another conversation', async () => {
+    mockStore = ringing;
+    const call = load();
+    mockListeners[mockListeners.length - 1]({ type: 'incoming', channelId: 7, callId: 30, title: 'Web Caller' });
+    await flush();
+    await call.startCall({ channelId: 8, channelName: 'Other' });
+    expect(call.callState()).toMatchObject({ phase: 'incoming', channelId: 7 });
+    expect(mockJoins).toEqual([]);
+    await call.startCall({ channelId: 7, channelName: 'Web, HP' });
+    await flush();
+    expect(call.callState()).toMatchObject({ phase: 'active', channelId: 7, cameraOn: false });
+    expect(mockJoins).toEqual([{ channelId: 7, args: 0 }]);
+  });
+
   it('stays idle when the invitation is already gone', async () => {
     mockStore = {};
     const call = load();
