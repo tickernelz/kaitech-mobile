@@ -95,7 +95,8 @@ onFlowStart:
     timeout: 10000
 - tapOn:
     id: activity-summary
-- inputText: ' edited'
+- eraseText: 80
+- inputText: ${output.todo + ' edited'}
 - runFlow: ../shared/dismiss-keyboard.yaml
 - scrollUntilVisible:
     element:
