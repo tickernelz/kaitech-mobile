@@ -12,15 +12,15 @@ import { conversationById, discardSend, takeSendStart, fetchNewer, getChat, load
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
 import { bodyPreview, bodyShape } from '../markdown';
-import { isCallNotice, isRemoved, readersOf, readState } from '../odoo';
+import { isCallNotice, readersOf, readState } from '../odoo';
 import type { Message, Pending } from '../types';
 import { CallButtons } from '../../call/ui/CallButtons';
 import { Avatar } from './Avatar';
 import { Composer, type ComposerHandle } from './Composer';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
-import { MessageActions, type ActionOptions, type MessageAction } from './MessageActions';
-import { hasFeature } from '../features';
+import { MessageActions, type MessageAction } from './MessageActions';
+import { messageOptions } from '../messageOptions';
 import { markUnreadFrom, messageLink, removeMessage, setPinned, toggleStar, toggleTranslation, type Result } from '../messageActions';
 import { failureText } from './actions/failure';
 import { EmojiPicker } from './EmojiPicker';
@@ -41,7 +41,6 @@ type Row =
   | { kind: 'pending'; key: string; pending: Pending };
 
 const groupGapMs = 5 * 60 * 1000;
-const recallMs = 24 * 60 * 60 * 1000;
 const noticeMs = 4000;
 
 type SheetKind = 'emoji' | 'forward' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers';
@@ -189,34 +188,6 @@ export function ThreadView({
     if (!result.ok) setNotice(failureText(t, result));
     else if (done) setNotice(done);
   }, [t]);
-
-  const optionsFor = (message: Message): ActionOptions => {
-    const removed = isRemoved(message);
-    const comment = message.type === 'comment';
-    const mine = message.authorId === partnerId;
-    const editable = comment && !removed && (mine || features.isAdmin);
-    const recallClosed = hasFeature(features, 'recall_limit') && mine && actingAt - message.date > recallMs;
-    const fromMessage = hasFeature(features, 'task_from_message') && comment && !removed;
-    return {
-      emoji: !removed,
-      reply: !removed,
-      copy: !removed && !!plainText(message.body),
-      forward: hasFeature(features, 'forward') && comment && !removed,
-      edit: editable,
-      delete: editable && !recallClosed,
-      thread: type !== 'chat' && !thread.info?.parentId,
-      pin: comment && !removed,
-      star: !removed,
-      unread: true,
-      link: true,
-      translate: !!features.translateLanguage && comment && !removed && !!plainText(message.body),
-      task: fromMessage && features.canMakeTask,
-      activity: fromMessage,
-      meeting: hasFeature(features, 'meeting') && comment,
-      reactions: message.reactions.length > 0,
-      readers: hasFeature(features, 'read_by') && type === 'channel' && (mine || features.readByAdmin),
-    };
-  };
 
   const onAction = (action: MessageAction, message: Message) => {
     setActing(null);
@@ -423,7 +394,7 @@ export function ThreadView({
         message={acting}
         mine={acting?.authorId === partnerId}
         readers={acting ? readersOf(acting, thread.members, partnerId) : 0}
-        options={acting ? optionsFor(acting) : {}}
+        options={acting ? messageOptions(acting, { partnerId, features, channelType: type, inSubThread: !!thread.info?.parentId, now: actingAt }) : {}}
         onClose={() => setActing(null)}
         onReact={(message, content) => void react(message, content)}
         onAction={onAction}
