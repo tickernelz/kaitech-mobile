@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { intlLocale } from '../../../../i18n/language';
 import { space, useTheme } from '../../../../theme';
-import { Sheet, SheetRow } from '../../../../ui/Sheet';
+import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
 import { bodyPreview } from '../../markdown';
 import type { Result } from '../../messageActions';
@@ -61,7 +61,7 @@ export function ScheduledSheet({ channelId, onClose, onTakeBack, onNotice }: { c
       ) : null}
       {result?.ok
         ? result.value.map((item) => [
-            <SheetRow
+            <SheetItem
               key={item.id}
               icon="clock"
               label={bodyPreview(item.body) || t('list.files', { count: item.files })}
@@ -71,11 +71,11 @@ export function ScheduledSheet({ channelId, onClose, onTakeBack, onNotice }: { c
               testID={`scheduled-${item.id}`}
             />,
             open === item.id ? (
-              <SheetRow key={`${item.id}-now`} icon="send" label={t('scheduled.sendNow')} disabled={busy} onPress={() => void act(() => sendScheduledNow(item.id), t('scheduled.sent'))} testID="scheduled-send-now" />
+              <SheetItem key={`${item.id}-now`} icon="send" label={t('scheduled.sendNow')} disabled={busy} onPress={() => void act(() => sendScheduledNow(item.id), t('scheduled.sent'))} testID="scheduled-send-now" />
             ) : null,
-            open === item.id ? <SheetRow key={`${item.id}-edit`} icon="edit" label={t('scheduled.edit')} disabled={busy} onPress={() => void takeBack(item.id)} testID="scheduled-edit" /> : null,
+            open === item.id ? <SheetItem key={`${item.id}-edit`} icon="edit" label={t('scheduled.edit')} disabled={busy} onPress={() => void takeBack(item.id)} testID="scheduled-edit" /> : null,
             open === item.id ? (
-              <SheetRow key={`${item.id}-delete`} icon="trash" danger label={t('scheduled.cancel')} disabled={busy} onPress={() => void act(() => cancelScheduled(item.id), t('scheduled.cancelled'))} testID="scheduled-delete" />
+              <SheetItem key={`${item.id}-delete`} icon="trash" danger label={t('scheduled.cancel')} disabled={busy} onPress={() => void act(() => cancelScheduled(item.id), t('scheduled.cancelled'))} testID="scheduled-delete" />
             ) : null,
           ])
         : null}

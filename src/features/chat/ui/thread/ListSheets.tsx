@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, TextInput, View } from 'react-native';
 import { radius, space, useTheme } from '../../../../theme';
-import { Sheet, SheetRow } from '../../../../ui/Sheet';
+import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
 import { bodyPreview } from '../../markdown';
 import type { Result } from '../../messageActions';
@@ -37,7 +37,7 @@ function MessageRows({ messages, onOpen, empty }: { messages: Message[]; onOpen:
     );
   }
   return messages.map((message) => (
-    <SheetRow
+    <SheetItem
       key={message.id}
       label={bodyPreview(message.body) || t('list.files', { count: message.attachments.length })}
       detail={`${message.author} · ${dayLabel(message.date)} ${clock(message.date)}`}
@@ -114,7 +114,7 @@ export function FilesSheet({ channelId, onClose }: { channelId: number; onClose:
         {(files: Attachment[]) =>
           files.length ? (
             files.map((file) => (
-              <SheetRow
+              <SheetItem
                 key={file.id}
                 icon={file.mimetype.startsWith('image/') ? 'image' : file.voice ? 'mic' : 'file'}
                 label={file.name}
@@ -139,7 +139,7 @@ export function ThreadsSheet({ threads, onClose, onOpen }: { threads: { id: numb
   return (
     <Sheet title={t('threadActions.threads')} onClose={onClose} testID="threads-sheet">
       {threads.length ? (
-        threads.map((item) => <SheetRow key={item.id} icon="thread" label={item.name} onPress={() => onOpen(item.id)} testID={`sub-${item.id}`} />)
+        threads.map((item) => <SheetItem key={item.id} icon="thread" label={item.name} onPress={() => onOpen(item.id)} testID={`sub-${item.id}`} />)
       ) : (
         <View style={styles.pad}>
           <Text variant="callout" tone="inkSoft">

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { radius, space, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
-import { Sheet, SheetRow } from '../../../../ui/Sheet';
+import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
 import { TextField } from '../../../../ui/TextField';
 import { getChat, useChat } from '../../chat';
@@ -84,7 +84,7 @@ export function NewConversationSheet({ onClose, onOpen }: { onClose: () => void;
       </View>
       {kind === 'channel' ? <TextField label={t('newChat.name')} value={name} onChangeText={setName} testID="new-name" /> : null}
       {kind === 'channel' && canAnnounce ? (
-        <SheetRow icon="flag" label={t('newChat.announcement')} detail={t('newChat.announcementHint')} selected={announcement} onPress={() => setAnnouncement((value) => !value)} testID="new-announcement" />
+        <SheetItem icon="flag" label={t('newChat.announcement')} detail={t('newChat.announcementHint')} selected={announcement} onPress={() => setAnnouncement((value) => !value)} testID="new-announcement" />
       ) : null}
       <Text variant="label" tone="inkSoft">
         {kind === 'chat' ? t('newChat.with') : t('newChat.members')}

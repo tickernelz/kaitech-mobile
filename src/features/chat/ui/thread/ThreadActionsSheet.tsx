@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
-import { Sheet, SheetRow } from '../../../../ui/Sheet';
+import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { hasFeature, type ChatFeatures } from '../../features';
 import type { ChannelInfo } from '../../odoo';
 import { deleteThread, leave, pinConversation, setAnnouncement, setAutoTranslate, type TakenBack } from '../../threadActions';
@@ -121,20 +121,20 @@ export function ThreadActionsSheet({
   };
   return (
     <Sheet title={name} onClose={close} testID="thread-actions">
-      <SheetRow icon={muted ? 'bellOff' : 'bell'} label={t('threadActions.notifications')} onPress={act(onNotify)} testID="thread-action-notify" />
-      {onWork ? <SheetRow icon="sparkle" label={t('threadActionsWork.label')} onPress={act(onWork)} testID="thread-action-work" /> : null}
-      <SheetRow icon="search" label={t('threadActions.search')} onPress={go('search')} testID="thread-action-search" />
-      <SheetRow icon="pin" label={t('threadActions.pinned')} onPress={go('pinned')} testID="thread-action-pinned" />
-      <SheetRow icon="file" label={t('threadActions.files')} onPress={go('files')} testID="thread-action-files" />
-      {on.threads ? <SheetRow icon="thread" label={t('threadActions.threads')} detail={threads.length ? String(threads.length) : undefined} onPress={go('threads')} testID="thread-action-threads" /> : null}
-      {type !== 'chat' ? <SheetRow icon="people" label={t('threadActions.members', { count: info?.memberCount ?? 0 })} onPress={go('members')} testID="thread-action-members" /> : null}
-      {on.scheduled ? <SheetRow icon="clock" label={t('threadActions.scheduled')} onPress={go('scheduled')} testID="thread-action-scheduled" /> : null}
-      {on.meeting ? <SheetRow icon="calendar" label={t('threadActions.meeting')} onPress={go('meeting')} testID="thread-action-meeting" /> : null}
+      <SheetItem icon={muted ? 'bellOff' : 'bell'} label={t('threadActions.notifications')} onPress={act(onNotify)} testID="thread-action-notify" />
+      {onWork ? <SheetItem icon="sparkle" label={t('threadActionsWork.label')} onPress={act(onWork)} testID="thread-action-work" /> : null}
+      <SheetItem icon="search" label={t('threadActions.search')} onPress={go('search')} testID="thread-action-search" />
+      <SheetItem icon="pin" label={t('threadActions.pinned')} onPress={go('pinned')} testID="thread-action-pinned" />
+      <SheetItem icon="file" label={t('threadActions.files')} onPress={go('files')} testID="thread-action-files" />
+      {on.threads ? <SheetItem icon="thread" label={t('threadActions.threads')} detail={threads.length ? String(threads.length) : undefined} onPress={go('threads')} testID="thread-action-threads" /> : null}
+      {type !== 'chat' ? <SheetItem icon="people" label={t('threadActions.members', { count: info?.memberCount ?? 0 })} onPress={go('members')} testID="thread-action-members" /> : null}
+      {on.scheduled ? <SheetItem icon="clock" label={t('threadActions.scheduled')} onPress={go('scheduled')} testID="thread-action-scheduled" /> : null}
+      {on.meeting ? <SheetItem icon="calendar" label={t('threadActions.meeting')} onPress={go('meeting')} testID="thread-action-meeting" /> : null}
       {on.pin ? (
-        <SheetRow icon="pin" label={info?.pinned ? t('threadActions.unpinConversation') : t('threadActions.pinConversation')} onPress={act(() => void pinConversation(channelId, !info?.pinned).then(result(info?.pinned ? t('threadActions.unpinned') : t('threadActions.pinnedDone'))))} testID="thread-action-pin" />
+        <SheetItem icon="pin" label={info?.pinned ? t('threadActions.unpinConversation') : t('threadActions.pinConversation')} onPress={act(() => void pinConversation(channelId, !info?.pinned).then(result(info?.pinned ? t('threadActions.unpinned') : t('threadActions.pinnedDone'))))} testID="thread-action-pin" />
       ) : null}
       {features.translateLanguage ? (
-        <SheetRow
+        <SheetItem
           icon="globe"
           label={features.translateAuto ? t('threadActions.translateOff') : t('threadActions.translateOn', { language: features.translateLanguage })}
           onPress={act(() => void setAutoTranslate(!features.translateAuto).then(result(features.translateAuto ? t('threadActions.translateStopped') : t('threadActions.translateStarted'))))}
@@ -142,13 +142,13 @@ export function ThreadActionsSheet({
         />
       ) : null}
       {manages ? (
-        <SheetRow icon="flag" label={info?.announcement ? t('threadActions.announcementOff') : t('threadActions.announcementOn')} onPress={act(() => void setAnnouncement(channelId, !info?.announcement).then(result(t('threadActions.announcementChanged'))))} testID="thread-action-announcement" />
+        <SheetItem icon="flag" label={info?.announcement ? t('threadActions.announcementOff') : t('threadActions.announcementOn')} onPress={act(() => void setAnnouncement(channelId, !info?.announcement).then(result(t('threadActions.announcementChanged'))))} testID="thread-action-announcement" />
       ) : null}
-      {canRename ? <SheetRow icon="edit" label={type === 'chat' ? t('threadActions.rename') : t('threadActions.info')} onPress={go('rename')} testID="thread-action-rename" /> : null}
-      {onBackground ? <SheetRow icon="image" label={t('thread.background')} onPress={act(onBackground)} testID="thread-action-background" /> : null}
-      <SheetRow icon="checkDouble" label={t('threadActions.markRead')} onPress={act(onMarkRead)} testID="thread-action-read" />
-      {sub && info?.createdBy === myUserId ? <SheetRow icon="trash" label={t('threadActions.delete')} danger onPress={confirmDelete} testID="thread-action-delete" /> : null}
-      {!sub ? <SheetRow icon="back" label={type === 'chat' ? t('threadActions.hide') : t('threadActions.leave')} danger onPress={confirmLeave} testID="thread-action-leave" /> : null}
+      {canRename ? <SheetItem icon="edit" label={type === 'chat' ? t('threadActions.rename') : t('threadActions.info')} onPress={go('rename')} testID="thread-action-rename" /> : null}
+      {onBackground ? <SheetItem icon="image" label={t('thread.background')} onPress={act(onBackground)} testID="thread-action-background" /> : null}
+      <SheetItem icon="checkDouble" label={t('threadActions.markRead')} onPress={act(onMarkRead)} testID="thread-action-read" />
+      {sub && info?.createdBy === myUserId ? <SheetItem icon="trash" label={t('threadActions.delete')} danger onPress={confirmDelete} testID="thread-action-delete" /> : null}
+      {!sub ? <SheetItem icon="back" label={type === 'chat' ? t('threadActions.hide') : t('threadActions.leave')} danger onPress={confirmLeave} testID="thread-action-leave" /> : null}
     </Sheet>
   );
 }

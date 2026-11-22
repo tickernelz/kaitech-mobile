@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { space, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
-import { Sheet, SheetRow } from '../../../../ui/Sheet';
+import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
 import type { Person, Result } from '../../messageActions';
 import { invitable, invite, membersOf, setRole, type Member } from '../../threadActions';
@@ -36,7 +36,7 @@ export function MembersSheet({ channelId, manages, canInvite, onClose, onNotice 
   if (inviting) return <InviteSheet channelId={channelId} onClose={() => setInviting(false)} onDone={(text) => { setInviting(false); onNotice(text); load(); }} />;
   return (
     <Sheet title={t('members.title')} onClose={onClose} testID="members-sheet">
-      {canInvite ? <SheetRow icon="people" label={t('members.invite')} onPress={() => setInviting(true)} testID="members-invite" /> : null}
+      {canInvite ? <SheetItem icon="people" label={t('members.invite')} onPress={() => setInviting(true)} testID="members-invite" /> : null}
       {error ? (
         <Text variant="footnote" tone="danger" accessibilityLiveRegion="polite">
           {error}
@@ -50,7 +50,7 @@ export function MembersSheet({ channelId, manages, canInvite, onClose, onNotice 
       ) : null}
       {result?.ok
         ? result.value.map((member) => (
-            <SheetRow
+            <SheetItem
               key={member.memberId}
               label={member.name}
               detail={member.role !== 'member' ? t(`members.role.${member.role === 'owner' ? 'owner' : 'admin'}`) : undefined}

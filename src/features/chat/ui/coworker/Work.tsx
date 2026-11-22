@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { radius, space, useTheme } from '../../../../theme';
 import { Icon } from '../../../../ui/icons';
-import { Sheet, SheetRow } from '../../../../ui/Sheet';
+import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
 import { stopWork, type Work } from '../../coworker';
 import { failureText } from '../actions/failure';
@@ -37,7 +37,7 @@ export function WorkSheet({ works, myUserId, onClose, onJump, onNotice }: { work
       )}
       {works.map((work) => (
         <View key={work.turnId} style={styles.item}>
-          <SheetRow
+          <SheetItem
             icon={work.state === 'stopped' ? 'stop' : 'sparkle'}
             label={work.state === 'stopped' ? t('work.stopped', { agent: work.agent, name: work.stoppedBy || work.asker }) : work.step ? t('work.step', { agent: work.agent, step: work.step }) : t(`work.state.${work.state === 'queued' ? 'queued' : work.state === 'away' ? 'away' : 'running'}`, { agent: work.agent })}
             detail={work.detail || t('work.askedBy', { name: work.asker })}
@@ -48,7 +48,7 @@ export function WorkSheet({ works, myUserId, onClose, onJump, onNotice }: { work
             testID={`work-${work.turnId}`}
           />
           {work.askerUserId === myUserId && work.state !== 'stopped' ? (
-            <SheetRow
+            <SheetItem
               icon="stop"
               danger
               label={t('work.stop')}
