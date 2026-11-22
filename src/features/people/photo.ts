@@ -27,13 +27,17 @@ export function settle(current: PhotoEntry | undefined, photo: Photo | null, now
   return { photo, at: now };
 }
 
-export function photosInStore(store: unknown): [number, Photo | null][] {
+export function partnersInStore(store: unknown): (Record<string, unknown> & { id: number })[] {
   if (!isRecord(store)) return [];
   const raw = store['res.partner'];
-  const partners = Array.isArray(raw) ? raw : raw === undefined ? [] : [raw];
+  const partners: unknown[] = Array.isArray(raw) ? raw : raw === undefined ? [] : [raw];
+  return partners.filter((partner): partner is Record<string, unknown> & { id: number } => isRecord(partner) && typeof partner.id === 'number');
+}
+
+export function photosInStore(store: unknown): [number, Photo | null][] {
   const out: [number, Photo | null][] = [];
-  for (const partner of partners) {
-    if (!isRecord(partner) || typeof partner.id !== 'number' || !('kaitech_mobile_photo' in partner)) continue;
+  for (const partner of partnersInStore(store)) {
+    if (!('kaitech_mobile_photo' in partner)) continue;
     const photo = photoFrom(partner.kaitech_mobile_photo);
     if (photo !== undefined) out.push([partner.id, photo]);
   }

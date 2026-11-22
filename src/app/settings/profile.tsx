@@ -4,7 +4,8 @@ import { ActivityIndicator, Alert, Image, StyleSheet, View } from 'react-native'
 import { useSession } from '../../auth/session';
 import { errorCode } from '../../features/chat/api';
 import { Avatar } from '../../features/chat/ui/Avatar';
-import { cleanName, nameLimit, pickProfilePhoto, removeProfilePhoto, renameProfile, uploadProfilePhoto, useProfile, type PhotoSource } from '../../features/profile/profile';
+import { cleanStatus, fitStatus, statusLength, statusLimit } from '../../features/people/status';
+import { cleanName, nameLimit, pickProfilePhoto, removeProfilePhoto, saveProfile, uploadProfilePhoto, useProfile, type PhotoSource, type ProfileChanges } from '../../features/profile/profile';
 import { SettingsPage } from '../../screens/SettingsPage';
 import { space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
@@ -13,7 +14,7 @@ import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 
 const photoSize = 128;
-const knownErrors = ['name_invalid', 'photo_type_unsupported', 'photo_too_large', 'photo_invalid', 'network'];
+const knownErrors = ['name_invalid', 'status_too_long', 'status_invalid', 'photo_type_unsupported', 'photo_too_large', 'photo_invalid', 'network'];
 
 export default function ProfileSettings() {
   const { t } = useTranslation();
@@ -21,6 +22,7 @@ export default function ProfileSettings() {
   const { active } = useSession();
   const profile = useProfile();
   const [name, setName] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const [staged, setStaged] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +31,11 @@ export default function ProfileSettings() {
   const typed = name ?? current;
   const cleaned = cleanName(typed);
   const nameChanged = cleaned !== current && cleaned.length > 0 && cleaned.length <= nameLimit;
+  const currentStatus = profile.data?.status ?? '';
+  const typedStatus = status ?? currentStatus;
+  const statusChanged = profile.data !== undefined && cleanStatus(typedStatus) !== currentStatus;
+  const statusCount = statusLength(typedStatus);
+  const changes: ProfileChanges = { ...(nameChanged ? { name: cleaned } : {}), ...(statusChanged ? { status: typedStatus } : {}) };
   const hasPhoto = !!profile.data?.photo;
 
   const run = async (task: () => Promise<unknown>) => {
@@ -101,6 +108,24 @@ export default function ProfileSettings() {
       <Text variant="footnote" tone="inkSoft">
         {active.login}
       </Text>
+      <TextField
+        label={t('profile.status')}
+        value={typedStatus}
+        onChangeText={(text) => setStatus(fitStatus(text))}
+        placeholder={t('profile.statusEmpty')}
+        autoCapitalize="sentences"
+        returnKeyType="done"
+        editable={profile.data !== undefined}
+        testID="profile-status"
+      />
+      <Text
+        variant="footnote"
+        tone="inkFaint"
+        style={styles.count}
+        accessibilityLabel={t('profile.statusCount', { used: statusCount, limit: statusLimit })}
+        testID="profile-status-count">
+        {`${statusCount}/${statusLimit}`}
+      </Text>
       {error ? (
         <Text variant="footnote" tone="dangerInk" accessibilityLiveRegion="polite" testID="profile-error">
           {error}
@@ -108,8 +133,14 @@ export default function ProfileSettings() {
       ) : null}
       <Button
         label={t('profile.save')}
-        disabled={!nameChanged || busy}
-        onPress={() => void run(() => renameProfile(active, cleaned)).then((done) => done && setName(null))}
+        disabled={(!nameChanged && !statusChanged) || busy}
+        onPress={() =>
+          void run(() => saveProfile(active, changes)).then((done) => {
+            if (!done) return;
+            setName(null);
+            setStatus(null);
+          })
+        }
         testID="profile-save"
       />
     </SettingsPage>
@@ -120,4 +151,5 @@ const styles = StyleSheet.create({
   photo: { alignSelf: 'center', width: photoSize, height: photoSize, borderRadius: photoSize / 2, overflow: 'hidden', justifyContent: 'center' },
   staged: { width: photoSize, height: photoSize, borderRadius: photoSize / 2, borderWidth: 3 },
   actions: { flexDirection: 'row', justifyContent: 'center', gap: space.lg },
+  count: { alignSelf: 'flex-end', fontVariant: ['tabular-nums'] },
 });
