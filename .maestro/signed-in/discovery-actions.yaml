@@ -100,14 +100,23 @@ onFlowStart:
 - inputText: RAID
 - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
-    text: RAID
-    index: -1
+    id: section-[0-9]+
+    index: 0
 - extendedWaitUntil:
     visible:
-      text: ${RAID_ACCEPT}
+      id: list-search
     timeout: 30000
 - tapOn:
-    text: ${RAID_ACCEPT}
+    id: list-search
+- inputText: ${RAID_ACCEPT}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- extendedWaitUntil:
+    visible:
+      id: list-row-[0-9]+
+    timeout: 30000
+- tapOn:
+    id: list-row-[0-9]+
+    index: 0
 - tapOn:
     id: button-action_accept
 - extendedWaitUntil:
@@ -124,12 +133,18 @@ onFlowStart:
     id: button-action_accept
 - tapOn:
     id: header-back
+- tapOn:
+    id: list-search
+- eraseText: 60
+- inputText: ${RAID_REJECT}
+- runFlow: ../shared/dismiss-keyboard.yaml
 - extendedWaitUntil:
     visible:
       text: ${RAID_REJECT}
     timeout: 30000
 - tapOn:
-    text: ${RAID_REJECT}
+    id: list-row-[0-9]+
+    index: 0
 - tapOn:
     id: button-action_reject
 - extendedWaitUntil:

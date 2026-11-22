@@ -13,8 +13,8 @@ name: Open the section named SECTION or SECTION_ID, open the record named RECORD
 - inputText: "${APP_LANGUAGE === 'id' ? SECTION_ID : SECTION}"
 - runFlow: dismiss-keyboard.yaml
 - tapOn:
-    text: "${APP_LANGUAGE === 'id' ? SECTION_ID : SECTION}"
-    index: -1
+    id: section-[0-9]+
+    index: 0
 - extendedWaitUntil:
     visible:
       id: list-search
@@ -25,11 +25,11 @@ name: Open the section named SECTION or SECTION_ID, open the record named RECORD
 - runFlow: dismiss-keyboard.yaml
 - extendedWaitUntil:
     visible:
-      text: ${RECORD}
+      id: list-row-[0-9]+
     timeout: 30000
 - tapOn:
-    text: ${RECORD}
-    index: -1
+    id: list-row-[0-9]+
+    index: 0
 - extendedWaitUntil:
     visible:
       id: button-${BUTTON}
