@@ -18,7 +18,7 @@ The superapp must be responsive on phones and tablets, Android and iOS, portrait
 |---|---|---|---|---|---|---|
 | Android 15 (API 35) | `phone` | emulator profile `pixel_6` | 411 dp (compact) / 914 dp | portrait, landscape | `en-US`, `id-ID` | must be green |
 | Android 15 (API 35) | `tablet` | emulator profile `pixel_tablet` (10 inch) | 800 dp (medium) / 1280 dp (expanded) | portrait, landscape | `en-US`, `id-ID` | must be green |
-| iPadOS (latest simulator runtime on the `xcode-27` runner) | `tablet` | iPad Pro 13-inch simulator (or another iPad when it is missing) | see `simulator.txt` | portrait, landscape | `en-US` | trial in the `iPad trial` workflow (push to `main`, tags, manual), non-blocking (`continue-on-error`); the Maestro XCTest driver gets a 10-minute start timeout (`MAESTRO_DRIVER_STARTUP_TIMEOUT=600000`) and the cell is retried once only when it fails with `IOSDriverTimeoutException` |
+| iPadOS (latest simulator runtime on the `macos-26` runner) | `tablet` | iPad Pro 13-inch simulator (or another iPad when it is missing) | see `simulator.txt` | portrait, landscape | `en-US` | job `ipad simulator en-US` in the full `E2E` run (nightly, manual), not a merge gate; the Maestro XCTest driver gets a 10-minute start timeout (`MAESTRO_DRIVER_STARTUP_TIMEOUT=600000`) and the cell is retried once only when it fails with `IOSDriverTimeoutException` |
 
 Android orientation is set through `user_rotation`, taking the panel's natural orientation into account (tablets are naturally landscape); the iPad uses Maestro's `setOrientation` in the `onFlowStart` hook (`.maestro/shared/orientation.yaml`), because the Maestro XCTest runner returns the simulator to portrait on every new session. Every new flow must include that hook:
 
@@ -27,7 +27,7 @@ onFlowStart:
   - runFlow: shared/orientation.yaml
 ```
 
-On Android the hook does nothing. The panel size, density, and rotation of each cell are recorded in `display.txt`. The `e2e android en-US` and `e2e android id-ID` status checks in branch protection are green only when all eight Android cells are green. The iPad simulator needs no signature or Apple account; a real iPad has not been tested.
+On Android the hook does nothing. The panel size, density, and rotation of each cell are recorded in `display.txt`. The iPad simulator needs no signature or Apple account; a real iPad has not been tested.
 
 Screenshots are named `<screen>-<size>-<orientation>-<language>.png`, for example `launch-tablet-landscape-id.png`, through a shared subflow:
 
