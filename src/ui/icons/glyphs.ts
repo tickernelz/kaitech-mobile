@@ -126,12 +126,10 @@ export const glyphs = {
   zoomIn: { parts: [line(circle(10.5, 10.5, 7)), line('M15.5 15.5 21 21'), line('M7.5 10.5h6M10.5 7.5v6')] },
   zoomOut: { parts: [line(circle(10.5, 10.5, 7)), line('M15.5 15.5 21 21'), line('M7.5 10.5h6')] },
   table: { parts: [body(tile(3, 4, 21, 20)), cut('M3 9.5h18M3 14.5h18M9 9.5V20')] },
-  pin: { parts: pinParts },
   pinOff: { parts: [...pinParts, fullSlash] },
   archive: { parts: [...archiveParts, line('M10 12.5h4')] },
   unarchive: { parts: [...archiveParts, line('M12 17.5V12M9.5 14.5 12 12l2.5 2.5')] },
   leave: { parts: [line('M13 4H6v16h7'), line('M10 12h10.5M17 8.5l3.5 3.5-3.5 3.5')] },
-  unread: { parts: [body(bubble), cutDot(circle(12, 11, 2.5))] },
 } satisfies Record<string, Glyph>;
 
 export type IconName = keyof typeof glyphs;
