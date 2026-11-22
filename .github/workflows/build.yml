@@ -398,6 +398,41 @@ jobs:
             hide_direct: 'true'
     steps: *e2e-android-steps
 
+  e2e-android-call:
+    name: e2e android call ${{ matrix.size }} ${{ matrix.locale }}
+    needs: e2e-android-rows
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      E2E_APK_ARTIFACT: e2e-apk-x86_64
+      E2E_LABEL: call-
+      E2E_FLOWS: .maestro/signed-in/call.yaml
+      E2E_CALL_PEER: '1'
+      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
+      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
+      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
+      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
+      E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
+      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
+      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
+      E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
+      E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        size: [phone, tablet]
+        orientation: [portrait]
+        locale: [en-US, id-ID]
+        include:
+          - size: phone
+            profile: pixel_6
+          - size: tablet
+            profile: pixel_tablet
+    steps: *e2e-android-steps
+
   e2e-android-universal:
     name: e2e android universal apk
     needs: android
@@ -419,7 +454,7 @@ jobs:
 
   e2e-android:
     name: e2e android ${{ matrix.locale }}
-    needs: [e2e-android-cell, e2e-android-rows]
+    needs: [e2e-android-cell, e2e-android-rows, e2e-android-call]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -432,7 +467,9 @@ jobs:
         env:
           CELLS: ${{ needs.e2e-android-cell.result }}
           ROWS: ${{ needs.e2e-android-rows.result }}
+          CALL: ${{ needs.e2e-android-call.result }}
         run: |
-          echo "e2e android cells: $CELLS, signed-in rows: $ROWS"
+          echo "e2e android cells: $CELLS, signed-in rows: $ROWS, call: $CALL"
           [ "$CELLS" = success ]
           [ "$ROWS" = success ] || [ "$ROWS" = skipped ]
+          [ "$CALL" = success ] || [ "$CALL" = skipped ]

@@ -111,6 +111,21 @@ if [ -n "${E2E_LOGIN:-}" ]; then
   )
 fi
 
+peer_state="$(mktemp -d)/call-peer.json"
+if [ "${E2E_CALL_PEER:-}" = 1 ]; then
+  export CALL_SERVER="$E2E_SERVER" CALL_DB="$E2E_DB" CALL_LOGIN="$E2E_WEB_LOGIN" CALL_PASSWORD="$E2E_WEB_PASSWORD"
+  export CALL_CHANNEL_ID="$E2E_CHANNEL_ID" CALL_VIDEO=1 CALL_PEER_STATE="$peer_state" CALL_PEER_PORT=8765
+  trap 'node scripts/call-peer.mjs stop >/dev/null 2>&1 || true' EXIT
+  if [ ! -f node_modules/livekit-client/dist/livekit-client.umd.js ]; then
+    livekit="$(node -p "require('./package-lock.json').packages['node_modules/livekit-client'].version")"
+    peer_modules="$(mktemp -d)"
+    npm install --prefix "$peer_modules" --no-save --no-audit --no-fund --ignore-scripts "livekit-client@$livekit" > /dev/null
+    mkdir -p node_modules
+    ln -s "$peer_modules/node_modules/livekit-client" node_modules/livekit-client
+  fi
+  node scripts/call-peer.mjs start > /dev/null
+fi
+
 recording="e2e-android-$cell.mp4"
 if [ -z "${E2E_LOGIN:-}" ]; then
   adb shell screenrecord --bit-rate 4000000 --time-limit 170 "/sdcard/$recording" &
@@ -127,6 +142,10 @@ maestro test "${flows[@]}" \
   --format junit \
   --output "$out/junit.xml" \
   --test-output-dir "$out/maestro" || status=$?
+
+if [ "${E2E_CALL_PEER:-}" = 1 ]; then
+  node scripts/call-peer.mjs leave > /dev/null 2>&1 || true
+fi
 
 sleep 2
 if [ -z "${E2E_LOGIN:-}" ]; then
