@@ -62,8 +62,21 @@ onFlowStart:
 - tapOn:
     id: composer-input
 - inputText: ${RUN + ' c2 later'}
+- hideKeyboard
 - tapOn:
     id: composer-attach
+- extendedWaitUntil:
+    visible:
+      id: extra-emoji
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: extra-emoji
+    commands:
+      - tapOn:
+          id: composer-attach
 - scrollUntilVisible:
     element:
       id: extra-later

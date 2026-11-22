@@ -51,6 +51,18 @@ onFlowStart:
 - extendedWaitUntil:
     visible:
       id: found-.*
+    timeout: 15000
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: found-.*
+    commands:
+      - eraseText: 40
+      - inputText: ${SEARCH}
+- extendedWaitUntil:
+    visible:
+      id: found-.*
     timeout: 20000
 - runFlow:
     file: ../shared/screenshot.yaml
