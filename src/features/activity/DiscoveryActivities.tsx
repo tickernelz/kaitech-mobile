@@ -8,6 +8,8 @@ import { useFormatters } from '../../i18n';
 import { readableWidth } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
 import { ToggleRow } from '../../ui/List';
+import { RowActions } from '../../ui/RowActions';
+import { textActions } from '../../ui/textActions';
 import { Text } from '../../ui/Text';
 import { Icon, type IconName } from '../../ui/icons';
 import { setDailyBriefing, type Briefing, type BriefingItem } from '../discovery/api';
@@ -97,23 +99,48 @@ export function DiscoveryActivities({ items, header }: { items: Resource<Briefin
       renderItem={({ item, index }) => {
         const since = parseServerDate(item.since);
         return (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={[t(activityKindKey(item.kind) as never), item.headline, item.engagement, since ? date(since) : ''].filter(Boolean).join(', ')}
-            onPress={() => open(item)}
-            testID={`activity-${item.kind}-${index}`}
-            style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
-            <View style={[styles.icon, { backgroundColor: item.kind === 'card' ? colors.warnBand : colors.surface2 }]}>
-              <Icon name={iconOf[item.kind] ?? 'bulb'} size={20} color={item.kind === 'card' ? colors.warnInk : colors.selectInk} />
-            </View>
-            <View style={styles.fill}>
-              <Text variant="callout">{item.headline}</Text>
-              <Text variant="footnote" tone="inkFaint" numberOfLines={1}>
-                {since ? `${item.engagement} · ${date(since)}` : item.engagement}
-              </Text>
-            </View>
-            <Icon name="forward" size={20} color={colors.inkFaint} />
-          </Pressable>
+          <RowActions
+            title={item.headline}
+            subtitle={item.engagement}
+            actions={[
+              { key: 'open', icon: 'forward', label: t('row.open'), onPress: () => open(item) },
+              {
+                key: 'programme',
+                icon: 'compass',
+                label: t('activity.rows.programme'),
+                short: t('activity.rows.programmeShort'),
+                onPress: () => {
+                  if (!active) return;
+                  rememberProgramme(active.id, item.engagement_id);
+                  router.navigate('/discovery');
+                },
+              },
+              ...textActions(t, `${item.headline}\n${item.engagement}`),
+            ]}
+            start={['programme']}
+            end={['copy', 'more']}
+            testID={`activity-${item.kind}-${index}`}>
+            {(bind) => (
+              <Pressable
+                {...bind}
+                accessibilityRole="button"
+                accessibilityLabel={[t(activityKindKey(item.kind) as never), item.headline, item.engagement, since ? date(since) : ''].filter(Boolean).join(', ')}
+                onPress={() => open(item)}
+                testID={`activity-${item.kind}-${index}`}
+                style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
+                <View style={[styles.icon, { backgroundColor: item.kind === 'card' ? colors.warnBand : colors.surface2 }]}>
+                  <Icon name={iconOf[item.kind] ?? 'bulb'} size={20} color={item.kind === 'card' ? colors.warnInk : colors.selectInk} />
+                </View>
+                <View style={styles.fill}>
+                  <Text variant="callout">{item.headline}</Text>
+                  <Text variant="footnote" tone="inkFaint" numberOfLines={1}>
+                    {since ? `${item.engagement} · ${date(since)}` : item.engagement}
+                  </Text>
+                </View>
+                <Icon name="forward" size={20} color={colors.inkFaint} />
+              </Pressable>
+            )}
+          </RowActions>
         );
       }}
       ListEmptyComponent={

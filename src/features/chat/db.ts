@@ -49,6 +49,10 @@ export async function storeConversations(account: string, conversations: Convers
   });
 }
 
+export async function dropConversation(account: string, id: number) {
+  await db().runAsync('DELETE FROM conversations WHERE account = ? AND id = ?', [account, id]);
+}
+
 export function cachedMessages(account: string, channel: number): Message[] {
   return parse<Message>(
     db().getAllSync<{ json: string }>('SELECT json FROM (SELECT id, json FROM messages WHERE account = ? AND channel = ? ORDER BY id DESC LIMIT ?) ORDER BY id', [account, channel, keepPerChannel]),
