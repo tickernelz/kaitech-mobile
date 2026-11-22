@@ -7,7 +7,7 @@ import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 
-const searchFrom = 8;
+const searchFrom = 12;
 
 export type MoreAction = { key: string; icon: IconName; label: string; detail?: string; onPress: () => void; tone?: 'danger' };
 
@@ -52,7 +52,7 @@ export function MoreSheet({
               <TextField label={t('mom.records.search')} value={query} onChangeText={setQuery} autoCorrect={false} testID={`${testID}-search`} />
             </View>
           ) : null}
-          <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.scroll} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
             {shown.map((group) => (
               <View key={group.key} style={styles.group}>
                 {group.title ? (
@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
   sheet: { width: '100%', maxWidth: 560, maxHeight: '85%', borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.lg, paddingHorizontal: space.lg },
   title: { paddingHorizontal: space.sm, paddingBottom: space.sm },
   search: { paddingHorizontal: space.sm, paddingBottom: space.sm },
+  scroll: { flexGrow: 0, flexShrink: 1 },
   body: { gap: space.md, paddingBottom: space.sm },
   group: { gap: space.xs },
   groupTitle: { paddingHorizontal: space.sm, paddingTop: space.xs },

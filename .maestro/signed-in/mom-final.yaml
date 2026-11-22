@@ -48,6 +48,9 @@ onFlowStart:
 - back
 - tapOn:
     id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-content
 - tapOn:
     id: mom-more-content
 - extendedWaitUntil:
@@ -69,6 +72,9 @@ onFlowStart:
           id: header-back
 - tapOn:
     id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-narrative
 - tapOn:
     id: mom-more-narrative
 - extendedWaitUntil:
@@ -90,6 +96,9 @@ onFlowStart:
           id: header-back
 - tapOn:
     id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-header
 - tapOn:
     id: mom-more-header
 - extendedWaitUntil:
@@ -111,6 +120,9 @@ onFlowStart:
           id: header-back
 - tapOn:
     id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-recipients
 - tapOn:
     id: mom-more-recipients
 - extendedWaitUntil:
@@ -132,6 +144,9 @@ onFlowStart:
           id: header-back
 - tapOn:
     id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-email
 - tapOn:
     id: mom-more-email
 - extendedWaitUntil:
@@ -153,6 +168,9 @@ onFlowStart:
           id: header-back
 - tapOn:
     id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-context
 - tapOn:
     id: mom-more-context
 - extendedWaitUntil:
@@ -174,6 +192,9 @@ onFlowStart:
           id: header-back
 - tapOn:
     id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-pdf
 - tapOn:
     id: mom-more-pdf
 - extendedWaitUntil:

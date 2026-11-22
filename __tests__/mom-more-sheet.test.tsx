@@ -11,16 +11,16 @@ const people = (count: number) =>
 
 describe('MoreSheet', () => {
   it('offers a search once a list is long and keeps only what matches', async () => {
-    await render(createElement(MoreSheet, { title: 'Owner', groups: [{ key: 'people', actions: people(12) }], onClose: jest.fn(), testID: 'pick' }));
-    expect(screen.getByTestId('mom-more-person-11')).toBeTruthy();
+    await render(createElement(MoreSheet, { title: 'Owner', groups: [{ key: 'people', actions: people(14) }], onClose: jest.fn(), testID: 'pick' }));
+    expect(screen.getByTestId('mom-more-person-13')).toBeTruthy();
     await fireEvent.changeText(screen.getByTestId('pick-search'), 'payroll');
     expect(screen.getByTestId('mom-more-person-3')).toBeTruthy();
-    expect(screen.queryByTestId('mom-more-person-11')).toBeNull();
+    expect(screen.queryByTestId('mom-more-person-13')).toBeNull();
   });
 
   it('shows no search for a short menu, and a chosen action closes the sheet before it runs', async () => {
     const onClose = jest.fn();
-    const actions = people(3);
+    const actions = people(12);
     await render(createElement(MoreSheet, { title: 'More', groups: [{ key: 'menu', actions }], onClose, testID: 'menu' }));
     expect(screen.queryByTestId('menu-search')).toBeNull();
     await fireEvent.press(screen.getByTestId('mom-more-person-1'));

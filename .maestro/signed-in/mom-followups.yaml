@@ -68,7 +68,6 @@ onFlowStart:
       - tapOn:
           id: mom-more-sheet-search
       - inputText: Kickoff Payroll
-      - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
     id: mom-more-meeting-${MINUTES_MEETING}
 - tapOn:
@@ -85,7 +84,6 @@ onFlowStart:
       - tapOn:
           id: mom-more-sheet-search
       - inputText: Budi
-      - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
     id: mom-more-owner-${FOLLOWUP_OWNER}
 - scrollUntilVisible:
