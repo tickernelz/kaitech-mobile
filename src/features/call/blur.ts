@@ -1,7 +1,7 @@
 import { requireOptionalNativeModule } from 'expo';
 import Storage from 'expo-sqlite/kv-store';
 
-type NativeEffects = { blurName(): string; clearBlur(): void; blurAvailable(): boolean };
+type NativeEffects = { blurName(): string; clearBlur(): void; blurAvailable(): boolean; prepareBlur(): Promise<boolean> };
 export type EffectTrack = { _setVideoEffects?: (names: string[]) => void };
 
 const key = 'call.backgroundBlur';
@@ -12,6 +12,11 @@ function effects(): NativeEffects | null {
 
 export function blurSupported(): boolean {
   return effects()?.blurAvailable() === true;
+}
+
+export function prepareBlur(): Promise<boolean> {
+  const module = effects();
+  return module ? module.prepareBlur().catch(() => false) : Promise.resolve(false);
 }
 
 export function blurPreferred(): boolean {

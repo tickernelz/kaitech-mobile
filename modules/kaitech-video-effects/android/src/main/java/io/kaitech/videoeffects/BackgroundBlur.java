@@ -4,6 +4,8 @@ public final class BackgroundBlur {
   public static final int SEGMENT_SIDE = 256;
 
   private int[] small = new int[0];
+  private int[] line = new int[0];
+  private int[] cols = new int[0];
   private int[] spare = new int[0];
   private int[] x0 = new int[0];
   private int[] x1 = new int[0];
@@ -121,24 +123,42 @@ public final class BackgroundBlur {
     for (int pass = 0; pass < 2; pass++) boxBlur(small, spare, sw, sh, 2);
     weights(width, factor, sw, true);
     weights(height, factor, sh, false);
+    if (line.length < sw) line = new int[sw];
+    int[] lo = x0;
+    int[] hi = x1;
+    int[] wxs = wx;
+    int[] smallLocal = small;
+    int[] lineLocal = line;
+    if (mask != null) {
+      if (cols.length < width) cols = new int[width];
+      int lastColumn = column.length - 1;
+      for (int x = 0; x < width; x++) cols[x] = column[Math.min(lastColumn, x * step)];
+    }
+    int[] colsLocal = cols;
     for (int y = 0; y < height; y++) {
       int rowBase = y * width;
       int maskRow = row == null ? 0 : row[Math.min(row.length - 1, y * step)];
       int top = y0[y] * sw;
       int bottom = y1[y] * sw;
       int fy = wy[y];
+      int gy = 256 - fy;
+      for (int sx = 0; sx < sw; sx++) lineLocal[sx] = smallLocal[top + sx] * gy + smallLocal[bottom + sx] * fy;
+      if (mask == null) {
+        for (int x = 0; x < width; x++) {
+          int fx = wxs[x];
+          out[rowBase + x] = (byte) ((lineLocal[lo[x]] * (256 - fx) + lineLocal[hi[x]] * fx + 32768) >> 16);
+        }
+        continue;
+      }
       for (int x = 0; x < width; x++) {
-        int a = mask == null ? 0 : mask[maskRow + column[Math.min(column.length - 1, x * step)]] & 0xff;
-        int original = source[rowBase + x] & 0xff;
+        int a = mask[maskRow + colsLocal[x]] & 0xff;
         if (a == 255) {
-          out[rowBase + x] = (byte) original;
+          out[rowBase + x] = source[rowBase + x];
           continue;
         }
-        int fx = wx[x];
-        int upper = small[top + x0[x]] * (256 - fx) + small[top + x1[x]] * fx;
-        int lower = small[bottom + x0[x]] * (256 - fx) + small[bottom + x1[x]] * fx;
-        int background = (upper * (256 - fy) + lower * fy + 32768) >> 16;
-        out[rowBase + x] = (byte) (a == 0 ? background : (original * a + background * (255 - a) + 127) / 255);
+        int fx = wxs[x];
+        int background = (lineLocal[lo[x]] * (256 - fx) + lineLocal[hi[x]] * fx + 32768) >> 16;
+        out[rowBase + x] = (byte) (a == 0 ? background : ((((source[rowBase + x] & 0xff) - background) * a * 257 + (background << 16) + 32768) >> 16));
       }
     }
   }

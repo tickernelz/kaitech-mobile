@@ -13,5 +13,9 @@ public final class KaitechVideoEffectsModule: Module {
     Function("blurAvailable") {
       true
     }
+
+    AsyncFunction("prepareBlur") {
+      true
+    }
   }
 }

@@ -20,9 +20,14 @@ split-screen, fold/unfold and moving between screens never reconnects a call or 
   planes in `BackgroundBlur.java`. ML Kit Selfie Segmentation was measured first and dropped: its runtime
   (`libxeno_native.so`) added 11.9 MB to the x86_64 APK (57.3 to 69.2 MB, over the 15 percent size gate), while the Play
   services runtime adds under 1 MB. Phones without Play services do not offer the blur. iOS uses Vision person
-  segmentation and Core Image. Until the first mask arrives the whole frame is blurred. The choice is kept per device,
-  like the web's local setting, and re-applied whenever LiveKit restarts the camera track (mute, flip). The processor API
-  of the pinned `@livekit/react-native-webrtc` is internal (`_setVideoEffects`).
+  segmentation and Core Image. Nothing is loaded at app start: the model and runtime load the first time a call uses the
+  blur. The blur fails closed: until the first mask arrives, when segmentation fails, or when the model cannot load, the
+  whole frame is blurred, and a frame the processor cannot read is sent black. The blur state turns off when the camera
+  track no longer takes the effect, so the call screen never shows blur on a sharp camera. The choice is kept per device,
+  like the web's local setting, and re-applied whenever LiveKit restarts the camera track (mute, flip).
+  `@livekit/react-native-webrtc` is pinned to `150.2.0` because the processor API is internal (`_setVideoEffects`).
+  Measured on the Mblu 21: 23 ms per frame at 960x540 with blur on; the peer received the same 9 to 10 fps as without
+  blur, and WebRTC lowered the sent resolution from 720x1280 to 540x960.
 - Screen: `src/app/call/[id].tsx`, which renders `src/features/call/ui/CallScreen.tsx`. The in-app ring overlay
   for an incoming call is `CallRuntime` in the root layout, so it works on every screen and above the app lock.
 

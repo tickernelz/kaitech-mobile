@@ -24,6 +24,9 @@ object Segmenter {
   private val output = ByteBuffer.allocateDirect(SIDE * SIDE * 4).order(ByteOrder.nativeOrder())
   private val confidence = FloatArray(SIDE * SIDE)
   private var lastAt = 0L
+  private var copyY = ByteArray(0)
+  private var copyU = ByteArray(0)
+  private var copyV = ByteArray(0)
 
   @Volatile
   private var interpreter: InterpreterApi? = null
@@ -32,10 +35,20 @@ object Segmenter {
   var mask: Mask? = null
     private set
 
-  val ready: Boolean
-    get() = interpreter != null
+  private val waiting = ArrayList<(Boolean) -> Unit>()
+  private var settled: Boolean? = null
 
-  fun prepare(context: Context) {
+  fun prepare(context: Context, done: (Boolean) -> Unit) {
+    val known = synchronized(waiting) {
+      settled ?: run {
+        waiting.add(done)
+        null
+      }
+    }
+    if (known != null) {
+      done(known)
+      return
+    }
     if (!started.compareAndSet(false, true)) return
     val application = context.applicationContext
     TfLite.initialize(application)
@@ -45,11 +58,24 @@ object Segmenter {
           val model = ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).put(bytes)
           model.rewind()
           interpreter = InterpreterApi.create(model, InterpreterApi.Options().setRuntime(InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY))
+          finish(true)
         } catch (error: Throwable) {
           Log.w(TAG, "segmentation model not loaded", error)
+          finish(false)
         }
       }
-      .addOnFailureListener(worker) { error -> Log.w(TAG, "TensorFlow Lite from Play services unavailable", error) }
+      .addOnFailureListener(worker) { error ->
+        Log.w(TAG, "TensorFlow Lite from Play services unavailable", error)
+        finish(false)
+      }
+  }
+
+  private fun finish(ready: Boolean) {
+    val callbacks = synchronized(waiting) {
+      settled = ready
+      ArrayList(waiting).also { waiting.clear() }
+    }
+    callbacks.forEach { it(ready) }
   }
 
   fun offer(y: ByteArray, u: ByteArray, v: ByteArray, width: Int, height: Int, rotation: Int) {
@@ -57,9 +83,15 @@ object Segmenter {
     val now = SystemClock.elapsedRealtime()
     if (now - lastAt < INTERVAL_MS || !busy.compareAndSet(false, true)) return
     lastAt = now
-    val pixels = BackgroundBlur.uprightArgb(y, u, v, width, height, rotation, SIDE, SIDE)
+    if (copyY.size != y.size) copyY = ByteArray(y.size)
+    if (copyU.size != u.size) copyU = ByteArray(u.size)
+    if (copyV.size != v.size) copyV = ByteArray(v.size)
+    System.arraycopy(y, 0, copyY, 0, y.size)
+    System.arraycopy(u, 0, copyU, 0, u.size)
+    System.arraycopy(v, 0, copyV, 0, v.size)
     worker.execute {
       try {
+        val pixels = BackgroundBlur.uprightArgb(copyY, copyU, copyV, width, height, rotation, SIDE, SIDE)
         input.rewind()
         for (pixel in pixels) {
           input.putFloat(((pixel shr 16) and 0xff) / 255f)

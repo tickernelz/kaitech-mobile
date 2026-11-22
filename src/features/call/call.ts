@@ -16,7 +16,7 @@ import { currentRecording, startRecording, stopRecording } from './recording';
 import { pipFocus, pipSpec, type PipSpec } from './pip';
 import { loadVolumes, saveVolume } from './volumes';
 import { onPictureInPictureAllowedChange, pictureInPictureAllowed } from './pipSetting';
-import { applyBlur, blurPreferred, blurSupported, setBlurPreferred, type EffectTrack } from './blur';
+import { applyBlur, blurPreferred, blurSupported, prepareBlur, setBlurPreferred, type EffectTrack } from './blur';
 
 export type CallPhase = 'idle' | 'incoming' | 'outgoing' | 'connecting' | 'active' | 'reconnecting' | 'ended';
 
@@ -373,6 +373,7 @@ async function connect(api: CallClient, channelId: number, video: boolean, start
     const instance = new sdk.Room({ adaptiveStream: true, dynacast: true, singlePeerConnection: false });
     room = instance;
     publish({ blur: blurSupported() && blurPreferred() });
+    if (state.blur) void prepareBlur();
     bind(instance, sdk);
     await livekit.AudioSession.startAudioSession();
     await instance.connect(session.url, session.token);
@@ -659,8 +660,9 @@ export async function toggleDeafen() {
 type LocalCamera = { mediaStreamTrack?: unknown; on?: (event: string, listener: () => void) => void };
 const blurWatched = new WeakSet<object>();
 
-function applyLocalBlur() {
-  if (!room) return;
+function applyLocalBlur(): boolean {
+  if (!room) return true;
+  let applied = true;
   for (const publication of room.localParticipant.trackPublications.values()) {
     const track = publication.videoTrack as LocalCamera | undefined;
     if (publication.source !== 'camera' || !track) continue;
@@ -668,16 +670,19 @@ function applyLocalBlur() {
       blurWatched.add(track);
       track.on('restarted', applyLocalBlur);
     }
-    applyBlur(track.mediaStreamTrack as EffectTrack, state.blur);
+    if (!applyBlur(track.mediaStreamTrack as EffectTrack, state.blur)) applied = false;
   }
+  if (!applied && state.blur) publish({ blur: false });
+  return applied;
 }
 
 export function toggleBlur() {
   if (!blurSupported()) return;
   const next = !state.blur;
-  setBlurPreferred(next);
   publish({ blur: next });
-  applyLocalBlur();
+  if (!applyLocalBlur()) return;
+  setBlurPreferred(next);
+  if (next) void prepareBlur();
 }
 
 export function toggleVideoOnly() {

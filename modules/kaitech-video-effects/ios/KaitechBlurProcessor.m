@@ -17,25 +17,53 @@ static const NSUInteger KaitechSegmentEvery = 3;
   VNSequenceRequestHandler *_handler;
   CIImage *_mask;
   NSUInteger _count;
+  CVPixelBufferPoolRef _pool;
+  size_t _poolWidth;
+  size_t _poolHeight;
+  OSType _poolFormat;
 }
 
 + (void)load {
   [LKRNProcessorProvider addProcessor:[KaitechBlurProcessor new] forName:KaitechBlurName];
 }
 
-- (instancetype)init {
-  if ((self = [super init])) {
-    _context = [CIContext contextWithOptions:nil];
-    _request = [VNGeneratePersonSegmentationRequest new];
-    _request.qualityLevel = VNGeneratePersonSegmentationRequestQualityLevelBalanced;
-    _request.outputPixelFormat = kCVPixelFormatType_OneComponent8;
-    _handler = [VNSequenceRequestHandler new];
+- (void)prepare {
+  if (_context != nil) return;
+  _context = [CIContext contextWithOptions:nil];
+  _request = [VNGeneratePersonSegmentationRequest new];
+  _request.qualityLevel = VNGeneratePersonSegmentationRequestQualityLevelBalanced;
+  _request.outputPixelFormat = kCVPixelFormatType_OneComponent8;
+  _handler = [VNSequenceRequestHandler new];
+}
+
+- (CVPixelBufferRef)bufferLike:(CVPixelBufferRef)source CF_RETURNS_RETAINED {
+  size_t width = CVPixelBufferGetWidth(source);
+  size_t height = CVPixelBufferGetHeight(source);
+  OSType format = CVPixelBufferGetPixelFormatType(source);
+  if (_pool == NULL || _poolWidth != width || _poolHeight != height || _poolFormat != format) {
+    if (_pool != NULL) CVPixelBufferPoolRelease(_pool);
+    _pool = NULL;
+    NSDictionary *attributes = @{
+      (id)kCVPixelBufferWidthKey : @(width),
+      (id)kCVPixelBufferHeightKey : @(height),
+      (id)kCVPixelBufferPixelFormatTypeKey : @(format),
+      (id)kCVPixelBufferIOSurfacePropertiesKey : @{},
+    };
+    if (CVPixelBufferPoolCreate(kCFAllocatorDefault, NULL, (__bridge CFDictionaryRef)attributes, &_pool) != kCVReturnSuccess) _pool = NULL;
+    _poolWidth = width;
+    _poolHeight = height;
+    _poolFormat = format;
   }
-  return self;
+  CVPixelBufferRef target = NULL;
+  if (CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, _pool, &target) == kCVReturnSuccess) return target;
+  NSDictionary *plain = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
+  if (CVPixelBufferCreate(kCFAllocatorDefault, width, height, format, (__bridge CFDictionaryRef)plain, &target) != kCVReturnSuccess) return NULL;
+  return target;
 }
 
 - (LKRTCVideoFrame *)capturer:(LKRTCVideoCapturer *)capturer didCaptureVideoFrame:(LKRTCVideoFrame *)frame {
   if (![frame.buffer isKindOfClass:[LKRTCCVPixelBuffer class]]) return frame;
+  [self prepare];
   CVPixelBufferRef source = ((LKRTCCVPixelBuffer *)frame.buffer).pixelBuffer;
   CIImage *original = [CIImage imageWithCVPixelBuffer:source];
   CGRect extent = original.extent;
@@ -58,11 +86,8 @@ static const NSUInteger KaitechSegmentEvery = 3;
     [blend setValue:_mask forKey:kCIInputMaskImageKey];
     output = blend.outputImage ?: blurred;
   }
-  CVPixelBufferRef target = NULL;
-  NSDictionary *attributes = @{(id)kCVPixelBufferIOSurfacePropertiesKey : @{}};
-  if (CVPixelBufferCreate(kCFAllocatorDefault, CVPixelBufferGetWidth(source), CVPixelBufferGetHeight(source), CVPixelBufferGetPixelFormatType(source), (__bridge CFDictionaryRef)attributes, &target) != kCVReturnSuccess) {
-    return frame;
-  }
+  CVPixelBufferRef target = [self bufferLike:source];
+  if (target == NULL) return frame;
   [_context render:output toCVPixelBuffer:target];
   LKRTCCVPixelBuffer *buffer = [[LKRTCCVPixelBuffer alloc] initWithPixelBuffer:target];
   CVPixelBufferRelease(target);
