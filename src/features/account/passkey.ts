@@ -1,7 +1,7 @@
 import { requireOptionalNativeModule } from 'expo';
 import type { Account } from '../../auth/oauth';
 import { rpc } from '../../api/odoo';
-import { identityOf, type Action, type Step } from './security';
+import { guarded, type Action, type Step } from './security';
 
 type NativePasskey = { create(requestJson: string): Promise<string> };
 
@@ -36,11 +36,8 @@ export function creationOptions(result: unknown): Record<string, unknown> {
   return registration as Record<string, unknown>;
 }
 
-export async function startPasskey(account: Account): Promise<Step<Record<string, unknown>>> {
-  const result = await rpc<unknown>(account, 'res.users', 'action_create_passkey', [[account.userId]]);
-  const checkId = identityOf(result);
-  if (checkId !== null) return { kind: 'identity', checkId };
-  return { kind: 'done', value: creationOptions(result) };
+export function startPasskey(account: Account): Promise<Step<Record<string, unknown>>> {
+  return guarded(() => rpc<unknown>(account, 'res.users', 'action_create_passkey', [[account.userId]]), creationOptions);
 }
 
 export async function createCredential(options: Record<string, unknown>): Promise<Record<string, unknown>> {
@@ -57,7 +54,7 @@ export async function createCredential(options: Record<string, unknown>): Promis
   return parsed as Record<string, unknown>;
 }
 
-export async function savePasskey(account: Account, name: string, credential: Record<string, unknown>): Promise<boolean> {
+export async function savePasskey(account: Account, name: string, credential: Record<string, unknown>): Promise<Step<boolean>> {
   const wizard = await rpc<number>(account, 'auth.passkey.key.create', 'create', [{ name: name.trim() }]);
-  return rpc<boolean>(account, 'auth.passkey.key.create', 'make_key', [[wizard], credential]);
+  return guarded(() => rpc<unknown>(account, 'auth.passkey.key.create', 'make_key', [[wizard], credential]), () => true);
 }

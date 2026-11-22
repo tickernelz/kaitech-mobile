@@ -39,16 +39,22 @@ describe('adding a passkey from the phone', () => {
     const credential = await createCredential(registration);
     expect(JSON.parse(mockNative.module.create.mock.calls[0][0])).toEqual(registration);
     mockAnswers.push(44, true);
-    expect(await savePasskey(account, '  Mblu 21 ', credential)).toBe(true);
+    expect(await savePasskey(account, '  Mblu 21 ', credential)).toEqual({ kind: 'done', value: true });
     expect(mockCalls.slice(1)).toEqual([
       { model: 'auth.passkey.key.create', method: 'create', args: [{ name: 'Mblu 21' }] },
       { model: 'auth.passkey.key.create', method: 'make_key', args: [[44], created] },
     ]);
   });
 
+  it('asks for the identity check again when it lapsed while the phone created the key', async () => {
+    mockAnswers.push(51, { type: 'ir.actions.act_window', res_model: 'res.users.identitycheck', res_id: 77 });
+    expect(await savePasskey(account, 'Mblu 21', created)).toEqual({ kind: 'identity', checkId: 77 });
+  });
+
   it('refuses an answer that carries no creation options', () => {
     expect(() => creationOptions({ type: 'ir.actions.client', tag: 'reload' })).toThrow(PasskeyError);
     expect(() => creationOptions(false)).toThrow(PasskeyError);
+    expect(() => creationOptions({ type: 'ir.actions.act_window', res_model: 'res.users.apikeys.description', context: { registration } })).toThrow(PasskeyError);
   });
 
   it('tells a cancelled prompt and a phone without a passkey manager apart from a failure', async () => {

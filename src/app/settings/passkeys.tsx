@@ -57,7 +57,8 @@ export default function PasskeySettings() {
     void guard(async () => {
       const options = await identity.run(() => startPasskey(active), creationOptions);
       if (!options) return;
-      await savePasskey(active, label, await createCredential(options));
+      const credential = await createCredential(options);
+      await identity.run(() => savePasskey(active, label, credential), () => true);
     });
   };
 
