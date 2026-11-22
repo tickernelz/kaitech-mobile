@@ -17,6 +17,7 @@ export function MembersSheet({ channelId, manages, canInvite, onClose, onNotice 
   const { colors } = useTheme();
   const [result, setResult] = useState<Result<Member[]> | null>(null);
   const [inviting, setInviting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const load = useCallback(() => void membersOf(channelId).then(setResult), [channelId]);
   useEffect(load, [load]);
   const changeRole = (member: Member) => {
@@ -25,8 +26,8 @@ export function MembersSheet({ channelId, manages, canInvite, onClose, onNotice 
         text: t(`members.role.${role}`),
         onPress: () =>
           void setRole(channelId, member.memberId, role).then((next) => {
+            setError(next.ok ? null : failureText(t, next));
             if (next.ok) load();
-            else onNotice(failureText(t, next));
           }),
       })),
       { text: t('act.cancel'), style: 'cancel' as const },
@@ -36,6 +37,11 @@ export function MembersSheet({ channelId, manages, canInvite, onClose, onNotice 
   return (
     <Sheet title={t('members.title')} onClose={onClose} testID="members-sheet">
       {canInvite ? <SheetRow icon="people" label={t('members.invite')} onPress={() => setInviting(true)} testID="members-invite" /> : null}
+      {error ? (
+        <Text variant="footnote" tone="danger" accessibilityLiveRegion="polite">
+          {error}
+        </Text>
+      ) : null}
       {!result ? <ActivityIndicator color={colors.primary} style={styles.pad} /> : null}
       {result && !result.ok ? (
         <Text variant="callout" tone="danger">

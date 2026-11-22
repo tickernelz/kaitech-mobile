@@ -104,7 +104,13 @@ onFlowStart:
 - tapOn:
     text: ${'.*' + RUN + ' c2 later'}
 - tapOn:
-    text: (DELETE|Delete|HAPUS|Hapus)
+    id: scheduled-delete
+- extendedWaitUntil:
+    visible:
+      id: scheduled-none
+    timeout: 20000
+- tapOn:
+    id: scheduled-sheet-close
 - extendedWaitUntil:
     visible:
       id: thread-notice
