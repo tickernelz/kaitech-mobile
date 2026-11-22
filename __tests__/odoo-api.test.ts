@@ -78,6 +78,12 @@ describe('rpc', () => {
     expect((failure as ApiError).code).toBe('forbidden');
   });
 
+  it('keeps the context a caller passes, such as the password of an identity check, next to the app language', async () => {
+    const calls = serve([session('s1'), () => ({ body: { result: true } })]);
+    await rpc(account, 'res.users.identitycheck', 'run_check', [[5]], { context: { password: 'secret' } });
+    expect(JSON.parse(String(calls[1].init.body)).params.kwargs.context).toEqual({ password: 'secret', lang: 'id_ID' });
+  });
+
   it('keeps the words of a user error and drops those of an access error', async () => {
     serve([
       session('s1'),

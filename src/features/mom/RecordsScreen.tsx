@@ -9,6 +9,7 @@ import { space, useTheme } from '../../theme';
 import { TextField } from '../../ui/TextField';
 import { Header } from '../discovery/Header';
 import { StateView } from '../discovery/ui';
+import { ChoiceRow } from './followupParts';
 import { Line, SmallButton } from './parts';
 import { recordPage, type RecordKind } from './records';
 
@@ -24,6 +25,7 @@ export function RecordsScreen({ kind }: { kind: RecordKind }) {
   const [typed, setTyped] = useState('');
   const [search, setSearch] = useState('');
   const [limit, setLimit] = useState(pageSize);
+  const [state, setState] = useState('');
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(typed.trim());
@@ -31,7 +33,8 @@ export function RecordsScreen({ kind }: { kind: RecordKind }) {
     }, settleMs);
     return () => clearTimeout(timer);
   }, [typed]);
-  const page = useResource(`mom.records.${kind}.${limit}.${search}`, (account) => recordPage(account, kind, search, limit));
+  const page = useResource(`mom.records.${kind}.${limit}.${state}.${search}`, (account) => recordPage(account, kind, search, limit, state));
+  const states = page.data?.states ?? [];
   const lines = page.data?.lines ?? [];
 
   return (
@@ -44,7 +47,20 @@ export function RecordsScreen({ kind }: { kind: RecordKind }) {
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={page.loading && !!page.data} onRefresh={() => void page.refresh()} />}
         ListHeaderComponent={
-          <TextField label={t('mom.records.search')} value={typed} onChangeText={setTyped} returnKeyType="search" autoCorrect={false} testID="mom-records-search" />
+          <View style={styles.head}>
+            <TextField label={t('mom.records.search')} value={typed} onChangeText={setTyped} returnKeyType="search" autoCorrect={false} testID="mom-records-search" />
+            {states.length ? (
+              <ChoiceRow
+                options={[{ value: '', label: t('mom.followups.status.all') }, ...states.map((one) => ({ value: one.key, label: one.label }))]}
+                value={state}
+                onChange={(next) => {
+                  setState(next);
+                  setLimit(pageSize);
+                }}
+                testID="mom-records-state"
+              />
+            ) : null}
+          </View>
         }
         ListHeaderComponentStyle={styles.search}
         renderItem={({ item }) => (
@@ -82,5 +98,6 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   content: { paddingHorizontal: space.lg, paddingBottom: space.xxl, gap: space.xs, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   search: { paddingBottom: space.md },
+  head: { gap: space.sm },
   more: { paddingTop: space.md },
 });

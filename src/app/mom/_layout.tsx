@@ -12,7 +12,12 @@ export default function MomLayout() {
       <Stack.Screen name="remove" options={{ presentation: 'modal' }} />
       <Stack.Screen name="list/[kind]" />
       <Stack.Screen name="followups" />
+      <Stack.Screen name="client-org" />
+      <Stack.Screen name="history/[recording]" />
+      <Stack.Screen name="departments" />
+      <Stack.Screen name="admin/[part]" />
       <Stack.Screen name="minutes/[part]" />
+      <Stack.Screen name="assist/[part]" />
       <Stack.Screen name="transcript/[recording]" />
       <Stack.Screen name="transcript/speakers" />
       <Stack.Screen name="transcript/doubts" />

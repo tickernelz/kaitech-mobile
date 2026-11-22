@@ -49,10 +49,35 @@ export function MeetingMenu({ meeting }: { meeting: number }) {
           ...(card.state === 'transcribed'
             ? [{ key: `editor-${card.id}`, icon: 'doc' as const, label: t('mom.recordingMenu.editor'), onPress: () => router.push({ pathname: '/mom/transcript/[recording]', params: { recording: String(card.id) } }) }]
             : []),
+          {
+            key: `departments-${card.id}`,
+            icon: 'people' as const,
+            label: t('mom.recordingMenu.departments'),
+            detail: [card.department ? card.department.name : '', ...(card.clientDepartments ?? []).map((one) => one.name)].filter(Boolean).join(', ') || undefined,
+            onPress: () => router.push({ pathname: '/mom/departments', params: { recording: String(card.id), meeting: String(meeting) } }),
+          },
+          { key: `history-${card.id}`, icon: 'history' as const, label: t('mom.recordingMenu.history'), onPress: () => router.push({ pathname: '/mom/history/[recording]', params: { recording: String(card.id) } }) },
           ...verbActions(card, board.data!, run).map((action) => ({ ...action, label: t(`mom.recordingMenu.${action.verb}`) })),
         ],
       }))
     : [];
+  if (board.data && !board.data.isClient) {
+    const assist = (part: 'notes' | 'solusi' | 'tasks', icon: 'doc' | 'bulb' | 'steps') => ({
+      key: `assist-${part}`,
+      icon,
+      label: t(`mom.assist.${part}.title`),
+      detail: t(`mom.assist.${part}.detail`),
+      onPress: () => router.push({ pathname: '/mom/assist/[part]', params: { part, meeting: String(meeting) } }),
+    });
+    groups.unshift({ key: 'assist', title: t('mom.assist.group'), actions: [assist('notes', 'doc'), assist('solusi', 'bulb'), assist('tasks', 'steps')] });
+  }
+  const programme = cards[0]?.engagement.id;
+  if (board.data?.isClient && programme) {
+    groups.unshift({
+      key: 'ask',
+      actions: [{ key: 'ask', icon: 'chat', label: t('mom.recordingMenu.ask'), onPress: () => router.push({ pathname: '/program/[id]/coworker', params: { id: String(programme), ask: '1' } }) }],
+    });
+  }
   if (!groups.some((group) => group.actions.length)) return null;
 
   return (

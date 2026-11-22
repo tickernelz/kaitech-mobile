@@ -19,6 +19,7 @@ const card = (change: Partial<RecordingCard> = {}, progress: Partial<RecordingCa
   isUploader: true,
   failureNote: '',
   larkUrl: false,
+  clientDepartments: [],
   transcription: { hasMedia: true, reviewed: false, job: { state: 'done' }, comparison: { state: 'ready' }, ...progress },
   ...change,
 });

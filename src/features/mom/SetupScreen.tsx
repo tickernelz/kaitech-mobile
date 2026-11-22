@@ -1,8 +1,10 @@
+import { randomUUID } from 'expo-crypto';
+import * as DocumentPicker from 'expo-document-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, Pressable, StyleSheet, Switch, View } from 'react-native';
-import { useResource } from '../../api/resource';
+import { invalidate, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
@@ -13,10 +15,13 @@ import { TextField } from '../../ui/TextField';
 import { Header } from '../discovery/Header';
 import { useCurrentProgramme } from '../discovery/Home';
 import { Icon } from '../../ui/icons';
-import { Segmented, StateView } from '../discovery/ui';
+import { Segmented, StateView, useErrorText } from '../discovery/ui';
 import { uploadOptions } from './api';
 import { useMomFormat } from './parts';
 import { start, type StartResult } from './recorder';
+import { useMomAccess } from './access';
+import { importLark } from './records';
+import { adoptPicked, enqueue } from './uploads';
 
 type Mode = 'new' | 'held';
 
@@ -66,12 +71,77 @@ export function SetupScreen() {
   const [problem, setProblem] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<StartResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const [lark, setLark] = useState<string | null>(null);
+  const access = useMomAccess();
+  const errorText = useErrorText();
 
   const meetings = (options.data?.meetings ?? []).filter((meeting) => !meeting.signed);
   const chosen = mode === 'held' ? meetings.find((meeting) => meeting.id === meetingId) ?? null : null;
   const needsConsent = mode === 'new' || !chosen?.consent;
   const fallbackName = current ? `${current.name} ${format.time(openedAt)}` : '';
   const meetingName = mode === 'new' ? name.trim() || fallbackName : (chosen?.name ?? '');
+
+  const pick = async () => {
+    if (!active || !current) return;
+    if (!meetingName) return setProblem(t('mom.setup.meeting'));
+    if (needsConsent && !consent) return setProblem(t('mom.setup.consentNeeded'));
+    setProblem(null);
+    const picked = await DocumentPicker.getDocumentAsync({ type: ['audio/*', 'video/*'], copyToCacheDirectory: true, multiple: false });
+    const file = picked.canceled ? null : picked.assets[0];
+    if (!file) return;
+    setBusy(true);
+    try {
+      const kept = adoptPicked({ uri: file.uri, name: file.name, mimeType: file.mimeType, size: file.size });
+      const now = new Date();
+      enqueue({
+        key: randomUUID(),
+        account: active.id,
+        programme: { id: current.id, name: current.name },
+        meeting: chosen ? { id: chosen.id, name: chosen.name } : { name: meetingName, heldOn: clockIn(options.data?.zone ?? 'UTC', now) },
+        title: title.trim() || file.name.replace(/\.[^.]+$/, '') || meetingName,
+        filename: file.name,
+        mimetype: file.mimeType || 'application/octet-stream',
+        size: kept.size,
+        file: kept.file,
+        durationMs: 0,
+        ...(needsConsent ? { consentNote: t('mom.consentNote', { time: format.time(now) }) } : {}),
+        createdAt: now.getTime(),
+        etags: {},
+        checksums: {},
+        state: 'queued',
+        attempts: 0,
+      });
+      router.back();
+    } catch {
+      setProblem(t('mom.setup.pickFailed'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const sendLark = async () => {
+    if (!active || !current || lark === null) return;
+    if (!meetingName) return setProblem(t('mom.setup.meeting'));
+    if (needsConsent && !consent) return setProblem(t('mom.setup.consentNeeded'));
+    setProblem(null);
+    setBusy(true);
+    try {
+      const now = new Date();
+      await importLark(active, {
+        programme: current.id,
+        url: lark,
+        title: title.trim() || meetingName,
+        meeting: chosen ? { id: chosen.id } : { name: meetingName, heldOn: clockIn(options.data?.zone ?? 'UTC', now) },
+        ...(needsConsent ? { consentNote: t('mom.consentNote', { time: format.time(now) }) } : {}),
+      });
+      invalidate(`${active.id}:mom.`);
+      router.back();
+    } catch (error) {
+      setProblem(errorText(error));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const begin = async () => {
     if (!active || !current) return;
@@ -118,7 +188,19 @@ export function SetupScreen() {
             </Text>
           ) : null}
           {outcome === 'denied' ? <Button kind="secondary" label={t('mom.setup.openSettings')} onPress={() => void Linking.openSettings()} /> : null}
-          <Button label={t('mom.setup.start')} onPress={() => void begin()} busy={busy} testID="setup-start" />
+          {lark === null ? (
+            <>
+              <Button label={t('mom.setup.start')} onPress={() => void begin()} busy={busy} testID="setup-start" />
+              <Button kind="plain" label={t('mom.setup.uploadFile')} onPress={() => void pick()} disabled={busy} testID="setup-upload-file" />
+              {access && !access.client ? <Button kind="plain" label={t('mom.setup.larkLink')} onPress={() => setLark('')} disabled={busy} testID="setup-lark" /> : null}
+            </>
+          ) : (
+            <>
+              <TextField label={t('mom.setup.larkUrl')} value={lark} onChangeText={setLark} autoCapitalize="none" autoCorrect={false} keyboardType="url" testID="setup-lark-url" />
+              <Button label={t('mom.setup.larkSend')} onPress={() => void sendLark()} disabled={!lark.trim()} busy={busy} testID="setup-lark-send" />
+              <Button kind="plain" label={t('mom.recorder.cancel')} onPress={() => setLark(null)} disabled={busy} />
+            </>
+          )}
         </>
       }>
       <Header title={t('mom.setup.title')} />

@@ -439,7 +439,12 @@
       "failed": "Rekaman gagal dimulai. Coba lagi.",
       "busy": "Masih ada rekaman yang berjalan.",
       "noProgramme": "Gabung ke program dulu untuk merekam.",
-      "consentNeeded": "Pastikan semua peserta setuju direkam."
+      "consentNeeded": "Pastikan semua peserta setuju direkam.",
+      "uploadFile": "Unggah berkas saja",
+      "pickFailed": "Berkas itu tidak bisa dibaca. Coba berkas lain.",
+      "larkLink": "Impor tautan Lark Minutes",
+      "larkUrl": "Tautan Lark Minutes",
+      "larkSend": "Impor dari Lark"
     },
     "consentNote": "Peserta menyetujui rapat direkam (dikonfirmasi di aplikasi Kaitech pukul {{time}}).",
     "recorder": {
@@ -604,7 +609,13 @@
         "transcribe": "{{title}} sedang ditranskripsikan.",
         "compare": "ElevenLabs sedang mendengarkan {{title}}."
       },
-      "editor": "Buka penyunting transkrip"
+      "editor": "Buka penyunting transkrip",
+      "departments": "Departemen",
+      "history": "Riwayat",
+      "filedUnder": "Diarsipkan di",
+      "serves": "Departemen klien yang dilayani",
+      "noClientDepartments": "Klien belum punya departemen",
+      "ask": "Tanya Coworker"
     },
     "remove": {
       "title": "Hapus rekaman ini permanen",
@@ -964,6 +975,236 @@
       "choose": "Pilih",
       "reject": "Tolak",
       "applyChosen": "Terapkan {{count}} yang dipilih"
+    },
+    "assist": {
+      "group": "Kerja rapat ini",
+      "notes": {
+        "title": "Catatan saya",
+        "detail": "Catatan dan berkas yang ikut dibaca saat notulen ditulis",
+        "hint": "Yang kamu tulis di sini dan berkas yang kamu tambahkan ikut dibaca saat notulen ditulis.",
+        "inKnowledge": "Sudah masuk pengetahuan",
+        "body": "Catatan",
+        "conflictTitle": "Catatan ini diubah orang lain",
+        "conflictBody": "Ada yang menyimpan catatan ini saat kamu menulis.",
+        "useTheirs": "Pakai punya mereka",
+        "keepMine": "Simpan punyaku",
+        "tooBig": "Berkas paling besar {{mb}} MB",
+        "files": "Berkas ({{count}} dari {{max}})",
+        "chars": "{{count}} karakter terbaca",
+        "readAgain": "Baca ulang",
+        "remove": "Hapus",
+        "noFiles": "Belum ada berkas",
+        "attach": "Tambah berkas"
+      },
+      "solusi": {
+        "title": "Solusi",
+        "detail": "Cara tiap kebutuhan dipenuhi di Odoo atau di luarnya",
+        "holdHint": "Tahan untuk bicara, lepas untuk kirim",
+        "listening": "Mendengarkan · {{seconds}} dtk",
+        "version": "Versi {{version}} · {{approved}} dari {{count}} disetujui",
+        "none": "Belum ada solusi",
+        "needsMinutes": "Tulis notulen dulu, baru solusinya",
+        "again": "Tulis ulang solusi",
+        "generate": "Tulis solusi",
+        "approved": "Disetujui",
+        "instruction": "Apa yang perlu diubah",
+        "applyInstruction": "Ubah",
+        "voice": "Tahan dan sebutkan yang perlu diubah",
+        "versions": "Versi",
+        "versionShort": "Versi {{version}}",
+        "currentVersion": "yang dipakai",
+        "restore": "Pakai versi ini",
+        "pendingTitle": "Masih ada keputusan menunggu",
+        "approve": "Setujui",
+        "cherryPick": "Bawa ke versi sekarang",
+        "instruct": "Ubah dengan arahan",
+        "editItem": "Ubah isian",
+        "assess": "Cek cakupan",
+        "reuse": "Pakai dari rapat lain",
+        "conflicts": "Konflik titik sentuh",
+        "return": "Kembalikan",
+        "reuseTitle": "Solusi dari rapat lain",
+        "conflictsTitle": "Solusi lain di {{tag}}",
+        "modules": "Modul: {{list}}",
+        "customWithoutReason": "Kustom tanpa alasan tertulis",
+        "noRequirement": "Tanpa kebutuhan",
+        "useThis": "Pakai yang ini",
+        "nothingRelated": "Tidak ada yang ditemukan",
+        "backToItem": "Kembali ke solusi",
+        "approach": {
+          "ODOO_STANDARD": "Odoo standar",
+          "ODOO_CUSTOM": "Odoo kustom",
+          "NON_ODOO": "Di luar Odoo"
+        },
+        "effort": {
+          "LOW": "Usaha rendah",
+          "MEDIUM": "Usaha sedang",
+          "HIGH": "Usaha tinggi"
+        },
+        "fields": {
+          "title": "Judul",
+          "need": "Kebutuhan",
+          "modules": "Modul Odoo, pisahkan dengan koma",
+          "steps": "Langkah, satu per baris",
+          "reason": "Kenapa cara ini",
+          "notes": "Catatan",
+          "touchpoint": "Tag titik sentuh"
+        }
+      },
+      "tasks": {
+        "title": "Tugas",
+        "detail": "Draf tugas dari solusi atau notulen",
+        "approvedWaiting": "Solusi yang disetujui menunggu dijadikan tugas.",
+        "fromSolusi": "Draf dari solusi",
+        "fromMinutes": "Draf dari notulen",
+        "none": "Belum ada tugas",
+        "duplicate": "Mirip dengan: {{name}}",
+        "saveDue": "Simpan jatuh tempo",
+        "drop": "Hapus draf",
+        "dropTitle": "Hapus draf tugas ini?",
+        "missing": "Isi penanggung jawab dan jatuh tempo, lalu setujui."
+      }
+    },
+    "clientOrg": {
+      "title": "Organisasi klien",
+      "menuDetail": "Departemen, orang, dan target rapat klien",
+      "client": "Klien",
+      "noClient": "Tidak ada organisasi klien untuk ditampilkan",
+      "tabs": {
+        "departments": "Departemen",
+        "employees": "Orang",
+        "aliases": "Nama untuk ditautkan ({{count}})"
+      },
+      "status": {
+        "active": "Aktif",
+        "inactive": "Ditutup",
+        "all": "Semua"
+      },
+      "anyDepartment": "Semua departemen",
+      "employeesShown": "{{shown}} dari {{total}}",
+      "aliasCount": "{{count}} nama lain",
+      "noEmployees": "Belum ada orang",
+      "addEmployee": "Tambah orang",
+      "period": "{{label}}: {{count}} dari {{target}} rapat, {{status}}",
+      "periodStatus": {
+        "pending": "masih berjalan",
+        "met": "tercapai",
+        "below": "di bawah target",
+        "unmeasured": "tidak diukur"
+      },
+      "thisWeek": "Minggu ini",
+      "thisMonth": "Bulan ini",
+      "alerts": "Di bawah target rapat",
+      "alert": {
+        "week": "{{name}}: {{count}} dari {{target}} rapat minggu lalu",
+        "month": "{{name}}: {{count}} dari {{target}} rapat bulan lalu"
+      },
+      "employeesCount": "{{count}} orang",
+      "close": "Tutup",
+      "reopen": "Buka lagi",
+      "noDepartments": "Belum ada departemen",
+      "addDepartment": "Tambah departemen",
+      "noAliases": "Semua nama di tindak lanjut sudah tertaut",
+      "aliasHint": "Nama yang terdengar di rapat tapi belum tertaut ke orang. Ketuk untuk menautkan.",
+      "linkTo": "Siapa “{{said}}”?",
+      "departmentNew": "Departemen baru",
+      "departmentEdit": "Ubah departemen",
+      "employeeNew": "Orang baru",
+      "employeeEdit": "Ubah orang",
+      "name": "Nama",
+      "sequence": "Urutan",
+      "weeklyTarget": "Rapat per minggu",
+      "monthlyTarget": "Rapat per bulan",
+      "serves": "Departemen programme yang dilayani",
+      "nickname": "Panggilan",
+      "jobTitle": "Jabatan",
+      "email": "Email",
+      "phone": "Telepon",
+      "noDepartment": "Tanpa departemen",
+      "aliases": "Nama lain",
+      "aliasesHint": "Satu per baris, seperti diucapkan di rapat"
+    },
+    "admin": {
+      "group": "Administrasi",
+      "keys": {
+        "title": "Kunci MCP",
+        "hint": "Kunci membuat klien AI bisa membaca MoM programme yang kamu pilih, tidak lebih.",
+        "new": "Kunci baru",
+        "none": "Belum ada kunci",
+        "revoke": "Cabut",
+        "revokeTitle": "Cabut kunci ini?",
+        "client": "Klien",
+        "clientHint": "Tempat kunci dipakai, misalnya Claude Desktop di laptopku",
+        "programmes": "Programme ({{count}})",
+        "passwordHint": "Kata sandi memastikan ini memang kamu",
+        "make": "Buat kunci",
+        "readyTitle": "Kunci MCP kamu",
+        "onlyOnce": "Kunci ini hanya tampil sekarang. Salin yang perlu sebelum menutup.",
+        "copy": "Salin",
+        "done": "Selesai",
+        "parts": {
+          "key": "Kunci",
+          "url": "Alamat",
+          "header": "Header",
+          "claudeDesktop": "Claude Desktop",
+          "hermesEnv": "Hermes .env",
+          "hermesConfig": "Hermes config.yaml"
+        }
+      },
+      "settings": {
+        "title": "Pengaturan MoM",
+        "keys": "Kunci layanan",
+        "configured": "Terpasang",
+        "missing": "Belum dipasang",
+        "testLark": "Tes Lark",
+        "transcription": "Transkripsi",
+        "model": {
+          "deepgram": "Model Deepgram",
+          "openai": "Model OpenAI",
+          "elevenlabs": "Model ElevenLabs"
+        },
+        "audio": {
+          "auto": "Audio: otomatis",
+          "preserve_source": "Audio: pertahankan sumber",
+          "speech_optimized": "Audio: disetel untuk suara"
+        },
+        "compare": "ElevenLabs membandingkan sendiri",
+        "aiFilter": "Saring AI untuk perbedaan",
+        "matchAt": "Dianggap sama mulai skor (0-1)",
+        "divergentBelow": "Dianggap beda di bawah skor (0-1)",
+        "threshold": {
+          "range": "Pakai angka 0 sampai 1",
+          "order": "Batas beda tidak boleh di atas batas sama"
+        },
+        "coworkerModel": "Pemanggilan model memakai {{model}}",
+        "prompts": "Prompt",
+        "custom": "Khusus",
+        "default": "Bawaan",
+        "rates": "Tarif suara",
+        "noRate": "Belum ada tarif",
+        "minute": "menit",
+        "promptText": "Prompt ({{count}} dari {{limit}})",
+        "showDefault": "Lihat prompt bawaan",
+        "reset": "Kembali ke bawaan",
+        "perMinute": "Harga per menit ({{currency}})"
+      },
+      "import": {
+        "title": "Impor Circle",
+        "projects": "Proyek Circle ({{count}})",
+        "projectLine": "{{recordings}} rekaman, {{rows}} baris",
+        "runs": "Riwayat impor",
+        "noRuns": "Belum ada impor",
+        "runLine": "{{created}} baru, {{updated}} berubah, {{failed}} gagal, {{conflicts}} konflik",
+        "mapTo": "Impor ke programme",
+        "skip": "Lewati proyek ini",
+        "reopen": "Putuskan ulang",
+        "back": "Kembali ke impor",
+        "rolledBack": "dibatalkan {{at}}",
+        "rollBack": "Batalkan impor ini",
+        "rollBackTitle": "Batalkan impor ini?",
+        "events": "Kejadian ({{count}})",
+        "previous": "Sebelumnya"
+      }
     }
   },
   "appearance": {

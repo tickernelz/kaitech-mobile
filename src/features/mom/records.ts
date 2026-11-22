@@ -21,10 +21,40 @@ export type RecordingCard = {
   isUploader: boolean;
   failureNote: string;
   larkUrl: string | false;
+  clientDepartments: Named[];
   transcription: { hasMedia: boolean; reviewed: boolean; job: { state: string }; comparison: { state: string } };
 };
 
-export type MeetingRecordings = { recordings: RecordingCard[]; total: number; canChange: boolean; isClient: boolean };
+export type MeetingRecordings = {
+  recordings: RecordingCard[];
+  total: number;
+  canChange: boolean;
+  isClient: boolean;
+  departmentsByProgramme: Record<string, Named[]>;
+  clientDepartmentsByProgramme: Record<string, Named[]>;
+};
+
+export type HistoryLine = { id: number; date: string; author: string; body: string; changes: string[] };
+
+type RawMessage = { id: number; date: string; author_id: { display_name: string } | false; body: string | false; tracking_value_ids: { field_id?: { display_name: string } | false; old_value?: unknown; new_value?: unknown }[] };
+
+const plain = (html: string) => html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+
+export async function recordingHistory(account: Account, recording: number): Promise<HistoryLine[]> {
+  const page = await rpc<{ records: RawMessage[] }>(account, 'mail.message', 'web_search_read', [], {
+    domain: [['model', '=', 'ck.mom.recording'], ['res_id', '=', recording]],
+    specification: { date: {}, author_id: { fields: { display_name: {} } }, body: {}, tracking_value_ids: { fields: { field_id: { fields: { display_name: {} } }, old_value: {}, new_value: {} } } },
+    order: 'date desc, id desc',
+    limit: 100,
+  });
+  return page.records.map((row) => ({
+    id: row.id,
+    date: row.date,
+    author: row.author_id ? row.author_id.display_name : '',
+    body: plain(row.body || ''),
+    changes: row.tracking_value_ids.map((one) => `${one.field_id ? one.field_id.display_name : ''}: ${String(one.old_value ?? '')} → ${String(one.new_value ?? '')}`),
+  }));
+}
 
 export type StatusItem = {
   id: number;
@@ -46,7 +76,7 @@ export type RecordKind = 'recordings' | 'minutes' | 'removals';
 
 export type RecordLine = { id: number; title: string; detail: string; state: string; meetingId: number | false };
 
-export type RecordPage = { lines: RecordLine[]; total: number };
+export type RecordPage = { lines: RecordLine[]; total: number; states: { key: string; label: string }[] };
 
 export function meetingRecordings(account: Account, meeting: number): Promise<MeetingRecordings> {
   return rpc<MeetingRecordings>(account, 'ck.mom.recording', 'board', [], { meeting_id: meeting, limit: 50 });
@@ -59,6 +89,35 @@ export function processingSummary(account: Account): Promise<ProcessingSummary> 
 export async function meetingOfRecording(account: Account, recording: number): Promise<number | null> {
   const rows = await rpc<{ meeting_id: number | false }[]>(account, 'ck.mom.recording', 'web_read', [[recording]], { specification: { meeting_id: {} } });
   return rows[0]?.meeting_id || null;
+}
+
+export type LarkImport = {
+  programme: number;
+  url: string;
+  title: string;
+  meeting: { id: number } | { name: string; heldOn: string };
+  consentNote?: string;
+};
+
+export function importLark(account: Account, lark: LarkImport): Promise<RecordingCard> {
+  return rpc<RecordingCard>(account, 'ck.mom.recording', 'import_lark_minutes', [
+    {
+      engagement_id: lark.programme,
+      url: lark.url.trim(),
+      title: lark.title.trim(),
+      department_id: false,
+      ...('id' in lark.meeting ? { meeting_id: lark.meeting.id } : { new_meeting: { name: lark.meeting.name, held_on: lark.meeting.heldOn } }),
+      consent_note: lark.consentNote ?? '',
+    },
+  ]);
+}
+
+export function setClientDepartments(account: Account, recording: number, departments: number[]): Promise<unknown> {
+  return rpc(account, 'ck.mom.recording', 'set_client_departments', [[recording], departments]);
+}
+
+export function fileUnderDepartment(account: Account, recording: number, department: number | false): Promise<unknown> {
+  return rpc(account, 'ck.mom.recording', 'file_under_department', [[recording], department]);
 }
 
 export function transcribe(account: Account, recording: number): Promise<unknown> {
@@ -138,10 +197,11 @@ async function stateLabels(account: Account, model: string, field: string): Prom
   return new Map(views.models[model]?.fields[field]?.selection ?? []);
 }
 
-export async function recordPage(account: Account, kind: RecordKind, search: string, limit: number): Promise<RecordPage> {
+export async function recordPage(account: Account, kind: RecordKind, search: string, limit: number, state = ''): Promise<RecordPage> {
   const shape = listed[kind];
   const said = search.trim();
-  const domain = said ? [[shape.search, 'ilike', said]] : [];
+  const field = kind === 'removals' ? 'outcome' : 'state';
+  const domain = [...(said ? [[shape.search, 'ilike', said]] : []), ...(state ? [[field, '=', state]] : [])];
   const [page, labels] = await Promise.all([
     rpc<{ length: number; records: Raw[] }>(account, shape.model, 'web_search_read', [], {
       domain,
@@ -151,9 +211,10 @@ export async function recordPage(account: Account, kind: RecordKind, search: str
       order: shape.order,
       count_limit: 10001,
     }),
-    stateLabels(account, shape.model, kind === 'removals' ? 'outcome' : 'state'),
+    stateLabels(account, shape.model, field),
   ]);
   return {
+    states: [...labels].map(([key, label]) => ({ key, label })),
     lines: page.records.map((row) => {
       const line = lineOf(kind, row);
       return { ...line, state: labels.get(line.state) ?? line.state };

@@ -102,7 +102,12 @@ onFlowStart:
     notVisible:
       id: mom-remove
     timeout: 30000
+- tapOn:
+    id: meeting-more
 - extendedWaitUntil:
-    notVisible:
-      id: meeting-more
-    timeout: 30000
+    visible:
+      id: meeting-more-sheet
+    timeout: 10000
+- assertNotVisible:
+    id: mom-more-remove-[0-9]+
+- back

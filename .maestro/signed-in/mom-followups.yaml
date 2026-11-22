@@ -61,8 +61,7 @@ onFlowStart:
 - tapOn:
     id: followup-meeting
 - tapOn:
-    id: mom-more-meeting-[0-9]+
-    index: 0
+    id: mom-more-meeting-${MINUTES_MEETING}
 - tapOn:
     id: followup-name-field
 - inputText: ${'E2E follow-up ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
@@ -70,8 +69,7 @@ onFlowStart:
 - tapOn:
     id: followup-owner
 - tapOn:
-    id: mom-more-owner-[0-9]+
-    index: 0
+    id: mom-more-owner-${FOLLOWUP_OWNER}
 - scrollUntilVisible:
     element:
       id: followup-due-quick-.*

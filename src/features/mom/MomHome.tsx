@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconButton } from '../../ui/IconButton';
+import { seesClientOrg, useMomAccess } from './access';
 import { MoreSheet } from './MoreSheet';
 import { StatusRow } from './StatusRow';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
@@ -40,6 +41,7 @@ export function MomHome() {
   const [limit, setLimit] = useState(pageSize);
   const [selection, setSelection] = useState<{ account: string; meeting: number } | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const access = useMomAccess();
   const selected = selection && selection.account === active?.id ? selection.meeting : null;
   const meetings = useResource(`mom.board.${limit}`, (account) => board(account, limit));
   const uploads = useUploads(active?.id ?? null);
@@ -151,7 +153,12 @@ export function MomHome() {
           groups={[
             {
               key: 'work',
-              actions: [{ key: 'followups', icon: 'steps', label: t('mom.followups.title'), detail: t('mom.followups.menuDetail'), onPress: () => router.push('/mom/followups') }],
+              actions: [
+                { key: 'followups', icon: 'steps', label: t('mom.followups.title'), detail: t('mom.followups.menuDetail'), onPress: () => router.push('/mom/followups') },
+                ...(seesClientOrg(access)
+                  ? [{ key: 'clientOrg', icon: 'people' as const, label: t('mom.clientOrg.title'), detail: t('mom.clientOrg.menuDetail'), onPress: () => router.push('/mom/client-org') }]
+                  : []),
+              ],
             },
             {
               key: 'lists',
@@ -160,6 +167,21 @@ export function MomHome() {
                 { key: 'recordings', icon: 'wave', label: t('mom.records.recordings'), onPress: () => router.push({ pathname: '/mom/list/[kind]', params: { kind: 'recordings' } }) },
                 { key: 'minutes', icon: 'minutes', label: t('mom.records.minutes'), onPress: () => router.push({ pathname: '/mom/list/[kind]', params: { kind: 'minutes' } }) },
                 { key: 'removals', icon: 'trash', label: t('mom.records.removals'), onPress: () => router.push({ pathname: '/mom/list/[kind]', params: { kind: 'removals' } }) },
+              ],
+            },
+            {
+              key: 'admin',
+              title: t('mom.admin.group'),
+              actions: [
+                ...(access?.manager || access?.system
+                  ? [{ key: 'keys', icon: 'lock' as const, label: t('mom.admin.keys.title'), onPress: () => router.push({ pathname: '/mom/admin/[part]', params: { part: 'keys' } }) }]
+                  : []),
+                ...(access?.system
+                  ? [
+                      { key: 'import', icon: 'cloudUpload' as const, label: t('mom.admin.import.title'), onPress: () => router.push({ pathname: '/mom/admin/[part]', params: { part: 'import' } }) },
+                      { key: 'settings', icon: 'steps' as const, label: t('mom.admin.settings.title'), onPress: () => router.push({ pathname: '/mom/admin/[part]', params: { part: 'settings' } }) },
+                    ]
+                  : []),
               ],
             },
           ]}

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +10,19 @@ export type MoreAction = { key: string; icon: IconName; label: string; detail?: 
 
 export type MoreGroup = { key: string; title?: string; actions: MoreAction[] };
 
-export function MoreSheet({ title, groups, onClose, testID = 'mom-more-sheet' }: { title: string; groups: MoreGroup[]; onClose: () => void; testID?: string }) {
+export function MoreSheet({
+  title,
+  groups,
+  onClose,
+  footer,
+  testID = 'mom-more-sheet',
+}: {
+  title: string;
+  groups: MoreGroup[];
+  onClose: () => void;
+  footer?: ReactNode;
+  testID?: string;
+}) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -25,7 +38,7 @@ export function MoreSheet({ title, groups, onClose, testID = 'mom-more-sheet' }:
           <Text variant="headline" accessibilityRole="header" style={styles.title}>
             {title}
           </Text>
-          <ScrollView contentContainerStyle={styles.body}>
+          <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
             {shown.map((group) => (
               <View key={group.key} style={styles.group}>
                 {group.title ? (
@@ -59,6 +72,7 @@ export function MoreSheet({ title, groups, onClose, testID = 'mom-more-sheet' }:
                 ))}
               </View>
             ))}
+            {footer}
           </ScrollView>
         </Pressable>
       </Pressable>

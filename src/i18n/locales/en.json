@@ -439,7 +439,12 @@
       "failed": "Recording couldn't start. Try again.",
       "busy": "A recording is already running.",
       "noProgramme": "Join a programme first to record.",
-      "consentNeeded": "Confirm that everyone agreed to be recorded."
+      "consentNeeded": "Confirm that everyone agreed to be recorded.",
+      "uploadFile": "Upload a file instead",
+      "pickFailed": "That file couldn't be read. Try another one.",
+      "larkLink": "Import a Lark Minutes link",
+      "larkUrl": "Lark Minutes link",
+      "larkSend": "Import from Lark"
     },
     "consentNote": "Participants agreed to the recording (confirmed in the Kaitech app at {{time}}).",
     "recorder": {
@@ -604,7 +609,13 @@
         "transcribe": "{{title}} is being transcribed.",
         "compare": "ElevenLabs is listening to {{title}}."
       },
-      "editor": "Open the transcript editor"
+      "editor": "Open the transcript editor",
+      "departments": "Departments",
+      "history": "History",
+      "filedUnder": "Filed under",
+      "serves": "Client departments it serves",
+      "noClientDepartments": "The client has no departments yet",
+      "ask": "Ask the Coworker"
     },
     "remove": {
       "title": "Remove this recording for good",
@@ -964,6 +975,236 @@
       "choose": "Choose",
       "reject": "Reject",
       "applyChosen": "Apply {{count}} chosen"
+    },
+    "assist": {
+      "group": "Working on this meeting",
+      "notes": {
+        "title": "My notes",
+        "detail": "Notes and files the minutes are written with",
+        "hint": "What you write here and the files you add are read when the minutes are written.",
+        "inKnowledge": "Read into the knowledge",
+        "body": "Notes",
+        "conflictTitle": "Someone changed these notes",
+        "conflictBody": "Someone saved these notes while you were writing.",
+        "useTheirs": "Use theirs",
+        "keepMine": "Keep mine",
+        "tooBig": "Files up to {{mb}} MB",
+        "files": "Files ({{count}} of {{max}})",
+        "chars": "{{count}} characters read",
+        "readAgain": "Read again",
+        "remove": "Remove",
+        "noFiles": "No files yet",
+        "attach": "Add a file"
+      },
+      "solusi": {
+        "title": "Solutions",
+        "detail": "How each need is met in Odoo or outside it",
+        "holdHint": "Hold to speak, let go to send",
+        "listening": "Listening · {{seconds}} s",
+        "version": "Version {{version}} · {{approved}} of {{count}} approved",
+        "none": "No solutions yet",
+        "needsMinutes": "Write the minutes first, then the solutions",
+        "again": "Write the solutions again",
+        "generate": "Write the solutions",
+        "approved": "Approved",
+        "instruction": "What should change",
+        "applyInstruction": "Change it",
+        "voice": "Hold and say what should change",
+        "versions": "Versions",
+        "versionShort": "Version {{version}}",
+        "currentVersion": "current",
+        "restore": "Make this version current",
+        "pendingTitle": "Decisions still wait",
+        "approve": "Approve",
+        "cherryPick": "Bring into the current version",
+        "instruct": "Change with an instruction",
+        "editItem": "Edit the fields",
+        "assess": "Check the scope",
+        "reuse": "Reuse from another meeting",
+        "conflicts": "Touchpoint conflicts",
+        "return": "Send back",
+        "reuseTitle": "Solutions from other meetings",
+        "conflictsTitle": "Other solutions at {{tag}}",
+        "modules": "Modules: {{list}}",
+        "customWithoutReason": "Custom work without a stated reason",
+        "noRequirement": "No requirement",
+        "useThis": "Use this one",
+        "nothingRelated": "Nothing found",
+        "backToItem": "Back to the solution",
+        "approach": {
+          "ODOO_STANDARD": "Odoo standard",
+          "ODOO_CUSTOM": "Odoo custom",
+          "NON_ODOO": "Outside Odoo"
+        },
+        "effort": {
+          "LOW": "Low effort",
+          "MEDIUM": "Medium effort",
+          "HIGH": "High effort"
+        },
+        "fields": {
+          "title": "Title",
+          "need": "Need",
+          "modules": "Odoo modules, comma separated",
+          "steps": "Steps, one per line",
+          "reason": "Why this way",
+          "notes": "Notes",
+          "touchpoint": "Touchpoint tag"
+        }
+      },
+      "tasks": {
+        "title": "Tasks",
+        "detail": "Draft tasks from the solutions or the minutes",
+        "approvedWaiting": "Approved solutions wait to become tasks.",
+        "fromSolusi": "Draft from solutions",
+        "fromMinutes": "Draft from minutes",
+        "none": "No tasks yet",
+        "duplicate": "Looks like: {{name}}",
+        "saveDue": "Save the due date",
+        "drop": "Delete draft",
+        "dropTitle": "Delete this draft task?",
+        "missing": "Set who is accountable and the due date, then agree it."
+      }
+    },
+    "clientOrg": {
+      "title": "Client organisation",
+      "menuDetail": "Departments, people and meeting targets of the client",
+      "client": "Client",
+      "noClient": "No client organisation to show",
+      "tabs": {
+        "departments": "Departments",
+        "employees": "People",
+        "aliases": "Names to link ({{count}})"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Closed",
+        "all": "All"
+      },
+      "anyDepartment": "Every department",
+      "employeesShown": "{{shown}} of {{total}}",
+      "aliasCount": "{{count}} other names",
+      "noEmployees": "Nobody here",
+      "addEmployee": "Add a person",
+      "period": "{{label}}: {{count}} of {{target}} meetings, {{status}}",
+      "periodStatus": {
+        "pending": "still open",
+        "met": "met",
+        "below": "below target",
+        "unmeasured": "not measured"
+      },
+      "thisWeek": "This week",
+      "thisMonth": "This month",
+      "alerts": "Below the meeting target",
+      "alert": {
+        "week": "{{name}}: {{count}} of {{target}} meetings last week",
+        "month": "{{name}}: {{count}} of {{target}} meetings last month"
+      },
+      "employeesCount": "{{count}} people",
+      "close": "Close",
+      "reopen": "Reopen",
+      "noDepartments": "No departments yet",
+      "addDepartment": "Add a department",
+      "noAliases": "Every name in the follow-ups is linked",
+      "aliasHint": "Names heard in meetings that are not linked to a person yet. Tap one to link it.",
+      "linkTo": "Who is “{{said}}”?",
+      "departmentNew": "New department",
+      "departmentEdit": "Edit department",
+      "employeeNew": "New person",
+      "employeeEdit": "Edit person",
+      "name": "Name",
+      "sequence": "Order",
+      "weeklyTarget": "Meetings a week",
+      "monthlyTarget": "Meetings a month",
+      "serves": "Programme departments it serves",
+      "nickname": "Called",
+      "jobTitle": "Job title",
+      "email": "Email",
+      "phone": "Phone",
+      "noDepartment": "No department",
+      "aliases": "Other names",
+      "aliasesHint": "One per line, as people say it in meetings"
+    },
+    "admin": {
+      "group": "Administration",
+      "keys": {
+        "title": "MCP keys",
+        "hint": "A key lets an AI client read the MoM of the programmes you choose, nothing else.",
+        "new": "New key",
+        "none": "No keys yet",
+        "revoke": "Revoke",
+        "revokeTitle": "Revoke this key?",
+        "client": "Client",
+        "clientHint": "Where the key will live, for example Claude Desktop on my laptop",
+        "programmes": "Programmes ({{count}})",
+        "passwordHint": "Your password confirms it is you",
+        "make": "Make key",
+        "readyTitle": "Your MCP key",
+        "onlyOnce": "This key is shown only now. Copy what you need before closing.",
+        "copy": "Copy",
+        "done": "Done",
+        "parts": {
+          "key": "Key",
+          "url": "Address",
+          "header": "Header",
+          "claudeDesktop": "Claude Desktop",
+          "hermesEnv": "Hermes .env",
+          "hermesConfig": "Hermes config.yaml"
+        }
+      },
+      "settings": {
+        "title": "MoM settings",
+        "keys": "Service keys",
+        "configured": "Set",
+        "missing": "Not set",
+        "testLark": "Test Lark",
+        "transcription": "Transcription",
+        "model": {
+          "deepgram": "Deepgram model",
+          "openai": "OpenAI model",
+          "elevenlabs": "ElevenLabs model"
+        },
+        "audio": {
+          "auto": "Audio: automatic",
+          "preserve_source": "Audio: keep the source",
+          "speech_optimized": "Audio: tuned for speech"
+        },
+        "compare": "ElevenLabs compares by itself",
+        "aiFilter": "AI filter on differences",
+        "matchAt": "Same from score (0-1)",
+        "divergentBelow": "Different below score (0-1)",
+        "threshold": {
+          "range": "Use a number from 0 to 1",
+          "order": "Different must not be above same"
+        },
+        "coworkerModel": "Model calls use {{model}}",
+        "prompts": "Prompts",
+        "custom": "Custom",
+        "default": "Default",
+        "rates": "Speech rates",
+        "noRate": "No rate",
+        "minute": "minute",
+        "promptText": "Prompt ({{count}} of {{limit}})",
+        "showDefault": "Show the default prompt",
+        "reset": "Back to the default",
+        "perMinute": "Price per minute ({{currency}})"
+      },
+      "import": {
+        "title": "Circle import",
+        "projects": "Circle projects ({{count}})",
+        "projectLine": "{{recordings}} recordings, {{rows}} rows",
+        "runs": "Import runs",
+        "noRuns": "No runs yet",
+        "runLine": "{{created}} new, {{updated}} changed, {{failed}} failed, {{conflicts}} conflicts",
+        "mapTo": "Import into programme",
+        "skip": "Skip this project",
+        "reopen": "Decide again",
+        "back": "Back to import",
+        "rolledBack": "rolled back {{at}}",
+        "rollBack": "Roll back this run",
+        "rollBackTitle": "Roll back this run?",
+        "events": "Events ({{count}})",
+        "previous": "Previous"
+      }
     }
   },
   "appearance": {
