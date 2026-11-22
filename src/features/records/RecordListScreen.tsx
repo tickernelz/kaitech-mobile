@@ -19,12 +19,12 @@ import { contextOf, domainOf, textOfValue, visible, scopeOf } from './model';
 import { useFormat } from './RecordScreen';
 import { Sheet } from './Sheet';
 import { stash, unstash, useRecordsGeneration } from './stash';
-import type { ListStash, RecordStash } from './useRunAction';
+import { actionScope, type ListStash, type RecordStash } from './useRunAction';
 import { compileList, compileSearch, titleColumn, type ListSpec, type SearchSpec } from './views';
 
 const page = 40;
 
-type Loaded = { action: WindowAction; list: ListSpec; search: SearchSpec | null; fields: Fields; spec: Spec; formView: number | false; canCreate: boolean };
+type Loaded = { base: Record<string, unknown>; action: WindowAction; list: ListSpec; search: SearchSpec | null; fields: Fields; spec: Spec; formView: number | false; canCreate: boolean };
 
 function refOf(action: WindowAction, type: string): number | false {
   const found = (action.views ?? []).find(([, kind]) => kind === type || (type === 'list' && kind === 'tree'));
@@ -72,12 +72,13 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
       const search = views.views.search ? compileSearch(views.views.search.arch) : null;
       const formArch = views.views.form?.arch ?? '';
       const formCreate = !/<form[^>]*\screate="(false|0)"/.test(formArch);
-      const actionContext = contextOf(action.context, { uid, context: {}, active_id: programme });
+      const base = held?.context ?? {};
+      const actionContext = { ...base, ...contextOf(action.context, actionScope(base, uid, programme)) };
       if (!live) return;
       setActive(defaultFilters(search?.filters ?? [], actionContext));
       const programmeWide = fields.engagement_id?.relation === 'ck.engagement' && action.res_model !== 'ck.engagement';
       setGroupBy(search?.groupBys.find((group) => group.name && actionContext[`search_default_${group.name}`] && !(programmeWide && group.field === 'engagement_id'))?.key ?? null);
-      setLoaded({ action, list, search, fields, spec: specOf(list.names, fields), formView, canCreate: list.create && formCreate });
+      setLoaded({ base, action, list, search, fields, spec: specOf(list.names, fields), formView, canCreate: list.create && formCreate });
     })().catch((failure: unknown) => live && setError(failure));
     return () => {
       live = false;
@@ -85,11 +86,11 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
   }, [account, actionId, stashKey, programme, uid]);
 
   const linked = !!loaded && loaded.fields.engagement_id?.relation === 'ck.engagement' && loaded.action.res_model !== 'ck.engagement';
-  const actionContext = useMemo(() => (loaded ? contextOf(loaded.action.context, { uid, context: {}, active_id: programme }) : {}), [loaded, uid, programme]);
+  const actionContext = useMemo(() => (loaded ? { ...loaded.base, ...contextOf(loaded.action.context, actionScope(loaded.base, uid, programme)) } : {}), [loaded, uid, programme]);
 
   const baseDomain = useMemo(() => {
     if (!loaded) return [];
-    const scope = { uid, context: actionContext, active_id: programme };
+    const scope = { ...actionScope(loaded.base, uid, programme), context: actionContext };
     return andDomains([
       domainOf(loaded.action.domain, scope),
       linked && onlyProgramme ? [['engagement_id', '=', programme]] : [],

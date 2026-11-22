@@ -13,7 +13,11 @@ import { recordsChanged, stash } from './stash';
 
 export type RecordStash = { context: Record<string, unknown>; formView: number | false; wizard: boolean; title?: string };
 
-export type ListStash = { action: WindowAction };
+export type ListStash = { action: WindowAction; context?: Record<string, unknown> };
+
+export function actionScope(base: Record<string, unknown>, uid: number, fallbackId: number | false) {
+  return { uid, context: base, active_id: base.active_id ?? fallbackId, active_ids: base.active_ids ?? [], active_model: base.active_model ?? false };
+}
 
 function viewOf(action: WindowAction, type: string): number | false | undefined {
   const found = (action.views ?? []).find(([, kind]) => kind === type || (type === 'list' && kind === 'tree'));
@@ -36,7 +40,8 @@ export function useRunAction(programme: number) {
   const { t } = useTranslation();
   const account = useSession().active;
   return useCallback(
-    async (action: Action | false | undefined | null, from: { wizard?: boolean } = {}): Promise<void> => {
+    async (action: Action | false | undefined | null, from: { wizard?: boolean; context?: Record<string, unknown> } = {}): Promise<void> => {
+      const base = from.context ?? {};
       if (!action || action.type === 'ir.actions.act_window_close') {
         recordsChanged();
         if (from.wizard) router.back();
@@ -44,7 +49,7 @@ export function useRunAction(programme: number) {
       }
       const id = String(programme);
       if (action.type === 'ir.actions.act_window') {
-        const context = contextOf(action.context, { uid: account?.userId ?? 0, context: {}, active_id: false });
+        const context = { ...base, ...contextOf(action.context, actionScope(base, account?.userId ?? 0, false)) };
         const formView = viewOf(action, 'form');
         const wizard = action.target === 'new';
         const kind = firstViewType(action);
@@ -53,12 +58,12 @@ export function useRunAction(programme: number) {
           const key = stash({ context, formView: formView ?? false, wizard, title: action.name } satisfies RecordStash);
           router.push({ pathname: '/program/[id]/record', params: { id, model: action.res_model, rid: action.res_id ? String(action.res_id) : '', stash: key } });
         } else {
-          router.push({ pathname: '/program/[id]/list', params: { id, stash: stash({ action } satisfies ListStash) } });
+          router.push({ pathname: '/program/[id]/list', params: { id, stash: stash({ action, context: base } satisfies ListStash) } });
         }
         return;
       }
       if (action.type === 'ir.actions.client') {
-        const context = contextOf(action.context, {});
+        const context = { ...base, ...contextOf(action.context, actionScope(base, account?.userId ?? 0, false)) };
         const params = action.params ?? {};
         const target = Number(context.active_id ?? params.active_id ?? 0);
         if (from.wizard) router.back();
@@ -85,7 +90,7 @@ export function useRunAction(programme: number) {
         return;
       }
       if (action.type === 'ir.actions.report' && account) {
-        const context = contextOf(action.context, {});
+        const context = { ...base, ...contextOf(action.context, actionScope(base, account?.userId ?? 0, false)) };
         const ids = Array.isArray(context.active_ids) ? context.active_ids.join(',') : String(context.active_id ?? '');
         await openReport(account, `/report/pdf/${action.report_name}/${ids}`, `${action.name ?? action.report_name}.pdf`);
         recordsChanged();

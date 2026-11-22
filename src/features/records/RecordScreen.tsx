@@ -216,7 +216,7 @@ export function RecordScreen({ programme, model, rid, stashKey }: { programme: n
           button.type === 'object'
             ? await callButton(account, model, button.name, [target], buttonContext)
             : await loadAction(account, Number(button.name) || button.name, buttonContext);
-        await run(result, { wizard: holder.wizard });
+        await run(result, { wizard: holder.wizard, context: buttonContext });
         if (!holder.wizard) await reload();
       } catch (failure) {
         fail(failure);

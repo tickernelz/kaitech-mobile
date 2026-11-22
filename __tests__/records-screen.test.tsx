@@ -2,6 +2,8 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import * as api from '../src/features/records/api';
 import { RecordScreen } from '../src/features/records/RecordScreen';
+import { unstash } from '../src/features/records/stash';
+import type { RecordStash } from '../src/features/records/useRunAction';
 
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined } }));
 
@@ -33,6 +35,7 @@ jest.mock('../src/features/records/api', () => ({
   getViews: jest.fn(),
   readRecord: jest.fn(),
   callButton: jest.fn(),
+  loadAction: jest.fn(),
   onchange: jest.fn(),
   saveRecord: jest.fn(),
   messages: jest.fn(async () => []),
@@ -77,4 +80,20 @@ it('refuses to save a new record until the required fields the web requires are 
   await waitFor(() => expect(alert).toHaveBeenCalledWith(expect.any(String), 'Note'));
   expect(mocked.saveRecord).not.toHaveBeenCalled();
   alert.mockRestore();
+});
+
+it('opens a wizard from an action button with the record as its active_id, as the web does', async () => {
+  const wizardArch = arch.replace('action_submit" type="object"', '42" type="action"');
+  mocked.getViews.mockResolvedValue({ views: { form: { arch: wizardArch, id: 1 } }, models: { 'ck.x': { fields } } });
+  mocked.readRecord.mockResolvedValue({ id: 7, name: 'Plan', state: 'draft', note: 'n', display_name: 'Plan' });
+  mocked.loadAction.mockResolvedValue({ type: 'ir.actions.act_window', res_model: 'ck.x.wizard', target: 'new', views: [[false, 'form']], context: "{'default_source_id': active_id}" });
+  const view = await render(<RecordScreen programme={1} model="ck.x" rid={7} />);
+  await fireEvent.press(await view.findByTestId('button-42'));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalled());
+  expect(mocked.loadAction).toHaveBeenCalledWith(account, 42, expect.objectContaining({ active_id: 7 }));
+  const pushed = mockRouter.push.mock.calls[0][0] as { params: { model: string; stash: string } };
+  expect(pushed.params.model).toBe('ck.x.wizard');
+  const held = unstash<RecordStash>(pushed.params.stash);
+  expect(held?.wizard).toBe(true);
+  expect(held?.context).toMatchObject({ default_source_id: 7, active_id: 7, active_ids: [7], active_model: 'ck.x' });
 });
