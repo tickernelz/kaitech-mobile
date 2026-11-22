@@ -60,6 +60,10 @@ onFlowStart:
     timeout: 30000
 - tapOn:
     id: followup-meeting
+- scrollUntilVisible:
+    element:
+      id: mom-more-meeting-${MINUTES_MEETING}
+    timeout: 30000
 - tapOn:
     id: mom-more-meeting-${MINUTES_MEETING}
 - tapOn:
@@ -72,10 +76,23 @@ onFlowStart:
     id: mom-more-owner-${FOLLOWUP_OWNER}
 - scrollUntilVisible:
     element:
+      id: followup-due
+- tapOn:
+    id: followup-due
+- inputText: 2026-02-30
+- runFlow: ../shared/dismiss-keyboard.yaml
+- assertVisible:
+    id: followup-save
+    enabled: false
+- scrollUntilVisible:
+    element:
       id: followup-due-quick-.*
 - tapOn:
     id: followup-due-quick-.*
     index: 2
+- assertVisible:
+    id: followup-save
+    enabled: true
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
@@ -100,7 +117,7 @@ onFlowStart:
     id: followup-save-progress
 - scrollUntilVisible:
     element:
-      text: E2E progress.*
+      text: .*E2E progress.*
     direction: DOWN
 - runFlow:
     file: ../shared/screenshot.yaml

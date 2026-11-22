@@ -59,7 +59,7 @@ export function RemoveScreen({ recording, meeting }: { recording: number; meetin
       footer={
         <>
           {problem ? (
-            <Text variant="callout" tone="dangerInk" accessibilityRole="alert">
+            <Text variant="callout" tone="dangerInk" accessibilityRole="alert" testID="mom-remove-problem">
               {problem}
             </Text>
           ) : null}

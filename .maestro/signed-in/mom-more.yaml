@@ -90,6 +90,20 @@ onFlowStart:
 - inputText: ${maestro.copiedText}
 - tapOn:
     id: mom-remove-password
+- inputText: not-the-password
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: mom-remove-confirm
+- extendedWaitUntil:
+    visible:
+      id: mom-remove-problem
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m9-remove-refused
+- tapOn:
+    id: mom-remove-password
 - inputText: ${PASSWORD}
 - runFlow: ../shared/dismiss-keyboard.yaml
 - runFlow:
