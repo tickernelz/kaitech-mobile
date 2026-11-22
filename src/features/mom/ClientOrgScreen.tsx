@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Modal, Pressable, RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { invalidate, useResource } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
@@ -274,46 +275,48 @@ function EditSheet({ editing, data, client, onClose }: { editing: NonNullable<Ed
   const toggle = (id: number) => setServed((list) => (list.includes(id) ? list.filter((one) => one !== id) : [...list, id]));
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
-        <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="client-org-edit">
-          <ScrollView contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled">
-            <Text variant="headline">{t(`mom.clientOrg.${editing.kind}${editing.item ? 'Edit' : 'New'}`)}</Text>
-            <TextField label={t('mom.clientOrg.name')} value={name} onChangeText={setName} testID="client-org-name" />
-            {editing.kind === 'department' ? (
-              <>
-                <TextField label={t('mom.clientOrg.sequence')} value={sequence} onChangeText={setSequence} keyboardType="number-pad" />
-                <TextField label={t('mom.clientOrg.weeklyTarget')} value={weekly} onChangeText={setWeekly} keyboardType="number-pad" testID="client-org-weekly" />
-                <TextField label={t('mom.clientOrg.monthlyTarget')} value={monthly} onChangeText={setMonthly} keyboardType="number-pad" />
-                {data.programmeDepartments.length ? (
-                  <Section title={t('mom.clientOrg.serves')}>
-                    {data.programmeDepartments.map((one) => (
-                      <Row key={one.id} title={one.name} detail={one.programme} selected={served.includes(one.id)} trailing={<Check visible={served.includes(one.id)} />} onPress={() => toggle(one.id)} />
-                    ))}
+      <KeyboardAvoidingView behavior="padding" style={styles.fill}>
+        <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
+          <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="client-org-edit">
+            <ScrollView contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled">
+              <Text variant="headline">{t(`mom.clientOrg.${editing.kind}${editing.item ? 'Edit' : 'New'}`)}</Text>
+              <TextField label={t('mom.clientOrg.name')} value={name} onChangeText={setName} testID="client-org-name" />
+              {editing.kind === 'department' ? (
+                <>
+                  <TextField label={t('mom.clientOrg.sequence')} value={sequence} onChangeText={setSequence} keyboardType="number-pad" />
+                  <TextField label={t('mom.clientOrg.weeklyTarget')} value={weekly} onChangeText={setWeekly} keyboardType="number-pad" testID="client-org-weekly" />
+                  <TextField label={t('mom.clientOrg.monthlyTarget')} value={monthly} onChangeText={setMonthly} keyboardType="number-pad" />
+                  {data.programmeDepartments.length ? (
+                    <Section title={t('mom.clientOrg.serves')}>
+                      {data.programmeDepartments.map((one) => (
+                        <Row key={one.id} title={one.name} detail={one.programme} selected={served.includes(one.id)} trailing={<Check visible={served.includes(one.id)} />} onPress={() => toggle(one.id)} />
+                      ))}
+                    </Section>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <TextField label={t('mom.clientOrg.nickname')} value={nickname} onChangeText={setNickname} />
+                  <TextField label={t('mom.clientOrg.jobTitle')} value={title} onChangeText={setTitle} />
+                  <TextField label={t('mom.clientOrg.email')} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+                  <TextField label={t('mom.clientOrg.phone')} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+                  <ChoiceRow
+                    options={[{ value: 0, label: t('mom.clientOrg.noDepartment') }, ...data.departments.filter((one) => one.active).map((one) => ({ value: one.id, label: one.name }))]}
+                    value={belongs || 0}
+                    onChange={(value) => setBelongs(value || false)}
+                    testID="client-org-belongs"
+                  />
+                  <TextField label={t('mom.clientOrg.aliases')} hint={t('mom.clientOrg.aliasesHint')} value={aliases} onChangeText={setAliases} multiline />
+                  <Section>
+                    <ToggleRow title={t('mom.clientOrg.status.active')} value={activeFlag} onChange={setActiveFlag} />
                   </Section>
-                ) : null}
-              </>
-            ) : (
-              <>
-                <TextField label={t('mom.clientOrg.nickname')} value={nickname} onChangeText={setNickname} />
-                <TextField label={t('mom.clientOrg.jobTitle')} value={title} onChangeText={setTitle} />
-                <TextField label={t('mom.clientOrg.email')} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-                <TextField label={t('mom.clientOrg.phone')} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-                <ChoiceRow
-                  options={[{ value: 0, label: t('mom.clientOrg.noDepartment') }, ...data.departments.filter((one) => one.active).map((one) => ({ value: one.id, label: one.name }))]}
-                  value={belongs || 0}
-                  onChange={(value) => setBelongs(value || false)}
-                  testID="client-org-belongs"
-                />
-                <TextField label={t('mom.clientOrg.aliases')} hint={t('mom.clientOrg.aliasesHint')} value={aliases} onChangeText={setAliases} multiline />
-                <Section>
-                  <ToggleRow title={t('mom.clientOrg.status.active')} value={activeFlag} onChange={setActiveFlag} />
-                </Section>
-              </>
-            )}
-            <Button label={t('mom.followups.save')} disabled={!name.trim()} busy={action.busy === 'save'} onPress={save} testID="client-org-save" />
-          </ScrollView>
+                </>
+              )}
+              <Button label={t('mom.followups.save')} disabled={!name.trim()} busy={action.busy === 'save'} onPress={save} testID="client-org-save" />
+            </ScrollView>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

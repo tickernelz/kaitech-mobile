@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { invalidate, useResource } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
@@ -281,74 +282,76 @@ function SegmentSheet({ segment, view, editable, onPlay, onClose }: { segment: E
   ];
   return (
     <Modal visible transparent animationType="fade" onRequestClose={page === 'menu' ? onClose : () => setPage('menu')} supportedOrientations={['portrait', 'landscape']}>
-      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
-        <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="segment-sheet">
-          <ScrollView contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled">
-            <Text variant="footnote" tone="inkSoft">
-              {[segment.clock, segment.person || segment.speaker].join(' · ')}
-            </Text>
-            <Text>{segment.text}</Text>
-            {segment.text !== segment.transcribedText && segment.transcribedText ? (
+      <KeyboardAvoidingView behavior="padding" style={styles.fill}>
+        <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
+          <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="segment-sheet">
+            <ScrollView contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled">
               <Text variant="footnote" tone="inkSoft">
-                {t('mom.editor.heard', { text: segment.transcribedText })}
+                {[segment.clock, segment.person || segment.speaker].join(' · ')}
               </Text>
-            ) : null}
-            {segment.altText && segment.altText !== segment.text ? (
-              <Text variant="footnote" tone="inkSoft">
-                {t('mom.editor.elevenSaid', { text: segment.altText })}
-              </Text>
-            ) : null}
-            {segment.reason ? (
-              <Text variant="footnote" tone="inkSoft">
-                {segment.reason}
-              </Text>
-            ) : null}
-            {page === 'menu'
-              ? items.map((item) => (
-                  <Pressable
-                    key={item.key}
-                    accessibilityRole="button"
-                    onPress={item.onPress}
-                    style={({ pressed }) => [styles.item, pressed && { backgroundColor: colors.surface2 }]}
-                    testID={`segment-${item.key}`}>
-                    <Text>{item.label}</Text>
-                  </Pressable>
-                ))
-              : null}
-            {page === 'text' ? (
-              <>
-                <TextField label={t('mom.editor.editText')} value={text} onChangeText={setText} multiline autoFocus testID="segment-text" />
-                <Button
-                  label={t('mom.followups.save')}
-                  disabled={!text.trim() || text === segment.text}
-                  busy={action.busy === 'text'}
-                  onPress={() => void action.run('text', (account) => correct(account, segment.id, text.trim())).then(done)}
-                  testID="segment-save"
-                />
-              </>
-            ) : null}
-            {page === 'speaker' ? (
-              <>
-                <ChoiceRow options={view.speakers.map((one) => ({ value: one.label, label: one.person || one.label }))} value={label} onChange={setLabel} testID="segment-label" />
-                <TextField label={t('mom.editor.newLabel')} value={label} onChangeText={setLabel} autoCorrect={false} testID="segment-label-text" />
-                <ChoiceRow
-                  options={(['segment', 'from', 'until'] as const).map((value) => ({ value, label: t(`mom.editor.scope.${value}`) }))}
-                  value={scope}
-                  onChange={setScope}
-                  testID="segment-scope"
-                />
-                <Button
-                  label={t('mom.followups.save')}
-                  disabled={!label.trim() || (label.trim() === segment.speaker && scope === 'segment')}
-                  busy={action.busy === 'speaker'}
-                  onPress={() => void action.run('speaker', (account) => relabel(account, view.recording.id, segment.id, label, scope)).then(done)}
-                  testID="segment-relabel"
-                />
-              </>
-            ) : null}
-          </ScrollView>
+              <Text>{segment.text}</Text>
+              {segment.text !== segment.transcribedText && segment.transcribedText ? (
+                <Text variant="footnote" tone="inkSoft">
+                  {t('mom.editor.heard', { text: segment.transcribedText })}
+                </Text>
+              ) : null}
+              {segment.altText && segment.altText !== segment.text ? (
+                <Text variant="footnote" tone="inkSoft">
+                  {t('mom.editor.elevenSaid', { text: segment.altText })}
+                </Text>
+              ) : null}
+              {segment.reason ? (
+                <Text variant="footnote" tone="inkSoft">
+                  {segment.reason}
+                </Text>
+              ) : null}
+              {page === 'menu'
+                ? items.map((item) => (
+                    <Pressable
+                      key={item.key}
+                      accessibilityRole="button"
+                      onPress={item.onPress}
+                      style={({ pressed }) => [styles.item, pressed && { backgroundColor: colors.surface2 }]}
+                      testID={`segment-${item.key}`}>
+                      <Text>{item.label}</Text>
+                    </Pressable>
+                  ))
+                : null}
+              {page === 'text' ? (
+                <>
+                  <TextField label={t('mom.editor.editText')} value={text} onChangeText={setText} multiline autoFocus testID="segment-text" />
+                  <Button
+                    label={t('mom.followups.save')}
+                    disabled={!text.trim() || text === segment.text}
+                    busy={action.busy === 'text'}
+                    onPress={() => void action.run('text', (account) => correct(account, segment.id, text.trim())).then(done)}
+                    testID="segment-save"
+                  />
+                </>
+              ) : null}
+              {page === 'speaker' ? (
+                <>
+                  <ChoiceRow options={view.speakers.map((one) => ({ value: one.label, label: one.person || one.label }))} value={label} onChange={setLabel} testID="segment-label" />
+                  <TextField label={t('mom.editor.newLabel')} value={label} onChangeText={setLabel} autoCorrect={false} testID="segment-label-text" />
+                  <ChoiceRow
+                    options={(['segment', 'from', 'until'] as const).map((value) => ({ value, label: t(`mom.editor.scope.${value}`) }))}
+                    value={scope}
+                    onChange={setScope}
+                    testID="segment-scope"
+                  />
+                  <Button
+                    label={t('mom.followups.save')}
+                    disabled={!label.trim() || (label.trim() === segment.speaker && scope === 'segment')}
+                    busy={action.busy === 'speaker'}
+                    onPress={() => void action.run('speaker', (account) => relabel(account, view.recording.id, segment.id, label, scope)).then(done)}
+                    testID="segment-relabel"
+                  />
+                </>
+              ) : null}
+            </ScrollView>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
