@@ -91,6 +91,10 @@ onFlowStart:
     visible:
       id: app-device-[0-9]+
     timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: devices-revoke-all
+    direction: DOWN
 - assertVisible:
     id: devices-revoke-all
 - tapOn:

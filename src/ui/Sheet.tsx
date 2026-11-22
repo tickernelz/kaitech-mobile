@@ -31,7 +31,7 @@ export function Sheet({
   const head = title ? (
     <View style={styles.head}>
       <View style={styles.fill}>
-        <Text variant="headline" accessibilityRole="header" numberOfLines={2}>
+        <Text variant="headline" accessibilityRole="header">
           {title}
         </Text>
         {detail ? (
@@ -107,11 +107,11 @@ export function SheetItem({
       testID={testID}>
       {icon ? <Icon name={icon} color={ink} /> : null}
       <View style={styles.fill}>
-        <Text variant="body" style={{ color: ink }} numberOfLines={2}>
+        <Text variant="body" style={{ color: ink }}>
           {label}
         </Text>
         {detail ? (
-          <Text variant="footnote" tone="inkSoft" numberOfLines={2}>
+          <Text variant="footnote" tone="inkSoft">
             {detail}
           </Text>
         ) : null}
