@@ -186,8 +186,10 @@ onFlowStart:
 - scrollUntilVisible:
     element:
       id: chatter-input
-    speed: 90
+    speed: 60
     timeout: 60000
+    visibilityPercentage: 50
+    centerElement: true
 - tapOn:
     id: chatter-input
 - inputText: ${NOTE}
