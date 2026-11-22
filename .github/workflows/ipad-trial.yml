@@ -57,7 +57,7 @@ jobs:
           fi
           grep -E '^\*\* BUILD' build/xcodebuild.log
       - name: Run Maestro flows on an iPad simulator
-        run: bash scripts/e2e-ipad.sh build/ios/Build/Products/Release-iphonesimulator/Kaitech.app e2e-output en-US
+        run: bash scripts/e2e-ios.sh build/ios/Build/Products/Release-iphonesimulator/Kaitech.app e2e-output en-US ipad
       - name: Scan E2E output for secrets
         id: scan-e2e
         if: always()

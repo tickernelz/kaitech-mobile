@@ -289,6 +289,118 @@ jobs:
           unzip -q dist/*.ipa 'Payload/Kaitech.app/main.jsbundle' -d "$RUNNER_TEMP/ipa"
           gitleaks dir --redact --verbose --exit-code 1 "$RUNNER_TEMP/ipa"
 
+  ios-simulator:
+    name: ios simulator app
+    runs-on: xcode-27
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/Library/Caches/ReactNative
+          key: ios-downloads-${{ hashFiles('package-lock.json', 'app.json', 'app.config.ts') }}
+          restore-keys: ios-downloads-
+      - run: npm ci
+      - run: npx expo prebuild --platform ios
+      - name: xcodebuild for the simulator (no code signing)
+        run: |
+          mkdir -p build
+          if ! xcodebuild \
+            -workspace ios/Kaitech.xcworkspace \
+            -scheme Kaitech \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/ios \
+            CODE_SIGNING_ALLOWED=NO \
+            build > build/xcodebuild.log 2>&1; then
+            grep -E 'error:' build/xcodebuild.log | head -50 || true
+            tail -100 build/xcodebuild.log
+            exit 1
+          fi
+          grep -E '^\*\* BUILD' build/xcodebuild.log
+      - name: Pack the simulator app
+        run: |
+          mkdir -p dist
+          ditto -c -k --keepParent build/ios/Build/Products/Release-iphonesimulator/Kaitech.app dist/Kaitech-simulator.zip
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kaitech-ios-simulator-app
+          path: dist/Kaitech-simulator.zip
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: ios-simulator-build-log
+          path: build/xcodebuild.log
+          retention-days: 7
+
+  e2e-iphone-glass:
+    name: e2e iphone glass ${{ matrix.locale }}
+    needs: ios-simulator
+    runs-on: xcode-27
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        locale: [en-US, id-ID]
+    env:
+      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
+      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
+      E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
+      E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: ./.github/actions/setup-maestro
+      - uses: ./.github/actions/setup-gitleaks
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: kaitech-ios-simulator-app
+          path: dist
+      - run: ditto -x -k dist/Kaitech-simulator.zip build
+      - name: Liquid Glass tour on an iPhone simulator, light and dark
+        env:
+          MIN_IOS: '26'
+          APPEARANCES: light dark
+          E2E_FLOWS: .maestro/ios
+        run: bash scripts/e2e-ios.sh build/Kaitech.app e2e-output ${{ matrix.locale }} iphone
+      - name: Scan E2E output for secrets
+        id: scan-e2e
+        if: always()
+        run: |
+          if [ ! -d e2e-output ]; then
+            echo "no E2E output"
+            exit 0
+          fi
+          gitleaks dir --redact --verbose --exit-code 1 e2e-output
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && steps.scan-e2e.outcome == 'success'
+        with:
+          name: e2e-iphone-glass-${{ matrix.locale }}
+          path: e2e-output/
+          if-no-files-found: warn
+          retention-days: 30
+
   e2e-android-cell:
     name: e2e android ${{ matrix.size }} ${{ matrix.orientation }} ${{ matrix.locale }}
     needs: android-e2e
