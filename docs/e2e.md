@@ -10,6 +10,25 @@ In CI every flow runs twice, on emulators with the `en-US` and `id-ID` locales. 
 
 Run locally: `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATION=portrait .maestro`. All three variables must be passed through `-e`; do not give them defaults in a flow's `env:` block, because that value overrides `-e`.
 
+## Shared local emulator
+
+E2E, video recordings, screenshots, and the full suite run in GitHub Actions; take videos and images from the `e2e-android-*` artifacts of a green run at the SHA in question. Flows CI cannot reach may run on a physical phone. A developer PC runs at most ONE emulator for all runs at once, and only through `scripts/emulator.sh`:
+
+```bash
+scripts/emulator.sh run phone -- bash scripts/e2e-android.sh dist e2e-output/phone-portrait-en-US en-US phone portrait
+scripts/emulator.sh run tablet -- sh -c 'maestro --device "$ANDROID_SERIAL" test -e APP_LANGUAGE=en -e DEVICE_SIZE=tablet -e ORIENTATION=landscape .maestro'
+scripts/emulator.sh status
+scripts/emulator.sh stop
+```
+
+- Two shared AVDs, `kaitech-phone` (`pixel_6`) and `kaitech-tablet` (`pixel_tablet`), Android 15 `google_apis` x86_64, created automatically on first use with the profile's default RAM, the same as CI. Do not create an AVD per task.
+- The emulator runs on `emulator-5584` (inside the 5555-5585 range the adb server rescans after `adb kill-server`) with `-gpu host -read-only -no-snapshot -no-window -no-audio -no-boot-anim` as the user systemd unit `kaitech-emulator` (`Nice=10`, `CPUQuota=400%`, `MemoryMax=8G`). `-read-only` makes every boot clean.
+- One `flock` lock at `$XDG_RUNTIME_DIR/kaitech-emulator/lock`: a run that arrives while another run uses the emulator waits its turn (or use CI). The launcher refuses to start an emulator (exit code 3) while any other emulator runs on the PC, including one started without the launcher, and prints the list.
+- A live emulator of the same size is reused: the launcher runs `pm clear io.kaitech.mobile`, then your command with `ANDROID_SERIAL` pointing at that emulator, under `nice`. Another size stops that emulator first. `adb` follows `ANDROID_SERIAL`, Maestro does not: always pass `maestro --device "$ANDROID_SERIAL"`, because without it Maestro picks another connected device, including a physical phone over USB.
+- The `kaitech-emulator-reap` timer is armed as soon as a run takes the lock and armed again after the command finishes. It checks every `KAITECH_EMULATOR_IDLE_MINUTES` (default 5) minutes and stops the emulator and itself once the lock is free, so a killed run (Ctrl-C, timeout, SIGKILL, OOM) does not leave the emulator running. `scripts/emulator.sh stop` stops it at once and exits with code 75 when another run is using the emulator; run it as soon as you are done.
+- `KAITECH_EMULATOR_GPU=swangle_indirect` only to compare or when the host GPU misbehaves, with a written reason; software rendering is the emulator's largest CPU cost.
+- CI does not use this launcher: GitHub runners have no GPU and keep `swiftshader_indirect`.
+
 ## Device matrix
 
 The superapp must be responsive on phones and tablets, Android and iOS, portrait and landscape. Every Android cell is its own job with its own emulator, so all eight cells run in parallel.
