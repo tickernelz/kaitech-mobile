@@ -321,47 +321,24 @@ jobs:
         {"size": "phone", "locale": "en-US", "hide_direct": "true"}]}
 
   e2e-android-chat:
-    name: e2e android chat ${{ matrix.size }} ${{ matrix.orientation }} ${{ matrix.locale }}
+    name: e2e android chat
     needs: android-e2e
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    env:
-      E2E_APK_ARTIFACT: e2e-apk-x86_64
-      E2E_LABEL: chat-
-      E2E_URGENT: 'yes'
-      E2E_FLOWS: .maestro/signed-in/message-actions.yaml .maestro/signed-in/thread-actions.yaml .maestro/signed-in/composer-extras.yaml .maestro/signed-in/new-conversation.yaml
-      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
-      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
-      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
-      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
-      E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
-      E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
-      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
-      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
-      E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
-      E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - size: phone
-            orientation: portrait
-            locale: en-US
-            profile: pixel_6
-          - size: phone
-            orientation: portrait
-            locale: id-ID
-            profile: pixel_6
-          - size: tablet
-            orientation: landscape
-            locale: en-US
-            profile: pixel_tablet
-          - size: tablet
-            orientation: landscape
-            locale: id-ID
-            profile: pixel_tablet
-    steps: *e2e-android-steps
+    concurrency:
+      group: kaitech-e2e-account
+      cancel-in-progress: false
+      queue: max
+    uses: ./.github/workflows/e2e-android.yml
+    secrets: inherit
+    with:
+      label: chat-
+      apk-artifact: e2e-apk-x86_64
+      flows: .maestro/signed-in/message-actions.yaml .maestro/signed-in/thread-actions.yaml .maestro/signed-in/composer-extras.yaml .maestro/signed-in/new-conversation.yaml
+      matrix: >-
+        {"include": [{"size": "phone", "orientation": "portrait", "locale": "en-US", "profile": "pixel_6"},
+        {"size": "phone", "orientation": "portrait", "locale": "id-ID", "profile": "pixel_6"},
+        {"size": "tablet", "orientation": "landscape", "locale": "en-US", "profile": "pixel_tablet"},
+        {"size": "tablet", "orientation": "landscape", "locale": "id-ID", "profile": "pixel_tablet"}]}
 
   e2e-android-universal:
     name: e2e android universal apk

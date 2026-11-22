@@ -131,7 +131,7 @@ onFlowStart:
     optional: true
 - runFlow:
     when:
-      true: ${URGENT == 'yes'}
+      true: ${URGENT != 'no'}
     commands:
       - tapOn:
           id: composer-attach

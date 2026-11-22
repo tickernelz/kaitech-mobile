@@ -5,6 +5,11 @@ tags:
   - chat-actions
 onFlowStart:
   - runFlow: ../shared/orientation.yaml
+onFlowComplete:
+  - runScript:
+      file: ../scripts/web-peer.js
+      env:
+        ACTION: tidy
 ---
 - launchApp
 - extendedWaitUntil:
