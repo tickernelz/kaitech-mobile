@@ -30,8 +30,9 @@ onFlowStart:
       GROUP: ${'Uji baris ' + RUN}
 - evalScript: ${output.row = 'conversation-' + output.peer.group}
 - swipe:
-    start: 50%, 35%
-    end: 50%, 80%
+    from:
+      id: chat-filter-all
+    direction: DOWN
 - scrollUntilVisible:
     element:
       id: ${output.row}
