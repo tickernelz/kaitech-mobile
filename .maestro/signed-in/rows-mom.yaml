@@ -53,20 +53,28 @@ onFlowStart:
       id: setup-start
 - tapOn:
     id: setup-start
-- runFlow:
-    when:
-      visible:
-        text: (While using the app|Saat aplikasi digunakan)
+- repeat:
+    times: 4
     commands:
-      - tapOn:
-          text: (While using the app|Saat aplikasi digunakan)
-- runFlow:
-    when:
-      visible:
-        text: (Allow|Izinkan)
-    commands:
-      - tapOn:
-          text: (Allow|Izinkan)
+      - extendedWaitUntil:
+          visible:
+            id: (recorder-time|com.android.permissioncontroller:id/.*)
+          timeout: 10000
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              text: (While using the app|Saat aplikasi digunakan)
+          commands:
+            - tapOn:
+                text: (While using the app|Saat aplikasi digunakan)
+      - runFlow:
+          when:
+            visible:
+              text: (Allow|Izinkan)
+          commands:
+            - tapOn:
+                text: (Allow|Izinkan)
 - extendedWaitUntil:
     visible:
       id: recorder-time
