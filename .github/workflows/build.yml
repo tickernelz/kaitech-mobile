@@ -299,7 +299,8 @@ jobs:
       matrix: >-
         {"size": ["phone", "tablet"], "orientation": ["portrait", "landscape"], "locale": ["en-US", "id-ID"],
         "include": [{"size": "phone", "profile": "pixel_6"}, {"size": "tablet", "profile": "pixel_tablet"},
-        {"size": "phone", "orientation": "portrait", "locale": "en-US", "cold_start": 5}]}
+        {"size": "phone", "orientation": "portrait", "locale": "en-US", "cold_start": 5},
+        {"size": "phone", "orientation": "landscape", "runner": "maestro"}, {"size": "tablet", "orientation": "portrait", "runner": "maestro"}]}
 
   e2e-android-rows:
     name: e2e android rows
@@ -314,12 +315,12 @@ jobs:
     with:
       label: rows-
       apk-artifact: e2e-apk-x86_64
-      runner: ${{ vars.E2E_RUNNER_ROWS || vars.E2E_RUNNER || 'maestro-runner' }}
+      runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
       flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
       matrix: >-
         {"size": ["phone", "tablet"], "orientation": ["portrait"], "locale": ["en-US", "id-ID"],
         "include": [{"size": "phone", "profile": "pixel_6"}, {"size": "tablet", "profile": "pixel_tablet"},
-        {"size": "phone", "locale": "en-US", "hide_direct": "true"}]}
+        {"size": "phone", "locale": "en-US", "hide_direct": "true"}, {"size": "tablet", "runner": "maestro"}]}
 
   e2e-android-universal:
     name: e2e android universal apk

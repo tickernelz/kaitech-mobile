@@ -153,7 +153,7 @@ jobs:
     permissions:
       contents: read
     env:
-      E2E_RUNNER: ${{ vars.E2E_RUNNER || 'maestro-runner' }}
+      E2E_RUNNER: ${{ matrix.runner || vars.E2E_RUNNER || 'maestro-runner' }}
     strategy:
       fail-fast: false
       matrix:
@@ -165,6 +165,12 @@ jobs:
             profile: pixel_6
           - size: tablet
             profile: pixel_tablet
+          - size: phone
+            orientation: landscape
+            runner: maestro
+          - size: tablet
+            orientation: portrait
+            runner: maestro
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

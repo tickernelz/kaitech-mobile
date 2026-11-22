@@ -40,7 +40,7 @@ jobs:
       E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
       E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
       E2E_HIDE_DIRECT: ${{ matrix.hide_direct || 'false' }}
-      E2E_RUNNER: ${{ inputs.runner }}
+      E2E_RUNNER: ${{ matrix.runner || inputs.runner }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(inputs.matrix) }}
@@ -62,9 +62,9 @@ jobs:
         with:
           name: ${{ inputs.apk-artifact }}
           path: dist
-      - if: inputs.runner == 'maestro'
+      - if: env.E2E_RUNNER == 'maestro'
         uses: ./.github/actions/setup-maestro
-      - if: inputs.runner == 'maestro-runner'
+      - if: env.E2E_RUNNER == 'maestro-runner'
         uses: ./.github/actions/setup-maestro-runner
       - uses: ./.github/actions/setup-gitleaks
       - name: Run Maestro flows on emulator
