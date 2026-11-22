@@ -224,6 +224,10 @@ onFlowStart:
     notVisible:
       id: activity-schedule
     timeout: 5000
+- scrollUntilVisible:
+    element:
+      text: ${output.todo}
+    centerElement: true
 - swipe:
     from:
       text: ${output.todo}
@@ -247,6 +251,10 @@ onFlowStart:
     notVisible:
       id: activity-schedule
     timeout: 5000
+- scrollUntilVisible:
+    element:
+      text: ${output.todo}
+    centerElement: true
 - tapOn:
     text: ${output.todo}
 - scrollUntilVisible:
