@@ -371,6 +371,7 @@ jobs:
       E2E_APK_ARTIFACT: e2e-apk-x86_64
       E2E_LABEL: rows-
       E2E_FLOWS: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
+      E2E_THEMED_FLOWS: .maestro/themed/tour.yaml
       E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
       E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
       E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}

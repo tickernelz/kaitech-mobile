@@ -128,6 +128,23 @@ maestro test "${flows[@]}" \
   --output "$out/junit.xml" \
   --test-output-dir "$out/maestro" || status=$?
 
+if [ -n "${E2E_THEMED_FLOWS:-}" ]; then
+  read -ra themed <<< "$E2E_THEMED_FLOWS"
+  for theme in light dark; do
+    adb shell cmd uimode night "$([ "$theme" = dark ] && echo yes || echo no)"
+    maestro test "${themed[@]}" \
+      -e APP_LANGUAGE="$language" \
+      -e DEVICE_SIZE="$size" \
+      -e ORIENTATION="$orientation" \
+      -e THEME="$theme" \
+      "${signed_in[@]}" \
+      --format junit \
+      --output "$out/junit-$theme.xml" \
+      --test-output-dir "$out/maestro/$theme" || status=$?
+  done
+  adb shell cmd uimode night no
+fi
+
 sleep 2
 if [ -z "${E2E_LOGIN:-}" ]; then
   adb shell pkill -INT screenrecord || true
@@ -147,7 +164,7 @@ node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$l
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2
