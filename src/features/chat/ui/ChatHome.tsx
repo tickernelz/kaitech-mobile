@@ -1,17 +1,17 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Panes } from '../../../layout/Panes';
 import { useWindowClass } from '../../../layout/windowClass';
 import { space, useTheme } from '../../../theme';
+import { Fab } from '../../../ui/Fab';
 import { Text } from '../../../ui/Text';
 import { Wordmark } from '../../../ui/Wordmark';
 import { focusedMessage, selectChannel, selectedChannel, useSelectedChannel } from '../selection';
 import { ConversationList } from './ConversationList';
 import { NewConversationSheet } from './list/NewConversationSheet';
-import { Icon } from '../../../ui/icons';
 import { ThreadView } from './ThreadView';
 
 function toId(value: string | string[] | undefined): number | null {
@@ -71,14 +71,7 @@ export function ChatHome() {
         list={
           <View style={styles.fill}>
             <ConversationList selectedId={expanded ? selected : null} onOpen={open} />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('newChat.title')}
-              onPress={() => setCreating(true)}
-              style={({ pressed }) => [styles.fab, { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 }]}
-              testID="chat-new">
-              <Icon name="edit" color={colors.onPrimary} />
-            </Pressable>
+            <Fab icon="edit" label={t('newChat.title')} onPress={() => setCreating(true)} testID="chat-new" />
           </View>
         }
         detail={detail}
@@ -101,5 +94,4 @@ const styles = StyleSheet.create({
   center: { textAlign: 'center' },
   placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
   faint: { opacity: 0.25 },
-  fab: { position: 'absolute', right: space.lg, bottom: space.lg, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', elevation: 3 },
 });

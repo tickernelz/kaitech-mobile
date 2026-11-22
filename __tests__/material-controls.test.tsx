@@ -17,11 +17,30 @@ jest.mock('react-native-reanimated', () => {
     interpolate: (value: number, input: number[], output: number[]) => output[0] + ((value - input[0]) / (input[1] - input[0])) * (output[1] - output[0]),
   };
 });
+jest.mock('@expo/ui/jetpack-compose/modifiers', () => ({
+  testID: (tag: string) => ({ testID: tag }),
+  semantics: (config: { contentDescription?: string }) => ({ description: config.contentDescription }),
+}));
+jest.mock('@expo/ui/jetpack-compose', () => {
+  const { Pressable, View } = require('react-native');
+  const Slot = ({ children }: { children: unknown }) => <View>{children}</View>;
+  const FloatingActionButton = ({ children, onClick, modifiers }: { children: unknown; onClick: () => void; modifiers: { testID?: string; description?: string }[] }) => (
+    <Pressable
+      testID={modifiers.find((m) => m.testID)?.testID}
+      accessibilityLabel={modifiers.find((m) => m.description)?.description}
+      onPress={onClick}>
+      {children}
+    </Pressable>
+  );
+  FloatingActionButton.Icon = Slot;
+  return { Host: Slot, RNHostView: Slot, FloatingActionButton };
+});
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 
 require('../src/i18n');
 const { Button } = require('../src/ui/Button.android') as typeof import('../src/ui/Button.android');
 const { TextField } = require('../src/ui/TextField.android') as typeof import('../src/ui/TextField.android');
+const { Fab } = require('../src/ui/Fab.android') as typeof import('../src/ui/Fab.android');
 
 function labelLift(text: string): number {
   let node = screen.getByText(text).parent;
@@ -60,6 +79,17 @@ describe('Android Material 3 button', () => {
     await render(<Button label="Save" disabled onPress={onPress} testID="save" />);
     await act(async () => fireEvent.press(screen.getByTestId('save')));
     expect(onPress).not.toHaveBeenCalled();
+  });
+});
+
+describe('Android Material 3 floating action button', () => {
+  test('keeps its Maestro id and spoken label and runs the action', async () => {
+    const onPress = jest.fn();
+    await render(<Fab icon="edit" label="New chat" onPress={onPress} testID="chat-new" />);
+    const fab = screen.getByTestId('chat-new');
+    expect(fab.props.accessibilityLabel).toBe('New chat');
+    await act(async () => fireEvent.press(fab));
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });
 
