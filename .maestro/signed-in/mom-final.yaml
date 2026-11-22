@@ -60,6 +60,13 @@ onFlowStart:
       SCREEN: g2-content
 - tapOn:
     id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
 - tapOn:
     id: final-options
 - tapOn:
@@ -74,6 +81,13 @@ onFlowStart:
       SCREEN: g3-narrative
 - tapOn:
     id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
 - tapOn:
     id: final-options
 - tapOn:
@@ -88,6 +102,13 @@ onFlowStart:
       SCREEN: g4-header
 - tapOn:
     id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
 - tapOn:
     id: final-options
 - tapOn:
@@ -102,6 +123,13 @@ onFlowStart:
       SCREEN: g5-recipients
 - tapOn:
     id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
 - tapOn:
     id: final-options
 - tapOn:
@@ -116,6 +144,13 @@ onFlowStart:
       SCREEN: g6-email
 - tapOn:
     id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
 - tapOn:
     id: final-options
 - tapOn:
@@ -130,6 +165,13 @@ onFlowStart:
       SCREEN: g7-context
 - tapOn:
     id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
 - tapOn:
     id: final-options
 - tapOn:
