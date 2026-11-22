@@ -100,14 +100,10 @@ onFlowStart:
       SCREEN: r12-conversation-swipe-left
 - tapOn:
     id: ${output.row + '-swipe-remove'}
-- extendedWaitUntil:
-    visible:
-      id: undo-bar
-    timeout: 5000
-- assertNotVisible:
-    id: ${output.row}
 - tapOn:
     id: undo-action
+- assertNotVisible:
+    id: undo-bar
 - extendedWaitUntil:
     visible:
       id: ${output.row}

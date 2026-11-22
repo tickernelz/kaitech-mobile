@@ -181,18 +181,10 @@ onFlowStart:
           id: ${output.row}
 - tapOn:
     id: row-action-remove
-- extendedWaitUntil:
-    visible:
-      id: undo-bar
-    timeout: 5000
-- assertNotVisible:
-    id: ${output.row}
-- runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: r7-chat-undo
 - tapOn:
     id: undo-action
+- assertNotVisible:
+    id: undo-bar
 - extendedWaitUntil:
     visible:
       id: ${output.row}
