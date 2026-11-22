@@ -16,6 +16,7 @@ import { currentRecording, startRecording, stopRecording } from './recording';
 import { pipFocus, pipSpec, type PipSpec } from './pip';
 import { loadVolumes, saveVolume } from './volumes';
 import { onPictureInPictureAllowedChange, pictureInPictureAllowed } from './pipSetting';
+import { applyBlur, blurPreferred, blurSupported, prepareBlur, setBlurPreferred, type EffectTrack } from './blur';
 
 export type CallPhase = 'idle' | 'incoming' | 'outgoing' | 'connecting' | 'active' | 'reconnecting' | 'ended';
 
@@ -60,6 +61,7 @@ export type CallState = {
   deaf: boolean;
   hand: boolean;
   videoOnly: boolean;
+  blur: boolean;
   output: string | null;
   version: number;
 };
@@ -92,6 +94,7 @@ const idle: CallState = {
   deaf: false,
   hand: false,
   videoOnly: false,
+  blur: false,
   output: null,
   version: 0,
 };
@@ -369,6 +372,8 @@ async function connect(api: CallClient, channelId: number, video: boolean, start
     sessionPartners = new Map();
     const instance = new sdk.Room({ adaptiveStream: true, dynacast: true, singlePeerConnection: false });
     room = instance;
+    publish({ blur: blurSupported() && blurPreferred() });
+    if (state.blur) void prepareBlur();
     bind(instance, sdk);
     await livekit.AudioSession.startAudioSession();
     await instance.connect(session.url, session.token);
@@ -424,7 +429,10 @@ function bind(instance: LiveRoom, sdk: Awaited<ReturnType<typeof loadClient>>) {
     [event.TrackUnsubscribed, collect],
     [event.TrackMuted, collect],
     [event.TrackUnmuted, collect],
-    [event.LocalTrackPublished, collect],
+    [event.LocalTrackPublished, () => {
+      applyLocalBlur();
+      collect();
+    }],
     [event.LocalTrackUnpublished, collect],
     [event.ActiveSpeakersChanged, collectSpeaking],
     [event.RecordingStatusChanged, syncRecording],
@@ -647,6 +655,34 @@ export async function toggleDeafen() {
   void send({ is_deaf: next });
   collectPeople();
   presence();
+}
+
+type LocalCamera = { mediaStreamTrack?: unknown; on?: (event: string, listener: () => void) => void };
+const blurWatched = new WeakSet<object>();
+
+function applyLocalBlur(): boolean {
+  if (!room) return true;
+  let applied = true;
+  for (const publication of room.localParticipant.trackPublications.values()) {
+    const track = publication.videoTrack as LocalCamera | undefined;
+    if (publication.source !== 'camera' || !track) continue;
+    if (track.on && !blurWatched.has(track)) {
+      blurWatched.add(track);
+      track.on('restarted', applyLocalBlur);
+    }
+    if (!applyBlur(track.mediaStreamTrack as EffectTrack, state.blur)) applied = false;
+  }
+  if (!applied && state.blur) publish({ blur: false });
+  return applied;
+}
+
+export function toggleBlur() {
+  if (!blurSupported()) return;
+  const next = !state.blur;
+  publish({ blur: next });
+  if (!applyLocalBlur()) return;
+  setBlurPreferred(next);
+  if (next) void prepareBlur();
 }
 
 export function toggleVideoOnly() {
