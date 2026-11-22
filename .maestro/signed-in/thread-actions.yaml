@@ -199,3 +199,145 @@ onFlowStart:
     direction: DOWN
 - tapOn:
     id: thread-action-read
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-rename
+    direction: DOWN
+- tapOn:
+    id: thread-action-rename
+- extendedWaitUntil:
+    visible:
+      id: rename-sheet
+    timeout: 10000
+- tapOn:
+    id: rename-description
+- inputText: ${'Info ' + RUN}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b6-info
+- tapOn:
+    id: rename-save
+- extendedWaitUntil:
+    visible:
+      id: thread-notice
+    timeout: 15000
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-members
+    direction: DOWN
+- tapOn:
+    id: thread-action-members
+- extendedWaitUntil:
+    visible:
+      id: members-invite
+    timeout: 15000
+- tapOn:
+    id: members-invite
+- extendedWaitUntil:
+    visible:
+      id: invite-sheet
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b7-invite
+- tapOn:
+    id: invite-sheet-close
+- runFlow:
+    when:
+      visible:
+        id: members-sheet-close
+    commands:
+      - tapOn:
+          id: members-sheet-close
+- longPressOn:
+    text: .*halo
+- tapOn:
+    id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-thread
+    direction: DOWN
+- tapOn:
+    id: action-thread
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- tapOn:
+    id: composer-input
+- inputText: ${RUN + ' sub'}
+- tapOn:
+    id: composer-send
+- extendedWaitUntil:
+    visible:
+      text: ${RUN + ' sub'}
+    timeout: 20000
+- tapOn:
+    id: thread-back
+- extendedWaitUntil:
+    visible:
+      id: thread-more
+    timeout: 15000
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-threads
+    direction: DOWN
+- tapOn:
+    id: thread-action-threads
+- extendedWaitUntil:
+    visible:
+      id: sub-.*
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b8-threads
+- tapOn:
+    id: sub-.*
+    index: 0
+- extendedWaitUntil:
+    visible:
+      text: ${RUN + ' sub'}
+    timeout: 20000
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-delete
+    direction: DOWN
+- tapOn:
+    id: thread-action-delete
+- tapOn:
+    text: (?i)(delete thread|hapus thread)
+- extendedWaitUntil:
+    visible:
+      text: .*halo
+    timeout: 20000
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-leave
+    direction: DOWN
+- tapOn:
+    id: thread-action-leave
+- tapOn:
+    text: (?i)(leave|keluar)
+- extendedWaitUntil:
+    visible:
+      id: chat-list
+    timeout: 20000
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: left
+      TARGET: ${String(output.peer.group)}
