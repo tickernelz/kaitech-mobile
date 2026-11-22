@@ -24,6 +24,8 @@ export type Conversation = {
   mutedUntil: string | null;
   activityAt: number;
   last: LastMessage | null;
+  pinned: boolean | null;
+  archived: boolean | null;
   mentioned?: boolean;
   agent?: boolean;
 };

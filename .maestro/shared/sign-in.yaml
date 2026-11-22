@@ -7,6 +7,18 @@ name: Sign in on the server page and finish setup when the app is signed out
     visible:
       text: (Email|Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
     timeout: 60000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - tapOn:
+          id: welcome-sign-in
+      - extendedWaitUntil:
+          visible:
+            text: (Email|Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
+          timeout: 60000
 - runFlow:
     when:
       visible:

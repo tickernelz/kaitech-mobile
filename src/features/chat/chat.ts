@@ -8,13 +8,16 @@ import { ChatClient, errorCode, sendErrorFrom } from './api';
 import { forgetChatAccount } from './cleanup';
 import { forgetDrafts } from './drafts';
 import { clearOpenedFiles, dropFile, sweepStaging } from './files';
-import { allPendingFileUris, cachedConversations, cachedMessages, forgetAccount, pendingFor, removePending, savePending, storeConversations, storeMessages } from './db';
+import { allPendingFileUris, cachedConversations, dropConversation, cachedMessages, forgetAccount, pendingFor, removePending, savePending, storeConversations, storeMessages } from './db';
 import { composeBody, mentionsInText } from './html';
 import { bodyPreview } from './markdown';
 import {
   channelInfoFromStore,
+  conversationFrom,
   conversationPage,
   conversationPhotos,
+  listOrder,
+  type ArchivedSummary,
   fullMessages,
   lastMessageOf,
   membersFromStore,
@@ -73,6 +76,10 @@ export type ChatState = {
   realtime: RealtimeState;
   openChannels: number[];
   invited: number[];
+  archivedSummary: ArchivedSummary | null;
+  archived: Conversation[] | null;
+  archivedCursor: string | null;
+  archivedLoading: boolean;
   features: ChatFeatures;
 };
 
@@ -97,6 +104,10 @@ let state: ChatState = {
   realtime: 'closed',
   openChannels: [],
   invited: [],
+  archivedSummary: null,
+  archived: null,
+  archivedCursor: null,
+  archivedLoading: false,
   features: noFeatures,
 };
 
@@ -251,7 +262,7 @@ function touchConversation(channelId: number, message: Message): boolean {
     unread: mine || visible ? current.unread : current.unread + 1,
   };
   const rest = state.conversations.filter((conversation) => conversation.id !== channelId);
-  const conversations = [updated, ...rest].sort((a, b) => b.activityAt - a.activityAt || b.id - a.id);
+  const conversations = listOrder([updated, ...rest]);
   set({ conversations });
   if (state.accountId) void storeConversations(state.accountId, [updated], false);
   return true;
@@ -403,7 +414,7 @@ export function startChat(account: Account) {
     partnerId: account.partnerId,
     userId: account.userId,
     origin: account.origin,
-    conversations: cachedConversations(account.id),
+    conversations: listOrder(cachedConversations(account.id)),
     nextCursor: null,
     listLoading: false,
     listLoaded: false,
@@ -413,8 +424,13 @@ export function startChat(account: Account) {
     delivered: [],
     openChannels: [],
     invited: [],
+    archivedSummary: null,
+    archived: null,
+    archivedCursor: null,
+    archivedLoading: false,
     features: noFeatures,
   };
+  leaving = new Set();
   listeners.forEach((listener) => listener());
   const current = client;
   void loadFeatures(current);
@@ -491,7 +507,8 @@ export function startChat(account: Account) {
 
 export function stopChat() {
   stop();
-  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [], features: noFeatures });
+  leaving = new Set();
+  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [], archivedSummary: null, archived: null, archivedCursor: null, features: noFeatures });
 }
 
 onAccountForgotten((id) => {
@@ -510,7 +527,7 @@ export async function refreshConversations() {
     if (client !== current) return;
     const page = conversationPage(body);
     notePhotoList(account, conversationPhotos(body));
-    set({ conversations: page.conversations, nextCursor: page.nextCursor, listLoaded: true, listLoading: false });
+    set({ conversations: listOrder(staying(page.conversations)), nextCursor: page.nextCursor, listLoaded: true, listLoading: false, archivedSummary: page.archived });
     await storeConversations(account, page.conversations, true);
   } catch (error) {
     if (client === current) set({ listLoading: false, listError: errorCode(error) });
@@ -528,7 +545,7 @@ export async function loadMoreConversations() {
     const page = conversationPage(body);
     notePhotoList(account, conversationPhotos(body));
     const known = new Set(state.conversations.map((conversation) => conversation.id));
-    set({ conversations: [...state.conversations, ...page.conversations.filter((conversation) => !known.has(conversation.id))], nextCursor: page.nextCursor, listLoading: false });
+    set({ conversations: [...state.conversations, ...staying(page.conversations).filter((conversation) => !known.has(conversation.id))], nextCursor: page.nextCursor, listLoading: false });
     await storeConversations(account, page.conversations, false);
   } catch (error) {
     if (client === current) set({ listLoading: false, listError: errorCode(error) });
@@ -807,4 +824,115 @@ export async function muteConversation(channelId: number, minutes: number): Prom
 
 export function chatClient(): ChatClient | null {
   return client;
+}
+
+let leaving = new Set<number>();
+
+function staying(conversations: Conversation[]): Conversation[] {
+  return leaving.size ? conversations.filter((conversation) => !leaving.has(conversation.id)) : conversations;
+}
+
+function replaceConversation(updated: Conversation) {
+  if (state.archived?.some((item) => item.id === updated.id)) set({ archived: state.archived.map((item) => (item.id === updated.id ? updated : item)) });
+  if (!state.conversations.some((item) => item.id === updated.id)) return;
+  set({ conversations: listOrder(state.conversations.map((item) => (item.id === updated.id ? updated : item))) });
+  if (state.accountId) void storeConversations(state.accountId, [updated], false);
+}
+
+function knownConversation(channelId: number): Conversation | null {
+  return conversationById(state, channelId) ?? state.archived?.find((item) => item.id === channelId) ?? null;
+}
+
+export async function setConversationRead(channelId: number, read: boolean): Promise<string | null> {
+  const current = client;
+  const conversation = knownConversation(channelId);
+  const lastId = conversation?.last?.id;
+  if (!current || !conversation || !lastId) return 'unavailable';
+  const before = conversation.unread;
+  replaceConversation({ ...conversation, unread: read ? 0 : Math.max(1, before) });
+  try {
+    if (read) await current.markAsRead(channelId, lastId);
+    else await current.markUnread(channelId, lastId);
+    return null;
+  } catch (error) {
+    const latest = client === current ? knownConversation(channelId) : null;
+    if (latest) replaceConversation({ ...latest, unread: before });
+    return errorCode(error);
+  }
+}
+
+export async function setConversationPinned(channelId: number, pinned: boolean): Promise<string | null> {
+  const current = client;
+  const conversation = knownConversation(channelId);
+  if (!current || !conversation || conversation.pinned === null) return 'unavailable';
+  replaceConversation({ ...conversation, pinned });
+  try {
+    if ((await current.pin(channelId, pinned)) === pinned) return null;
+    throw new Error('unavailable');
+  } catch (error) {
+    const latest = client === current ? knownConversation(channelId) : null;
+    if (latest) replaceConversation({ ...latest, pinned: !pinned });
+    return error instanceof Error && error.message === 'unavailable' ? 'unavailable' : errorCode(error);
+  }
+}
+
+export type Removal = 'archive' | 'unarchive' | 'hide' | 'leave';
+
+export function removalOf(channelId: number, kind: Removal): { apply: () => void; revert: () => void; commit: () => Promise<boolean> } | null {
+  const current = client;
+  const account = state.accountId;
+  const listed = conversationById(state, channelId);
+  const fromArchive = !listed;
+  const conversation = listed ?? state.archived?.find((item) => item.id === channelId);
+  if (!current || !account || !conversation) return null;
+  const owned = () => client === current && state.accountId === account;
+  const take = () => {
+    if (fromArchive) set({ archived: (state.archived ?? []).filter((item) => item.id !== channelId) });
+    else set({ conversations: state.conversations.filter((item) => item.id !== channelId) });
+  };
+  return {
+    apply: () => {
+      leaving.add(channelId);
+      take();
+    },
+    revert: () => {
+      leaving.delete(channelId);
+      if (!owned()) return;
+      if (fromArchive) set({ archived: [conversation, ...(state.archived ?? []).filter((item) => item.id !== channelId)] });
+      else set({ conversations: listOrder([conversation, ...state.conversations.filter((item) => item.id !== channelId)]) });
+    },
+    commit: async () => {
+      try {
+        if (kind === 'archive' || kind === 'unarchive') {
+          const updated = conversationFrom(await current.archive(channelId, kind === 'archive'));
+          if (!updated || updated.archived !== (kind === 'archive')) return false;
+        } else if (kind === 'hide') {
+          await current.hide(channelId);
+        } else {
+          await current.leave(channelId);
+        }
+      } catch {
+        return false;
+      } finally {
+        leaving.delete(channelId);
+      }
+      await dropConversation(account, channelId);
+      if (owned() && (kind === 'unarchive' || kind === 'archive')) void refreshConversations();
+      return true;
+    },
+  };
+}
+
+export async function loadArchived(more = false) {
+  const current = client;
+  if (!current || state.archivedLoading || (more && !state.archivedCursor)) return;
+  set({ archivedLoading: true });
+  try {
+    const page = conversationPage(await current.conversations(more ? state.archivedCursor : null, { archived: true }));
+    if (client !== current) return;
+    const kept = staying(page.conversations);
+    set({ archived: more ? [...(state.archived ?? []), ...kept] : kept, archivedCursor: page.nextCursor, archivedLoading: false });
+  } catch {
+    if (client === current) set({ archivedLoading: false, archived: state.archived ?? [] });
+  }
 }

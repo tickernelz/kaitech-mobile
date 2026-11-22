@@ -5,6 +5,7 @@ import { useLanguage } from '../../i18n';
 import { intlLocale } from '../../i18n/language';
 import { radius, space, useTheme, type Colors } from '../../theme';
 import { Icon, type IconName } from '../../ui/icons';
+import type { RowBind } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
 import { Chip } from '../discovery/ui';
 import type { MeetingRow } from './api';
@@ -111,7 +112,9 @@ export function Line({
   onPress,
   selected,
   testID,
+  bind,
 }: {
+  bind?: RowBind;
   icon: IconName;
   title: string;
   detail?: string;
@@ -125,6 +128,7 @@ export function Line({
   const { colors } = useTheme();
   return (
     <Pressable
+      {...bind}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={selected === undefined ? undefined : { selected }}
@@ -134,7 +138,7 @@ export function Line({
       android_ripple={{ color: colors.select }}
       style={({ pressed }) => [
         styles.line,
-        (pressed || selected) && { backgroundColor: selected ? colors.select : colors.surface2 },
+        (pressed || selected) ? { backgroundColor: selected ? colors.select : colors.surface2 } : bind && { backgroundColor: colors.surface },
       ]}>
       <View style={[styles.lineIcon, { backgroundColor: colors.surface2 }]}>
         <Icon name={icon} size={20} color={colors.selectInk} />

@@ -71,17 +71,26 @@ export function conversationFrom(value: unknown): Conversation | null {
     mutedUntil: typeof value.muted_until === 'string' ? value.muted_until : null,
     activityAt: utc(value.activity_at),
     last: lastMessage(value.last_message),
+    pinned: typeof value.pinned === 'boolean' ? value.pinned : null,
+    archived: typeof value.archived === 'boolean' ? value.archived : null,
     mentioned: value.mentioned === true,
     agent: value.agent === true,
   };
 }
 
-export function conversationPage(body: unknown): { conversations: Conversation[]; nextCursor: string | null } {
-  if (!isRecord(body) || !Array.isArray(body.conversations)) return { conversations: [], nextCursor: null };
+export type ArchivedSummary = { count: number; unread: number };
+
+export function conversationPage(body: unknown): { conversations: Conversation[]; nextCursor: string | null; archived: ArchivedSummary | null } {
+  if (!isRecord(body) || !Array.isArray(body.conversations)) return { conversations: [], nextCursor: null, archived: null };
   return {
     conversations: body.conversations.map(conversationFrom).filter((item): item is Conversation => item !== null),
     nextCursor: typeof body.next_cursor === 'string' ? body.next_cursor : null,
+    archived: typeof body.archived_count === 'number' ? { count: body.archived_count, unread: typeof body.archived_unread === 'number' ? body.archived_unread : 0 } : null,
   };
+}
+
+export function listOrder(conversations: Conversation[]): Conversation[] {
+  return [...conversations].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.activityAt - a.activityAt || b.id - a.id);
 }
 
 export function conversationPhotos(body: unknown): [number, Photo | null][] {

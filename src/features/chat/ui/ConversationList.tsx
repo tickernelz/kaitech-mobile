@@ -5,7 +5,8 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-n
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { loadMoreConversations, refreshConversations, useChat } from '../chat';
+import { loadArchived, loadMoreConversations, refreshConversations, useChat } from '../chat';
+import { IconButton } from '../../../ui/IconButton';
 import { hasFeature } from '../features';
 import { listFilters, matches, type Filter } from '../listFilters';
 import { pushSupported } from '../push';
@@ -13,8 +14,8 @@ import type { Conversation } from '../types';
 import { Avatar } from './Avatar';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
-
-
+import { RowActions } from '../../../ui/RowActions';
+import { conversationActions } from './conversationActions';
 
 function usePreview() {
   const { t } = useTranslation('chat');
@@ -38,11 +39,13 @@ const Row = memo(function Row({
   selected,
   pending,
   onOpen,
+  inArchive,
 }: {
   conversation: Conversation;
   selected: boolean;
   pending: number;
   onOpen: (id: number) => void;
+  inArchive: boolean;
 }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
@@ -60,7 +63,15 @@ const Row = memo(function Row({
     .filter(Boolean)
     .join(', ');
   return (
+    <RowActions
+      title={conversation.name}
+      actions={conversationActions(t, conversation, inArchive)}
+      start={['read', 'pin']}
+      end={['archive', 'more']}
+      testID={`conversation-${conversation.id}`}>
+      {(bind) => (
     <Pressable
+      {...bind}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ selected }}
@@ -68,7 +79,7 @@ const Row = memo(function Row({
       testID={`conversation-${conversation.id}`}
       style={({ pressed }) => [
         styles.row,
-        { backgroundColor: selected ? colors.select : pressed ? colors.surface2 : 'transparent' },
+        { backgroundColor: selected ? colors.select : pressed ? colors.surface2 : colors.canvas },
       ]}>
       <Avatar
         name={conversation.name}
@@ -82,6 +93,7 @@ const Row = memo(function Row({
           <Text variant="headline" numberOfLines={1} style={styles.flex}>
             {conversation.name}
           </Text>
+          {conversation.pinned ? <Icon name="pin" size={16} color={colors.inkFaint} /> : null}
           <Text variant="footnote" tone={unread ? 'link' : 'inkFaint'} style={unread && styles.strong}>
             {listTime(conversation.last?.date ?? conversation.activityAt)}
           </Text>
@@ -112,6 +124,8 @@ const Row = memo(function Row({
         </View>
       </View>
     </Pressable>
+      )}
+    </RowActions>
   );
 });
 
@@ -124,18 +138,57 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
   const error = useChat((state) => state.listError);
   const online = useChat((state) => state.online);
   const pending = useChat((state) => state.pending);
+  const archivedSummary = useChat((state) => state.archivedSummary);
+  const archived = useChat((state) => state.archived);
   const [chosen, setFilter] = useState<Filter>('all');
   const features = useChat((state) => state.features);
   const filters = useMemo(() => listFilters(hasFeature(features, 'chat_filters'), hasFeature(features, 'agents')), [features]);
   const filter = filters.includes(chosen) ? chosen : 'all';
+  const [inArchive, setInArchive] = useState(false);
   const [pulled, setPulled] = useState(false);
   const waiting = useMemo(() => {
     const counts = new Map<number, number>();
     for (const item of pending) counts.set(item.channelId, (counts.get(item.channelId) ?? 0) + 1);
     return counts;
   }, [pending]);
-  const shown = useMemo(() => conversations.filter((conversation) => matches(conversation, filter)), [conversations, filter]);
+  const shown = useMemo(
+    () => (inArchive ? (archived ?? []) : conversations.filter((conversation) => matches(conversation, filter))),
+    [archived, conversations, filter, inArchive],
+  );
+  const openArchive = () => {
+    setInArchive(true);
+    void loadArchived();
+  };
   const unreadTotal = useMemo(() => conversations.filter((conversation) => conversation.unread > 0).length, [conversations]);
+
+  const archiveHeader = (
+    <View style={styles.header}>
+      <View style={styles.titleRow}>
+        <IconButton icon="back" label={t('translation:row.back')} onPress={() => setInArchive(false)} testID="chat-archive-back" />
+        <Text variant="display" accessibilityRole="header" style={styles.flex}>
+          {t('rowActions.archivedTitle')}
+        </Text>
+      </View>
+    </View>
+  );
+
+  const archiveEntry =
+    filter === 'all' && archivedSummary && archivedSummary.count > 0 ? (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={[t('rowActions.archivedTitle'), String(archivedSummary.count), archivedSummary.unread ? t('list.unreadCount', { count: archivedSummary.unread }) : ''].filter(Boolean).join(', ')}
+        onPress={openArchive}
+        testID="chat-archive-open"
+        style={({ pressed }) => [styles.archiveEntry, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
+        <Icon name="archive" size={20} color={colors.inkSoft} />
+        <Text variant="callout" style={styles.flex}>
+          {t('rowActions.archivedTitle')}
+        </Text>
+        <Text variant="footnote" tone={archivedSummary.unread ? 'link' : 'inkFaint'} style={archivedSummary.unread ? styles.strong : undefined}>
+          {archivedSummary.unread || archivedSummary.count}
+        </Text>
+      </Pressable>
+    ) : null;
 
   const header = (
     <View style={styles.header}>
@@ -187,13 +240,22 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
           </Text>
         </View>
       ) : null}
+      {archiveEntry}
     </View>
   );
 
   const empty = (
     <View style={styles.empty}>
       <Text variant="headline" style={styles.center}>
-        {error && !conversations.length ? t(`errors.${error === 'network' ? 'network' : 'load'}`) : loaded || !loading ? t(`list.empty.${filter}`) : t('list.loading')}
+        {inArchive
+          ? archived === null
+            ? t('list.loading')
+            : t('rowActions.archivedEmpty')
+          : error && !conversations.length
+            ? t(`errors.${error === 'network' ? 'network' : 'load'}`)
+            : loaded || !loading
+              ? t(`list.empty.${filter}`)
+              : t('list.loading')}
       </Text>
     </View>
   );
@@ -203,18 +265,18 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
       <FlashList
         data={shown}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => <Row conversation={item} selected={item.id === selectedId} pending={waiting.get(item.id) ?? 0} onOpen={onOpen} />}
-        extraData={`${selectedId}|${pending.length}`}
-        ListHeaderComponent={header}
+        renderItem={({ item }) => <Row conversation={item} selected={item.id === selectedId} pending={waiting.get(item.id) ?? 0} onOpen={onOpen} inArchive={inArchive} />}
+        extraData={`${selectedId}|${pending.length}|${inArchive}`}
+        ListHeaderComponent={inArchive ? archiveHeader : header}
         ListEmptyComponent={empty}
-        onEndReached={() => void loadMoreConversations()}
+        onEndReached={() => void (inArchive ? loadArchived(true) : loadMoreConversations())}
         onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl
             refreshing={pulled && loading}
             onRefresh={() => {
               setPulled(true);
-              void refreshConversations().finally(() => setPulled(false));
+              void (inArchive ? loadArchived() : refreshConversations()).finally(() => setPulled(false));
             }}
             tintColor={colors.primary}
             colors={[colors.primary]}
@@ -228,6 +290,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
+  archiveEntry: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
   strong: { fontWeight: '600' },
   header: { paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.sm, gap: space.md },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.xs },

@@ -358,6 +358,19 @@
       "title": "Choose a programme",
       "waiting_one": "{{count}} card",
       "waiting_other": "{{count}} cards"
+    },
+    "rows": {
+      "rename": "Rename",
+      "renameShort": "Rename",
+      "title": "Title",
+      "save": "Save",
+      "archive": "Archive",
+      "delete": "Delete",
+      "archivedDone": "Conversation archived",
+      "deletedDone": "Conversation deleted",
+      "ask": "Ask the Coworker",
+      "askShort": "Ask",
+      "evidence": "Evidence"
     }
   },
   "activity": {
@@ -371,6 +384,10 @@
       "chase": "Follow-up",
       "agenda": "Agenda",
       "other": "Discovery"
+    },
+    "rows": {
+      "programme": "Open programme",
+      "programmeShort": "Programme"
     },
     "askAbout": "Go through this with me, every one of them: {{headline}}",
     "daily": "Also send this to my {{channel}} each working-day morning",
@@ -565,6 +582,16 @@
       "version": "Version {{version}}",
       "empty": "The final minutes aren't ready yet.",
       "close": "Close"
+    },
+    "remove": {
+      "action": "Delete a recording",
+      "pick": "Which recording?",
+      "title": "Delete “{{title}}”",
+      "warning": "This deletes the audio, its transcript, and what it added to the programme. It can’t be undone.",
+      "typeTitle": "Type the title: {{title}}",
+      "password": "Your password",
+      "submit": "Delete",
+      "notYours": "Only the person who uploaded a recording can delete it."
     }
   },
   "appearance": {
@@ -621,6 +648,17 @@
       "network": "No connection. Try again.",
       "generic": "Could not save. Try again."
     }
+  },
+  "row": {
+    "more": "More",
+    "close": "Close",
+    "back": "Back",
+    "undo": "Undo",
+    "failed": "That didn't go through, so it's back where it was.",
+    "copy": "Copy",
+    "share": "Share",
+    "open": "Open",
+    "cancel": "Cancel"
   },
   "sheet": {
     "close": "Close"

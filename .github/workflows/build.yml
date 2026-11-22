@@ -361,6 +361,43 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
+  e2e-android-rows:
+    name: e2e android rows ${{ matrix.size }} ${{ matrix.locale }}
+    needs: android-e2e
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      E2E_APK_ARTIFACT: e2e-apk-x86_64
+      E2E_LABEL: rows-
+      E2E_FLOWS: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
+      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
+      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
+      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
+      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
+      E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
+      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
+      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
+      E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
+      E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
+      E2E_HIDE_DIRECT: ${{ matrix.hide_direct || 'false' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        size: [phone, tablet]
+        orientation: [portrait]
+        locale: [en-US, id-ID]
+        include:
+          - size: phone
+            profile: pixel_6
+          - size: tablet
+            profile: pixel_tablet
+          - size: phone
+            locale: en-US
+            hide_direct: 'true'
+    steps: *e2e-android-steps
+
   e2e-android-universal:
     name: e2e android universal apk
     needs: android
@@ -382,7 +419,7 @@ jobs:
 
   e2e-android:
     name: e2e android ${{ matrix.locale }}
-    needs: e2e-android-cell
+    needs: [e2e-android-cell, e2e-android-rows]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -394,6 +431,8 @@ jobs:
       - name: Every phone and tablet cell passed
         env:
           CELLS: ${{ needs.e2e-android-cell.result }}
+          ROWS: ${{ needs.e2e-android-rows.result }}
         run: |
-          echo "e2e android cells: $CELLS"
+          echo "e2e android cells: $CELLS, signed-in rows: $ROWS"
           [ "$CELLS" = success ]
+          [ "$ROWS" = success ] || [ "$ROWS" = skipped ]
