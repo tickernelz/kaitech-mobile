@@ -17,7 +17,7 @@ function failureOf(error: unknown): Failure {
   return { code: 'unknown', detail: null };
 }
 
-async function run<T>(work: (account: Account) => Promise<T>): Promise<Result<T>> {
+export async function run<T>(work: (account: Account) => Promise<T>): Promise<Result<T>> {
   const account = chatClient()?.account;
   if (!account) return { ok: false, code: 'signedOut', detail: null };
   try {

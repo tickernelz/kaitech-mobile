@@ -104,7 +104,7 @@ export class ChatClient {
     return route<Record<string, unknown>>(this.account, '/discuss/channel/sub_channel/create', { parent_channel_id: channelId, from_message_id: messageId });
   }
 
-  async post(input: { key: string; channelId: number; body: string; parentId: number | null; partnerIds: number[]; mentionTokens: Record<string, string>; files: Uploaded[] }): Promise<Posted> {
+  async post(input: { key: string; channelId: number; body: string; parentId: number | null; partnerIds: number[]; mentionTokens: Record<string, string>; files: Uploaded[]; urgent?: boolean }): Promise<Posted> {
     const result = await route<Record<string, unknown> | null>(this.account, '/mail/message/post', {
       thread_model: 'discuss.channel',
       thread_id: input.channelId,
@@ -119,6 +119,7 @@ export class ChatClient {
         partner_ids: input.partnerIds,
         partner_ids_mention_token: input.mentionTokens,
         ...(input.parentId ? { parent_id: input.parentId } : {}),
+        ...(input.urgent ? { kaitech_chat_urgent: true } : {}),
       },
     });
     const messageId = result?.message_id;

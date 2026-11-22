@@ -1,0 +1,55 @@
+appId: io.kaitech.mobile
+name: Search people and channels, open a person card, see-all per kind
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: open-search
+- tapOn:
+    id: search-input
+- inputText: a
+- runFlow: ../shared/dismiss-keyboard.yaml
+- extendedWaitUntil:
+    visible:
+      id: (search-hit-.*|search-results-empty)
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c1-search-all
+- tapOn:
+    id: search-filter-people
+- extendedWaitUntil:
+    visible:
+      id: search-hit-person-[0-9]+
+    timeout: 30000
+- tapOn:
+    id: search-hit-person-[0-9]+
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: person-screen
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: person-presence-.*
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c2-person
+- tapOn:
+    id: settings-back
+- extendedWaitUntil:
+    visible:
+      id: search
+    timeout: 10000
