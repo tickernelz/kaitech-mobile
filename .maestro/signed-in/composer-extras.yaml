@@ -39,6 +39,10 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: c1-attach-sheet
+- scrollUntilVisible:
+    element:
+      id: extra-emoji
+    direction: DOWN
 - tapOn:
     id: extra-emoji
 - tapOn:
@@ -60,6 +64,10 @@ onFlowStart:
 - inputText: ${RUN + ' c2 later'}
 - tapOn:
     id: composer-attach
+- scrollUntilVisible:
+    element:
+      id: extra-later
+    direction: DOWN
 - tapOn:
     id: extra-later
 - extendedWaitUntil:
@@ -78,6 +86,10 @@ onFlowStart:
     timeout: 20000
 - tapOn:
     id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-scheduled
+    direction: DOWN
 - tapOn:
     id: thread-action-scheduled
 - extendedWaitUntil:
@@ -102,6 +114,10 @@ onFlowStart:
     commands:
       - tapOn:
           id: composer-attach
+      - scrollUntilVisible:
+          element:
+            id: extra-urgent
+          direction: DOWN
       - tapOn:
           id: extra-urgent
       - extendedWaitUntil:
