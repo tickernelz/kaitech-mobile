@@ -202,6 +202,16 @@ if [ -n "${E2E_LOGIN:-}" ]; then
 fi
 
 if [ "${COLD_START_RUNS:-0}" -gt 0 ]; then
+  for pkg in dev.devicelab.driver.android.test dev.devicelab.driver.android dev.mobile.maestro.test dev.mobile.maestro; do
+    adb shell am force-stop "$pkg"
+  done
+  load=""
+  for _ in $(seq 1 60); do
+    load="$(adb shell cat /proc/loadavg | cut -d' ' -f1)"
+    awk -v load="$load" 'BEGIN { exit !(load < 1.5) }' && break
+    sleep 2
+  done
+  echo "load before cold start: $load" | tee -a "$out/display.txt"
   adb shell am start -W -S -n "$activity" > /dev/null
   sleep 5
   starts=()
