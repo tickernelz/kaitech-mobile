@@ -258,10 +258,6 @@ onFlowStart:
     notVisible:
       text: ${output.todo}
     timeout: 15000
-- scrollUntilVisible:
-    element:
-      id: activity-source-discovery
-    direction: UP
 - tapOn:
     id: activity-source-discovery
 - tapOn:
