@@ -1,5 +1,5 @@
 import { FlashList } from '@shopify/flash-list';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { HeaderActions } from '../../../screens/HeaderActions';
@@ -16,6 +16,9 @@ import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { RowActions } from '../../../ui/RowActions';
 import { conversationActions } from './conversationActions';
+import { refreshStarred } from '../starred';
+import { useStarredCount } from '../starredCount';
+import { StarredSheet } from './thread/ListSheets';
 
 function usePreview() {
   const { t } = useTranslation('chat');
@@ -129,7 +132,7 @@ const Row = memo(function Row({
   );
 });
 
-export function ConversationList({ selectedId, onOpen }: { selectedId: number | null; onOpen: (id: number) => void }) {
+export function ConversationList({ selectedId, onOpen }: { selectedId: number | null; onOpen: (id: number, message?: number | null) => void }) {
   const { t } = useTranslation(['chat', 'translation']);
   const { colors } = useTheme();
   const conversations = useChat((state) => state.conversations);
@@ -145,6 +148,11 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
   const filters = useMemo(() => listFilters(hasFeature(features, 'chat_filters'), hasFeature(features, 'agents')), [features]);
   const filter = filters.includes(chosen) ? chosen : 'all';
   const [inArchive, setInArchive] = useState(false);
+  const [inStarred, setInStarred] = useState(false);
+  const starred = useStarredCount();
+  useEffect(() => {
+    void refreshStarred();
+  }, []);
   const [pulled, setPulled] = useState(false);
   const waiting = useMemo(() => {
     const counts = new Map<number, number>();
@@ -171,6 +179,24 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
       </View>
     </View>
   );
+
+  const starredEntry =
+    filter === 'all' && starred > 0 ? (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${t('starredList.title')}, ${starred}`}
+        onPress={() => setInStarred(true)}
+        testID="chat-starred-open"
+        style={({ pressed }) => [styles.archiveEntry, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
+        <Icon name="star" size={20} color={colors.inkSoft} />
+        <Text variant="callout" style={styles.flex}>
+          {t('starredList.title')}
+        </Text>
+        <Text variant="footnote" tone="inkFaint">
+          {starred}
+        </Text>
+      </Pressable>
+    ) : null;
 
   const archiveEntry =
     filter === 'all' && archivedSummary && archivedSummary.count > 0 ? (
@@ -241,6 +267,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
         </View>
       ) : null}
       {archiveEntry}
+      {starredEntry}
     </View>
   );
 
@@ -276,6 +303,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
             refreshing={pulled && loading}
             onRefresh={() => {
               setPulled(true);
+              if (!inArchive) void refreshStarred();
               void (inArchive ? loadArchived() : refreshConversations()).finally(() => setPulled(false));
             }}
             tintColor={colors.primary}
@@ -283,6 +311,15 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
           />
         }
       />
+      {inStarred ? (
+        <StarredSheet
+          onClose={() => setInStarred(false)}
+          onOpen={(message) => {
+            setInStarred(false);
+            onOpen(message.channelId, message.id);
+          }}
+        />
+      ) : null}
     </View>
   );
 }

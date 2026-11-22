@@ -474,5 +474,13 @@
     "startChat": "Start chat",
     "createGroup": "Create group",
     "createChannel": "Create channel"
+  },
+  "starredList": {
+    "title": "Starred",
+    "empty": "No starred messages.",
+    "clear": "Remove all stars",
+    "clearTitle": "Remove all stars?",
+    "clearBody": "Every starred message loses its star. The messages stay.",
+    "confirm": "Remove stars"
   }
 }
