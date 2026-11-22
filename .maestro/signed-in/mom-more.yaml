@@ -1,5 +1,5 @@
 appId: io.kaitech.mobile
-name: MoM More - lists, processing status, recording menu, and removing the test recording this flow uploaded
+name: MoM More - lists, processing status, recording menu, and removing the test recording this flow uploaded under its own run name
 tags:
   - signed-in
 onFlowStart:
@@ -51,7 +51,30 @@ onFlowStart:
       SCREEN: m0-lark-refused
 - tapOn:
     id: header-back
-- runFlow: ../shared/record-meeting.yaml
+- tapOn:
+    id: mom-record
+- extendedWaitUntil:
+    visible:
+      id: setup-name
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m0-setup
+- tapOn:
+    id: setup-name
+- inputText: ${'E2E More ' + RUN}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: setup-consent
+- tapOn:
+    id: setup-consent
+- runFlow: ../shared/start-recording.yaml
+- extendedWaitUntil:
+    visible:
+      id: recorder-stop
+    timeout: 30000
 - tapOn:
     id: recorder-stop
 - tapOn:
@@ -99,9 +122,19 @@ onFlowStart:
       SCREEN: m7-all-recordings
 - tapOn:
     id: header-back
+- repeat:
+    while:
+      visible:
+        id: upload-dismiss
+    times: 5
+    commands:
+      - tapOn:
+          id: upload-dismiss
+- scrollUntilVisible:
+    element:
+      text: ${'E2E More ' + RUN}
 - tapOn:
-    id: meeting-[0-9]+
-    index: 0
+    text: ${'E2E More ' + RUN}
 - extendedWaitUntil:
     visible:
       id: meeting-more
