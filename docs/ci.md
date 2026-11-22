@@ -21,7 +21,7 @@ A draft skips the whole `build` job, so the required checks named `build / ...` 
 
 ### Docs-only pull requests
 
-The `changes` job lists the files the pull request changes (`git diff --no-renames --name-only <base>...<head>`). When every path is under `docs/` or is the root `README.md`, `build` runs with `docs_only: true` and its app jobs report skipped, which branch protection counts as passed. Any other path, including `.github/`, `AGENTS.md`, `package.json`, `app.json`, `src/` and `.maestro/`, runs the full matrix. Pushes to `main` and tags always run it.
+The `changes` job lists the files the pull request changes (`git diff --no-renames --name-only <base>...<head>`). When every path is under `docs/` or is the root `README.md`, `build` runs with `docs_only: true`: its app jobs report skipped, which branch protection counts as passed, and `e2e android en-US` and `e2e android id-ID` pass only after checking that every e2e job was skipped. They run instead of skipping because a skipped matrix job reports its unexpanded name (`e2e android ${{ matrix.locale }}`), which would leave both required checks unreported. Any other path, including `.github/`, `AGENTS.md`, `package.json`, `app.json`, `src/` and `.maestro/`, runs the full matrix. Pushes to `main` and tags always run it.
 
 If the `changes` job fails, `build` does not run and the `build / ...` checks stay "Expected", so the pull request cannot merge.
 

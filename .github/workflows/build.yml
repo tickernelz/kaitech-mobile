@@ -427,7 +427,7 @@ jobs:
   e2e-android:
     name: e2e android ${{ matrix.locale }}
     needs: [e2e-android-cell, e2e-android-rows]
-    if: always() && !inputs.docs_only
+    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -439,7 +439,13 @@ jobs:
         env:
           CELLS: ${{ needs.e2e-android-cell.result }}
           ROWS: ${{ needs.e2e-android-rows.result }}
+          DOCS_ONLY: ${{ inputs.docs_only }}
         run: |
-          echo "e2e android cells: $CELLS, signed-in rows: $ROWS"
+          echo "e2e android cells: $CELLS, signed-in rows: $ROWS, docs only: $DOCS_ONLY"
+          if [ "$DOCS_ONLY" = true ]; then
+            [ "$CELLS" = skipped ]
+            [ "$ROWS" = skipped ]
+            exit 0
+          fi
           [ "$CELLS" = success ]
           [ "$ROWS" = success ] || [ "$ROWS" = skipped ]
