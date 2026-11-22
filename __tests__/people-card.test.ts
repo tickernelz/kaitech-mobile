@@ -43,6 +43,16 @@ describe('person card', () => {
     expect(mockCalls[0]).toMatchObject({ target: '/mail/data', params: { fetch_params: [['avatar_card', { id: 3, model: 'res.partner' }]] } });
   });
 
+  it('shows nothing when the server withholds the partner from this viewer', async () => {
+    mockAnswers.push({}, [], []);
+    expect(await personCard(account, 3)).toBeNull();
+  });
+
+  it('keeps the card without a status when the partner has no user', async () => {
+    mockAnswers.push({ 'res.partner': { id: 3, name: 'Vendor' } }, [{ id: 3, function: false, parent_name: false, user_ids: [] }]);
+    expect(await personCard(account, 3)).toMatchObject({ name: 'Vendor', status: '', title: '', company: '' });
+  });
+
   it('opens the direct chat through the web action and returns its channel', async () => {
     mockAnswers.push({ DataResponse: [{ id: 1, _resolve: true, channel: 55 }] });
     expect(await chatWith(account, 3)).toBe(55);

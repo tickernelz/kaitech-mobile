@@ -47,6 +47,11 @@ describe('people and channel search', () => {
     expect(hits.people).toEqual([{ partnerId: 8, name: 'Sari', email: 'sari@x.id' }]);
   });
 
+  it('answers no people and no channels for an empty store', () => {
+    expect(directoryFrom(undefined, 7)).toEqual({ people: [], channels: [] });
+    expect(directoryFrom({ 'res.partner': { id: 7, name: 'Budi' } }, 7)).toEqual({ people: [], channels: [] });
+  });
+
   it('asks the web search route with the typed words', async () => {
     mockAnswers.push({});
     await searchDirectory(account, 'sar');

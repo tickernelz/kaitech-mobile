@@ -47,6 +47,17 @@ describe('participant volume', () => {
     expect(mockCalls[0].args).toEqual([[['user_setting_id.user_id', '=', 9], ['partner_id', '!=', false]]]);
   });
 
+  it('keeps every volume at full when nothing was saved', async () => {
+    mockAnswers.push([]);
+    expect((await loadVolumes(account)).size).toBe(0);
+  });
+
+  it('saves nothing when the user has no settings record', async () => {
+    mockAnswers.push([]);
+    await saveVolume(account, 3, 0.4);
+    expect(mockCalls.map((call) => call.method)).toEqual(['search_read']);
+  });
+
   it('saves a volume on the user settings record', async () => {
     mockAnswers.push([{ id: 4 }], true);
     await saveVolume(account, 3, 0.25);
