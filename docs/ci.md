@@ -53,7 +53,7 @@ Release builds never use these caches: every release artifact is compiled from s
 
 ### Emulator
 
-`reactivecircus/android-emulator-runner`, API 35, `x86_64`, `google_apis`. Account-free E2E jobs (smoke and full cells) boot from an AVD snapshot cached per profile (`avd-api35-x86_64-google_apis-<profile>-v1`, written outside pull requests) and never save it back (`-no-snapshot-save`). Signed-in rows jobs and release install checks boot a fresh, wiped emulator without snapshots: rows need emulator audio for recording, and a snapshot taken without audio is not the device they were proven on (probe run 45043443333, rows phone en-US hide-direct, failed the first check of all three flows on a snapshot boot while the other three rows cells passed).
+`reactivecircus/android-emulator-runner`, API 35, `x86_64`, `google_apis`. Account-free E2E jobs (smoke and full cells) boot from an AVD snapshot cached per profile (`avd-api35-x86_64-google_apis-<profile>-v1`) and never save it back (`-no-snapshot-save`). Only runs outside pull requests create it, after `cmd package bg-dexopt-job`, so a restored emulator does not resume post-boot work; a pull request that finds no snapshot cold-boots instead of creating one it cannot save (run 45056878705 attempt 1 restored a just-created snapshot at load average 8.9 and maestro-runner never saw the welcome screen). Signed-in rows jobs and release install checks boot a fresh, wiped emulator without snapshots: rows need emulator audio for recording, and a snapshot taken without audio is not the device they were proven on (probe run 45043443333, rows phone en-US hide-direct, failed the first check of all three flows on a snapshot boot while the other three rows cells passed).
 
 ### Flow runner
 
