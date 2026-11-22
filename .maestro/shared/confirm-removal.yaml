@@ -1,5 +1,5 @@
 appId: io.kaitech.mobile
-name: Confirm a removal with the account password, waiting out the server limit of five removal attempts a minute per account that parallel cells share
+name: Confirm a removal with the account password, waiting out the server limit of five removal attempts a minute per account that parallel cells share; a refused attempt counts too, so each retry waits a full minute
 ---
 - tapOn:
     id: mom-remove-confirm
@@ -21,7 +21,7 @@ name: Confirm a removal with the account password, waiting out the server limit 
             - extendedWaitUntil:
                 visible:
                   id: never-visible-removal-wait
-                timeout: 20000
+                timeout: 65000
                 optional: true
             - tapOn:
                 id: mom-remove-password
