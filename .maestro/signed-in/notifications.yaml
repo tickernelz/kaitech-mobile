@@ -1,0 +1,58 @@
+appId: io.kaitech.mobile
+name: Notifications - Odoo delivery and channel default, changed and put back
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|open-settings)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: open-settings
+- tapOn:
+    id: settings-notifications
+- extendedWaitUntil:
+    visible:
+      id: notifications-channels-mentions
+    timeout: 30000
+- tapOn:
+    id: notifications-channels-all
+- extendedWaitUntil:
+    visible:
+      id: notifications-channels-all
+    timeout: 10000
+- assertNotVisible:
+    id: notifications-error
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: n1-channels-all
+- tapOn:
+    id: notifications-channels-mentions
+- tapOn:
+    id: notifications-delivery-inbox
+- tapOn:
+    id: notifications-delivery-email
+- assertNotVisible:
+    id: notifications-error
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: n2-restored
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: settings-language
+- scrollUntilVisible:
+    element:
+      id: account-language-.*
+    timeout: 30000

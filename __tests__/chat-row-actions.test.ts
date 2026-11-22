@@ -39,6 +39,7 @@ jest.mock('../src/features/chat/db', () => ({
 jest.mock('../src/features/chat/files', () => ({ dropFile: jest.fn(), sweepStaging: jest.fn(), clearOpenedFiles: jest.fn(), localFile: jest.fn() }));
 jest.mock('expo-network', () => ({ addNetworkStateListener: () => ({ remove: () => undefined }), getNetworkStateAsync: async () => ({ isConnected: true }) }));
 jest.mock('expo-crypto', () => ({ randomUUID: () => 'uuid' }));
+jest.mock('../src/api/odoo', () => ({ bearer: jest.fn(), route: jest.fn(), rpc: jest.fn(), sessionCookie: jest.fn(), onSessionOpened: jest.fn(), ApiError: class extends Error {} }));
 jest.mock('../src/features/chat/realtime', () => ({ Realtime: class { start() {} stop() {} reconnectNow() {} } }));
 jest.mock('../src/features/chat/api', () => ({
   ChatClient: class {

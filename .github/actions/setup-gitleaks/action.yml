@@ -17,7 +17,7 @@ runs:
         esac
         dest="$RUNNER_TEMP/gitleaks"
         mkdir -p "$dest"
-        curl -sSfL -o "$dest/gitleaks.tgz" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_${platform}.tar.gz"
+        curl -sSfL --retry 5 --retry-all-errors --retry-delay 5 -o "$dest/gitleaks.tgz" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_${platform}.tar.gz"
         echo "${sha256}  $dest/gitleaks.tgz" | shasum -a 256 -c -
         tar -xzf "$dest/gitleaks.tgz" -C "$dest" gitleaks
         echo "$dest" >> "$GITHUB_PATH"

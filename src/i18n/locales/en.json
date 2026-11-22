@@ -402,19 +402,24 @@
     "groups": {
       "chat": "Messages",
       "discovery": "Discovery",
-      "mom": "Meetings"
+      "mom": "Meetings",
+      "people": "People and channels"
     },
     "kind": {
       "programme": "Programme",
       "conversation": "Coworker conversation",
       "card": "Decision card",
       "recording": "Recording",
-      "minutes": "Minutes"
+      "minutes": "Minutes",
+      "person": "Person",
+      "channel": "Channel",
+      "channelJoin": "Channel · join"
     },
     "ask": "Ask the Coworker: \"{{q}}\"",
     "noneTitle": "No results",
     "noneBody": "Try other words or ask the Coworker.",
-    "hintTitle": "Search everything"
+    "hintTitle": "Search everything",
+    "seeAll": "See all {{count}}"
   },
   "mom": {
     "record": "Record a meeting",
@@ -848,7 +853,23 @@
       "appsHint": "Signing out a phone here ends its Kaitech app session at once.",
       "browsers": "Browsers and other sessions",
       "browsersHint": "Signing out a browser session ends that web session. A Kaitech app opens a new one by itself; sign it out under Kaitech app.",
-      "revokeAppConfirm": "Sign {{name}} out of the Kaitech app?"
+      "revokeAppConfirm": "Sign {{name}} out of the Kaitech app?",
+      "showMore": "Show {{count}} more"
     }
+  },
+  "person": {
+    "presence": {
+      "online": "Online",
+      "away": "Away",
+      "busy": "Busy",
+      "offline": "Offline"
+    },
+    "missing": "This person is not available",
+    "message": "Send message",
+    "jobTitle": "Job position",
+    "company": "Company",
+    "email": "Email",
+    "phone": "Phone",
+    "viewProfile": "View profile on the web"
   }
 }

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { Buffer } from 'node:buffer';
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readFileSync as read, rmSync, writeFileSync } from 'node:fs';
@@ -146,6 +147,7 @@ function refresh() {
     name: p.name,
     mic: p.isMicrophoneEnabled,
     camera: p.isCameraEnabled,
+    attributes: { ...(p.attributes || {}) },
     tracks: [...p.trackPublications.values()].map((t) => t.kind + ':' + (t.source || '')),
   }));
   send();
@@ -156,6 +158,9 @@ async function start(call) {
     globalThis.room = room;
     room.on(LivekitClient.RoomEvent.ParticipantConnected, () => { log('participant connected'); refresh(); });
     room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => { log('participant left'); refresh(); });
+    room.on(LivekitClient.RoomEvent.TrackMuted, (publication, participant) => { log('muted ' + publication.kind + ' from ' + (participant && participant.identity)); refresh(); });
+    room.on(LivekitClient.RoomEvent.TrackUnmuted, (publication, participant) => { log('unmuted ' + publication.kind + ' from ' + (participant && participant.identity)); refresh(); });
+    room.on(LivekitClient.RoomEvent.ParticipantAttributesChanged, (changed, participant) => { log('attributes from ' + (participant && participant.identity) + ' ' + JSON.stringify(changed)); refresh(); });
     room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
       log('subscribed ' + track.kind + ' from ' + (track.participant && track.participant.identity));
       if (track.kind === 'video' && track.source === 'screen_share') {
@@ -251,6 +256,11 @@ function serve() {
     if (path === '/state') {
       response.setHeader('content-type', 'application/json');
       response.end(JSON.stringify(sessions.state));
+      return;
+    }
+    if (path === '/logs') {
+      response.setHeader('content-type', 'application/json');
+      response.end(JSON.stringify(sessions.logs));
       return;
     }
     if (path === '/command') {
@@ -412,7 +422,14 @@ async function live() {
   console.log(JSON.stringify(await answer.json(), null, 2));
 }
 
-const actions = { serve, start, state, leave, stop, screen, live };
+async function logs() {
+  const current = readState();
+  if (!current?.port) throw new Error('the peer is not running');
+  const answer = await fetch('http://127.0.0.1:' + current.port + '/logs');
+  console.log(JSON.stringify(await answer.json(), null, 2));
+}
+
+const actions = { serve, start, state, leave, stop, screen, live, logs };
 const run = actions[action];
 if (!run) {
   process.stderr.write('usage: call-peer.mjs ' + Object.keys(actions).join('|') + '\n');

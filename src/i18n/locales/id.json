@@ -402,19 +402,24 @@
     "groups": {
       "chat": "Pesan",
       "discovery": "Discovery",
-      "mom": "Rapat"
+      "mom": "Rapat",
+      "people": "Orang dan kanal"
     },
     "kind": {
       "programme": "Program",
       "conversation": "Percakapan Coworker",
       "card": "Kartu keputusan",
       "recording": "Rekaman",
-      "minutes": "Notulen"
+      "minutes": "Notulen",
+      "person": "Orang",
+      "channel": "Kanal",
+      "channelJoin": "Kanal · gabung"
     },
     "ask": "Tanya Coworker: \"{{q}}\"",
     "noneTitle": "Tidak ada hasil",
     "noneBody": "Coba kata lain atau tanya Coworker.",
-    "hintTitle": "Cari semuanya"
+    "hintTitle": "Cari semuanya",
+    "seeAll": "Lihat semua {{count}}"
   },
   "mom": {
     "record": "Rekam rapat",
@@ -848,7 +853,23 @@
       "appsHint": "Mengeluarkan HP di sini langsung mengakhiri sesi aplikasi Kaitech-nya.",
       "browsers": "Browser dan sesi lain",
       "browsersHint": "Mengeluarkan sesi browser mengakhiri sesi web itu. Aplikasi Kaitech membuka sesi baru sendiri; keluarkan lewat bagian Aplikasi Kaitech.",
-      "revokeAppConfirm": "Keluarkan {{name}} dari aplikasi Kaitech?"
+      "revokeAppConfirm": "Keluarkan {{name}} dari aplikasi Kaitech?",
+      "showMore": "Tampilkan {{count}} lagi"
     }
+  },
+  "person": {
+    "presence": {
+      "online": "Online",
+      "away": "Sedang pergi",
+      "busy": "Sibuk",
+      "offline": "Offline"
+    },
+    "missing": "Orang ini tidak tersedia",
+    "message": "Kirim pesan",
+    "jobTitle": "Jabatan",
+    "company": "Perusahaan",
+    "email": "Email",
+    "phone": "Telepon",
+    "viewProfile": "Lihat profil di web"
   }
 }

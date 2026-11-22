@@ -1,6 +1,6 @@
-import { controlsFor, pillLimit, type ControlInput } from '../src/features/call/controls';
+import { controlsFor, groupedMore, pillLimit, type ControlInput } from '../src/features/call/controls';
 
-const base: ControlInput = { phase: 'active', video: true, cameraOn: true, sharing: false, share: true, record: true, pip: true, wide: false };
+const base: ControlInput = { phase: 'active', video: true, cameraOn: true, sharing: false, share: true, record: true, pip: true, wide: false, invite: true, crowd: true };
 
 describe('call controls', () => {
   it.each([
@@ -33,6 +33,28 @@ describe('call controls', () => {
     expect(pill.length).toBeLessThanOrEqual(pillLimit.wide);
     expect(pill).toContain('people');
     expect(more).not.toContain('people');
+  });
+
+  it('puts the web call actions in More, grouped by sound, video and people', () => {
+    const { more } = controlsFor(base);
+    expect(more).toEqual(expect.arrayContaining(['output', 'deafen', 'hand', 'spotlight', 'videoOnly', 'invite']));
+    expect(groupedMore(more).map((entry) => [entry.group, entry.actions])).toEqual([
+      ['sound', ['speaker', 'output', 'deafen']],
+      ['video', ['share', 'record', 'spotlight', 'videoOnly', 'pip']],
+      ['people', ['hand', 'invite', 'people']],
+    ]);
+  });
+
+  it('keeps invite out of a direct chat and the crowd views out of a two-person call', () => {
+    const { more } = controlsFor({ ...base, invite: false, crowd: false });
+    expect(more).not.toContain('invite');
+    expect(more).not.toContain('spotlight');
+    expect(more).not.toContain('videoOnly');
+  });
+
+  it('offers no in-call actions before the call connects', () => {
+    const { more } = controlsFor({ ...base, phase: 'connecting' });
+    expect(more.filter((action) => ['output', 'deafen', 'hand', 'invite'].includes(action))).toEqual([]);
   });
 
   it('offers only close once the call ended', () => {
