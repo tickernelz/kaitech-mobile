@@ -23,7 +23,9 @@
       "all": "Semua",
       "unread": "Belum dibaca",
       "people": "Pribadi",
-      "rooms": "Grup"
+      "rooms": "Grup",
+      "mention": "Sebutan",
+      "agent": "Coworker"
     },
     "offline": "Tidak ada koneksi. Pesan terkirim saat tersambung lagi.",
     "offlineQueued_one": "Tidak ada koneksi. {{count}} pesan terkirim saat tersambung lagi.",
@@ -33,7 +35,9 @@
       "all": "Belum ada percakapan.",
       "unread": "Semua pesan sudah dibaca.",
       "people": "Belum ada percakapan pribadi.",
-      "rooms": "Belum ikut grup atau channel."
+      "rooms": "Belum ikut grup atau channel.",
+      "mention": "Belum ada yang menyebut Anda.",
+      "agent": "Belum ada percakapan dengan Coworker."
     },
     "loading": "Memuat percakapan…"
   },

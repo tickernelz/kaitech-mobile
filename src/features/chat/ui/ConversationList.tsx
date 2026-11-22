@@ -6,21 +6,15 @@ import { HeaderActions } from '../../../screens/HeaderActions';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { loadMoreConversations, refreshConversations, useChat } from '../chat';
+import { hasFeature } from '../features';
+import { listFilters, matches, type Filter } from '../listFilters';
 import { pushSupported } from '../push';
 import type { Conversation } from '../types';
 import { Avatar } from './Avatar';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 
-type Filter = 'all' | 'unread' | 'people' | 'rooms';
-const filters: Filter[] = ['all', 'unread', 'people', 'rooms'];
 
-function matches(conversation: Conversation, filter: Filter): boolean {
-  if (filter === 'unread') return conversation.unread > 0;
-  if (filter === 'people') return conversation.type === 'chat';
-  if (filter === 'rooms') return conversation.type !== 'chat';
-  return true;
-}
 
 function usePreview() {
   const { t } = useTranslation('chat');
@@ -130,7 +124,10 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
   const error = useChat((state) => state.listError);
   const online = useChat((state) => state.online);
   const pending = useChat((state) => state.pending);
-  const [filter, setFilter] = useState<Filter>('all');
+  const [chosen, setFilter] = useState<Filter>('all');
+  const features = useChat((state) => state.features);
+  const filters = useMemo(() => listFilters(hasFeature(features, 'chat_filters'), hasFeature(features, 'agents')), [features]);
+  const filter = filters.includes(chosen) ? chosen : 'all';
   const [pulled, setPulled] = useState(false);
   const waiting = useMemo(() => {
     const counts = new Map<number, number>();

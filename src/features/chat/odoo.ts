@@ -71,6 +71,8 @@ export function conversationFrom(value: unknown): Conversation | null {
     mutedUntil: typeof value.muted_until === 'string' ? value.muted_until : null,
     activityAt: utc(value.activity_at),
     last: lastMessage(value.last_message),
+    mentioned: value.mentioned === true,
+    agent: value.agent === true,
   };
 }
 

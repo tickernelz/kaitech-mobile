@@ -24,6 +24,8 @@ export type Conversation = {
   mutedUntil: string | null;
   activityAt: number;
   last: LastMessage | null;
+  mentioned?: boolean;
+  agent?: boolean;
 };
 
 export type Attachment = {

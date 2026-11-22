@@ -1,7 +1,8 @@
 import { cannedQuery, gifBody, quickTimes } from '../src/features/chat/composerExtras';
 import { isShownWork, linksIn, workFrom } from '../src/features/chat/coworker';
 import { channelOf } from '../src/features/chat/newConversation';
-import { channelInfoFromStore } from '../src/features/chat/odoo';
+import { listFilters, matches } from '../src/features/chat/listFilters';
+import { channelInfoFromStore, conversationFrom } from '../src/features/chat/odoo';
 import { scheduledFrom } from '../src/features/chat/threadActions';
 
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
@@ -109,3 +110,28 @@ describe('composer extras', () => {
     expect(gifBody('https://x.test/a"b.gif')).toBe('<a href="https://x.test/a%22b.gif" target="_blank" rel="noreferrer noopener">https://x.test/a%22b.gif</a>');
   });
 });
+
+describe('conversation filters', () => {
+  const row = (extra: Record<string, unknown>) => conversationFrom({ id: 1, type: 'channel', name: 'x', unread: 0, activity_at: '2026-11-22 01:00:00', ...extra });
+
+  it('reads the mentioned and agent flags lab0 sends', () => {
+    expect(row({ mentioned: true, agent: true })).toMatchObject({ mentioned: true, agent: true });
+    expect(row({})).toMatchObject({ mentioned: false, agent: false });
+  });
+
+  it('offers Mentions and Coworker only when the server turns them on', () => {
+    expect(listFilters(false, true)).toEqual(['all', 'unread', 'people', 'rooms']);
+    expect(listFilters(true, false)).toEqual(['all', 'unread', 'mention', 'people', 'rooms']);
+    expect(listFilters(true, true)).toContain('agent');
+  });
+
+  it('keeps only the matching conversations', () => {
+    const mentioned = row({ mentioned: true });
+    const coworker = row({ agent: true });
+    const plain = row({});
+    if (!mentioned || !coworker || !plain) throw new Error('parse');
+    expect([mentioned, coworker, plain].filter((item) => matches(item, 'mention'))).toEqual([mentioned]);
+    expect([mentioned, coworker, plain].filter((item) => matches(item, 'agent'))).toEqual([coworker]);
+  });
+});
+

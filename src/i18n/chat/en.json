@@ -23,7 +23,9 @@
       "all": "All",
       "unread": "Unread",
       "people": "Direct",
-      "rooms": "Groups"
+      "rooms": "Groups",
+      "mention": "Mentions",
+      "agent": "Coworker"
     },
     "offline": "You're offline. Messages go out when you're back online.",
     "offlineQueued_one": "You're offline. {{count}} message will go out when you're back online.",
@@ -33,7 +35,9 @@
       "all": "No conversations yet.",
       "unread": "You're all caught up.",
       "people": "No direct conversations yet.",
-      "rooms": "You're not in any group or channel yet."
+      "rooms": "You're not in any group or channel yet.",
+      "mention": "Nobody mentioned you lately.",
+      "agent": "No conversation with the Coworker yet."
     },
     "loading": "Loading conversations…"
   },
