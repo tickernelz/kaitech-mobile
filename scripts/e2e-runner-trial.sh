@@ -51,7 +51,7 @@ adb install -r "$apk"
 adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' | head -2 | tee "$out/installed.txt"
 {
   echo "maestro: $(maestro --version 2>/dev/null | tail -1)"
-  echo "maestro-runner: $(maestro-runner --version 2>/dev/null | tail -1), driver $driver"
+  echo "maestro-runner: $(maestro-runner --version 2>/dev/null | head -1), driver $driver"
   echo "first: $first"
 } | tee "$out/runners.txt"
 
