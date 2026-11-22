@@ -685,7 +685,8 @@
       "tomorrow": "Tomorrow",
       "inDays_one": "In {{count}} day",
       "inDays_other": "In {{count}} days"
-    }
+    },
+    "truncated": "Showing your {{count}} nearest activities. Open the web for older ones."
   },
   "choice": {
     "search": "Search"
@@ -736,12 +737,14 @@
     },
     "password": {
       "title": "Change password",
-      "hint": "Changing the password signs you out of the web on other browsers.",
+      "hint": "Changing the password signs out every Kaitech app on your account, this phone included, and the web on other browsers.",
       "new": "New password",
       "confirm": "Repeat new password",
       "mismatch": "The passwords do not match.",
       "save": "Change password",
-      "done": "Password changed."
+      "done": "Password changed.",
+      "signInAgain": "Every Kaitech app on your account signs out, this phone included. Sign in again with the new password.",
+      "ok": "Sign in again"
     },
     "totp": {
       "title": "Two-step verification",
@@ -796,8 +799,13 @@
       "none": "No devices",
       "revoke": "Sign out",
       "revokeConfirm": "Sign out {{name}}?",
-      "revokeAll": "Sign out of all other devices",
-      "revokeAllConfirm": "Sign out of every device except this one?"
+      "revokeAll": "Sign out everywhere",
+      "revokeAllConfirm": "This signs out every device on your account, this phone included. You sign in again afterwards.",
+      "apps": "Kaitech app",
+      "appsHint": "Signing out a phone here ends its Kaitech app session at once.",
+      "browsers": "Browsers and other sessions",
+      "browsersHint": "Signing out a browser session ends that web session. A Kaitech app opens a new one by itself; sign it out under Kaitech app.",
+      "revokeAppConfirm": "Sign {{name}} out of the Kaitech app?"
     }
   }
 }

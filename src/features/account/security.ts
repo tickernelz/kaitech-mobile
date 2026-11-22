@@ -1,5 +1,5 @@
 import type { Account } from '../../auth/oauth';
-import { rpc } from '../../api/odoo';
+import { bearer, rpc } from '../../api/odoo';
 
 export type Action = { type?: string; res_model?: string; res_id?: number; context?: Record<string, unknown> } | false | null;
 
@@ -53,7 +53,10 @@ export async function totpSetup(account: Account, action: unknown): Promise<Totp
 }
 
 export function enableTotp(account: Account, wizardId: number, code: string) {
-  return rpc<unknown>(account, 'auth_totp.wizard', 'enable', [[wizardId]], { context: { code: code.replace(/\s+/g, '') } });
+  return guarded(
+    () => rpc<unknown>(account, 'auth_totp.wizard', 'enable', [[wizardId]], { context: { code: code.replace(/\s+/g, '') } }),
+    () => true,
+  );
 }
 
 export function disableTotp(account: Account) {
@@ -96,12 +99,15 @@ export function openApiKey(account: Account) {
   );
 }
 
-export async function makeApiKey(account: Account, name: string, duration: string): Promise<string> {
-  const wizard = await rpc<number>(account, 'res.users.apikeys.description', 'create', [{ name: name.trim(), duration }]);
-  const action = (await rpc<unknown>(account, 'res.users.apikeys.description', 'make_key', [[wizard]])) as Action;
-  const key = action && action.context?.default_key;
+export function apiKeyFrom(action: unknown): string {
+  const key = (action as Action) && (action as { context?: Record<string, unknown> }).context?.default_key;
   if (typeof key !== 'string') throw new Error('api_key_missing');
   return key;
+}
+
+export async function makeApiKey(account: Account, name: string, duration: string): Promise<Step<string>> {
+  const wizard = await rpc<number>(account, 'res.users.apikeys.description', 'create', [{ name: name.trim(), duration }]);
+  return guarded(() => rpc<unknown>(account, 'res.users.apikeys.description', 'make_key', [[wizard]]), apiKeyFrom);
 }
 
 export function removeApiKey(account: Account, id: number) {
@@ -162,4 +168,30 @@ export function deletePasskey(account: Account, id: number) {
     () => rpc<unknown>(account, 'auth.passkey.key', 'action_delete_passkey', [[id]]),
     () => true,
   );
+}
+
+export type AppDevice = { id: number; name: string; platform: string; signedInAt: string; lastUsedAt: string; current: boolean };
+
+export function appDevicesFrom(body: unknown): AppDevice[] {
+  const rows = (body as { devices?: unknown } | null)?.devices;
+  if (!Array.isArray(rows)) return [];
+  const text = (value: unknown) => (typeof value === 'string' ? value : '');
+  return rows
+    .filter((row): row is Record<string, unknown> => !!row && typeof (row as { id?: unknown }).id === 'number')
+    .map((row) => ({
+      id: row.id as number,
+      name: text(row.name),
+      platform: text(row.platform),
+      signedInAt: text(row.signed_in_at),
+      lastUsedAt: text(row.last_used_at),
+      current: row.current === true,
+    }));
+}
+
+export async function appDevices(account: Account): Promise<AppDevice[]> {
+  return appDevicesFrom(await bearer<unknown>(account, '/kaitech_mobile/devices'));
+}
+
+export function revokeAppDevice(account: Account, id: number) {
+  return bearer<unknown>(account, '/kaitech_mobile/devices/' + id + '/revoke', { method: 'POST', body: {} });
 }

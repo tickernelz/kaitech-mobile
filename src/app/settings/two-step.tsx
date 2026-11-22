@@ -49,7 +49,8 @@ export default function TwoStepSettings() {
   const enable = () =>
     guard(async () => {
       if (!setup) return;
-      await enableTotp(active, setup.wizardId, code);
+      const enabled = await identity.run(() => enableTotp(active, setup.wizardId, code), () => true);
+      if (!enabled) return;
       setSetup(null);
       setCode('');
       await me.refresh();

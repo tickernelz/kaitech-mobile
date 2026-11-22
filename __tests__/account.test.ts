@@ -1,6 +1,6 @@
 import type { Account } from '../src/auth/oauth';
 import { localDayFromOdoo, meFrom, odooDateTime, plainSignature, selectionOf, setChannelNotifications, signatureHtml, discussSettings } from '../src/features/account/odoo';
-import { confirmIdentity, identityOf, makeApiKey, openTotp, revokeAllDevices, totpSecretGroups } from '../src/features/account/security';
+import { appDevicesFrom, confirmIdentity, enableTotp, identityOf, makeApiKey, openTotp, revokeAllDevices, totpSecretGroups } from '../src/features/account/security';
 
 const mockCalls: { model: string; method: string; args: unknown[]; kwargs: Record<string, unknown> }[] = [];
 const mockAnswers: unknown[] = [];
@@ -67,14 +67,33 @@ describe('empty and refused answers', () => {
     expect(localDayFromOdoo('')).toBe('');
   });
 
-  it('hides the channel default when the user has no Discuss settings row yet', async () => {
+  it('creates the Discuss settings row on the first change when the user has none, like the web', async () => {
     mockAnswers.push([]);
-    expect(await discussSettings(account)).toBeNull();
+    expect(await discussSettings(account)).toEqual({ id: null, channelNotifications: 'mentions' });
+    mockAnswers.push(33, {});
+    await setChannelNotifications(account, null, 'no_notif');
+    expect(mockCalls[1]).toMatchObject({ model: 'res.users.settings', method: 'create', args: [{ user_id: 9 }] });
+    expect(mockCalls[2]).toMatchObject({ method: 'set_res_users_settings', args: [[33]], kwargs: { new_settings: { channel_notifications: 'no_notif' } } });
   });
 
   it('fails loudly when the API key wizard answers without a key', async () => {
     mockAnswers.push(12, { res_model: 'res.users.apikeys.show', context: {} });
     await expect(makeApiKey(account, 'CI', '30')).rejects.toThrow('api_key_missing');
+  });
+
+  it('stops at the password check when the API key or TOTP window has passed', async () => {
+    mockAnswers.push(12, identityAction);
+    expect(await makeApiKey(account, 'CI', '30')).toEqual({ kind: 'identity', checkId: 31 });
+    mockAnswers.push(identityAction);
+    expect(await enableTotp(account, 8, '123 456')).toEqual({ kind: 'identity', checkId: 31 });
+    expect(mockCalls[2]).toMatchObject({ model: 'auth_totp.wizard', method: 'enable', kwargs: { context: { code: '123456' } } });
+  });
+
+  it('reads the Kaitech app devices with the caller marked', () => {
+    expect(appDevicesFrom({ devices: [{ id: 4, name: 'Mblu 21', platform: 'android', signed_in_at: '2026-11-20 01:00:00', last_used_at: false, current: true }, { name: 'x' }] })).toEqual([
+      { id: 4, name: 'Mblu 21', platform: 'android', signedInAt: '2026-11-20 01:00:00', lastUsedAt: '', current: true },
+    ]);
+    expect(appDevicesFrom(null)).toEqual([]);
   });
 
   it('asks for the password again when run_check answers another identity check', () => {
@@ -100,7 +119,7 @@ describe('identity check', () => {
 
   it('hands back the new API key from the web wizard result', async () => {
     mockAnswers.push(12, { res_model: 'res.users.apikeys.show', context: { default_key: 'abc123' } });
-    expect(await makeApiKey(account, ' CI ', '30')).toBe('abc123');
+    expect(await makeApiKey(account, ' CI ', '30')).toEqual({ kind: 'done', value: 'abc123' });
     expect(mockCalls[0]).toMatchObject({ model: 'res.users.apikeys.description', method: 'create', args: [{ name: 'CI', duration: '30' }] });
   });
 

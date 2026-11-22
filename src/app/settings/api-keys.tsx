@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, View } from 'react-native';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
-import { apiKeyDurations, apiKeys, makeApiKey, openApiKey, removeApiKey, type ApiKey } from '../../features/account/security';
+import { apiKeyDurations, apiKeyFrom, apiKeys, makeApiKey, openApiKey, removeApiKey, type ApiKey } from '../../features/account/security';
 import { parseServerDate } from '../../features/discovery/dates';
 import { useIdentity } from '../../features/account/useIdentity';
 import { StateView, useErrorText } from '../../features/discovery/ui';
@@ -54,7 +54,8 @@ export default function ApiKeySettings() {
   const create = () =>
     guard(async () => {
       if (!form) return;
-      const key = await makeApiKey(active, form.name, form.duration);
+      const key = await identity.run(() => makeApiKey(active, form.name, form.duration), apiKeyFrom);
+      if (!key) return;
       setForm(null);
       setCopied(false);
       setMade(key);

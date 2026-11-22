@@ -14,6 +14,7 @@ import {
   plainNote,
   schedule,
   snoozeDay,
+  systray,
   type Activity,
 } from '../src/features/activity/odoo';
 
@@ -164,7 +165,7 @@ describe('choices', () => {
 describe('empty and refused answers', () => {
   it('shows no activities and no meetings when the user has none', async () => {
     mockAnswers.push({ Store: {} }, []);
-    expect(await overview(account)).toEqual({ groups: [], meetings: [], activities: [] });
+    expect(await overview(account)).toEqual({ groups: [], meetings: [], activities: [], truncated: false });
     expect(groupsFrom(undefined)).toEqual({ groups: [], meetings: [] });
     expect(pendingCount([])).toBe(0);
     expect(byModel([], [])).toEqual([]);
@@ -191,6 +192,19 @@ describe('server calls', () => {
     expect(mockCalls[1]).toMatchObject({ kind: 'rpc', target: 'mail.activity', method: 'search_read', args: [[['user_id', '=', 9]]] });
     expect(result.groups).toHaveLength(1);
     expect(result.activities.map((activity) => activity.id)).toEqual([1]);
+    expect(result.truncated).toBe(false);
+  });
+
+  it('says when the list stops at the limit instead of hiding the rest', async () => {
+    mockAnswers.push({}, Array.from({ length: 500 }, (_, index) => row({ id: index + 1 })));
+    expect((await overview(account)).truncated).toBe(true);
+  });
+
+  it('loads only the systray counts for the tab badge', async () => {
+    mockAnswers.push({ Store: { activityGroups: [{ model: 'crm.lead', name: 'Lead', overdue_count: 2, today_count: 1 }] } });
+    const { groups } = await systray(account);
+    expect(pendingCount(groups)).toBe(3);
+    expect(mockCalls.map((call) => call.target)).toEqual(['/mail/data']);
   });
 
   it('schedules on the record as a manual activity, like the web form', async () => {

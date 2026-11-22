@@ -15,7 +15,7 @@ import { StateView } from '../discovery/ui';
 import { ActivitySheet } from './ActivitySheet';
 import { useDueLabel } from './due';
 import { iconOfCategory } from './icons';
-import { byModel, filtered, tally, type Activity, type Filter, type Meeting, type Overview } from './odoo';
+import { byModel, filtered, overviewLimit, tally, type Activity, type Filter, type Meeting, type Overview } from './odoo';
 import { ScheduleSheet, type ScheduleMode } from './ScheduleSheet';
 
 const filters: Filter[] = ['all', 'overdue', 'today', 'planned'];
@@ -145,6 +145,13 @@ export function OdooActivities({ items, header }: { items: Resource<Overview>; h
             </Pressable>
           );
         }}
+        ListFooterComponent={
+          items.data?.truncated ? (
+            <Text variant="footnote" tone="inkSoft" style={styles.footer} testID="activities-truncated">
+              {t('activities.truncated', { count: overviewLimit })}
+            </Text>
+          ) : undefined
+        }
         ListEmptyComponent={
           <StateView
             loading={items.loading}
@@ -184,6 +191,7 @@ const styles = StyleSheet.create({
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
   chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   block: { gap: space.sm },
+  footer: { paddingTop: space.md, textAlign: 'center' },
   section: { paddingTop: space.md, paddingBottom: space.xs, paddingHorizontal: space.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, marginBottom: space.sm },
   icon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },

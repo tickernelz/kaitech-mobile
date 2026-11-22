@@ -25,7 +25,9 @@ export type Meeting = { id: number; name: string; start: string; allDay: boolean
 
 export type ActivityGroup = { model: string; name: string; overdue: number; today: number; planned: number; total: number };
 
-export type Overview = { groups: ActivityGroup[]; meetings: Meeting[]; activities: Activity[] };
+export type Overview = { groups: ActivityGroup[]; meetings: Meeting[]; activities: Activity[]; truncated: boolean };
+
+export const overviewLimit = 500;
 
 export type ActivityType = { id: number; name: string; category: string; summary: string; delayCount: number; delayUnit: string; suggested: number[] };
 
@@ -189,14 +191,22 @@ export function defaultDeadline(type: ActivityType | undefined, today: Date): st
   return isoDay(day);
 }
 
-export async function overview(account: Account): Promise<Overview> {
-  const [data, rows] = await Promise.all([
-    route<Record<string, unknown>>(account, '/mail/data', { fetch_params: ['systray_get_activities'] }),
-    rpc<Record<string, unknown>[]>(account, 'mail.activity', 'search_read', [[['user_id', '=', account.userId]]], { fields: activityFields, order: 'date_deadline asc, id asc', limit: 500 }),
-  ]);
+export async function systray(account: Account): Promise<{ groups: ActivityGroup[]; meetings: Meeting[] }> {
+  const data = await route<Record<string, unknown>>(account, '/mail/data', { fetch_params: ['systray_get_activities'] });
   const store = (data?.Store ?? data) as Record<string, unknown> | undefined;
-  const { groups, meetings } = groupsFrom(store?.activityGroups);
-  return { groups, meetings, activities: rows.map(activityFrom).filter((row): row is Activity => row !== null) };
+  return groupsFrom(store?.activityGroups);
+}
+
+export async function overview(account: Account): Promise<Overview> {
+  const [{ groups, meetings }, rows] = await Promise.all([
+    systray(account),
+    rpc<Record<string, unknown>[]>(account, 'mail.activity', 'search_read', [[['user_id', '=', account.userId]]], {
+      fields: activityFields,
+      order: 'date_deadline asc, id asc',
+      limit: overviewLimit,
+    }),
+  ]);
+  return { groups, meetings, activities: rows.map(activityFrom).filter((row): row is Activity => row !== null), truncated: rows.length >= overviewLimit };
 }
 
 export async function activityTypes(account: Account, model: string | null): Promise<ActivityType[]> {

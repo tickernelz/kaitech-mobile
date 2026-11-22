@@ -98,18 +98,19 @@ export async function choices(account: Account): Promise<Choices> {
 
 export type ChannelNotifications = 'all' | 'mentions' | 'no_notif';
 
-export type DiscussSettings = { id: number; channelNotifications: ChannelNotifications } | null;
+export type DiscussSettings = { id: number | null; channelNotifications: ChannelNotifications };
 
 export async function discussSettings(account: Account): Promise<DiscussSettings> {
   const rows = await rpc<Record<string, unknown>[]>(account, 'res.users.settings', 'search_read', [[['user_id', '=', account.userId]]], { fields: ['channel_notifications'], limit: 1 });
   const row = rows[0];
-  if (!row || typeof row.id !== 'number') return null;
+  if (!row || typeof row.id !== 'number') return { id: null, channelNotifications: 'mentions' };
   const value = row.channel_notifications;
   return { id: row.id, channelNotifications: value === 'all' || value === 'no_notif' ? value : 'mentions' };
 }
 
-export function setChannelNotifications(account: Account, settingsId: number, value: ChannelNotifications) {
-  return rpc<unknown>(account, 'res.users.settings', 'set_res_users_settings', [[settingsId]], { new_settings: { channel_notifications: value === 'mentions' ? false : value } });
+export async function setChannelNotifications(account: Account, settingsId: number | null, value: ChannelNotifications) {
+  const id = settingsId ?? (await rpc<number>(account, 'res.users.settings', 'create', [{ user_id: account.userId }]));
+  return rpc<unknown>(account, 'res.users.settings', 'set_res_users_settings', [[id]], { new_settings: { channel_notifications: value === 'mentions' ? false : value } });
 }
 
 export function plainSignature(html: string): string {

@@ -685,7 +685,8 @@
       "tomorrow": "Besok",
       "inDays_one": "{{count}} hari lagi",
       "inDays_other": "{{count}} hari lagi"
-    }
+    },
+    "truncated": "Menampilkan {{count}} aktivitas terdekat. Buka web untuk yang lebih lama."
   },
   "choice": {
     "search": "Cari"
@@ -736,12 +737,14 @@
     },
     "password": {
       "title": "Ganti kata sandi",
-      "hint": "Mengganti kata sandi mengeluarkanmu dari web di browser lain.",
+      "hint": "Mengganti kata sandi mengeluarkan semua aplikasi Kaitech di akunmu, termasuk HP ini, dan web di browser lain.",
       "new": "Kata sandi baru",
       "confirm": "Ulangi kata sandi baru",
       "mismatch": "Kata sandinya tidak sama.",
       "save": "Ganti kata sandi",
-      "done": "Kata sandi sudah diganti."
+      "done": "Kata sandi sudah diganti.",
+      "signInAgain": "Semua aplikasi Kaitech di akunmu keluar, termasuk HP ini. Masuk lagi dengan kata sandi baru.",
+      "ok": "Masuk lagi"
     },
     "totp": {
       "title": "Verifikasi dua langkah",
@@ -796,8 +799,13 @@
       "none": "Belum ada perangkat",
       "revoke": "Keluarkan",
       "revokeConfirm": "Keluarkan {{name}}?",
-      "revokeAll": "Keluar dari semua perangkat lain",
-      "revokeAllConfirm": "Keluar dari semua perangkat kecuali yang ini?"
+      "revokeAll": "Keluar di semua perangkat",
+      "revokeAllConfirm": "Ini mengeluarkan semua perangkat di akunmu, termasuk HP ini. Sesudahnya kamu masuk lagi.",
+      "apps": "Aplikasi Kaitech",
+      "appsHint": "Mengeluarkan HP di sini langsung mengakhiri sesi aplikasi Kaitech-nya.",
+      "browsers": "Browser dan sesi lain",
+      "browsersHint": "Mengeluarkan sesi browser mengakhiri sesi web itu. Aplikasi Kaitech membuka sesi baru sendiri; keluarkan lewat bagian Aplikasi Kaitech.",
+      "revokeAppConfirm": "Keluarkan {{name}} dari aplikasi Kaitech?"
     }
   }
 }
