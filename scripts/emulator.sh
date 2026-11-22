@@ -8,7 +8,7 @@ avdmanager="$sdk/cmdline-tools/latest/bin/avdmanager"
 image="system-images;android-35;google_apis;x86_64"
 slots="${KAITECH_EMULATOR_SLOTS:-3}"
 gpu="${KAITECH_EMULATOR_GPU:-host}"
-idle_minutes="${KAITECH_EMULATOR_IDLE_MINUTES:-30}"
+idle_minutes="${KAITECH_EMULATOR_IDLE_MINUTES:-5}"
 state="${XDG_RUNTIME_DIR:-/tmp}/kaitech-emulator"
 package=io.kaitech.mobile
 mkdir -p "$state"
