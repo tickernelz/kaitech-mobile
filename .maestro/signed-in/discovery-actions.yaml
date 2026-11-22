@@ -1,5 +1,5 @@
 appId: io.kaitech.mobile
-name: Discovery buttons reach the server - pause and resume the proactive Coworker, snooze it, accept and reject RAID entries, add a note to a department
+name: Discovery buttons reach the server - pause and resume the proactive Coworker, snooze it, RAID accept refused without evidence with the server's reason, reject a RAID entry, add a note to a department
 tags:
   - signed-in
 onFlowStart:
@@ -111,15 +111,17 @@ onFlowStart:
 - tapOn:
     id: button-action_accept
 - extendedWaitUntil:
-    notVisible:
-      id: button-action_accept
+    visible:
+      text: .*no live quote behind it yet.*
     timeout: 30000
-- assertVisible:
-    text: (Accepted|Diterima)
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
-      SCREEN: b4-raid-accepted
+      SCREEN: b4-raid-accept-refused
+- tapOn:
+    text: OK
+- assertVisible:
+    id: button-action_accept
 - tapOn:
     id: header-back
 - extendedWaitUntil:
@@ -140,6 +142,8 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: b5-raid-rejected
+- tapOn:
+    id: header-back
 - tapOn:
     id: header-back
 - runFlow:

@@ -1,10 +1,6 @@
 appId: io.kaitech.mobile
 name: Find one Discovery section by its menu name (NAME, NAME_ID) and open it by its web menu id, wait for its screen, open its first record when there is one, and come back
 ---
-- scrollUntilVisible:
-    element:
-      id: sections-search
-    direction: UP
 - runFlow:
     when:
       visible:
