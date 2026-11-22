@@ -155,11 +155,11 @@ onFlowStart:
           id: sections-search-clear
 - tapOn:
     id: sections-search
-- inputText: Department
+- inputText: "${APP_LANGUAGE === 'id' ? 'Department' : 'Departments'}"
 - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
-    text: Department
-    index: -1
+    id: section-[0-9]+
+    index: 0
 - extendedWaitUntil:
     visible:
       id: list-row-[0-9]+
@@ -178,8 +178,8 @@ onFlowStart:
 - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
     id: chatter-post
-- extendedWaitUntil:
-    visible:
+- scrollUntilVisible:
+    element:
       text: ${NOTE}
     timeout: 30000
 - runFlow:
