@@ -125,19 +125,9 @@ onFlowStart:
 - swipe:
     from:
       text: ${output.meeting}
-    direction: RIGHT
-- runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: r20-meeting-swipe-right
-- swipe:
-    from:
-      text: ${output.meeting}
     direction: LEFT
-- swipe:
-    from:
-      text: ${output.meeting}
-    direction: LEFT
+- waitForAnimationToEnd:
+    timeout: 2000
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
