@@ -13,6 +13,7 @@ export type ChatFeatures = {
   translateLanguage: string | null;
   urgentQuota: number | null;
   urgentLeft: number | null;
+  internalGroupId: number | null;
 };
 
 export const noFeatures: ChatFeatures = {
@@ -28,6 +29,7 @@ export const noFeatures: ChatFeatures = {
   translateLanguage: null,
   urgentQuota: null,
   urgentLeft: null,
+  internalGroupId: null,
 };
 
 function isRecord(value: unknown): value is Raw {
@@ -77,6 +79,7 @@ export function featuresFromSession(info: unknown): ChatFeatures {
     translateLanguage: typeof globals.kaitech_chat_translate_language === 'string' ? globals.kaitech_chat_translate_language : null,
     urgentQuota: numberOr(globals.kaitech_chat_urgent_quota),
     urgentLeft: numberOr(globals.kaitech_chat_urgent_left),
+    internalGroupId: idOf(globals.internalUserGroupId),
   };
 }
 

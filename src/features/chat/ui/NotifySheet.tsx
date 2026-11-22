@@ -6,17 +6,21 @@ import { useSession } from '../../../auth/session';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { muteConversation } from '../chat';
+import type { Notifications } from '../odoo';
+import { setNotifications } from '../threadActions';
 import { bubbleSettingsAvailable, muteChoices, mutedForever, mutedUntilMs, openBubbleSettings } from '../notify';
 import { Icon, type IconName } from '../../../ui/icons';
 
 export function NotifySheet({
   channelId,
   mutedUntil,
+  notifications,
   onClose,
   onBackground,
 }: {
   channelId: number;
   mutedUntil: string | null;
+  notifications?: Notifications;
   onClose: () => void;
   onBackground?: () => void;
 }) {
@@ -36,9 +40,22 @@ export function NotifySheet({
     else onClose();
   };
   const account = useSession().active;
+  const level = (value: Notifications) => async () => {
+    setBusy(true);
+    setFailed(null);
+    const result = await setNotifications(channelId, value);
+    setBusy(false);
+    if (!result.ok) setFailed(result.code);
+    else onClose();
+  };
   const items: { icon: IconName; label: string; onPress: () => void; testID: string }[] = until
     ? [{ icon: 'bell', label: t('notify.unmute'), onPress: choose(0), testID: 'notify-unmute' }]
     : muteChoices.map((choice) => ({ icon: 'bellOff', label: t(`notify.mute.${choice.key}`), onPress: choose(choice.minutes), testID: `notify-mute-${choice.key}` }));
+  if (notifications !== undefined && !until) {
+    for (const value of ['all', 'mentions', 'no_notif'] as const) {
+      items.push({ icon: value === 'no_notif' ? 'bellOff' : 'bell', label: t(`notify.level.${value}`) + (notifications === value ? ' \u2713' : ''), onPress: level(value), testID: `notify-level-${value}` });
+    }
+  }
   if (account && bubbleSettingsAvailable()) {
     items.push({
       icon: 'thread',
