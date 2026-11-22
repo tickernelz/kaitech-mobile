@@ -97,3 +97,15 @@ it('opens a wizard from an action button with the record as its active_id, as th
   expect(held?.wizard).toBe(true);
   expect(held?.context).toMatchObject({ default_source_id: 7, active_id: 7, active_ids: [7], active_model: 'ck.x' });
 });
+
+it('shows the server reason when a button is refused and keeps the record as it was', async () => {
+  const { ApiError } = jest.requireActual('../src/api/odoo');
+  mocked.readRecord.mockResolvedValue({ id: 7, name: 'Plan', state: 'draft', note: 'n', display_name: 'Plan' });
+  mocked.callButton.mockRejectedValue(new ApiError('refused', 200, 'Only the programme lead can submit.'));
+  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+  const view = await render(<RecordScreen programme={1} model="ck.x" rid={7} />);
+  await fireEvent.press(await view.findByTestId('button-action_submit'));
+  await waitFor(() => expect(alert).toHaveBeenCalledWith('', 'Only the programme lead can submit.'));
+  expect(view.getByText('Submit For Review')).toBeTruthy();
+  alert.mockRestore();
+});
