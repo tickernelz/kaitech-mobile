@@ -1,99 +1,116 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { radius, space, useTheme } from '../../../theme';
-import { Text } from '../../../ui/Text';
-import { plainText } from '../html';
-import type { Message } from '../types';
 import { Icon, type IconName } from '../../../ui/icons';
+import { Sheet, SheetItem } from '../../../ui/Sheet';
+import { Text } from '../../../ui/Text';
+import type { Message } from '../types';
 
 const quick = ['\u{1F44D}', '\u2764\uFE0F', '\u{1F602}', '\u{1F64F}', '\u2705'];
+
+export type MessageAction = 'reply' | 'copy' | 'forward' | 'edit' | 'delete' | 'thread' | 'pin' | 'star' | 'unread' | 'link' | 'translate' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers' | 'emoji';
+
+export type ActionOptions = Partial<Record<MessageAction, boolean>>;
 
 export function MessageActions({
   message,
   mine,
   readers,
-  canThread,
+  options,
   onClose,
-  onReply,
   onReact,
-  onCopy,
-  onThread,
+  onAction,
 }: {
   message: Message | null;
   mine: boolean;
   readers: number;
-  canThread: boolean;
+  options: ActionOptions;
   onClose: () => void;
-  onReply: (message: Message) => void;
   onReact: (message: Message, content: string) => void;
-  onCopy: (message: Message) => void;
-  onThread: (message: Message) => void;
+  onAction: (action: MessageAction, message: Message) => void;
 }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const [more, setMore] = useState(false);
   if (!message) return null;
-  const run = (action: (target: Message) => void) => () => {
+  const close = () => {
+    setMore(false);
     onClose();
-    action(message);
   };
-  const items: { icon: IconName; label: string; onPress: () => void; testID: string }[] = [
-    { icon: 'reply', label: t('actions.reply'), onPress: run(onReply), testID: 'action-reply' },
-    ...(canThread ? [{ icon: 'thread' as const, label: t('actions.thread'), onPress: run(onThread), testID: 'action-thread' }] : []),
-    ...(plainText(message.body) ? [{ icon: 'copy' as const, label: t('actions.copy'), onPress: run(onCopy), testID: 'action-copy' }] : []),
+  const act = (action: MessageAction) => () => {
+    setMore(false);
+    onAction(action, message);
+  };
+  const row = (action: MessageAction, icon: IconName, label: string, danger = false) =>
+    options[action] ? <SheetItem key={action} icon={icon} label={label} onPress={act(action)} danger={danger} testID={`action-${action}`} /> : null;
+  const extra = [
+    row('thread', 'thread', t('actions.thread')),
+    row('pin', 'pin', message.pinnedAt ? t('actions.unpin') : t('actions.pin')),
+    row('star', 'star', message.starred ? t('actions.unstar') : t('actions.star')),
+    row('unread', 'unread', t('actions.unread')),
+    row('link', 'link', t('actions.link')),
+    row('translate', 'globe', message.translated ? t('actions.original') : t('actions.translate')),
+    row('task', 'task', t('actions.task')),
+    row('activity', 'clock', t('actions.activity')),
+    row('meeting', 'calendar', t('actions.meeting')),
+    row('reactions', 'people', t('actions.reactions')),
+  ].filter(Boolean);
+  const primary = [
+    row('reply', 'reply', t('actions.reply')),
+    row('copy', 'copy', t('actions.copy')),
+    row('forward', 'forwardMessage', t('actions.forward')),
+    row('edit', 'edit', t('actions.edit')),
+    row('delete', 'trash', t('actions.delete'), true),
   ];
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('actions.close')}>
-        <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="message-actions">
-          <View style={[styles.reactions, { backgroundColor: colors.surface2 }]}>
-            {quick.map((emoji) => {
-              const mineReaction = message.reactions.some((reaction) => reaction.content === emoji && reaction.mine);
-              return (
-                <Pressable
-                  key={emoji}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('actions.react', { emoji })}
-                  accessibilityState={{ selected: mineReaction }}
-                  onPress={() => {
-                    onClose();
-                    onReact(message, emoji);
-                  }}
-                  style={[styles.emoji, mineReaction && { backgroundColor: colors.select }]}>
-                  <Text style={styles.emojiText}>{emoji}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-          {items.map((item) => (
-            <Pressable key={item.testID} accessibilityRole="button" onPress={item.onPress} style={({ pressed }) => [styles.item, pressed && { backgroundColor: colors.surface2 }]} testID={item.testID}>
-              <Icon name={item.icon} color={colors.ink} />
-              <Text variant="body" style={styles.flex}>
-                {item.label}
-              </Text>
-            </Pressable>
-          ))}
-          {mine ? (
-            <View style={styles.item}>
-              <Icon name="eye" color={colors.inkSoft} />
-              <Text variant="body" tone="inkSoft" style={styles.flex}>
-                {readers ? t('actions.readBy', { count: readers }) : t('actions.notRead')}
-              </Text>
-            </View>
-          ) : null}
-        </Pressable>
-      </Pressable>
-    </Modal>
+    <Sheet onClose={close} testID="message-actions">
+      {options.emoji !== false ? (
+        <View style={[styles.reactions, { backgroundColor: colors.surface2 }]}>
+          {quick.map((emoji) => {
+            const mineReaction = message.reactions.some((reaction) => reaction.content === emoji && reaction.mine);
+            return (
+              <Pressable
+                key={emoji}
+                accessibilityRole="button"
+                accessibilityLabel={t('actions.react', { emoji })}
+                accessibilityState={{ selected: mineReaction }}
+                onPress={() => {
+                  close();
+                  onReact(message, emoji);
+                }}
+                style={[styles.emoji, mineReaction && { backgroundColor: colors.select }]}>
+                <Text style={styles.emojiText}>{emoji}</Text>
+              </Pressable>
+            );
+          })}
+          <Pressable accessibilityRole="button" accessibilityLabel={t('actions.moreEmoji')} onPress={act('emoji')} style={styles.emoji} testID="action-emoji">
+            <Icon name="emoji" color={colors.inkSoft} />
+          </Pressable>
+        </View>
+      ) : null}
+      {primary}
+      {extra.length ? (
+        more ? (
+          extra
+        ) : (
+          <SheetItem icon="more" label={t('actions.more')} onPress={() => setMore(true)} testID="action-more" />
+        )
+      ) : null}
+      {mine ? (
+        <SheetItem
+          icon="eye"
+          label={readers ? t('actions.readBy', { count: readers }) : t('actions.notRead')}
+          onPress={options.readers ? act('readers') : undefined}
+          testID="action-readers"
+        />
+      ) : null}
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
-  sheet: { width: '100%', maxWidth: 560, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.lg, paddingHorizontal: space.lg, gap: space.xs },
   reactions: { flexDirection: 'row', justifyContent: 'space-around', borderRadius: radius.pill, padding: space.xs, marginBottom: space.sm },
-  emoji: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  emoji: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   emojiText: { fontSize: 26, lineHeight: 32 },
-  item: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 52, paddingHorizontal: space.sm, borderRadius: radius.md },
 });

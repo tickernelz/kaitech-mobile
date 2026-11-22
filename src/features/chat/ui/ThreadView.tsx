@@ -12,15 +12,24 @@ import { conversationById, discardSend, takeSendStart, fetchNewer, getChat, load
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
 import { bodyPreview, bodyShape } from '../markdown';
-import { readersOf, readState } from '../odoo';
+import { isCallNotice, readersOf, readState } from '../odoo';
 import type { Message, Pending } from '../types';
 import { CallButton } from '../../call/ui/CallButton';
 import { Avatar } from './Avatar';
 import { Composer, type ComposerHandle } from './Composer';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
-import { MessageActions } from './MessageActions';
-import { isCallNotice } from '../odoo';
+import { MessageActions, type MessageAction } from './MessageActions';
+import { messageOptions } from '../messageOptions';
+import { markUnreadFrom, messageLink, removeMessage, setPinned, toggleStar, toggleTranslation, type Result } from '../messageActions';
+import { failureText } from './actions/failure';
+import { EmojiPicker } from './EmojiPicker';
+import { ActivitySheet } from './actions/ActivitySheet';
+import { ForwardSheet } from './actions/ForwardSheet';
+import { MeetingSheet } from './actions/MeetingSheet';
+import { ReactionsSheet } from './actions/ReactionsSheet';
+import { ReadersSheet } from './actions/ReadersSheet';
+import { TaskSheet } from './actions/TaskSheet';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
 import { NotifySheet } from './NotifySheet';
 import { router } from 'expo-router';
@@ -33,6 +42,9 @@ type Row =
   | { kind: 'pending'; key: string; pending: Pending };
 
 const groupGapMs = 5 * 60 * 1000;
+const noticeMs = 4000;
+
+type SheetKind = 'emoji' | 'forward' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers';
 
 export function buildRows(messages: Message[], pending: Pending[], delivered: Delivered[], sameDay: (a: number, b: number) => boolean): Row[] {
   const rows: Row[] = [];
@@ -83,6 +95,14 @@ export function ThreadView({
   const list = useRef<FlashListRef<Row>>(null);
   const composer = useRef<ComposerHandle>(null);
   const [acting, setActing] = useState<Message | null>(null);
+  const [actingAt, setActingAt] = useState(0);
+  const startActing = useCallback((message: Message) => {
+    setActingAt(Date.now());
+    setActing(message);
+  }, []);
+  const [sheet, setSheet] = useState<{ kind: SheetKind; message: Message } | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const features = useChat((state) => state.features);
   const [highlight, setHighlight] = useState<number | null>(focusMessage ?? null);
 
   useEffect(() => openThread(channelId), [channelId]);
@@ -152,6 +172,73 @@ export function ThreadView({
     [channelId, onOpenChannel],
   );
 
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), noticeMs);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
+  const react = useCallback(
+    async (message: Message, content: string) => {
+      const failure = await toggleReaction(message, content);
+      if (failure) setNotice(failureText(t, { code: failure, detail: null }));
+    },
+    [t],
+  );
+
+  const report = useCallback((result: Result<unknown>, done?: string) => {
+    if (!result.ok) setNotice(failureText(t, result));
+    else if (done) setNotice(done);
+  }, [t]);
+
+  const onAction = (action: MessageAction, message: Message) => {
+    setActing(null);
+    switch (action) {
+      case 'reply':
+        composer.current?.reply(message);
+        return;
+      case 'edit':
+        composer.current?.edit(message);
+        return;
+      case 'copy':
+        void Clipboard.setStringAsync(plainText(message.body)).then(() => setNotice(t('act.copied')));
+        return;
+      case 'link':
+        void Clipboard.setStringAsync(messageLink(origin, message)).then(() => setNotice(t('act.linkCopied')));
+        return;
+      case 'thread':
+        void openSub(message);
+        return;
+      case 'pin':
+        void setPinned(message, !message.pinnedAt).then((result) => report(result, message.pinnedAt ? t('act.unpinned') : t('act.pinned')));
+        return;
+      case 'star':
+        void toggleStar(message).then((result) => report(result, message.starred ? t('act.unstarred') : t('act.starred')));
+        return;
+      case 'translate':
+        void toggleTranslation(message).then((result) => {
+          if (!result.ok) report(result);
+          else if (!result.value && !message.translated) setNotice(t('act.noTranslation'));
+        });
+        return;
+      case 'unread':
+        void markUnreadFrom(message).then((result) => {
+          report(result);
+          if (result.ok && onBack && !twoPane) onBack();
+          else if (result.ok) setNotice(t('act.markedUnread'));
+        });
+        return;
+      case 'delete':
+        Alert.alert(t('act.deleteTitle'), t('act.deleteBody'), [
+          { text: t('act.cancel'), style: 'cancel' },
+          { text: t('actions.delete'), style: 'destructive', onPress: () => void removeMessage(message).then((result) => report(result)) },
+        ]);
+        return;
+      default:
+        setSheet({ kind: action, message });
+    }
+  };
+
   const onSent = useCallback(() => {
     requestAnimationFrame(() => void list.current?.scrollToEnd({ animated: true }));
   }, []);
@@ -192,15 +279,15 @@ export function ThreadView({
             quote={quoteOf(message)}
             origin={origin}
             hasThread={!!thread.subChannels[message.id]}
-            onLongPress={setActing}
+            onLongPress={startActing}
             onQuotePress={jumpTo}
-            onReact={(target, content) => void toggleReaction(target, content)}
+            onReact={(target, content) => void react(target, content)}
             onOpenThread={(target) => void openSub(target)}
           />
         </View>
       );
     },
-    [colors, dayLabel, highlight, jumpTo, online, openSub, origin, partnerId, quoteOf, thread.members, thread.subChannels, twoPeople, type],
+    [colors, dayLabel, highlight, jumpTo, online, openSub, origin, partnerId, quoteOf, react, startActing, thread.members, thread.subChannels, twoPeople, type],
   );
 
   const typing = thread.typing;
@@ -311,21 +398,43 @@ export function ThreadView({
         </View>
         {accountId ? (
           <View style={styles.composerWrap}>
-            <Composer key={channelId} ref={composer} accountId={accountId} channelId={channelId} messages={thread.messages} onSent={onSent} />
+            <Composer key={channelId} ref={composer} accountId={accountId} channelId={channelId} messages={thread.messages} onSent={onSent} onNotice={setNotice} />
           </View>
         ) : null}
       </KeyboardAvoidingView>
+      {notice ? (
+        <View pointerEvents="none" style={styles.noticeWrap}>
+          <Text variant="footnote" accessibilityLiveRegion="polite" style={[styles.notice, { backgroundColor: colors.ink, color: colors.canvas }]} testID="thread-notice">
+            {notice}
+          </Text>
+        </View>
+      ) : null}
       <MessageActions
         message={acting}
         mine={acting?.authorId === partnerId}
         readers={acting ? readersOf(acting, thread.members, partnerId) : 0}
-        canThread={type !== 'chat' && !thread.info?.parentId}
+        options={acting ? messageOptions(acting, { partnerId, features, channelType: type, inSubThread: !!thread.info?.parentId, now: actingAt }) : {}}
         onClose={() => setActing(null)}
-        onReply={(message) => composer.current?.reply(message)}
-        onReact={(message, content) => void toggleReaction(message, content)}
-        onCopy={(message) => void Clipboard.setStringAsync(plainText(message.body))}
-        onThread={(message) => void openSub(message)}
+        onReact={(message, content) => void react(message, content)}
+        onAction={onAction}
       />
+      {sheet?.kind === 'emoji' ? (
+        <EmojiPicker
+          selected={sheet.message.reactions.filter((reaction) => reaction.mine).map((reaction) => reaction.content)}
+          onClose={() => setSheet(null)}
+          onPick={(emoji) => {
+            const target = sheet.message;
+            setSheet(null);
+            void react(target, emoji);
+          }}
+        />
+      ) : null}
+      {sheet?.kind === 'reactions' ? <ReactionsSheet message={byId.get(sheet.message.id) ?? sheet.message} onClose={() => setSheet(null)} /> : null}
+      {sheet?.kind === 'readers' ? <ReadersSheet message={sheet.message} onClose={() => setSheet(null)} /> : null}
+      {sheet?.kind === 'forward' ? <ForwardSheet message={sheet.message} onClose={() => setSheet(null)} onDone={(text) => { setSheet(null); setNotice(text); }} /> : null}
+      {sheet?.kind === 'task' ? <TaskSheet message={sheet.message} onClose={() => setSheet(null)} onDone={(text) => { setSheet(null); setNotice(text); }} /> : null}
+      {sheet?.kind === 'activity' ? <ActivitySheet message={sheet.message} onClose={() => setSheet(null)} onDone={(text) => { setSheet(null); setNotice(text); }} /> : null}
+      {sheet?.kind === 'meeting' ? <MeetingSheet channelId={channelId} messageId={sheet.message.id} onClose={() => setSheet(null)} onDone={(text) => { setSheet(null); setNotice(text); }} /> : null}
       {notifying ? (
         <NotifySheet
           channelId={channelId}
@@ -349,5 +458,7 @@ const styles = StyleSheet.create({
   highlight: { borderRadius: radius.md },
   older: { padding: space.md },
   empty: { padding: space.xxl, alignItems: 'center', justifyContent: 'center' },
+  noticeWrap: { position: 'absolute', left: 0, right: 0, bottom: 96, alignItems: 'center', paddingHorizontal: space.lg },
+  notice: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill, overflow: 'hidden', maxWidth: 480, textAlign: 'center' },
   composerWrap: { width: '100%', maxWidth: readableWidth + 2 * space.lg, alignSelf: 'center' },
 });

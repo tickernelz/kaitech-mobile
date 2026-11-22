@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { AppState, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSession, verifyActiveSession } from '../auth/session';
@@ -15,6 +16,7 @@ import { useLock } from '../lock/lock';
 import { useRecentsGuard } from '../lock/useRecentsGuard';
 import { useTheme } from '../theme';
 import { useAppliedTheme } from '../features/appearance/appearance';
+import { UndoBar } from '../ui/UndoBar';
 
 void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 240, fade: true });
@@ -48,6 +50,7 @@ export default function RootLayout() {
   }, [session.activeId]);
 
   return (
+    <GestureHandlerRootView style={styles.fill}>
     <SafeAreaProvider>
       <KeyboardProvider>
       <StatusBar style="auto" />
@@ -79,12 +82,14 @@ export default function RootLayout() {
             <Stack.Screen name="sign-in" />
           </Stack.Protected>
         </Stack>
+        {signedIn && session.onboarded ? <UndoBar /> : null}
         </SafeAreaProvider>
       </View>
       <CallRuntime account={signedIn && session.onboarded ? session.active : null} />
       {locked ? <LockScreen /> : null}
       </KeyboardProvider>
     </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

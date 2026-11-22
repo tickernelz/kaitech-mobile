@@ -166,6 +166,8 @@ async function start(call) {
     globalThis.room = room;
     room.on(LivekitClient.RoomEvent.ParticipantConnected, () => { log('participant connected'); refresh(); });
     room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => { log('participant left'); refresh(); });
+    room.on(LivekitClient.RoomEvent.TrackMuted, (publication, participant) => { log('muted ' + publication.kind + ' from ' + (participant && participant.identity)); refresh(); });
+    room.on(LivekitClient.RoomEvent.TrackUnmuted, (publication, participant) => { log('unmuted ' + publication.kind + ' from ' + (participant && participant.identity)); refresh(); });
     room.on(LivekitClient.RoomEvent.ParticipantAttributesChanged, (changed, participant) => { log('attributes from ' + (participant && participant.identity) + ' ' + JSON.stringify(changed)); refresh(); });
     room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
       log('subscribed ' + track.kind + ' from ' + (track.participant && track.participant.identity));
@@ -262,6 +264,11 @@ function serve() {
     if (path === '/state') {
       response.setHeader('content-type', 'application/json');
       response.end(JSON.stringify(sessions.state));
+      return;
+    }
+    if (path === '/logs') {
+      response.setHeader('content-type', 'application/json');
+      response.end(JSON.stringify(sessions.logs));
       return;
     }
     if (path === '/command') {
@@ -423,7 +430,14 @@ async function live() {
   console.log(JSON.stringify(await answer.json(), null, 2));
 }
 
-const actions = { serve, start, state, leave, stop, screen, live };
+async function logs() {
+  const current = readState();
+  if (!current?.port) throw new Error('the peer is not running');
+  const answer = await fetch('http://127.0.0.1:' + current.port + '/logs');
+  console.log(JSON.stringify(await answer.json(), null, 2));
+}
+
+const actions = { serve, start, state, leave, stop, screen, live, logs };
 const run = actions[action];
 if (!run) {
   process.stderr.write('usage: call-peer.mjs ' + Object.keys(actions).join('|') + '\n');

@@ -685,6 +685,12 @@ export function plainOf(blocks: MdBlock[]): string {
   return parts.join(' ').replace(/\s+/g, ' ').trim();
 }
 
+export function editableSource(html: string): string {
+  const composed = composedSource(parseTree(html));
+  if (!composed) return plainOf(bodyBlocks(html));
+  return composed.source.replace(/\uE000(\d+)\uE001/g, (_, index: string) => composed.slots[Number(index)]?.text ?? '').trim();
+}
+
 export function bodyPreview(html: string): string {
   return plainOf(bodyBlocks(html));
 }

@@ -6,6 +6,7 @@ import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';
 import { useTheme } from '../../theme';
 import { Check, Divider, Row } from '../../ui/List';
+import { RowActions } from '../../ui/RowActions';
 import { Header } from './Header';
 import { useCurrentProgramme } from './Home';
 import { rememberProgramme } from './store';
@@ -25,8 +26,26 @@ export function PickScreen() {
         data={list.data ?? []}
         keyExtractor={(row) => String(row.id)}
         ItemSeparatorComponent={Divider}
-        renderItem={({ item }) => (
+        renderItem={({ item }) => {
+          const go = (pathname: '/program/[id]/coworker' | '/program/[id]/conversations' | '/program/[id]/evidence') => () => {
+            if (active) rememberProgramme(active.id, item.id);
+            router.push({ pathname, params: { id: String(item.id) } });
+          };
+          return (
+          <RowActions
+            title={item.name}
+            subtitle={item.client || undefined}
+            actions={[
+              { key: 'ask', icon: 'sparkle', label: t('discovery.rows.ask'), short: t('discovery.rows.askShort'), onPress: go('/program/[id]/coworker') },
+              { key: 'conversations', icon: 'thread', label: t('discovery.home.conversations'), onPress: go('/program/[id]/conversations') },
+              { key: 'evidence', icon: 'doc', label: t('discovery.rows.evidence'), short: t('discovery.rows.evidence'), onPress: go('/program/[id]/evidence') },
+            ]}
+            start={['ask']}
+            end={['evidence', 'more']}
+            testID={`programme-${item.id}`}>
+            {(bind) => (
           <Row
+            bind={bind}
             title={item.name}
             detail={[item.client, item.state_label].filter(Boolean).join(' · ')}
             selected={item.id === current?.id}
@@ -42,7 +61,10 @@ export function PickScreen() {
             }}
             testID={`programme-${item.id}`}
           />
-        )}
+            )}
+          </RowActions>
+          );
+        }}
         ListEmptyComponent={
           <StateView
             loading={list.loading}
