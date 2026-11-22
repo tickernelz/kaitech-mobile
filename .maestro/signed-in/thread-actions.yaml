@@ -256,10 +256,19 @@ onFlowStart:
     commands:
       - tapOn:
           id: members-sheet-close
-- longPressOn:
-    text: .*halo
-- tapOn:
-    id: action-more
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - longPressOn:
+          text: ${'Uji thread ' + RUN + ' halo'}
+      - tapOn:
+          id: action-more
 - scrollUntilVisible:
     element:
       id: action-thread
@@ -281,6 +290,13 @@ onFlowStart:
     timeout: 20000
 - tapOn:
     id: thread-back
+- runFlow:
+    when:
+      visible:
+        id: chat-list
+    commands:
+      - tapOn:
+          id: ${output.row}
 - extendedWaitUntil:
     visible:
       id: thread-more
@@ -318,9 +334,16 @@ onFlowStart:
     id: thread-action-delete
 - tapOn:
     text: (?i)(delete thread|hapus thread)
+- runFlow:
+    when:
+      visible:
+        id: chat-list
+    commands:
+      - tapOn:
+          id: ${output.row}
 - extendedWaitUntil:
     visible:
-      text: .*halo
+      text: ${'Uji thread ' + RUN + ' halo'}
     timeout: 20000
 - tapOn:
     id: thread-more

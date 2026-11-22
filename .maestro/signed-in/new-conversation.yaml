@@ -33,12 +33,17 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: d0-mentions
-- tapOn:
-    id: chat-filter-agent
-- extendedWaitUntil:
-    visible:
-      text: (No conversation with the Coworker yet\.|Belum ada percakapan dengan Coworker\.|.+)
-    timeout: 10000
+- runFlow:
+    when:
+      visible:
+        id: chat-filter-agent
+    commands:
+      - tapOn:
+          id: chat-filter-agent
+      - extendedWaitUntil:
+          visible:
+            text: (No conversation with the Coworker yet\.|Belum ada percakapan dengan Coworker\.|.+)
+          timeout: 10000
 - tapOn:
     id: chat-filter-all
 - tapOn:
