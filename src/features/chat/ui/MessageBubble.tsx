@@ -23,7 +23,7 @@ import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
 
 export type AuthorFace = 'show' | 'space' | 'none';
-const faceSize = 32;
+export const faceSize = 32;
 
 export const bubbleMaxWidth = Math.round(readableWidth * 0.8);
 
@@ -258,6 +258,7 @@ export const MessageBubble = memo(function MessageBubble({
     removed ? t('thread.removed') : text,
     message.attachments.length ? t('list.files', { count: message.attachments.length }) : '',
     message.edited && !removed ? t('thread.edited') : '',
+    message.urgent ? t('thread.urgent') : '',
     message.pinnedAt ? t('thread.pinned') : '',
     message.starred ? t('thread.starred') : '',
     time,
@@ -287,6 +288,7 @@ export const MessageBubble = memo(function MessageBubble({
           </Text>
         ) : null}
         <View style={styles.meta}>
+          {message.urgent ? <Icon name="alert" size={16} color={colors.warnInk} /> : null}
           {message.pinnedAt ? <Icon name="pin" size={16} color={colors.inkFaint} /> : null}
           {message.starred ? <Icon name="star" size={16} color={colors.inkFaint} /> : null}
           {message.edited && !removed ? (

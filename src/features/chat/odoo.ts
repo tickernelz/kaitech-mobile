@@ -73,6 +73,8 @@ export function conversationFrom(value: unknown): Conversation | null {
     last: lastMessage(value.last_message),
     pinned: typeof value.pinned === 'boolean' ? value.pinned : null,
     archived: typeof value.archived === 'boolean' ? value.archived : null,
+    mentioned: value.mentioned === true,
+    agent: value.agent === true,
   };
 }
 
@@ -120,6 +122,13 @@ function attachmentFrom(value: Raw): Attachment | null {
     checksum: text(value.checksum) || null,
     url: value.type === 'url' ? text(value.url) || null : null,
   };
+}
+
+export function attachmentFromStore(data: unknown): Attachment[] {
+  return records(data, 'ir.attachment')
+    .map(attachmentFrom)
+    .filter((item): item is Attachment => item !== null)
+    .sort((a, b) => b.id - a.id);
 }
 
 function reactionsFromStore(data: unknown, myPartnerId: number): Map<number, Reaction[]> {
@@ -184,6 +193,7 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
       ...callOf(ids(raw.call_history_ids), calls),
       ...editedBody(text(raw.body)),
       starred: raw.starred === true,
+      urgent: Array.isArray(raw.kaitech_chat_urgent_partner_ids) && raw.kaitech_chat_urgent_partner_ids.length > 0,
       pinnedAt: text(raw.pinned_at) || null,
     });
   }
@@ -357,16 +367,42 @@ export function subChannelsFromStore(data: unknown): { id: number; name: string;
     .map((raw) => ({ id: id(raw.id) ?? 0, name: text(raw.name), fromMessageId: id(raw.from_message_id) }));
 }
 
-export type ChannelInfo = { name: string; type: string; memberCount: number; parentId: number | null };
+export type Notifications = 'all' | 'mentions' | 'no_notif' | null;
 
-export function channelInfoFromStore(data: unknown, channelId: number): ChannelInfo | null {
+export type ChannelInfo = {
+  name: string;
+  type: string;
+  memberCount: number;
+  parentId: number | null;
+  description: string;
+  createdBy: number | null;
+  editable: boolean;
+  announcement: boolean;
+  pinned: boolean;
+  notifications: Notifications;
+  role: string;
+  link: { model: string; id: number; name: string } | null;
+};
+
+const notificationValues = ['all', 'mentions', 'no_notif'] as const;
+
+export function channelInfoFromStore(data: unknown, channelId: number, myPartnerId = 0): ChannelInfo | null {
   const raw = records(data, 'discuss.channel').find((item) => id(item.id) === channelId);
   if (!raw) return null;
+  const self = records(data, 'discuss.channel.member').find((member) => id(member.channel_id) === channelId && id(member.partner_id) === myPartnerId);
   return {
     name: text(raw.name),
     type: text(raw.channel_type),
     memberCount: typeof raw.member_count === 'number' ? raw.member_count : 0,
     parentId: id(raw.parent_channel_id),
+    description: text(raw.description),
+    createdBy: id(raw.create_uid),
+    editable: raw.is_editable === true,
+    announcement: raw.kaitech_chat_announcement === true,
+    pinned: raw.kaitech_chat_pinned === true,
+    notifications: notificationValues.find((value) => value === self?.custom_notifications) ?? null,
+    role: text(self?.kaitech_chat_role) || 'member',
+    link: isRecord(raw.kaitech_link) && typeof raw.kaitech_link.model === 'string' && id(raw.kaitech_link.id) ? { model: raw.kaitech_link.model, id: id(raw.kaitech_link.id) ?? 0, name: text(raw.kaitech_link.name) } : null,
   };
 }
 
