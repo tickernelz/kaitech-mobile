@@ -8,6 +8,7 @@ onFlowStart:
 ---
 - launchApp:
     permissions:
+      all: allow
       camera: deny
 - extendedWaitUntil:
     visible:
@@ -111,6 +112,10 @@ onFlowStart:
       SCREEN: u4-camera-refused
 - tapOn:
     id: call-camera
+- extendedWaitUntil:
+    visible:
+      id: (com.android.permissioncontroller:id/permission_allow_foreground_only_button|call-flip)
+    timeout: 15000
 - runFlow:
     when:
       visible:

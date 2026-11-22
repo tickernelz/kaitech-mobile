@@ -114,7 +114,7 @@ fi
 peer_state="$(mktemp -d)/call-peer.json"
 if [ "${E2E_CALL_PEER:-}" = 1 ]; then
   export CALL_SERVER="$E2E_SERVER" CALL_DB="$E2E_DB" CALL_LOGIN="$E2E_WEB_LOGIN" CALL_PASSWORD="$E2E_WEB_PASSWORD"
-  export CALL_CHANNEL_ID="$E2E_CHANNEL_ID" CALL_VIDEO=1 CALL_PEER_STATE="$peer_state" CALL_PEER_PORT=8765
+  export CALL_CHANNEL_ID="$E2E_CHANNEL_ID" CALL_VIDEO=1 CALL_PEER_HOLD_MS=1 CALL_PEER_STATE="$peer_state" CALL_PEER_PORT=8765
   trap 'node scripts/call-peer.mjs stop >/dev/null 2>&1 || true' EXIT
   if [ ! -f node_modules/livekit-client/dist/livekit-client.umd.js ]; then
     livekit="$(node -p "require('./package-lock.json').packages['node_modules/livekit-client'].version")"

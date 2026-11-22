@@ -342,7 +342,7 @@ jobs:
           target: google_apis
           profile: ${{ matrix.profile }}
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front ${{ matrix.camera_front || 'none' }}
           script: bash scripts/e2e-android.sh dist e2e-output/${{ env.E2E_LABEL }}${{ matrix.size }}-${{ matrix.orientation }}-${{ matrix.locale }} ${{ matrix.locale }} ${{ matrix.size }} ${{ matrix.orientation }}
       - name: Scan E2E output for secrets
         id: scan-e2e
@@ -429,8 +429,10 @@ jobs:
         include:
           - size: phone
             profile: pixel_6
+            camera_front: emulated
           - size: tablet
             profile: pixel_tablet
+            camera_front: emulated
     steps: *e2e-android-steps
 
   e2e-android-universal:
