@@ -103,7 +103,7 @@ recorder=$!
 sleep 1
 
 status=0
-maestro test .maestro \
+maestro ${ANDROID_SERIAL:+--device "$ANDROID_SERIAL"} test .maestro \
   -e APP_LANGUAGE="$language" \
   -e DEVICE_SIZE="$size" \
   -e ORIENTATION="$orientation" \
