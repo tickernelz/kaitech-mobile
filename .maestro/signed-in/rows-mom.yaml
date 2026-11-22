@@ -5,6 +5,11 @@ tags:
   - rows
 onFlowStart:
   - runFlow: ../shared/orientation.yaml
+onFlowComplete:
+  - runScript:
+      file: ../scripts/web-peer.js
+      env:
+        ACTION: tidy
 ---
 - evalScript: ${output.meeting = 'Uji hapus ' + RUN.slice(-6)}
 - evalScript: ${output.title = 'Rekaman ' + RUN.slice(-6)}
