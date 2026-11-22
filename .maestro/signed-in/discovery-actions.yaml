@@ -193,7 +193,7 @@ onFlowStart:
 - tapOn:
     id: chatter-input
 - inputText: ${NOTE}
-- pressKey: Enter
+- runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
     id: chatter-post
 - scrollUntilVisible:
