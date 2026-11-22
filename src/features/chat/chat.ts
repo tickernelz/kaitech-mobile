@@ -27,6 +27,7 @@ import {
   typingFromStore,
   type ChannelInfo,
 } from './odoo';
+import { isShownWork, workFrom, workOf, type Work } from './coworker';
 import { featuresFromSession, noFeatures, type ChatFeatures } from './features';
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
@@ -49,6 +50,7 @@ export type Thread = {
   hasNewer: boolean;
   info: ChannelInfo | null;
   subChannels: Record<number, number>;
+  works: Work[];
 };
 
 export type Delivered = { key: string; messageId: number; pending: Pending };
@@ -73,7 +75,7 @@ export type ChatState = {
   features: ChatFeatures;
 };
 
-const emptyThread: Thread = { messages: [], loading: false, loaded: false, hasOlder: true, loadingOlder: false, error: null, members: [], typing: [], hasNewer: false, info: null, subChannels: {} };
+const emptyThread: Thread = { messages: [], loading: false, loaded: false, hasOlder: true, loadingOlder: false, error: null, members: [], typing: [], hasNewer: false, info: null, subChannels: {}, works: [] };
 const pageSize = 30;
 const typingMs = 6000;
 
@@ -178,6 +180,20 @@ function delivered(sent: Sent) {
   void fetchNewer(pending.channelId);
 }
 
+function takeWorks(channelId: number, incoming: Work[]) {
+  if (!state.threads[channelId]) return;
+  patchThread(channelId, (thread) => {
+    const byTurn = new Map(thread.works.map((work) => [work.turnId, work]));
+    for (const work of incoming) byTurn.set(work.turnId, work);
+    return { works: [...byTurn.values()].filter(isShownWork) };
+  });
+}
+
+export async function loadWorks(channelId: number) {
+  const result = await workOf(channelId);
+  if (result.ok) takeWorks(channelId, result.value);
+}
+
 export function patchInfo(channelId: number, patch: Partial<ChannelInfo>) {
   const thread = state.threads[channelId];
   if (!thread?.info) return;
@@ -278,6 +294,12 @@ function onNotifications(notifications: Notification[]) {
       const known = touchConversation(channelId, messages[messages.length - 1]);
       if (!known) void refreshConversations();
       if (active && state.openChannels.includes(channelId)) scheduleRead(channelId);
+      continue;
+    }
+    if (notification.type === 'kaitech_chat.work') {
+      const payload = notification.payload as { channel_id?: unknown; works?: unknown };
+      const works = Array.isArray(payload.works) ? payload.works.map(workFrom).filter((work): work is Work => work !== null) : [];
+      if (typeof payload.channel_id === 'number') takeWorks(payload.channel_id, works);
       continue;
     }
     if (notification.type === 'mail.message/toggle_star') {

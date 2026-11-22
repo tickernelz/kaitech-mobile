@@ -186,6 +186,7 @@ export const MessageBubble = memo(function MessageBubble({
   onQuotePress,
   onReact,
   onOpenThread,
+  below,
 }: {
   message: Message;
   mine: boolean;
@@ -199,6 +200,7 @@ export const MessageBubble = memo(function MessageBubble({
   onQuotePress: (id: number) => void;
   onReact: (message: Message, content: string) => void;
   onOpenThread: (message: Message) => void;
+  below?: ReactNode;
 }) {
   const { t } = useTranslation('chat');
   const { colors, scheme } = useTheme();
@@ -305,6 +307,7 @@ export const MessageBubble = memo(function MessageBubble({
           ) : null}
         </View>
       ) : null}
+      {below}
     </>
   );
   if (face === 'none' || mine) {

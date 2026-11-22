@@ -329,6 +329,7 @@ export type ChannelInfo = {
   pinned: boolean;
   notifications: Notifications;
   role: string;
+  link: { model: string; id: number; name: string } | null;
 };
 
 const notificationValues = ['all', 'mentions', 'no_notif'] as const;
@@ -349,6 +350,7 @@ export function channelInfoFromStore(data: unknown, channelId: number, myPartner
     pinned: raw.kaitech_chat_pinned === true,
     notifications: notificationValues.find((value) => value === self?.custom_notifications) ?? null,
     role: text(self?.kaitech_chat_role) || 'member',
+    link: isRecord(raw.kaitech_link) && typeof raw.kaitech_link.model === 'string' && id(raw.kaitech_link.id) ? { model: raw.kaitech_link.model, id: id(raw.kaitech_link.id) ?? 0, name: text(raw.kaitech_link.name) } : null,
   };
 }
 

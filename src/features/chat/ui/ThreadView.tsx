@@ -2,13 +2,13 @@ import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import * as Clipboard from 'expo-clipboard';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { chatClient, refreshConversations, conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat, type Delivered } from '../chat';
+import { chatClient, loadWorks, refreshConversations, conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat, type Delivered } from '../chat';
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
 import { bodyPreview, bodyShape } from '../markdown';
@@ -32,6 +32,9 @@ import { ReadersSheet } from './actions/ReadersSheet';
 import { TaskSheet } from './actions/TaskSheet';
 import { ThreadActionsSheet } from './thread/ThreadActionsSheet';
 import { useAutoTranslate } from './useAutoTranslate';
+import { AgentCards, RecordCards, useAgentCards, useRecordCards } from './coworker/Cards';
+import { WorkBar, WorkSheet } from './coworker/Work';
+import { linksIn, type RecordCard } from '../coworker';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
 import { NotifySheet } from './NotifySheet';
 import { router } from 'expo-router';
@@ -86,6 +89,7 @@ export function ThreadView({
   const { colors } = useTheme();
   const [notifying, setNotifying] = useState(false);
   const [threadMenu, setThreadMenu] = useState(false);
+  const [workSheet, setWorkSheet] = useState(false);
   const { dayLabel, sameDay } = useChatFormat();
   const accountId = useChat((state) => state.accountId);
   const partnerId = useChat((state) => state.partnerId);
@@ -108,6 +112,27 @@ export function ThreadView({
   const features = useChat((state) => state.features);
   const myUserId = useChat((state) => state.userId);
   const seeTranslations = useAutoTranslate(features.translateAuto && !!features.translateLanguage);
+  const { found: agentFound, want: wantAgents, put: putAgent } = useAgentCards(channelId);
+  const { found: recordFound, want: wantRecords } = useRecordCards();
+  const agentsOn = hasFeature(features, 'agents');
+  const cardsOn = hasFeature(features, 'cards');
+  const agentIds = useMemo(() => new Set([...features.agentPartnerIds, ...(features.coworkerPartnerId ? [features.coworkerPartnerId] : [])]), [features.agentPartnerIds, features.coworkerPartnerId]);
+  const watchVisible = (messages: Message[]) => {
+    seeTranslations(messages);
+    if (agentsOn) wantAgents(messages.filter((message) => message.authorId !== null && agentIds.has(message.authorId)).map((message) => message.id));
+    if (cardsOn) wantRecords(messages.flatMap((message) => linksIn(message.body, origin)));
+  };
+  const openRecord = useCallback(
+    (card: Pick<RecordCard, 'model' | 'id'>) => {
+      if (card.model === 'ck.engagement') router.push({ pathname: '/program/[id]/coworker', params: { id: String(card.id) } });
+      else void Linking.openURL(`${origin}/mail/view?model=${encodeURIComponent(card.model)}&res_id=${card.id}`);
+    },
+    [origin],
+  );
+  const linkedOn = hasFeature(features, 'linked_channels');
+  useEffect(() => {
+    if (agentsOn) void loadWorks(channelId);
+  }, [agentsOn, channelId]);
   const [highlight, setHighlight] = useState<number | null>(focusMessage ?? null);
 
   useEffect(() => openThread(channelId), [channelId]);
@@ -303,6 +328,15 @@ export function ThreadView({
       }
       const message = item.message;
       const mine = message.authorId === partnerId;
+      const agentCard = agentFound.get(message.id);
+      const recordList = cardsOn ? linksIn(message.body, origin).map((url) => recordFound.get(url)).filter((card): card is RecordCard => !!card) : [];
+      const below =
+        (agentCard && (agentCard.packets.length || agentCard.wardmote)) || recordList.length ? (
+          <View style={mine ? styles.belowMine : styles.belowTheirs}>
+            {agentCard ? <AgentCards card={agentCard} onChange={(next) => putAgent(message.id, next)} /> : null}
+            <RecordCards cards={recordList} onOpen={openRecord} />
+          </View>
+        ) : undefined;
       const ticks = mine && type !== 'channel' ? readState(message, thread.members, partnerId) : null;
       return (
         <View style={highlight === message.id ? [styles.highlight, { backgroundColor: colors.select }] : undefined}>
@@ -319,11 +353,12 @@ export function ThreadView({
             onQuotePress={jumpTo}
             onReact={(target, content) => void react(target, content)}
             onOpenThread={(target) => void openSub(target)}
+            below={below}
           />
         </View>
       );
     },
-    [colors, dayLabel, highlight, jumpTo, online, openSub, origin, partnerId, quoteOf, react, startActing, thread.members, thread.subChannels, twoPeople, type],
+    [agentFound, cardsOn, colors, dayLabel, highlight, jumpTo, online, openRecord, openSub, origin, partnerId, putAgent, quoteOf, react, recordFound, startActing, thread.members, thread.subChannels, twoPeople, type],
   );
 
   const typing = thread.typing;
@@ -380,6 +415,19 @@ export function ThreadView({
   return (
     <SafeAreaView edges={twoPane ? ['top', 'right'] : ['top', 'left', 'right']} style={[styles.flex, { backgroundColor: colors.canvas }]} testID={`thread-${channelId}`}>
       {header}
+      {thread.info?.link && linkedOn ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => thread.info?.link && openRecord(thread.info.link)}
+          style={[styles.linked, { backgroundColor: colors.surface2, borderBottomColor: colors.line }]}
+          testID="linked-bar">
+          <Icon name={thread.info.link.model === 'ck.engagement' ? 'compass' : 'doc'} size={20} color={colors.inkSoft} />
+          <Text variant="footnote" tone="inkSoft" numberOfLines={1} style={styles.flex}>
+            {t(thread.info.link.model === 'ck.engagement' ? 'linked.programme' : 'linked.project')} · {thread.info.link.name}
+          </Text>
+        </Pressable>
+      ) : null}
+      {agentsOn ? <WorkBar works={thread.works} onPress={() => setWorkSheet(true)} /> : null}
       <KeyboardAvoidingView behavior="padding" automaticOffset style={styles.flex}>
         <View style={styles.flex}>
           <ChatBackground channelId={channelId} />
@@ -400,7 +448,7 @@ export function ThreadView({
               const last = viewableItems[viewableItems.length - 1];
               const atBottom = !last || last.index === null || last.index >= rows.length - 2;
               writeAnchor(accountId, channelId, atBottom || !first || first.item?.kind !== 'message' ? null : first.item.message.id);
-              seeTranslations(viewableItems.flatMap((entry) => (entry.item?.kind === 'message' ? [entry.item.message] : [])));
+              watchVisible(viewableItems.flatMap((entry) => (entry.item?.kind === 'message' ? [entry.item.message] : [])));
             }}
             ListHeaderComponent={thread.loadingOlder ? <ActivityIndicator style={styles.older} color={colors.primary} /> : null}
             ListEmptyComponent={empty}
@@ -461,6 +509,7 @@ export function ThreadView({
           threads={subThreads}
           onClose={() => setThreadMenu(false)}
           onNotify={() => setNotifying(true)}
+          onWork={agentsOn ? () => setWorkSheet(true) : undefined}
           onBackground={bubble ? undefined : () => router.push({ pathname: '/settings/background', params: { channel: String(channelId) } })}
           onMarkRead={() => {
             const last = thread.messages[thread.messages.length - 1];
@@ -475,6 +524,7 @@ export function ThreadView({
           }}
         />
       ) : null}
+      {workSheet ? <WorkSheet works={thread.works} myUserId={myUserId} onClose={() => setWorkSheet(false)} onJump={jumpTo} onNotice={setNotice} /> : null}
       {notifying ? (
         <NotifySheet
           channelId={channelId}
@@ -498,6 +548,9 @@ const styles = StyleSheet.create({
   highlight: { borderRadius: radius.md },
   older: { padding: space.md },
   empty: { padding: space.xxl, alignItems: 'center', justifyContent: 'center' },
+  belowMine: { alignItems: 'flex-end', paddingHorizontal: space.md },
+  belowTheirs: { alignItems: 'flex-start', paddingHorizontal: space.md },
+  linked: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 36, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
   noticeWrap: { position: 'absolute', left: 0, right: 0, bottom: 96, alignItems: 'center', paddingHorizontal: space.lg },
   notice: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill, overflow: 'hidden', maxWidth: 480, textAlign: 'center' },
   composerWrap: { width: '100%', maxWidth: readableWidth + 2 * space.lg, alignSelf: 'center' },

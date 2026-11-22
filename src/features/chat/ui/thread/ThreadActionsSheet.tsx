@@ -26,6 +26,7 @@ export function ThreadActionsSheet({
   threads,
   onClose,
   onNotify,
+  onWork,
   onBackground,
   onMarkRead,
   onJump,
@@ -44,6 +45,7 @@ export function ThreadActionsSheet({
   threads: { id: number; name: string }[];
   onClose: () => void;
   onNotify: () => void;
+  onWork?: () => void;
   onBackground?: () => void;
   onMarkRead: () => void;
   onJump: (message: Message) => void;
@@ -120,6 +122,7 @@ export function ThreadActionsSheet({
   return (
     <Sheet title={name} onClose={close} testID="thread-actions">
       <SheetRow icon={muted ? 'bellOff' : 'bell'} label={t('threadActions.notifications')} onPress={act(onNotify)} testID="thread-action-notify" />
+      {onWork ? <SheetRow icon="sparkle" label={t('threadActionsWork.label')} onPress={act(onWork)} testID="thread-action-work" /> : null}
       <SheetRow icon="search" label={t('threadActions.search')} onPress={go('search')} testID="thread-action-search" />
       <SheetRow icon="pin" label={t('threadActions.pinned')} onPress={go('pinned')} testID="thread-action-pinned" />
       <SheetRow icon="file" label={t('threadActions.files')} onPress={go('files')} testID="thread-action-files" />

@@ -386,5 +386,50 @@
     "urgentOn": "Mendesak: orang di sini mendapat peringatan keras",
     "urgentLeft_one": "Sisa {{count}} hari ini",
     "urgentLeft_other": "Sisa {{count}} hari ini"
+  },
+  "work": {
+    "title": "Pekerjaan Coworker",
+    "none": "Tidak ada yang sedang berjalan.",
+    "many_one": "{{count}} tugas Coworker berjalan",
+    "many_other": "{{count}} tugas Coworker berjalan",
+    "step": "{{agent}}: {{step}}",
+    "state": {
+      "queued": "{{agent}} menunggu giliran",
+      "running": "{{agent}} sedang bekerja",
+      "away": "{{agent}} menyerahkannya ke Wardmote"
+    },
+    "stopped": "{{agent}} dihentikan oleh {{name}}",
+    "askedBy": "Diminta oleh {{name}}",
+    "stop": "Hentikan pekerjaan ini",
+    "stopping": "Menghentikan"
+  },
+  "cards": {
+    "wardmote": "{{agent}} minta izin meneruskan ini",
+    "state": {
+      "proposed": "Menunggu jawaban Anda",
+      "away": "Terkirim",
+      "stopped": "Tidak dikirim",
+      "other": "Selesai"
+    },
+    "approve": "Kirim",
+    "refuse": "Jangan kirim",
+    "openIssue": "Buka issue",
+    "locked": "Anda tidak bisa membuka rekaman ini",
+    "kind": {
+      "task": "Task",
+      "project": "Proyek",
+      "programme": "Program",
+      "meeting": "Rapat",
+      "email": "Email",
+      "recording": "Rekaman",
+      "other": "Rekaman"
+    }
+  },
+  "linked": {
+    "project": "Proyek",
+    "programme": "Program"
+  },
+  "threadActionsWork": {
+    "label": "Pekerjaan Coworker"
   }
 }
