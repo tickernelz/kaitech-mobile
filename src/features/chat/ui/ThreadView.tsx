@@ -21,6 +21,7 @@ import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { MessageActions, type MessageAction } from './MessageActions';
 import { messageOptions } from '../messageOptions';
+import { hasFeature } from '../features';
 import { markUnreadFrom, messageLink, removeMessage, setPinned, toggleStar, toggleTranslation, type Result } from '../messageActions';
 import { failureText } from './actions/failure';
 import { EmojiPicker } from './EmojiPicker';
