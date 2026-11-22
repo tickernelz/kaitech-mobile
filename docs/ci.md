@@ -1,6 +1,6 @@
 # CI/CD
 
-Everything runs on GitHub Actions standard runners: `ubuntu-latest` for Linux work and Android emulators, `macos-15` (pinned, Xcode 26) for iOS. There are three workflows and no others.
+Everything runs on GitHub Actions standard runners: `ubuntu-latest` for Linux work and Android emulators, `macos-26` (pinned, newest Xcode 26) for iOS. `macos-15` cannot build the app: its newest Xcode is 26.3, and Expo SDK 58's `expo-modules-jsi` fails to compile there (`JavaScriptObject.swift:946: error: sending 'slot' risks causing data races`, run 45043443333). There are three workflows and no others.
 
 | Workflow | Triggers | Purpose |
 |---|---|---|
@@ -38,7 +38,7 @@ The `plan` job picks a mode:
 
 Smoke: one Android emulator (`pixel_6`, portrait, `en-US`) runs `.maestro/welcome.yaml` and `.maestro/sign-in-form.yaml` with a screen recording, and measures cold start (perf gate `android.cold_start_ms`). It never uses the test account.
 
-Full: four Android jobs (`pixel_6` and `pixel_tablet`, `en-US` and `id-ID`), each running portrait then landscape on the same emulator; five signed-in rows jobs (`.maestro/signed-in/rows-*.yaml`, phone and tablet, both locales, plus phone `en-US` with direct chats hidden); and the iPad simulator on `macos-15`. Full runs share the concurrency group `kaitech-e2e-account` because the rows jobs sign in with the one test account, so full runs never overlap each other.
+Full: four Android jobs (`pixel_6` and `pixel_tablet`, `en-US` and `id-ID`), each running portrait then landscape on the same emulator; five signed-in rows jobs (`.maestro/signed-in/rows-*.yaml`, phone and tablet, both locales, plus phone `en-US` with direct chats hidden); and the iPad simulator on `macos-26`. Full runs share the concurrency group `kaitech-e2e-account` because the rows jobs sign in with the one test account, so full runs never overlap each other.
 
 Pull request runs of the same pull request cancel each other; labelling a pull request with another label does not cancel a running E2E run.
 

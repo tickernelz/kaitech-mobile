@@ -26,6 +26,7 @@ concurrency:
     || github.event.action == 'labeled' && github.event.label.name != 'run-e2e' && format('e2e-ignored-{0}', github.run_id)
     || format('e2e-{0}-{1}', github.event_name, github.event.pull_request.number || github.ref) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  queue: max
 
 env:
   SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}

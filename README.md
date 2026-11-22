@@ -24,7 +24,7 @@ Semua bukti dari emulator Android atau simulator iPad; belum ada uji di perangka
 |---|---|---|---|---|
 | Pasang APK dari Release di emulator bersih, layar sambutan, tombol Masuk membuka halaman masuk lab0 tanpa isian, form "Gunakan server lain" memeriksa alamat dan basis data lalu kembali ke bawaan; di ponsel juga rotasi di tengah form tanpa kehilangan isian | Android 15 ponsel (`pixel_6`) dan tablet 10 inci (`pixel_tablet`) | portrait, landscape | en, id | job `install from release` di run Release tiap tag, rekaman `e2e-android-release-*` |
 | Alur yang sama dengan APK x86_64 | Android 15 ponsel dan tablet | portrait, landscape | en, id | workflow `E2E` tiap malam (smoke ponsel portrait en tiap merge ke `main`), rekaman `e2e-android-*` |
-| Alur yang sama di iPad (tidak memblokir) | simulator iPad di runner `macos-15` | portrait, landscape | en | workflow `E2E` tiap malam, artefak `e2e-ipad-en-US` |
+| Alur yang sama di iPad (tidak memblokir) | simulator iPad di runner `macos-26` | portrait, landscape | en | workflow `E2E` tiap malam, artefak `e2e-ipad-en-US` |
 | Masuk ke lab0 dari APK CI lewat App Link `lab0.kaitech.io` yang diverifikasi Android sendiri (`pm get-app-links`: verified), dari layar sambutan sampai Chat terbuka | Android 15 ponsel (`pixel_6`) | portrait | en | rekaman lokal APK CI, tidak dipublikasikan (tracker internal ZHA-7373) |
 | Masuk ke server lalu keluar (F0) | Android ponsel dan tablet | tidak dicatat | en, id | rekaman lokal dengan build yang membawa domain tautan, tidak dipublikasikan (tracker internal ZHA-7236) |
 | Chat: daftar, thread, antrean kirim offline, lampiran, pesan suara, dua panel di tablet (F1) | Android ponsel dan tablet | portrait, landscape | en, id | rekaman lokal (ZHA-7238) |
@@ -215,7 +215,7 @@ Superapp harus responsif di ponsel dan tablet, Android dan iOS, portrait dan lan
 |---|---|---|---|---|---|---|
 | Android 15 (API 35) | `phone` | emulator profil `pixel_6` | 411 dp (compact) / 914 dp | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
 | Android 15 (API 35) | `tablet` | emulator profil `pixel_tablet` (10 inci) | 800 dp (medium) / 1280 dp (expanded) | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
-| iPadOS (runtime simulator terbaru di runner `macos-15`) | `tablet` | simulator iPad Pro 13 inci (atau iPad lain bila tidak ada) | lihat `simulator.txt` | portrait, landscape | `en-US` | job `ipad simulator en-US` di run penuh workflow `E2E` (tiap malam, manual), tidak memblokir merge; driver XCTest Maestro diberi waktu start 10 menit (`MAESTRO_DRIVER_STARTUP_TIMEOUT=600000`) dan sel diulang sekali hanya bila gagal dengan `IOSDriverTimeoutException` |
+| iPadOS (runtime simulator terbaru di runner `macos-26`) | `tablet` | simulator iPad Pro 13 inci (atau iPad lain bila tidak ada) | lihat `simulator.txt` | portrait, landscape | `en-US` | job `ipad simulator en-US` di run penuh workflow `E2E` (tiap malam, manual), tidak memblokir merge; driver XCTest Maestro diberi waktu start 10 menit (`MAESTRO_DRIVER_STARTUP_TIMEOUT=600000`) dan sel diulang sekali hanya bila gagal dengan `IOSDriverTimeoutException` |
 
 Orientasi Android diatur lewat `user_rotation` dengan memperhitungkan orientasi alami panel (tablet alami landscape); iPad memakai `setOrientation` Maestro di hook `onFlowStart` (`.maestro/shared/orientation.yaml`), karena runner XCTest Maestro mengembalikan simulator ke portrait setiap sesi baru. Setiap alur baru wajib memuat hook itu:
 
