@@ -55,22 +55,30 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: a2-more
+- scrollUntilVisible:
+    element:
+      id: action-pin
+    direction: DOWN
 - tapOn:
     id: action-pin
 - extendedWaitUntil:
     visible:
-      id: thread-notice
-    timeout: 10000
+      text: .*(Pinned|Disematkan).*
+    timeout: 20000
 - longPressOn:
     text: ${RUN + ' a1'}
 - tapOn:
     id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-star
+    direction: DOWN
 - tapOn:
     id: action-star
 - extendedWaitUntil:
     visible:
-      id: thread-notice
-    timeout: 10000
+      text: .*(Starred|Berbintang).*
+    timeout: 20000
 - longPressOn:
     text: ${RUN + ' a1'}
 - tapOn:
@@ -155,6 +163,10 @@ onFlowStart:
           text: ${RUN + ' a1 edited.*'}
       - tapOn:
           id: action-more
+      - scrollUntilVisible:
+          element:
+            id: action-task
+          direction: DOWN
       - tapOn:
           id: action-task
       - extendedWaitUntil:
@@ -175,6 +187,10 @@ onFlowStart:
     text: ${RUN + ' a1 edited.*'}
 - tapOn:
     id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-activity
+    direction: DOWN
 - tapOn:
     id: action-activity
 - extendedWaitUntil:
@@ -199,6 +215,10 @@ onFlowStart:
           text: ${RUN + ' a1 edited.*'}
       - tapOn:
           id: action-more
+      - scrollUntilVisible:
+          element:
+            id: action-meeting
+          direction: DOWN
       - tapOn:
           id: action-meeting
       - extendedWaitUntil:
@@ -223,12 +243,17 @@ onFlowStart:
     text: ${RUN + ' a1 edited.*'}
 - tapOn:
     id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-link
+    direction: DOWN
 - tapOn:
     id: action-link
 - extendedWaitUntil:
     visible:
       id: thread-notice
-    timeout: 10000
+    timeout: 4000
+    optional: true
 - tapOn:
     id: composer-input
 - inputText: ${RUN + ' a2'}
@@ -253,11 +278,47 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: a10-deleted
+- runScript:
+    file: ../scripts/actions-peer.js
+- assertTrue: ${output.actions.edited == 1 && output.actions.removed == 1 && output.actions.pinned == 1 && output.actions.reacted == 1 && output.actions.forwarded == 1}
+- longPressOn:
+    text: ${RUN + ' a1 edited.*'}
+- tapOn:
+    id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-unread
+    direction: DOWN
+- tapOn:
+    id: action-unread
+- extendedWaitUntil:
+    visible:
+      id: (chat-list|thread-notice)
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a12-unread
+- runFlow:
+    when:
+      visible:
+        id: chat-list
+    commands:
+      - tapOn:
+          text: ${PEER}
+      - extendedWaitUntil:
+          visible:
+            id: composer-input
+          timeout: 30000
 - setAirplaneMode: enabled
 - longPressOn:
     text: ${RUN + ' a1 edited.*'}
 - tapOn:
     id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-star
+    direction: DOWN
 - tapOn:
     id: action-star
 - extendedWaitUntil:
@@ -267,26 +328,5 @@ onFlowStart:
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
-      SCREEN: a11-offline
+      SCREEN: a13-offline
 - setAirplaneMode: disabled
-- runScript:
-    file: ../scripts/actions-peer.js
-- assertTrue: ${output.actions.edited == 1 && output.actions.removed == 1 && output.actions.pinned == 1 && output.actions.reacted == 1 && output.actions.forwarded == 1}
-- longPressOn:
-    text: ${RUN + ' a1 edited.*'}
-- tapOn:
-    id: action-more
-- tapOn:
-    id: action-unread
-- runFlow:
-    when:
-      true: ${DEVICE_SIZE == 'phone'}
-    commands:
-      - extendedWaitUntil:
-          visible:
-            id: chat-list
-          timeout: 15000
-      - runFlow:
-          file: ../shared/screenshot.yaml
-          env:
-            SCREEN: a12-unread

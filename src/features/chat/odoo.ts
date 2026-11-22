@@ -295,11 +295,11 @@ export function reactionUpdates(data: unknown, myPartnerId: number, current: (me
       for (const item of items) {
         const content = reactionContent(item);
         if (!content) continue;
-        list = list.filter((reaction) => reaction.content !== content);
-        if (op !== 'DELETE') {
-          const found = fresh.find((reaction) => reaction.content === content);
-          if (found) list.push(found);
-        }
+        const at = list.findIndex((reaction) => reaction.content === content);
+        const found = op === 'DELETE' ? undefined : fresh.find((reaction) => reaction.content === content);
+        if (!found) list = list.filter((reaction) => reaction.content !== content);
+        else if (at >= 0) list[at] = found;
+        else list.push(found);
       }
     }
     updates.set(messageId, list);

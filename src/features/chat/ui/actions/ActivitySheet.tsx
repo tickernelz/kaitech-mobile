@@ -35,7 +35,7 @@ export function ActivitySheet({ message, onClose, onDone }: { message: Message; 
     if (!draft?.ok || deadline === null) return;
     setBusy(true);
     setError(null);
-    const result = await makeActivity({ summary: summary.trim(), note: draft.value.note, typeId, deadline });
+    const result = await makeActivity({ summary: summary.trim(), note: draft.value.note, typeId, deadline, context: draft.value.context });
     setBusy(false);
     if (result.ok) onDone(t('activity.done'));
     else setError(failureText(t, result));
