@@ -181,26 +181,31 @@ onFlowStart:
     id: activity-filter-all
 - extendedWaitUntil:
     visible:
-      id: activity-.*-0
+      id: (activity-.*-0|activity-empty)
     timeout: 30000
-- swipe:
-    from:
-      id: activity-.*-0
-    direction: RIGHT
-- extendedWaitUntil:
-    visible:
-      id: activity-.*-0-swipe-programme
-    timeout: 5000
 - runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: r14-activity-swipe
-- tapOn:
-    id: activity-.*-0-swipe-programme
-- extendedWaitUntil:
-    visible:
-      id: tab-discovery
-    timeout: 15000
+    when:
+      visible:
+        id: activity-.*-0
+    commands:
+      - swipe:
+          from:
+            id: activity-.*-0
+          direction: RIGHT
+      - extendedWaitUntil:
+          visible:
+            id: activity-.*-0-swipe-programme
+          timeout: 5000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: r14-activity-swipe
+      - tapOn:
+          id: activity-.*-0-swipe-programme
+      - extendedWaitUntil:
+          visible:
+            id: tab-discovery
+          timeout: 15000
 - tapOn:
     id: open-search
 - tapOn:
