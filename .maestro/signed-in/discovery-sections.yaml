@@ -94,54 +94,63 @@ onFlowStart:
     file: ../shared/open-section.yaml
     env:
       SECTION: Questions
+      SECTION_ID: Pertanyaan
       SHOT: s01-interviews
 - runFlow:
     file: ../shared/open-section.yaml
     env:
       SECTION: Departments
+      SECTION_ID: Department
       SHOT: s02-people
 - runFlow:
     file: ../shared/open-section.yaml
     env:
       SECTION: Meetings
+      SECTION_ID: Rapat
       SHOT: s03-evidence
 - runFlow:
     file: ../shared/open-section.yaml
     env:
       SECTION: Pain Points
+      SECTION_ID: Pain Point
       SHOT: s04-analysis
 - runFlow:
     file: ../shared/open-section.yaml
     env:
       SECTION: Fit-Gap & RICEFW
+      SECTION_ID: Analisis Fit-Gap & RICEFW
       SHOT: s05-requirements
 - runFlow:
     file: ../shared/open-section.yaml
     env:
       SECTION: Approval Packets
+      SECTION_ID: Paket Persetujuan
       SHOT: s06-approvals
 - runFlow:
     file: ../shared/open-section.yaml
     env:
       SECTION: Stages & Gates
+      SECTION_ID: Tahap & Gerbang
       SHOT: s07-delivery
 - runFlow:
     file: ../shared/open-section.yaml
     env:
       SECTION: Answer Summaries
+      SECTION_ID: Ringkasan Jawaban
       SHOT: s08-review
 - runFlow:
     file: ../shared/open-section.yaml
     env:
       SECTION: Question Bank
+      SECTION_ID: Bank Pertanyaan
       SHOT: s09-config
 - tapOn:
     id: sections-search
 - eraseText: 40
-- inputText: Glossary
+- inputText: "${APP_LANGUAGE === 'id' ? 'Glosarium' : 'Glossary'}"
 - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
-    text: Glossary
+    text: "${APP_LANGUAGE === 'id' ? 'Glosarium' : 'Glossary'}"
     index: -1
 - extendedWaitUntil:
     visible:
