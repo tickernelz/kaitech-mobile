@@ -141,12 +141,27 @@ onFlowStart:
       id: open-evidence
 - tapOn:
     id: open-evidence
+- extendedWaitUntil:
+    visible:
+      id: (finding-[0-9]+|evidence-screen-empty|finding-detail)
+    timeout: 60000
 - tapOn:
     id: evidence-view-evidence
 - extendedWaitUntil:
     visible:
       id: evidence-[0-9]+
-    timeout: 30000
+    timeout: 20000
+- runFlow:
+    when:
+      notVisible:
+        id: evidence-[0-9]+
+    commands:
+      - tapOn:
+          id: evidence-view-evidence
+      - extendedWaitUntil:
+          visible:
+            id: evidence-[0-9]+
+          timeout: 60000
 - longPressOn:
     id: evidence-[0-9]+
     index: 0
