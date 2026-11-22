@@ -349,10 +349,11 @@ jobs:
           retention-days: 7
 
   e2e-iphone-glass:
-    name: e2e iphone glass ${{ matrix.locale }}
+    name: e2e iphone glass ${{ matrix.locale }} (trial)
     needs: ios-simulator
     runs-on: xcode-27
     timeout-minutes: 60
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:

@@ -53,7 +53,7 @@ name: Sign in on the server page and finish setup when the app is signed out
             platform: iOS
           commands:
             - tapOn:
-                text: (Not Now|Jangan Sekarang|Lain Kali)
+                text: (Not Now|Nanti)
                 optional: true
 - extendedWaitUntil:
     visible:
