@@ -1,46 +1,23 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { radius, space, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
 import { Text } from '../../../../ui/Text';
 import { DecisionCard } from '../../../discovery/DecisionCard';
-import { agentCardsFor, decideWardmote, recordCards, type AgentCard, type RecordCard, type Wardmote } from '../../coworker';
+import { agentCardsFor, createCardStore, decideWardmote, recordCards, type AgentCard, type CardStore, type RecordCard, type Wardmote } from '../../coworker';
+import { faceSize } from '../MessageBubble';
 import { failureText } from '../actions/failure';
 
-export function useBatched<K, V>(load: (keys: K[]) => Promise<Map<K, V> | null>) {
-  const [found, setFound] = useState<Map<K, V>>(() => new Map());
-  const asked = useRef(new Set<K>());
-  const waiting = useRef(new Set<K>());
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const want = useCallback(
-    (keys: K[]) => {
-      for (const key of keys) {
-        if (asked.current.has(key)) continue;
-        asked.current.add(key);
-        waiting.current.add(key);
-      }
-      if (!waiting.current.size || timer.current) return;
-      timer.current = setTimeout(() => {
-        timer.current = null;
-        const batch = [...waiting.current];
-        waiting.current.clear();
-        void load(batch).then((result) => {
-          if (!result) {
-            batch.forEach((key) => asked.current.delete(key));
-            return;
-          }
-          setFound((current) => new Map([...current, ...result]));
-        });
-      }, 120);
-    },
-    [load],
-  );
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
-  }, []);
-  const put = useCallback((key: K, value: V) => setFound((current) => new Map(current).set(key, value)), []);
-  return { found, want, put };
+function useCardStore<K, V>(load: (keys: K[]) => Promise<Map<K, V> | null>): CardStore<K, V> {
+  const store = useMemo(() => createCardStore<K, V>(load), [load]);
+  useEffect(() => () => store.dispose(), [store]);
+  return store;
+}
+
+function useCardVersion<K, V>(store: CardStore<K, V> | null, keys: readonly K[]): number {
+  const subscribe = useCallback((listener: () => void) => (store ? store.subscribe(keys, listener) : () => {}), [store, keys]);
+  return useSyncExternalStore(subscribe, () => (store ? store.version(keys) : 0));
 }
 
 export function useAgentCards(channelId: number) {
@@ -48,7 +25,7 @@ export function useAgentCards(channelId: number) {
     const result = await agentCardsFor(channelId, ids);
     return result.ok ? result.value : null;
   }, [channelId]);
-  return useBatched<number, AgentCard>(load);
+  return useCardStore<number, AgentCard>(load);
 }
 
 export function useRecordCards() {
@@ -59,8 +36,40 @@ export function useRecordCards() {
     for (const [url, card] of result.value) out.set(url, card);
     return out;
   }, []);
-  return useBatched<string, RecordCard | null>(load);
+  return useCardStore<string, RecordCard | null>(load);
 }
+
+export const MessageCards = memo(function MessageCards({
+  messageId,
+  urls,
+  mine,
+  indent,
+  agents,
+  records,
+  onOpen,
+}: {
+  messageId: number;
+  urls: readonly string[];
+  mine: boolean;
+  indent: boolean;
+  agents: CardStore<number, AgentCard> | null;
+  records: CardStore<string, RecordCard | null> | null;
+  onOpen: (card: Pick<RecordCard, 'model' | 'id'>) => void;
+}) {
+  const ids = useMemo(() => [messageId], [messageId]);
+  useCardVersion(agents, ids);
+  useCardVersion(records, urls);
+  const agentCard = agents?.get(messageId);
+  const recordList = records ? urls.map((url) => records.get(url)).filter((card): card is RecordCard => !!card) : [];
+  const change = useCallback((next: AgentCard) => agents?.put(messageId, next), [agents, messageId]);
+  if (!(agentCard && (agentCard.packets.length || agentCard.wardmote)) && !recordList.length) return null;
+  return (
+    <View style={[styles.below, mine ? styles.belowMine : styles.belowTheirs, indent && styles.belowIndent]}>
+      {agentCard ? <AgentCards card={agentCard} onChange={change} /> : null}
+      <RecordCards cards={recordList} onOpen={onOpen} />
+    </View>
+  );
+});
 
 function WardmoteCard({ card, onChange }: { card: Wardmote; onChange: (next: Wardmote) => void }) {
   const { t } = useTranslation('chat');
@@ -165,4 +174,8 @@ const styles = StyleSheet.create({
   stack: { gap: space.xs, marginTop: space.xs },
   card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.card, padding: space.md, gap: 4, maxWidth: 420 },
   row: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
+  below: { paddingHorizontal: space.lg + space.md },
+  belowMine: { alignItems: 'flex-end' },
+  belowTheirs: { alignItems: 'flex-start' },
+  belowIndent: { paddingLeft: space.lg + space.sm * 2 + faceSize + space.md },
 });

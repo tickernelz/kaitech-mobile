@@ -134,6 +134,16 @@ export function recordCards(urls: string[]) {
   });
 }
 
+const messageLinks = new WeakMap<object, string[]>();
+
+export function linksOfMessage(message: { body: string }, origin: string): string[] {
+  const known = messageLinks.get(message);
+  if (known) return known;
+  const urls = linksIn(message.body, origin);
+  messageLinks.set(message, urls);
+  return urls;
+}
+
 export function linksIn(html: string, origin: string): string[] {
   const host = origin.replace(/^https?:\/\//, '');
   const out = new Set<string>();
@@ -146,4 +156,70 @@ export function linksIn(html: string, origin: string): string[] {
     if (absolute.includes(`//${host}/odoo/`) || absolute.includes(`//${host}/web#`) || absolute.includes(`//${host}/mail/view`)) out.add(absolute);
   }
   return [...out].slice(0, 5);
+}
+
+export type CardStore<K, V> = {
+  get: (key: K) => V | undefined;
+  version: (keys: readonly K[]) => number;
+  subscribe: (keys: readonly K[], listener: () => void) => () => void;
+  want: (keys: readonly K[]) => void;
+  put: (key: K, value: V) => void;
+  dispose: () => void;
+};
+
+export function createCardStore<K, V>(load: (keys: K[]) => Promise<Map<K, V> | null>, delayMs = 120): CardStore<K, V> {
+  const found = new Map<K, V>();
+  const versions = new Map<K, number>();
+  const listeners = new Map<K, Set<() => void>>();
+  const asked = new Set<K>();
+  const waiting = new Set<K>();
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const put = (key: K, value: V) => {
+    found.set(key, value);
+    versions.set(key, (versions.get(key) ?? 0) + 1);
+    listeners.get(key)?.forEach((listener) => listener());
+  };
+  return {
+    get: (key) => found.get(key),
+    version: (keys) => keys.reduce((sum, key) => sum + (versions.get(key) ?? 0), 0),
+    subscribe(keys, listener) {
+      for (const key of keys) {
+        const set = listeners.get(key) ?? new Set();
+        set.add(listener);
+        listeners.set(key, set);
+      }
+      return () => {
+        for (const key of keys) {
+          const set = listeners.get(key);
+          set?.delete(listener);
+          if (set && !set.size) listeners.delete(key);
+        }
+      };
+    },
+    want(keys) {
+      for (const key of keys) {
+        if (asked.has(key)) continue;
+        asked.add(key);
+        waiting.add(key);
+      }
+      if (!waiting.size || timer) return;
+      timer = setTimeout(() => {
+        timer = null;
+        const batch = [...waiting];
+        waiting.clear();
+        void load(batch).then((result) => {
+          if (!result) {
+            batch.forEach((key) => asked.delete(key));
+            return;
+          }
+          for (const [key, value] of result) put(key, value);
+        });
+      }, delayMs);
+    },
+    put,
+    dispose() {
+      if (timer) clearTimeout(timer);
+      timer = null;
+    },
+  };
 }

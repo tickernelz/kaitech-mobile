@@ -1,5 +1,5 @@
 import { cannedQuery, gifBody, quickTimes } from '../src/features/chat/composerExtras';
-import { isShownWork, linksIn, workFrom } from '../src/features/chat/coworker';
+import { createCardStore, isShownWork, linksIn, linksOfMessage, workFrom } from '../src/features/chat/coworker';
 import { channelOf } from '../src/features/chat/newConversation';
 import { listFilters, matches } from '../src/features/chat/listFilters';
 import { channelInfoFromStore, conversationFrom } from '../src/features/chat/odoo';
@@ -132,6 +132,51 @@ describe('conversation filters', () => {
     if (!mentioned || !coworker || !plain) throw new Error('parse');
     expect([mentioned, coworker, plain].filter((item) => matches(item, 'mention'))).toEqual([mentioned]);
     expect([mentioned, coworker, plain].filter((item) => matches(item, 'agent'))).toEqual([coworker]);
+  });
+});
+
+
+describe('card store', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it('asks once per batch and wakes only the rows whose card arrived', async () => {
+    const load = jest.fn(async (keys: number[]) => new Map(keys.filter((key) => key !== 3).map((key) => [key, `card ${key}`])));
+    const store = createCardStore<number, string>(load);
+    const one = jest.fn();
+    const three = jest.fn();
+    store.subscribe([1], one);
+    store.subscribe([3], three);
+    store.want([1, 2, 3]);
+    store.want([1, 2]);
+    jest.advanceTimersByTime(120);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(load).toHaveBeenCalledWith([1, 2, 3]);
+    expect(store.get(1)).toBe('card 1');
+    expect(one).toHaveBeenCalledTimes(1);
+    expect(three).not.toHaveBeenCalled();
+    const before = store.version([3]);
+    store.put(1, 'answered');
+    expect(store.version([3])).toBe(before);
+    expect(store.version([1])).toBeGreaterThan(1);
+  });
+
+  it('asks again after a failed load', async () => {
+    const load = jest.fn(async () => null);
+    const store = createCardStore<number, string>(load);
+    store.want([7]);
+    jest.advanceTimersByTime(120);
+    await Promise.resolve();
+    store.want([7]);
+    jest.advanceTimersByTime(120);
+    expect(load).toHaveBeenCalledTimes(2);
+  });
+
+  it('reads the links of a message once', () => {
+    const message = { body: '<a href="/odoo/project.task/5">T</a>' };
+    expect(linksOfMessage(message, 'https://lab0.kaitech.io')).toBe(linksOfMessage(message, 'https://lab0.kaitech.io'));
   });
 });
 

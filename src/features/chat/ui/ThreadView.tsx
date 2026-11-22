@@ -33,9 +33,9 @@ import { ReadersSheet } from './actions/ReadersSheet';
 import { TaskSheet } from './actions/TaskSheet';
 import { ThreadActionsSheet } from './thread/ThreadActionsSheet';
 import { useAutoTranslate } from './useAutoTranslate';
-import { AgentCards, RecordCards, useAgentCards, useRecordCards } from './coworker/Cards';
+import { MessageCards, useAgentCards, useRecordCards } from './coworker/Cards';
 import { WorkBar, WorkSheet } from './coworker/Work';
-import { linksIn, type RecordCard } from '../coworker';
+import { linksOfMessage, type RecordCard } from '../coworker';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
 import { NotifySheet } from './NotifySheet';
 import { router } from 'expo-router';
@@ -49,6 +49,7 @@ type Row =
 
 const groupGapMs = 5 * 60 * 1000;
 const noticeMs = 4000;
+const noLinks: string[] = [];
 
 type SheetKind = 'emoji' | 'forward' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers';
 
@@ -113,15 +114,15 @@ export function ThreadView({
   const features = useChat((state) => state.features);
   const myUserId = useChat((state) => state.userId);
   const seeTranslations = useAutoTranslate(features.translateAuto && !!features.translateLanguage);
-  const { found: agentFound, want: wantAgents, put: putAgent } = useAgentCards(channelId);
-  const { found: recordFound, want: wantRecords } = useRecordCards();
+  const agentStore = useAgentCards(channelId);
+  const recordStore = useRecordCards();
   const agentsOn = hasFeature(features, 'agents');
   const cardsOn = hasFeature(features, 'cards');
   const agentIds = useMemo(() => new Set([...features.agentPartnerIds, ...(features.coworkerPartnerId ? [features.coworkerPartnerId] : [])]), [features.agentPartnerIds, features.coworkerPartnerId]);
   const watchVisible = (messages: Message[]) => {
     seeTranslations(messages);
-    if (agentsOn) wantAgents(messages.filter((message) => message.authorId !== null && agentIds.has(message.authorId)).map((message) => message.id));
-    if (cardsOn) wantRecords(messages.flatMap((message) => linksIn(message.body, origin)));
+    if (agentsOn) agentStore.want(messages.filter((message) => message.authorId !== null && agentIds.has(message.authorId)).map((message) => message.id));
+    if (cardsOn) recordStore.want(messages.flatMap((message) => linksOfMessage(message, origin)));
   };
   const openRecord = useCallback(
     (card: Pick<RecordCard, 'model' | 'id'>) => {
@@ -302,15 +303,8 @@ export function ThreadView({
       }
       const message = item.message;
       const mine = message.authorId === partnerId;
-      const agentCard = agentFound.get(message.id);
-      const recordList = cardsOn ? linksIn(message.body, origin).map((url) => recordFound.get(url)).filter((card): card is RecordCard => !!card) : [];
-      const below =
-        (agentCard && (agentCard.packets.length || agentCard.wardmote)) || recordList.length ? (
-          <View style={mine ? styles.belowMine : styles.belowTheirs}>
-            {agentCard ? <AgentCards card={agentCard} onChange={(next) => putAgent(message.id, next)} /> : null}
-            <RecordCards cards={recordList} onOpen={openRecord} />
-          </View>
-        ) : undefined;
+      const fromAgent = agentsOn && message.authorId !== null && agentIds.has(message.authorId);
+      const urls = cardsOn ? linksOfMessage(message, origin) : noLinks;
       const ticks = mine && type !== 'channel' ? readState(message, thread.members, partnerId) : null;
       return (
         <View style={highlight === message.id ? [styles.highlight, { backgroundColor: colors.select }] : undefined}>
@@ -327,12 +321,22 @@ export function ThreadView({
             onQuotePress={jumpTo}
             onReact={(target, content) => void react(target, content)}
             onOpenThread={(target) => void openSub(target)}
-            below={below}
           />
+          {fromAgent || urls.length ? (
+            <MessageCards
+              messageId={message.id}
+              urls={urls}
+              mine={mine}
+              indent={!mine && !twoPeople}
+              agents={fromAgent ? agentStore : null}
+              records={urls.length ? recordStore : null}
+              onOpen={openRecord}
+            />
+          ) : null}
         </View>
       );
     },
-    [agentFound, cardsOn, colors, dayLabel, highlight, jumpTo, online, openRecord, openSub, origin, partnerId, putAgent, quoteOf, react, recordFound, startActing, thread.members, thread.subChannels, twoPeople, type],
+    [agentIds, agentStore, agentsOn, cardsOn, colors, dayLabel, highlight, jumpTo, online, openRecord, openSub, origin, partnerId, quoteOf, react, recordStore, startActing, thread.members, thread.subChannels, twoPeople, type],
   );
 
   const typing = thread.typing;
@@ -532,8 +536,6 @@ const styles = StyleSheet.create({
   highlight: { borderRadius: radius.md },
   older: { padding: space.md },
   empty: { padding: space.xxl, alignItems: 'center', justifyContent: 'center' },
-  belowMine: { alignItems: 'flex-end', paddingHorizontal: space.md },
-  belowTheirs: { alignItems: 'flex-start', paddingHorizontal: space.md },
   linked: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 36, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
   noticeWrap: { position: 'absolute', left: 0, right: 0, bottom: 96, alignItems: 'center', paddingHorizontal: space.lg },
   notice: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill, overflow: 'hidden', maxWidth: 480, textAlign: 'center' },
