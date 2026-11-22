@@ -102,7 +102,7 @@ onFlowStart:
     timeout: 10000
 - tapOn:
     id: composer-input
-- eraseText: 40
+- eraseText: 60
 - inputText: ${RUN + ' a1 edited'}
 - runFlow:
     file: ../shared/screenshot.yaml
@@ -113,18 +113,18 @@ onFlowStart:
 - runFlow: ../shared/dismiss-keyboard.yaml
 - extendedWaitUntil:
     visible:
-      text: ${RUN + ' a1 edited'}
+      text: ${RUN + ' a1 edited.*'}
     timeout: 15000
 - extendedWaitUntil:
     visible:
-      text: (edited|diedit)
+      id: edited-.*
     timeout: 15000
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: a5-edited
 - longPressOn:
-    text: ${RUN + ' a1 edited'}
+    text: ${RUN + ' a1 edited.*'}
 - tapOn:
     id: action-forward
 - extendedWaitUntil:
@@ -152,7 +152,7 @@ onFlowStart:
       true: ${MAKE_TASK == 'yes'}
     commands:
       - longPressOn:
-          text: ${RUN + ' a1 edited'}
+          text: ${RUN + ' a1 edited.*'}
       - tapOn:
           id: action-more
       - tapOn:
@@ -172,7 +172,7 @@ onFlowStart:
             id: thread-notice
           timeout: 15000
 - longPressOn:
-    text: ${RUN + ' a1 edited'}
+    text: ${RUN + ' a1 edited.*'}
 - tapOn:
     id: action-more
 - tapOn:
@@ -196,7 +196,7 @@ onFlowStart:
       true: ${MEETING == 'yes'}
     commands:
       - longPressOn:
-          text: ${RUN + ' a1 edited'}
+          text: ${RUN + ' a1 edited.*'}
       - tapOn:
           id: action-more
       - tapOn:
@@ -220,7 +220,7 @@ onFlowStart:
             id: thread-notice
           timeout: 15000
 - longPressOn:
-    text: ${RUN + ' a1 edited'}
+    text: ${RUN + ' a1 edited.*'}
 - tapOn:
     id: action-more
 - tapOn:
@@ -253,11 +253,27 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: a10-deleted
+- setAirplaneMode: enabled
+- longPressOn:
+    text: ${RUN + ' a1 edited.*'}
+- tapOn:
+    id: action-more
+- tapOn:
+    id: action-star
+- extendedWaitUntil:
+    visible:
+      text: (Can't reach the server.*|Server tidak bisa dihubungi.*)
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a11-offline
+- setAirplaneMode: disabled
 - runScript:
     file: ../scripts/actions-peer.js
 - assertTrue: ${output.actions.edited == 1 && output.actions.removed == 1 && output.actions.pinned == 1 && output.actions.reacted == 1 && output.actions.forwarded == 1}
 - longPressOn:
-    text: ${RUN + ' a1 edited'}
+    text: ${RUN + ' a1 edited.*'}
 - tapOn:
     id: action-more
 - tapOn:
@@ -273,4 +289,4 @@ onFlowStart:
       - runFlow:
           file: ../shared/screenshot.yaml
           env:
-            SCREEN: a11-unread
+            SCREEN: a12-unread

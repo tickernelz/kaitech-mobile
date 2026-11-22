@@ -42,7 +42,7 @@ type Row =
 
 const groupGapMs = 5 * 60 * 1000;
 const recallMs = 24 * 60 * 60 * 1000;
-const noticeMs = 2400;
+const noticeMs = 4000;
 
 type SheetKind = 'emoji' | 'forward' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers';
 
