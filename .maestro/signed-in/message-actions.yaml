@@ -291,21 +291,18 @@ onFlowStart:
     direction: DOWN
 - tapOn:
     id: action-unread
+- extendedWaitUntil:
+    visible:
+      id: (chat-list|thread-notice)
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a12-unread
 - runFlow:
     when:
-      true: ${DEVICE_SIZE == 'phone'}
-    commands:
-      - extendedWaitUntil:
-          visible:
-            id: chat-list
-          timeout: 15000
-      - runFlow:
-          file: ../shared/screenshot.yaml
-          env:
-            SCREEN: a12-unread
-- runFlow:
-    when:
-      true: ${DEVICE_SIZE == 'phone'}
+      visible:
+        id: chat-list
     commands:
       - tapOn:
           text: ${PEER}
