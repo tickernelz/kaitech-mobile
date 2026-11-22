@@ -8,11 +8,10 @@ locale="${3:?$usage}"
 size="${4:?$usage}"
 orientation="${5:?$usage}"
 case "$orientation" in portrait | landscape) ;; *) echo "$usage" >&2; exit 2 ;; esac
-runner="${E2E_RUNNER:-maestro}"
+runner="${E2E_RUNNER:-auto}"
 case "$runner" in
-  maestro) run=(maestro) ;;
-  maestro-runner) run=(maestro-runner --no-ansi --platform android --driver devicelab) ;;
-  *) echo "E2E_RUNNER must be maestro or maestro-runner, not $runner" >&2; exit 2 ;;
+  auto | maestro | maestro-runner) ;;
+  *) echo "E2E_RUNNER must be auto, maestro or maestro-runner, not $runner" >&2; exit 2 ;;
 esac
 language="${locale%%-*}"
 cell="$size-$orientation-$locale"
@@ -75,6 +74,13 @@ if { [ "$orientation" = landscape ] && [ "$natural_width" -gt "$natural_height" 
 else
   rotation=1
 fi
+if [ "$runner" = auto ]; then
+  if [ "$rotation" = 0 ]; then runner=maestro-runner; else runner=maestro; fi
+fi
+case "$runner" in
+  maestro) run=(maestro) ;;
+  maestro-runner) run=(maestro-runner --no-ansi --platform android --driver devicelab) ;;
+esac
 rotation_state() { adb shell dumpsys window displays | tr -d '\r' | grep -oE '(mUserRotationMode|mUserRotation|mRotation|mCurrentAppOrientation|mLastOrientation)=[A-Z_0-9]+' | sort -u | tr '\n' ' '; echo; }
 adb shell cmd window user-rotation lock "$rotation"
 sleep 3

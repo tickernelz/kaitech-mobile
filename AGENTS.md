@@ -31,11 +31,23 @@ Run lint and typecheck before declaring any task done.
 
 ## Building
 
-APK and IPA are built only in GitHub Actions (`.github/workflows/build.yml`). Do not use EAS Build, EAS Submit, or EAS Update. There are no store accounts yet: the APK is signed with a non-store keystore from GitHub Secrets, the IPA is unsigned.
+APK and IPA are built only in GitHub Actions (`.github/workflows/e2e.yml` for the E2E APK and iPad simulator app, `.github/workflows/release.yml` for release artifacts). Do not use EAS Build, EAS Submit, or EAS Update. There are no store accounts yet: the APK is signed with a non-store keystore from GitHub Secrets, the IPA is unsigned.
 
 Never commit secrets, server addresses, client data, or credential files. Sign-in defaults to the link host server and the `KAITECH_DEFAULT_DB` database, both read from repo variables at build time; users who need another server enter its address and database.
 
-E2E flows live in `.maestro/` and run on an Android emulator in CI with a screen recording artifact.
+E2E flows live in `.maestro/` and run on an Android emulator and an iPad simulator in GitHub Actions (`docs/ci.md`).
+
+## CI/CD & Testing Rules
+
+These rules bind every agent and contributor on every change. `docs/ci.md` describes the pipeline.
+
+- **Testing pyramid.** Business logic, LiveKit call state, validation, and translation parity are tested with unit and component tests (Jest, `@testing-library/react-native`, `npm run i18n:check`). E2E covers critical user journeys only. Never add locale or screen-size variants to the pull request E2E run; the full matrix runs nightly.
+- **Fast PR gate.** `ci.yml` is the only required check set (`gitleaks diff`, `lint`, `typecheck`, `unit`). It stays under 3 minutes and deterministic on `ubuntu-latest`. Never add an emulator or simulator job, a native build, or a full-history scan to it; full-history gitleaks belongs to `release.yml`.
+- **Native vs JS separation.** A change under `src/` must not rebuild native code in CI when the native fingerprint (`@expo/fingerprint`, `fingerprint.config.js`) is unchanged: E2E repacks the cached native build with the new JS bundle. Changes to `modules/kaitech-call/`, `plugins/`, `app.config.ts`, `app.json`, `patches/`, or native dependencies must change the fingerprint; a new native source location goes into `fingerprint.config.js` in the same pull request.
+- **Workflow hygiene.** Keep exactly three workflow files: `ci.yml`, `e2e.yml`, `release.yml`; shared steps go into composite actions under `.github/actions/`. Use GitHub-hosted standard runners only (`ubuntu-latest`, and `macos-15` pinned; never `macos-latest`). Every workflow has `concurrency` that cancels superseded pull request runs, every job has `timeout-minutes`, docs-only changes skip CI (`paths-ignore` on push; on pull requests the required jobs report skipped so branch protection still passes), and third-party actions are pinned to a commit SHA.
+- **E2E triggers.** E2E runs on merges to `main` (smoke), on pull requests labelled `run-e2e` (smoke), nightly (full), and on manual dispatch. Add the `run-e2e` label when a change touches a critical journey or native code; heavy tests, E2E, videos and screenshots run in GitHub Actions, not on a local machine.
+- **Pre-PR verification.** Before opening or updating a pull request run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run i18n:check` locally; for changed workflows also `actionlint`, for changed flows `maestro check-syntax`.
+- **E2E roadmap.** Use `.maestro/` flows with `maestro-runner` (Maestro CLI where `docs/ci.md` names it). When a scenario needs more than Maestro can drive, such as multi-device WebRTC calls or full control over OS permission dialogs, write it with Appium and WebdriverIO in TypeScript instead of stretching Maestro.
 
 ## Rules
 

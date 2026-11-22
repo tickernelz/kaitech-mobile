@@ -1,0 +1,238 @@
+name: Build Android APK
+description: Builds, signs, verifies and uploads a release APK for the given ABIs. With native-cache, an APK whose @expo/fingerprint matches a cached build only gets a new JS bundle (repack) instead of a native rebuild. Expects a checkout of SOURCE_SHA with full history and setup-node.
+inputs:
+  abis:
+    description: Comma-separated ABIs, e.g. x86_64 or armeabi-v7a,arm64-v8a,x86,x86_64.
+    required: true
+  variant:
+    description: universal, or the single ABI; names the artifact file and the perf metric.
+    required: true
+  artifact:
+    description: Name of the uploaded APK artifact.
+    required: true
+  native-cache:
+    description: true to reuse a native build with the same fingerprint and repack only the JS bundle.
+    default: 'false'
+  save-cache:
+    description: true to write the Gradle, ccache and native APK caches.
+    default: 'false'
+  google-services-json:
+    description: google-services.json content; empty builds without push.
+    default: ''
+  keystore-base64:
+    description: Release keystore, base64; empty signs with the generated debug key.
+    default: ''
+  keystore-password:
+    default: ''
+  key-alias:
+    default: ''
+  key-password:
+    default: ''
+outputs:
+  native:
+    description: built when the native code was compiled, repacked when a cached native build got the new JS bundle.
+    value: ${{ steps.native.outputs.native }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+      with:
+        distribution: temurin
+        java-version: '17'
+    - uses: ./.github/actions/setup-gitleaks
+    - shell: bash
+      run: npm ci
+    - name: Build number
+      shell: bash
+      run: echo "APP_BUILD_NUMBER=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
+    - name: google-services.json (optional)
+      shell: bash
+      env:
+        GOOGLE_SERVICES_JSON_CONTENT: ${{ inputs.google-services-json }}
+      run: |
+        if [ -n "$GOOGLE_SERVICES_JSON_CONTENT" ]; then
+          printf '%s' "$GOOGLE_SERVICES_JSON_CONTENT" > "$RUNNER_TEMP/google-services.json"
+          echo "GOOGLE_SERVICES_JSON=$RUNNER_TEMP/google-services.json" >> "$GITHUB_ENV"
+          echo "Push enabled: google-services.json provided."
+        else
+          echo "Push disabled: GOOGLE_SERVICES_JSON secret not set."
+        fi
+    - name: Release keystore (optional)
+      shell: bash
+      env:
+        ANDROID_KEYSTORE_BASE64: ${{ inputs.keystore-base64 }}
+      run: |
+        if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "RELEASE_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          echo "SIGNING=release" >> "$GITHUB_ENV"
+        else
+          echo "::warning::ANDROID_KEYSTORE_BASE64 not set; APK is signed with a debug key and cannot update an installed release APK."
+          echo "SIGNING=debugkey" >> "$GITHUB_ENV"
+        fi
+    - name: Native fingerprint
+      id: fingerprint
+      if: inputs.native-cache == 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        hash="$(npx @expo/fingerprint fingerprint:generate --platform android | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).hash))')"
+        echo "Native fingerprint (android): $hash"
+        echo "hash=$hash" >> "$GITHUB_OUTPUT"
+    - name: Restore the native build with this fingerprint
+      id: native-apk
+      if: inputs.native-cache == 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ runner.temp }}/native-apk
+        key: native-apk-${{ inputs.variant }}-${{ env.SIGNING }}-${{ steps.fingerprint.outputs.hash }}
+    - id: native
+      shell: bash
+      env:
+        HIT: ${{ steps.native-apk.outputs.cache-hit }}
+      run: |
+        if [ "$HIT" = true ]; then echo "native=repacked" >> "$GITHUB_OUTPUT"; else echo "native=built" >> "$GITHUB_OUTPUT"; fi
+    - name: Repack the cached native build with this commit's JS bundle
+      if: steps.native.outputs.native == 'repacked'
+      shell: bash
+      env:
+        ANDROID_KEYSTORE_PASSWORD: ${{ inputs.keystore-password }}
+        ANDROID_KEY_ALIAS: ${{ inputs.key-alias }}
+        ANDROID_KEY_PASSWORD: ${{ inputs.key-password }}
+      run: |
+        set -euo pipefail
+        build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+        signing=()
+        if [ -n "${RELEASE_KEYSTORE:-}" ]; then
+          signing=(--ks "$RELEASE_KEYSTORE" --ks-pass env:ANDROID_KEYSTORE_PASSWORD --ks-key-alias "$ANDROID_KEY_ALIAS" --ks-key-pass env:ANDROID_KEY_PASSWORD)
+        fi
+        mkdir -p android/app/build/outputs/apk/release
+        npx repack-app --platform android --js-bundle-only \
+          --source-app "$RUNNER_TEMP/native-apk/app-release.apk" \
+          --android-build-tools-dir "$build_tools" \
+          --working-directory "$RUNNER_TEMP/repack" \
+          --output android/app/build/outputs/apk/release/app-release.apk \
+          "${signing[@]}"
+    - if: steps.native.outputs.native == 'built'
+      uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      with:
+        cache-read-only: ${{ inputs.save-cache != 'true' }}
+    - id: ccache
+      if: steps.native.outputs.native == 'built'
+      uses: ./.github/actions/setup-ccache
+      with:
+        key: ccache-android-${{ inputs.variant }}-${{ hashFiles('package-lock.json', 'app.json', 'app.config.ts') }}
+        restore-prefix: ccache-android-${{ inputs.variant }}-
+    - if: steps.native.outputs.native == 'built'
+      shell: bash
+      run: npx expo prebuild --platform android --no-install
+    - name: Assemble release APK
+      if: steps.native.outputs.native == 'built'
+      shell: bash
+      working-directory: android
+      env:
+        APK_ABIS: ${{ inputs.abis }}
+        ANDROID_KEYSTORE_PASSWORD: ${{ inputs.keystore-password }}
+        ANDROID_KEY_ALIAS: ${{ inputs.key-alias }}
+        ANDROID_KEY_PASSWORD: ${{ inputs.key-password }}
+        CMAKE_C_COMPILER_LAUNCHER: ccache
+        CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      run: |
+        set -euo pipefail
+        signing=()
+        if [ -n "${RELEASE_KEYSTORE:-}" ]; then
+          signing=(
+            "-Pandroid.injected.signing.store.file=$RELEASE_KEYSTORE"
+            "-Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD"
+            "-Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS"
+            "-Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD"
+          )
+        fi
+        ./gradlew --no-daemon --build-cache "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" \
+          assembleRelease "-PreactNativeArchitectures=$APK_ABIS" "${signing[@]}"
+        ccache --show-stats
+    - if: steps.native.outputs.native == 'built' && inputs.save-cache == 'true' && steps.ccache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.ccache.outputs.dir }}
+        key: ${{ steps.ccache.outputs.key }}
+    - name: Keep the native build for later commits with the same fingerprint
+      if: steps.native.outputs.native == 'built' && inputs.native-cache == 'true'
+      shell: bash
+      run: |
+        mkdir -p "$RUNNER_TEMP/native-apk"
+        cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/native-apk/app-release.apk"
+    - if: steps.native.outputs.native == 'built' && inputs.native-cache == 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ runner.temp }}/native-apk
+        key: native-apk-${{ inputs.variant }}-${{ env.SIGNING }}-${{ steps.fingerprint.outputs.hash }}
+    - name: Verify signing certificate
+      shell: bash
+      run: |
+        set -euo pipefail
+        apk=android/app/build/outputs/apk/release/app-release.apk
+        apksigner="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)/apksigner"
+        certs="$("$apksigner" verify --verbose --print-certs "$apk")"
+        echo "$certs" | grep -E '^(Verified using|Signer|Number of signers)'
+        actual="$(echo "$certs" | grep -m1 -E 'certificate SHA-256 digest:' | sed -E 's/.*digest: //' | tr -d ': ' | tr 'a-f' 'A-F')"
+        [ -n "$actual" ] || { echo "::error::apksigner printed no certificate digest"; exit 1; }
+        expected="$(tr -d ': \n' < .github/android-release-cert.sha256 | tr 'a-f' 'A-F')"
+        echo "APK certificate SHA-256: $actual"
+        if [ -n "${RELEASE_KEYSTORE:-}" ]; then
+          [ "$actual" = "$expected" ] || { echo "::error::APK certificate does not match .github/android-release-cert.sha256"; exit 1; }
+          echo "SIGN_SUFFIX=" >> "$GITHUB_ENV"
+        else
+          echo "SIGN_SUFFIX=-debugkey" >> "$GITHUB_ENV"
+        fi
+        rm -f "$RUNNER_TEMP/release.jks"
+    - name: Scan bundled JS for secrets
+      shell: bash
+      run: |
+        set -euo pipefail
+        unzip -q android/app/build/outputs/apk/release/app-release.apk 'assets/*' -d "$RUNNER_TEMP/apk"
+        gitleaks dir --redact --verbose --exit-code 1 "$RUNNER_TEMP/apk/assets"
+    - name: APK holds only the requested ABIs
+      shell: bash
+      env:
+        APK_ABIS: ${{ inputs.abis }}
+      run: |
+        set -euo pipefail
+        actual="$(unzip -Z1 android/app/build/outputs/apk/release/app-release.apk 'lib/*' | cut -d/ -f2 | sort -u | paste -sd, -)"
+        expected="$(tr ',' '\n' <<< "$APK_ABIS" | sort -u | paste -sd, -)"
+        echo "APK ABIs: $actual"
+        [ "$actual" = "$expected" ] || { echo "::error::APK holds ABIs $actual, expected $expected"; exit 1; }
+    - name: Name artifact
+      shell: bash
+      env:
+        APK_VARIANT: ${{ inputs.variant }}
+      run: |
+        set -euo pipefail
+        mkdir -p dist
+        suffix=""
+        if [ "$APK_VARIANT" != universal ]; then suffix="-$APK_VARIANT"; fi
+        cp android/app/build/outputs/apk/release/app-release.apk "dist/kaitech-${APP_BUILD_NUMBER}-${SOURCE_SHA::7}${suffix}${SIGN_SUFFIX}.apk"
+        (cd dist && sha256sum ./*.apk | tee "SHA256SUMS-android-$APK_VARIANT.txt")
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: ${{ inputs.artifact }}
+        path: dist/
+        if-no-files-found: error
+        retention-days: 30
+    - name: Performance gate (APK and JS bundle size)
+      id: perf
+      shell: bash
+      env:
+        APK_VARIANT: ${{ inputs.variant }}
+      run: |
+        set -euo pipefail
+        node scripts/perf-gate.mjs --out "perf-output/android-$APK_VARIANT.json" \
+          "android.apk_${APK_VARIANT}_bytes=$(wc -c < android/app/build/outputs/apk/release/app-release.apk)" \
+          "android.js_bundle_bytes=$(wc -c < "$RUNNER_TEMP/apk/assets/index.android.bundle")"
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      if: always() && steps.perf.outcome != 'skipped'
+      with:
+        name: perf-android-${{ inputs.variant }}
+        path: perf-output/
+        if-no-files-found: warn
+        retention-days: 90

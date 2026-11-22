@@ -23,8 +23,8 @@ Semua bukti dari emulator Android atau simulator iPad; belum ada uji di perangka
 | Bagian | Platform dan ukuran | Orientasi | Bahasa | Bukti |
 |---|---|---|---|---|
 | Pasang APK dari Release di emulator bersih, layar sambutan, tombol Masuk membuka halaman masuk lab0 tanpa isian, form "Gunakan server lain" memeriksa alamat dan basis data lalu kembali ke bawaan; di ponsel juga rotasi di tengah form tanpa kehilangan isian | Android 15 ponsel (`pixel_6`) dan tablet 10 inci (`pixel_tablet`) | portrait, landscape | en, id | job `install from release` di run Release tiap tag, rekaman `e2e-android-release-*` |
-| Alur yang sama dengan APK x86_64 | Android 15 ponsel dan tablet | portrait, landscape | en, id | CI tiap push `main`, rekaman `e2e-android-*` |
-| Alur yang sama di iPad (percobaan, tidak memblokir) | simulator iPad di runner macOS | portrait, landscape | en | workflow `iPad trial`; hasil per tag ada di run `iPad trial` tag itu |
+| Alur yang sama dengan APK x86_64 | Android 15 ponsel dan tablet | portrait, landscape | en, id | workflow `E2E` tiap malam (smoke ponsel portrait en tiap merge ke `main`), rekaman `e2e-android-*` |
+| Alur yang sama di iPad (tidak memblokir) | simulator iPad di runner `macos-15` | portrait, landscape | en | workflow `E2E` tiap malam, artefak `e2e-ipad-en-US` |
 | Masuk ke lab0 dari APK CI lewat App Link `lab0.kaitech.io` yang diverifikasi Android sendiri (`pm get-app-links`: verified), dari layar sambutan sampai Chat terbuka | Android 15 ponsel (`pixel_6`) | portrait | en | rekaman lokal APK CI, tidak dipublikasikan (tracker internal ZHA-7373) |
 | Masuk ke server lalu keluar (F0) | Android ponsel dan tablet | tidak dicatat | en, id | rekaman lokal dengan build yang membawa domain tautan, tidak dipublikasikan (tracker internal ZHA-7236) |
 | Chat: daftar, thread, antrean kirim offline, lampiran, pesan suara, dua panel di tablet (F1) | Android ponsel dan tablet | portrait, landscape | en, id | rekaman lokal (ZHA-7238) |
@@ -68,7 +68,7 @@ CI menolak APK yang sertifikatnya tidak cocok dengan `.github/android-release-ce
 
 ## Pasang APK (Android)
 
-1. Unduh `kaitech-<build>-<sha>-arm64-v8a.apk` dari [Releases](https://github.com/tickernelz/kaitech-mobile/releases/latest) langsung di ponsel, atau unduh di komputer lalu kirim ke ponsel. Bila Android menolak memasangnya ("Aplikasi tidak terpasang" atau "tidak kompatibel"), ponsel itu bukan arm64-v8a: unduh `kaitech-<build>-<sha>.apk` (universal, empat ABI, lebih besar). Keduanya memakai keystore yang sama, jadi saling bisa memperbarui. Build `main` di antara rilis ada sebagai artefak `kaitech-android-apk-arm64-v8a` dan `kaitech-android-apk` di run CI yang hijau.
+1. Unduh `kaitech-<build>-<sha>-arm64-v8a.apk` dari [Releases](https://github.com/tickernelz/kaitech-mobile/releases/latest) langsung di ponsel, atau unduh di komputer lalu kirim ke ponsel. Bila Android menolak memasangnya ("Aplikasi tidak terpasang" atau "tidak kompatibel"), ponsel itu bukan arm64-v8a: unduh `kaitech-<build>-<sha>.apk` (universal, empat ABI, lebih besar). Keduanya memakai keystore yang sama, jadi saling bisa memperbarui. Build `main` di antara rilis: jalankan workflow `Release` secara manual di `main`; artefaknya `kaitech-android-apk-arm64-v8a` dan `kaitech-android-apk`.
 2. Bila tidak diunduh langsung, kirim berkas itu ke ponsel.
 3. Saat membuka berkas, Android meminta izin "Pasang aplikasi tak dikenal" untuk aplikasi pembuka (Files, Chrome). Izinkan untuk aplikasi itu saja.
 4. Pasang. Build berikutnya bisa langsung memperbarui aplikasi karena semua build memakai keystore yang sama.
@@ -139,65 +139,13 @@ It prints the room, the peer session id and what the peer subscribed to, and kee
 
 ## CI
 
+Tiga workflow GitHub Actions, rinciannya di [docs/ci.md](docs/ci.md):
+
 | Workflow | Pemicu | Isi |
 |---|---|---|
-| `CI` (`ci.yml`) | push ke `main`, PR, manual | gitleaks seluruh riwayat dan pohon kerja; lint, typecheck, paritas kunci terjemahan, gerbang konfigurasi tablet, Jest; build APK, IPA, E2E emulator |
-| `Build` (`build.yml`) | dipanggil CI dan Release | APK release x86_64 untuk E2E (setiap run) serta APK release universal empat ABI dan APK release `arm64-v8a` (hanya `main`, tag, dan run manual), semuanya bertanda tangan dan diverifikasi sidik jari sertifikatnya dan dicek isi `lib/<abi>`-nya; IPA tanpa tanda tangan (`xcodebuild`, runner macOS `xcode-27`), pindai rahasia di bundle JS, gerbang performa, E2E Maestro di emulator Android (ponsel dan tablet, portrait dan landscape, `en-US` dan `id-ID`, paralel), E2E APK universal di tag, rekaman dan screenshot per sel |
-| `iPad trial` (`ipad-trial.yml`) | push ke `main`, tag `v*`, manual | percobaan simulator iPad `en-US`, di luar CI utama agar run CI tidak menunggu iPad; run baru pada ref yang sama membatalkan run lama |
-| `Release` (`release.yml`) | tag `v*` | tolak tag yang tidak menunjuk commit di `main`, gitleaks seluruh riwayat, build, lalu draf GitHub Release berisi APK, IPA, dan `SHA256SUMS.txt`. APK dan IPA diunduh kembali dari draf itu: checksum, konfigurasi rotasi, multi-window, dan iPad di dalam berkasnya (`scripts/check-release-artifacts.py`), gitleaks atas isi APK dan IPA yang dibongkar, lalu APK dipasang di emulator baru (tanpa snapshot) di kedelapan sel ponsel dan tablet. Release baru dibuka bila semuanya lolos; run ulang setelah gagal memakai draf yang sama |
-| `gitleaks push` (`gitleaks.yml`) | push ke cabang selain `main` dan setiap tag | gitleaks seluruh riwayat dan pohon kerja |
-
-Artefak E2E hanya diunggah bila gitleaks bersih.
-
-Artefak per run: `e2e-apk-x86_64` (APK yang diuji E2E), `kaitech-android-apk` (APK universal) dan `kaitech-android-apk-arm64-v8a` (APK `arm64-v8a`), keduanya hanya `main`, tag, dan run manual, `kaitech-ios-ipa`, `perf-android-x86_64`, `perf-android-universal`, `perf-android-arm64-v8a` dan `perf-ios` (angka gerbang performa), delapan `e2e-android-<ukuran>-<orientasi>-<locale>` (video, `screenshots/`, `display.txt`, JUnit, logcat, keluaran Maestro, `cold-start.txt` di sel ponsel portrait `en-US`). Run `iPad trial` mengunggah `e2e-ipad-en-US` (satu folder per sel, video `simctl`, `junit.xml`, keluaran Maestro, log konsol Maestro `maestro-console.log` (ditambah `maestro-console-attempt1.log` bila sel diulang), dan screenshot Maestro di `screenshots/`). Tag rilis menambah `e2e-android-universal-phone-portrait-en-US` dan delapan `e2e-android-release-<ukuran>-<orientasi>-<locale>` (APK yang diunduh dari draf Release, disimpan 90 hari).
-
-### Runner E2E Android
-
-Sel E2E Android tanpa akun yang layarnya di orientasi alami (ponsel portrait, tablet landscape) dijalankan [maestro-runner](https://github.com/devicelab-dev/maestro-runner) (`setup-maestro-runner`, versi dipin dengan SHA-256, driver `devicelab`), bukan Maestro CLI. Variabel repo `E2E_RUNNER` (`maestro-runner` atau `maestro`, bawaan `maestro-runner`) memilih runner untuk sel, sel APK universal di tag, dan sel rilis. Job `e2e android rows` tetap Maestro CLI kecuali `E2E_RUNNER_ROWS=maestro-runner`: di run 45039148320 rows-chat lulus dengan maestro-runner, tetapi rows-discovery (`row-action-edit` tidak tampil dalam 5 detik) dan rows-mom (`row-action-remove` masih tampil saat `assertNotVisible`) gagal di ponsel. Kembali ke Maestro CLI cukup dengan mengubah variabel itu, tanpa PR. Sel yang layarnya diputar dari orientasi alaminya (ponsel landscape, tablet portrait, termasuk rows tablet) selalu memakai Maestro CLI lewat `runner` di matriks: driver `devicelab` 1.1.31 hanya memutar ukuran layar setelah `setOrientation`, bukan setelah `cmd window user-rotation lock`, sehingga semua tap di sel itu ditolak sebagai "element rect not tappable" (run 45039148320). Uji A/B di emulator yang sama (welcome, sign-in-form, dan kontrol negatif yang wajib gagal; run 45031368763, 45032009631, 45032023342, 45032703311): hasil dan langkah gagal sama di kedua runner, waktu total 44 sampai 58 persen lebih singkat, memori proses runner di host 25 MB lawan 300 sampai 430 MB. Agen on-device `devicelab` berlisensi biner tertutup (gratis, termasuk komersial, tidak boleh dimodifikasi); `--driver uiautomator2` adalah alternatif terbuka (32 persen lebih singkat di satu run).
-
-Telemetri dan cek pembaruan maestro-runner mati di setiap job: `MAESTRO_RUNNER_NO_TELEMETRY=1`, `DO_NOT_TRACK=1`, `MAESTRO_RUNNER_NO_UPDATE_CHECK=1`, host `open.devicelab.dev` diarahkan ke `0.0.0.0`, dan `MAESTRO_RUNNER_TELEMETRY_DEBUG=1` membuat event yang mungkin terbangun dicetak alih-alih dikirim; `scripts/e2e-android.sh` menggagalkan sel bila cetakan itu muncul. Screenshot `takeScreenshot` diambil dari aset laporan (`cmd-NNN-<nama>.png`, nama dikembalikan), jadi `check-screenshots.mjs` tetap memeriksa nama dan orientasi. Di job rows, screenshot langkah gagal hanya diambil dari keluaran Maestro CLI, karena nama berkas maestro-runner tidak menyebut langkah masuk. Cek sintaks alur di job `lint, typecheck, unit` dan iPad trial tetap memakai Maestro CLI.
-
-### Jalur cepat dan cache
-
-E2E Android hanya butuh APK x86_64, jadi job `android apk x86_64 (e2e)` membangun satu ABI dan sel E2E mulai begitu job itu selesai. APK yang dirilis adalah APK universal empat ABI dari job `android apk` dan APK `arm64-v8a` dari job `android apk arm64-v8a`; keduanya jalan paralel hanya di `main`, tag, dan run manual (`workflow_dispatch`, untuk mengukur ukuran sebelum merge); di PR kedua job itu dilewati (status cek tetap lolos). Akibatnya, di PR kompilasi `arm64-v8a`, `armeabi-v7a`, dan `x86` baru terjadi setelah merge. Tag rilis menjalankan satu sel E2E (ponsel portrait `en-US`) atas APK universal sebelum GitHub Release dibuat. Emulator runner berarsitektur x86_64, jadi APK `arm64-v8a` dibuktikan lewat cek ABI (isi `lib/` hanya `arm64-v8a`), sertifikat, dan checksum yang sama dengan berkas di Release, bukan lewat pemasangan.
-
-Cache, semuanya ditulis hanya di luar `pull_request` (push ke `main`, tag, run manual) dan dibaca PR:
-
-| Cache | Isi | Kunci |
-|---|---|---|
-| Gradle (`setup-gradle`) | dependensi, wrapper, build cache Gradle (`--build-cache`) | dikelola action |
-| `ccache-android-<varian>-…` | hasil compile C/C++ NDK lewat `ccache` (`CMAKE_C*_COMPILER_LAUNCHER`) | hash `package-lock.json`, `app.json`, `app.config.ts` |
-| `ios-downloads-…` | unduhan CocoaPods dan artefak prebuilt React Native/Hermes | hash yang sama |
-
-Yang diukur lalu tidak dipakai: cache system image emulator dan snapshot AVD (memulihkannya selama mengunduh dan boot dingin, sementara ukurannya 3 sampai 5 GB dari kuota cache repo 10 GB), ccache iOS (React Native core dan modul Expo sudah prebuilt, jadi tidak ada panggilan compiler C yang bisa di-cache), dan image container prebuilt (yang bisa dimasukkan hanya Maestro dan gitleaks, sekitar 10 detik per job).
-
-### Gerbang performa
-
-`scripts/perf-gate.mjs` membandingkan angka setiap run dengan `perf/baseline.json` dan menggagalkan job bila satu angka naik melewati `maxIncrease`-nya:
-
-| Angka | Diukur di job | Cara |
-|---|---|---|
-| `android.apk_x86_64_bytes`, `android.apk_universal_bytes`, `android.apk_arm64-v8a_bytes` | `android apk x86_64 (e2e)`, `android apk`, `android apk arm64-v8a` | ukuran berkas APK |
-| `android.js_bundle_bytes` | setiap job APK | `assets/index.android.bundle` |
-| `ios.ipa_bytes`, `ios.js_bundle_bytes` | `ios ipa (unsigned)` | ukuran IPA dan `main.jsbundle` |
-| `android.cold_start_ms` | sel E2E ponsel portrait `en-US` | median `TotalTime` dari 5 kali `adb shell am start -W -S`, setelah satu peluncuran pemanasan |
-
-Ambang ukuran 15 persen: di SHA yang sama ukurannya tidak berubah antar-run, jadi kenaikan berarti perubahan nyata. Ambang cold start 100 persen karena median antar-run di emulator runner bersama berbeda jauh (965 sampai 1641 ms di sembilan run, termasuk empat run di SHA yang sama), jadi gerbang ini hanya menangkap cold start yang naik sampai dua kali lipat; angkanya dan run sumbernya tercatat di `source` tiap entri. Perubahan yang memang disengaja memperbarui `perf/baseline.json` di PR yang sama, dengan alasan di deskripsi PR.
-
-Rilis: naikkan `version` di `app.json` lewat PR, lalu setelah merge `git tag v<versi> && git push origin v<versi>` di commit `main` itu.
-
-### Secret GitHub
-
-| Secret | Wajib | Guna |
-|---|---|---|
-| `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | untuk rilis | tanda tangan APK dengan keystore non-toko |
-| `GOOGLE_SERVICES_JSON` | tidak | isi `google-services.json` (FCM). Tanpa secret ini build tetap hijau dan push Android mati. |
-
-Nilai secret tidak pernah ditulis ke repo, log, atau artefak. Berkas kredensial ditolak `.gitignore`.
-
-Secret scanning dan push protection GitHub aktif, jadi push yang berisi rahasia dikenal ditolak sebelum masuk. Action pihak ketiga wajib dipin ke SHA commit (aturan repo). PR dari fork berjalan tanpa secret (APK bertanda tangan kunci debug, push mati) dan harus disetujui pemilik repo sebelum workflow jalan. Token workflow default hanya baca. Workflow rilis hanya jalan dari tag di repo ini.
-
-Jangan pernah menulis alamat server lab0 nyata, token, nama database, atau data nyata ke repo. Server bawaan datang dari variabel repo saat build, server lain dari isian pengguna; contoh dan fixture memakai data karangan.
+| `CI` (`ci.yml`) | push ke `main`, PR, manual | gerbang merge cepat di Linux: `gitleaks diff`, `lint`, `typecheck`, `unit` |
+| `E2E` (`e2e.yml`) | merge ke `main` dan PR berlabel `run-e2e` (smoke), tiap malam 19:00 UTC (penuh), manual | emulator Android dan simulator iPad, APK dibangun ulang hanya bila fingerprint native berubah |
+| `Release` (`release.yml`) | tag `v*`, manual | gitleaks seluruh riwayat, APK, IPA, GitHub Release |
 
 ## Pengembangan
 
@@ -267,7 +215,7 @@ Superapp harus responsif di ponsel dan tablet, Android dan iOS, portrait dan lan
 |---|---|---|---|---|---|---|
 | Android 15 (API 35) | `phone` | emulator profil `pixel_6` | 411 dp (compact) / 914 dp | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
 | Android 15 (API 35) | `tablet` | emulator profil `pixel_tablet` (10 inci) | 800 dp (medium) / 1280 dp (expanded) | portrait, landscape | `en-US`, `id-ID` | wajib hijau |
-| iPadOS (runtime simulator terbaru di runner `xcode-27`) | `tablet` | simulator iPad Pro 13 inci (atau iPad lain bila tidak ada) | lihat `simulator.txt` | portrait, landscape | `en-US` | percobaan di workflow `iPad trial` (push `main`, tag, manual), tidak memblokir (`continue-on-error`); driver XCTest Maestro diberi waktu start 10 menit (`MAESTRO_DRIVER_STARTUP_TIMEOUT=600000`) dan sel diulang sekali hanya bila gagal dengan `IOSDriverTimeoutException` |
+| iPadOS (runtime simulator terbaru di runner `macos-15`) | `tablet` | simulator iPad Pro 13 inci (atau iPad lain bila tidak ada) | lihat `simulator.txt` | portrait, landscape | `en-US` | job `ipad simulator en-US` di run penuh workflow `E2E` (tiap malam, manual), tidak memblokir merge; driver XCTest Maestro diberi waktu start 10 menit (`MAESTRO_DRIVER_STARTUP_TIMEOUT=600000`) dan sel diulang sekali hanya bila gagal dengan `IOSDriverTimeoutException` |
 
 Orientasi Android diatur lewat `user_rotation` dengan memperhitungkan orientasi alami panel (tablet alami landscape); iPad memakai `setOrientation` Maestro di hook `onFlowStart` (`.maestro/shared/orientation.yaml`), karena runner XCTest Maestro mengembalikan simulator ke portrait setiap sesi baru. Setiap alur baru wajib memuat hook itu:
 
@@ -276,7 +224,7 @@ onFlowStart:
   - runFlow: shared/orientation.yaml
 ```
 
-Di Android hook itu tidak melakukan apa-apa. Ukuran panel, density, dan rotasi tiap sel dicatat di `display.txt`. Pemeriksaan status `e2e android en-US` dan `e2e android id-ID` di branch protection hijau hanya bila kedelapan sel Android hijau. Simulator iPad tidak butuh tanda tangan atau akun Apple; perangkat iPad asli belum diuji.
+Di Android hook itu tidak melakukan apa-apa. Ukuran panel, density, dan rotasi tiap sel dicatat di `display.txt`. Simulator iPad tidak butuh tanda tangan atau akun Apple; perangkat iPad asli belum diuji.
 
 Screenshot dinamai `<layar>-<ukuran>-<orientasi>-<bahasa>.png`, misalnya `launch-tablet-landscape-id.png`, lewat subflow bersama:
 
@@ -337,7 +285,7 @@ Sematkan dan arsip percakapan Chat hanya muncul bila server mengirim `pinned` da
 
 Alur `signed-in/rows-chat.yaml`, `rows-discovery.yaml`, dan `rows-mom.yaml` membuat data ujinya sendiri lewat akun web (grup baru, percakapan Coworker kosong, rekaman pendek) lalu membuktikan tahan lama, kedua sisi geser, Urungkan, dan efeknya di server. Variabel tambahan selain milik `chat.yaml`: `-e PROGRAMME=<id Program uji> -e SEARCH=<kata> -e HIDE_DIRECT=true` (yang terakhir menghapus chat pribadi dengan akun web lalu menunggu ia muncul lagi; hanya satu sel yang boleh menjalankannya pada satu waktu).
 
-Di CI job `e2e android rows` menjalankan ketiga alur itu di ponsel dan tablet, id-ID dan en-US, memakai secret `KAITECH_E2E_LOGIN`, `KAITECH_E2E_PASSWORD`, `KAITECH_E2E_WEB_LOGIN`, `KAITECH_E2E_WEB_PASSWORD` dan variabel `KAITECH_E2E_CHANNEL_ID`, `KAITECH_E2E_PEER`, `KAITECH_E2E_PROGRAMME`, `KAITECH_E2E_SEARCH`. Job ini hanya jalan pada push dan PR dari branch repo ini, tidak dari fork. Karena repo publik, keluarannya tidak membawa rekaman, log aplikasi, atau log Maestro: hanya `junit.xml`, berkas teks perangkat, tangkapan layar alur, dan tangkapan layar langkah yang gagal kecuali langkah masuk (yang bisa memperlihatkan login akun uji), dan job gagal tanpa mengunggah apa pun bila salah satu nilai akun uji ditemukan di keluaran. Keempat sel itu memakai satu akun uji, jadi job pemanggil `e2e-android-rows` (workflow `e2e-android.yml`) berada di grup concurrency `kaitech-e2e-account` (`queue: max`): keempat sel satu run jalan bersamaan, dan sel rows run lain, termasuk run PR lain, antre sampai run itu selesai. Job lain yang masuk dengan akun uji yang sama wajib memakai grup itu juga; tanpa itu panggilan, pesan, dan baris dari job lain muncul di layar sel yang sedang jalan (run 45011416923: panggilan video masuk dari job call PR lain menutupi layar tiga sel).
+Di CI job `e2e android rows` menjalankan ketiga alur itu di ponsel dan tablet, id-ID dan en-US, memakai secret `KAITECH_E2E_LOGIN`, `KAITECH_E2E_PASSWORD`, `KAITECH_E2E_WEB_LOGIN`, `KAITECH_E2E_WEB_PASSWORD` dan variabel `KAITECH_E2E_CHANNEL_ID`, `KAITECH_E2E_PEER`, `KAITECH_E2E_PROGRAMME`, `KAITECH_E2E_SEARCH`. Job ini hanya jalan di run penuh (tiap malam dan manual), tidak di PR. Karena repo publik, keluarannya tidak membawa rekaman, log aplikasi, atau log Maestro: hanya `junit.xml`, berkas teks perangkat, tangkapan layar alur, dan tangkapan layar langkah yang gagal kecuali langkah masuk (yang bisa memperlihatkan login akun uji), dan job gagal tanpa mengunggah apa pun bila salah satu nilai akun uji ditemukan di keluaran. Sel-sel itu memakai satu akun uji, jadi run penuh workflow `E2E` berada di grup concurrency `kaitech-e2e-account`: sel rows satu run jalan bersamaan, dan run penuh lain antre sampai run itu selesai. Job lain yang masuk dengan akun uji yang sama wajib memakai grup itu juga; tanpa itu panggilan, pesan, dan baris dari job lain muncul di layar sel yang sedang jalan (run 45011416923: panggilan video masuk dari job call PR lain menutupi layar tiga sel).
 
 ## Lisensi
 
