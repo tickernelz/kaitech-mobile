@@ -31,7 +31,7 @@ export default function appConfig({ config }: ConfigContext): ExpoConfig {
     ios: {
       ...config.ios,
       buildNumber: String(build),
-      ...(host ? { associatedDomains: [`applinks:${host}`] } : {}),
+      ...(host ? { associatedDomains: [`applinks:${host}`, `webcredentials:${host}`] } : {}),
     },
     android: {
       ...config.android,
