@@ -320,39 +320,23 @@ jobs:
         {"size": "phone", "locale": "en-US", "hide_direct": "true"}]}
 
   e2e-android-mom:
-    name: e2e android mom ${{ matrix.size }} ${{ matrix.locale }}
+    name: e2e android mom
     needs: android-e2e
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 75
-    env:
-      E2E_APK_ARTIFACT: e2e-apk-x86_64
-      E2E_LABEL: mom-
-      E2E_FLOWS: .maestro/signed-in/mom-more.yaml .maestro/signed-in/mom-followups.yaml .maestro/signed-in/mom-final.yaml .maestro/signed-in/mom-minutes.yaml .maestro/signed-in/mom-editor.yaml .maestro/signed-in/mom-workspace.yaml
-      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
-      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
-      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
-      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
-      E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
-      E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
-      E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
-      E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
-      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
-      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
-      E2E_MINUTES_NAME: Kickoff Payroll
-      E2E_FOLLOWUP_OWNER: '183'
-    strategy:
-      fail-fast: false
-      matrix:
-        size: [phone, tablet]
-        orientation: [portrait]
-        locale: [en-US, id-ID]
-        include:
-          - size: phone
-            profile: pixel_6
-          - size: tablet
-            profile: pixel_tablet
-    steps: *e2e-android-steps
+    concurrency:
+      group: kaitech-e2e-account
+      cancel-in-progress: false
+      queue: max
+    uses: ./.github/workflows/e2e-android.yml
+    secrets: inherit
+    with:
+      label: mom-
+      apk-artifact: e2e-apk-x86_64
+      flows: .maestro/signed-in/mom-more.yaml .maestro/signed-in/mom-followups.yaml .maestro/signed-in/mom-final.yaml .maestro/signed-in/mom-minutes.yaml .maestro/signed-in/mom-editor.yaml .maestro/signed-in/mom-workspace.yaml
+      matrix: >-
+        {"size": ["phone", "tablet"], "orientation": ["portrait"], "locale": ["en-US", "id-ID"],
+        "include": [{"size": "phone", "profile": "pixel_6"}, {"size": "tablet", "profile": "pixel_tablet"},
+        {"minutes_name": "Kickoff Payroll", "followup_owner": "183"}]}
 
   e2e-android-universal:
     name: e2e android universal apk

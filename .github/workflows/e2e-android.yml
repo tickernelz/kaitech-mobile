@@ -37,6 +37,8 @@ jobs:
       E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
       E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
       E2E_HIDE_DIRECT: ${{ matrix.hide_direct || 'false' }}
+      E2E_MINUTES_NAME: ${{ matrix.minutes_name || '' }}
+      E2E_FOLLOWUP_OWNER: ${{ matrix.followup_owner || '' }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(inputs.matrix) }}
