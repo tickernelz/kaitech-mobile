@@ -14,6 +14,7 @@ import { Row, Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
 
 const previewCount = 10;
+const pageCount = 20;
 
 export default function DeviceSettings() {
   const { t } = useTranslation();
@@ -25,8 +26,8 @@ export default function DeviceSettings() {
   const browsers = useResource('account.devices', devices, 30_000);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
-  const [allApps, setAllApps] = useState(false);
-  const [allBrowsers, setAllBrowsers] = useState(false);
+  const [appCount, setAppCount] = useState(previewCount);
+  const [browserCount, setBrowserCount] = useState(previewCount);
   if (!active) return null;
 
   const guard = async (work: () => Promise<unknown>) => {
@@ -69,8 +70,8 @@ export default function DeviceSettings() {
     ]);
 
   const others = (apps.data ?? []).filter((device) => !device.current);
-  const shownApps = allApps ? (apps.data ?? []) : (apps.data ?? []).slice(0, previewCount);
-  const shownBrowsers = allBrowsers ? (browsers.data ?? []) : (browsers.data ?? []).slice(0, previewCount);
+  const shownApps = (apps.data ?? []).slice(0, appCount);
+  const shownBrowsers = (browsers.data ?? []).slice(0, browserCount);
   const moreApps = (apps.data?.length ?? 0) - shownApps.length;
   const moreBrowsers = (browsers.data?.length ?? 0) - shownBrowsers.length;
   return (
@@ -100,7 +101,7 @@ export default function DeviceSettings() {
         ) : (
           <StateView loading={apps.loading} error={apps.error} empty={{ title: t('security.devices.none'), icon: 'phone' }} onRetry={() => void apps.refresh()} testID="app-devices" />
         )}
-        {moreApps > 0 ? <Row title={t('security.devices.showMore', { count: moreApps })} tone="link" onPress={() => setAllApps(true)} testID="app-devices-more" /> : null}
+        {moreApps > 0 ? <Row title={t('security.devices.showMore', { count: Math.min(moreApps, pageCount) })} tone="link" onPress={() => setAppCount((count) => count + pageCount)} testID="app-devices-more" /> : null}
       </Section>
       {others.length ? (
         <Text variant="footnote" tone="inkSoft">
@@ -125,7 +126,7 @@ export default function DeviceSettings() {
         ) : (
           <StateView loading={browsers.loading} error={browsers.error} empty={{ title: t('security.devices.none'), icon: 'table' }} onRetry={() => void browsers.refresh()} testID="devices" />
         )}
-        {moreBrowsers > 0 ? <Row title={t('security.devices.showMore', { count: moreBrowsers })} tone="link" onPress={() => setAllBrowsers(true)} testID="devices-more" /> : null}
+        {moreBrowsers > 0 ? <Row title={t('security.devices.showMore', { count: Math.min(moreBrowsers, pageCount) })} tone="link" onPress={() => setBrowserCount((count) => count + pageCount)} testID="devices-more" /> : null}
       </Section>
       <Text variant="footnote" tone="inkSoft">
         {t('security.devices.browsersHint')}
