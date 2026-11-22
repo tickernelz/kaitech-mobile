@@ -221,7 +221,7 @@ export function makeTask(input: { messageId: number; name: string; description: 
   });
 }
 
-export type ActivityDraft = { summary: string; note: string; types: Person[] };
+export type ActivityDraft = { summary: string; note: string; types: Person[]; context: Record<string, unknown> };
 
 export function activityDraft(messageId: number) {
   return run(async (account): Promise<ActivityDraft> => {
@@ -232,21 +232,28 @@ export function activityDraft(messageId: number) {
       summary: typeof context.default_summary === 'string' ? context.default_summary : '',
       note: typeof context.default_note === 'string' ? context.default_note : '',
       types: people(types),
+      context,
     };
   });
 }
 
-export function makeActivity(input: { summary: string; note: string; typeId: number | null; deadline: number }) {
+export function makeActivity(input: { summary: string; note: string; typeId: number | null; deadline: number; context: Record<string, unknown> }) {
   return run(async (account) => {
-    const id = await rpc<number>(account, 'mail.activity.schedule', 'create', [
-      {
-        summary: input.summary,
-        note: input.note,
-        date_deadline: odooDate(input.deadline),
-        ...(input.typeId ? { activity_type_id: input.typeId } : {}),
-      },
-    ]);
-    await rpc(account, 'mail.activity.schedule', 'action_schedule_activities', [[id]]);
+    const id = await rpc<number>(
+      account,
+      'mail.activity.schedule',
+      'create',
+      [
+        {
+          summary: input.summary,
+          note: input.note,
+          date_deadline: odooDate(input.deadline),
+          ...(input.typeId ? { activity_type_id: input.typeId } : {}),
+        },
+      ],
+      { context: input.context },
+    );
+    await rpc(account, 'mail.activity.schedule', 'action_schedule_activities', [[id]], { context: input.context });
   });
 }
 

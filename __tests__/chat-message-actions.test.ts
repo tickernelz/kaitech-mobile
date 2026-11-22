@@ -1,7 +1,7 @@
 import { searchEmoji } from '../src/features/chat/emoji/emoji';
 import { featuresFromSession, hasFeature } from '../src/features/chat/features';
 import { editableSource } from '../src/features/chat/markdown';
-import { mentionsInBody, odooDate, odooDatetime } from '../src/features/chat/messageActions';
+import { activityDraft, makeActivity, mentionsInBody, odooDate, odooDatetime } from '../src/features/chat/messageActions';
 import { messageOptions } from '../src/features/chat/messageOptions';
 import type { Message } from '../src/features/chat/types';
 import { editedBody, isRemoved, messagePatches, messagesFromStore, reactionUpdates } from '../src/features/chat/odoo';
@@ -171,6 +171,49 @@ describe('which message actions the sheet offers', () => {
   it('does not offer a thread inside a chat or a thread', () => {
     expect(messageOptions(base, { ...context, channelType: 'chat' }).thread).toBe(false);
     expect(messageOptions(base, { ...context, inSubThread: true }).thread).toBe(false);
+  });
+});
+
+
+describe('activity from a message keeps the server context', () => {
+  const { rpc } = jest.requireMock('../src/api/odoo') as { rpc: jest.Mock };
+  const chat = jest.requireMock('../src/features/chat/chat') as { chatClient: () => unknown };
+
+  it('sends default_activity_user_id from kaitech_chat_activity_action to the wizard', async () => {
+    (chat as { chatClient: () => unknown }).chatClient = () => ({ account: { id: 'a' } });
+    rpc.mockReset();
+    rpc.mockImplementation(async (_account: unknown, model: string, method: string) => {
+      if (method === 'kaitech_chat_activity_action') return { context: { default_summary: 'Cek', default_note: '<p>n</p>', default_activity_user_id: 992 } };
+      if (model === 'mail.activity.type') return [{ id: 4, name: 'To-Do' }];
+      if (method === 'create') return 77;
+      return true;
+    });
+    const draft = await activityDraft(5);
+    expect(draft.ok).toBe(true);
+    if (!draft.ok) return;
+    const done = await makeActivity({ summary: 'Cek', note: draft.value.note, typeId: 4, deadline: Date.UTC(2026, 10, 23, 5), context: draft.value.context });
+    expect(done.ok).toBe(true);
+    const create = rpc.mock.calls.find((call) => call[1] === 'mail.activity.schedule' && call[2] === 'create');
+    const schedule = rpc.mock.calls.find((call) => call[2] === 'action_schedule_activities');
+    expect(create?.[4]).toEqual({ context: expect.objectContaining({ default_activity_user_id: 992 }) });
+    expect(schedule?.[4]).toEqual({ context: expect.objectContaining({ default_activity_user_id: 992 }) });
+  });
+});
+
+describe('reaction chips keep their place', () => {
+  it('updates the count of an existing emoji where it stands', () => {
+    const current = () => [
+      { content: 'a', count: 1, mine: false },
+      { content: 'b', count: 1, mine: false },
+    ];
+    const answer = {
+      MessageReactions: [{ content: 'a', count: 2, guests: [], message: 7, partners: [3, 4] }],
+      'mail.message': [{ id: 7, reactions: [['ADD', [{ message: 7, content: 'a' }]]] }],
+    };
+    expect(reactionUpdates(answer, 3, current).get(7)?.map((reaction) => [reaction.content, reaction.count])).toEqual([
+      ['a', 2],
+      ['b', 1],
+    ]);
   });
 });
 
