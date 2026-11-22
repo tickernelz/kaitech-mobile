@@ -154,7 +154,8 @@ onFlowStart:
 - extendedWaitUntil:
     visible:
       id: thread-notice
-    timeout: 15000
+    timeout: 4000
+    optional: true
 - runFlow:
     when:
       true: ${MAKE_TASK == 'yes'}
@@ -182,7 +183,8 @@ onFlowStart:
       - extendedWaitUntil:
           visible:
             id: thread-notice
-          timeout: 15000
+          timeout: 4000
+          optional: true
 - longPressOn:
     text: ${RUN + ' a1 edited.*'}
 - tapOn:
@@ -206,7 +208,8 @@ onFlowStart:
 - extendedWaitUntil:
     visible:
       id: thread-notice
-    timeout: 15000
+    timeout: 4000
+    optional: true
 - runFlow:
     when:
       true: ${MEETING == 'yes'}
@@ -238,7 +241,8 @@ onFlowStart:
       - extendedWaitUntil:
           visible:
             id: thread-notice
-          timeout: 15000
+          timeout: 4000
+          optional: true
 - longPressOn:
     text: ${RUN + ' a1 edited.*'}
 - tapOn:
@@ -280,7 +284,7 @@ onFlowStart:
       SCREEN: a10-deleted
 - runScript:
     file: ../scripts/actions-peer.js
-- assertTrue: ${output.actions.edited == 1 && output.actions.removed == 1 && output.actions.pinned == 1 && output.actions.reacted == 1 && output.actions.forwarded == 1}
+- assertTrue: ${output.actions.edited == 1 && output.actions.removed == 1 && output.actions.pinned == 1 && output.actions.reacted == 1 && output.actions.forwarded == 1 && output.actions.activity == 1}
 - longPressOn:
     text: ${RUN + ' a1 edited.*'}
 - tapOn:

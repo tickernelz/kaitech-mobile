@@ -45,11 +45,21 @@ var forwarded = rpc('/web/dataset/call_kw/mail.message/search_count', {
   kwargs: {},
 }, cookie).result;
 
-console.log('actions ' + JSON.stringify({ edited: edited.length, reactions: reactions.length, removed: removed.length, forwarded: forwarded }));
+var asker = rpc('/web/session/authenticate', { db: DB, login: LOGIN, password: PASSWORD });
+var askerRaw = asker.headers['Set-Cookie'] || asker.headers['set-cookie'] || '';
+var askerCookie = 'session_id=' + (/session_id=([^;]+)/.exec(String(askerRaw)) || [])[1];
+var activities = rpc('/web/dataset/call_kw/mail.activity/search_count', {
+  model: 'mail.activity',
+  method: 'search_count',
+  args: [[['summary', 'ilike', RUN + ' a1']]],
+  kwargs: {},
+}, askerCookie).result;
 output.actions = {
   edited: edited.length,
   pinned: mine.length && mine[0].pinned_at ? 1 : 0,
   reacted: reactions.length ? 1 : 0,
   removed: removed.length ? 1 : 0,
   forwarded: forwarded > 0 ? 1 : 0,
+  activity: activities > 0 ? 1 : 0,
 };
+console.log('actions ' + JSON.stringify(output.actions));
