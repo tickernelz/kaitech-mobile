@@ -79,7 +79,13 @@
     "close": "Tutup",
     "shareInstead": "Bagikan",
     "table": "Tabel, {{columns}} kolom dan {{rows}} baris. Geser ke samping untuk melihat semuanya.",
-    "background": "Latar chat"
+    "background": "Latar chat",
+    "removed": "Pesan ini sudah dihapus",
+    "edited": "diedit",
+    "pinned": "Disematkan",
+    "starred": "Berbintang",
+    "translatedFrom": "Diterjemahkan dari {{lang}}",
+    "translated": "Diterjemahkan"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",
@@ -118,7 +124,10 @@
       "hide": "Sembunyikan format",
       "show": "Tampilkan format",
       "glyph": "Aa"
-    }
+    },
+    "editing": "Mengedit pesan",
+    "cancelEdit": "Batalkan edit",
+    "saveEdit": "Simpan perubahan"
   },
   "permissions": {
     "cameraTitle": "Akses kamera tidak aktif",
@@ -142,7 +151,24 @@
     "react": "Beri reaksi {{emoji}}",
     "readBy_one": "Dibaca {{count}} orang",
     "readBy_other": "Dibaca {{count}} orang",
-    "notRead": "Belum dibaca"
+    "notRead": "Belum dibaca",
+    "forward": "Teruskan",
+    "edit": "Edit",
+    "delete": "Hapus",
+    "more": "Lainnya",
+    "moreEmoji": "Reaksi lain",
+    "pin": "Sematkan",
+    "unpin": "Lepas sematan",
+    "star": "Beri bintang",
+    "unstar": "Hapus bintang",
+    "unread": "Tandai belum dibaca",
+    "link": "Salin tautan",
+    "task": "Jadikan task",
+    "activity": "Jadikan aktivitas",
+    "meeting": "Jadwalkan rapat",
+    "reactions": "Siapa yang bereaksi",
+    "translate": "Terjemahkan",
+    "original": "Tampilkan asli"
   },
   "push": {
     "channel": "Pesan"
@@ -182,5 +208,104 @@
     "archivedTitle": "Arsip",
     "archivedEmpty": "Belum ada percakapan yang diarsipkan.",
     "failed": "Gagal mengubah. Coba lagi."
+  },
+  "act": {
+    "copied": "Teks disalin",
+    "linkCopied": "Tautan disalin",
+    "pinned": "Pesan disematkan",
+    "unpinned": "Sematan dilepas",
+    "starred": "Pesan diberi bintang",
+    "unstarred": "Bintang dihapus",
+    "markedUnread": "Ditandai belum dibaca",
+    "deleteTitle": "Hapus pesan ini?",
+    "deleteBody": "Semua orang di percakapan ini akan melihat bahwa pesan ini dihapus.",
+    "cancel": "Batal",
+    "failed": "Belum berhasil. Coba lagi.",
+    "forbidden": "Anda tidak punya akses untuk itu.",
+    "noTranslation": "Pesan ini sudah dalam bahasa Anda."
+  },
+  "emoji": {
+    "title": "Reaksi",
+    "search": "Cari emoji",
+    "none": "Emoji tidak ditemukan",
+    "category": {
+      "recent": "Terakhir",
+      "smileys": "Wajah",
+      "people": "Orang",
+      "nature": "Alam",
+      "food": "Makanan",
+      "travel": "Perjalanan",
+      "activities": "Aktivitas",
+      "objects": "Benda",
+      "symbols": "Simbol"
+    }
+  },
+  "when": {
+    "today": "Hari ini",
+    "tomorrow": "Besok",
+    "none": "Tanpa tanggal"
+  },
+  "pick": {
+    "remove": "Hapus {{name}}"
+  },
+  "reactions": {
+    "title": "Siapa yang bereaksi",
+    "count_one": "{{count}} orang",
+    "count_other": "{{count}} orang"
+  },
+  "readers": {
+    "title": "Dibaca oleh",
+    "read": "{{count}} dari {{total}} sudah membaca",
+    "notYet_one": "{{count}} belum membaca",
+    "notYet_other": "{{count}} belum membaca",
+    "more_one": "Dan {{count}} lainnya",
+    "more_other": "Dan {{count}} lainnya"
+  },
+  "forward": {
+    "title": "Teruskan",
+    "picked_one": "{{count}} pesan dipilih",
+    "picked_other": "{{count}} pesan dipilih",
+    "pickMore": "Ketuk untuk menambah pesan di sekitarnya",
+    "to": "Kirim ke",
+    "search": "Cari percakapan",
+    "noTargets": "Tidak ada percakapan yang cocok.",
+    "send_one": "Teruskan {{count}} pesan",
+    "send_other": "Teruskan {{count}} pesan",
+    "done_one": "{{count}} pesan diteruskan ke {{name}}",
+    "done_other": "{{count}} pesan diteruskan ke {{name}}"
+  },
+  "task": {
+    "title": "Jadikan task",
+    "name": "Judul",
+    "project": "Proyek",
+    "projectSearch": "Cari proyek",
+    "private": "Tanpa proyek, task ini pribadi.",
+    "assignees": "Penanggung jawab",
+    "assigneeSearch": "Tambah penanggung jawab",
+    "deadline": "Tenggat",
+    "create": "Buat task",
+    "done": "Task {{name}} dibuat"
+  },
+  "activity": {
+    "title": "Jadikan aktivitas",
+    "summary": "Ringkasan",
+    "type": "Jenis",
+    "due": "Jatuh tempo",
+    "create": "Jadwalkan",
+    "done": "Aktivitas dijadwalkan"
+  },
+  "meeting": {
+    "title": "Jadwalkan rapat",
+    "name": "Judul",
+    "attendees": "Peserta",
+    "addAttendee": "Tambah orang dari percakapan ini",
+    "duration": "Durasi",
+    "minutes_one": "{{count}} mnt",
+    "minutes_other": "{{count}} mnt",
+    "free": "Semua orang kosong",
+    "start": "Mulai",
+    "busy": "Sedang sibuk: {{names}}",
+    "schedule": "Jadwalkan",
+    "done": "Rapat dijadwalkan {{when}}"
   }
 }

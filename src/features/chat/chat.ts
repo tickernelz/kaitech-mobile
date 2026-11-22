@@ -21,16 +21,19 @@ import {
   fullMessages,
   lastMessageOf,
   membersFromStore,
+  messagePatches,
   messagesFromStore,
+  type MessagePatch,
   reactionUpdates,
   seenFromStore,
   subChannelsFromStore,
   typingFromStore,
   type ChannelInfo,
 } from './odoo';
+import { featuresFromSession, noFeatures, type ChatFeatures } from './features';
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
-import type { Conversation, Member, Mention, Message, Pending, PendingFile } from './types';
+import type { Conversation, Member, Mention, Message, Pending, PendingFile, Reaction } from './types';
 import { setUploadProgress } from './progress';
 import { onPresenceChange, userInApp } from '../call/presence';
 import { notePhotoList, notePhotos } from '../people/photos';
@@ -74,6 +77,7 @@ export type ChatState = {
   archived: Conversation[] | null;
   archivedCursor: string | null;
   archivedLoading: boolean;
+  features: ChatFeatures;
 };
 
 const emptyThread: Thread = { messages: [], loading: false, loaded: false, hasOlder: true, loadingOlder: false, error: null, members: [], typing: [], hasNewer: false, info: null, subChannels: {} };
@@ -100,6 +104,7 @@ let state: ChatState = {
   archived: null,
   archivedCursor: null,
   archivedLoading: false,
+  features: noFeatures,
 };
 
 const listeners = new Set<() => void>();
@@ -184,6 +189,21 @@ function delivered(sent: Sent) {
   void fetchNewer(pending.channelId);
 }
 
+export function patchMessages(patches: Map<number, MessagePatch>) {
+  if (!patches.size) return;
+  let threads: Record<number, Thread> | null = null;
+  for (const [key, thread] of Object.entries(state.threads)) {
+    if (!thread.messages.some((message) => patches.has(message.id))) continue;
+    const messages = thread.messages.map((message) => {
+      const patch = patches.get(message.id);
+      return patch ? { ...message, ...patch } : message;
+    });
+    threads = { ...(threads ?? state.threads), [Number(key)]: { ...thread, messages } };
+    if (state.accountId) void storeMessages(state.accountId, Number(key), messages.filter((message) => patches.has(message.id)));
+  }
+  if (threads) set({ threads });
+}
+
 function upsertMessages(channelId: number, incoming: Message[]) {
   if (!incoming.length || !state.accountId) return;
   const arrived = new Set(incoming.map((message) => message.id));
@@ -253,12 +273,19 @@ function onNotifications(notifications: Notification[]) {
       if (active && state.openChannels.includes(channelId)) scheduleRead(channelId);
       continue;
     }
+    if (notification.type === 'mail.message/toggle_star') {
+      const payload = notification.payload as { message_ids?: unknown; starred?: unknown };
+      const ids = Array.isArray(payload.message_ids) ? payload.message_ids.filter((item): item is number => typeof item === 'number') : [];
+      patchMessages(new Map(ids.map((messageId) => [messageId, { starred: payload.starred === true }])));
+      continue;
+    }
     if (notification.type !== 'mail.record/insert') continue;
     const data = notification.payload;
+    patchMessages(messagePatches(data));
     for (const message of fullMessages(data, state.partnerId)) {
       if (state.threads[message.channelId]?.messages.some((existing) => existing.id === message.id)) upsertMessages(message.channelId, [message]);
     }
-    const reactions = reactionUpdates(data, state.partnerId);
+    const reactions = reactionUpdates(data, state.partnerId, currentReactions);
     if (reactions.size) {
       const threads = { ...state.threads };
       for (const [channelId, thread] of Object.entries(threads)) {
@@ -324,6 +351,15 @@ function stop() {
   teardown = [];
 }
 
+async function loadFeatures(current: ChatClient) {
+  try {
+    const info = await current.sessionInfo();
+    if (client === current) set({ features: featuresFromSession(info) });
+  } catch {
+    return;
+  }
+}
+
 export function startChat(account: Account) {
   if (state.accountId === account.id && client) return;
   stop();
@@ -349,10 +385,12 @@ export function startChat(account: Account) {
     archived: null,
     archivedCursor: null,
     archivedLoading: false,
+    features: noFeatures,
   };
   leaving = new Set();
   listeners.forEach((listener) => listener());
   const current = client;
+  void loadFeatures(current);
   outbox = new Outbox(
     {
       upload: async (item: Pending, file: PendingFile) => {
@@ -426,7 +464,7 @@ export function startChat(account: Account) {
 export function stopChat() {
   stop();
   leaving = new Set();
-  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [], archivedSummary: null, archived: null, archivedCursor: null });
+  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [], archivedSummary: null, archived: null, archivedCursor: null, features: noFeatures });
 }
 
 onAccountForgotten((id) => {
@@ -689,21 +727,30 @@ export async function discardSend(key: string) {
   removed?.files.forEach((file) => dropFile(file.uri));
 }
 
-export async function toggleReaction(message: Message, content: string) {
+function currentReactions(messageId: number): Reaction[] | undefined {
+  for (const thread of Object.values(state.threads)) {
+    const found = thread.messages.find((message) => message.id === messageId);
+    if (found) return found.reactions;
+  }
+  return undefined;
+}
+
+export async function toggleReaction(message: Message, content: string): Promise<string | null> {
   const current = client;
-  if (!current) return;
+  if (!current) return 'signedOut';
   const existing = message.reactions.find((reaction) => reaction.content === content);
   const add = !existing?.mine;
   try {
     const data = await current.react(message.id, content, add);
-    const updates = reactionUpdates(data, state.partnerId);
+    const updates = reactionUpdates(data, state.partnerId, currentReactions);
     if (updates.has(message.id)) {
       patchThread(message.channelId, (thread) => ({
         messages: thread.messages.map((item) => (item.id === message.id ? { ...item, reactions: updates.get(message.id) ?? [] } : item)),
       }));
     }
-  } catch {
-    return;
+    return null;
+  } catch (error) {
+    return errorCode(error);
   }
 }
 

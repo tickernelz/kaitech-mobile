@@ -80,6 +80,10 @@ export class ChatClient {
     return route<Record<string, unknown>>(this.account, '/mail/data', { fetch_params: [['discuss.channel', [channelId]]] });
   }
 
+  sessionInfo() {
+    return route<Record<string, unknown>>(this.account, '/web/session/get_session_info', {});
+  }
+
   markAsRead(channelId: number, lastMessageId: number) {
     return route(this.account, '/discuss/channel/mark_as_read', { channel_id: channelId, last_message_id: lastMessageId });
   }
