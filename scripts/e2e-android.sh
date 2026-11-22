@@ -8,6 +8,12 @@ locale="${3:?$usage}"
 size="${4:?$usage}"
 orientation="${5:?$usage}"
 case "$orientation" in portrait | landscape) ;; *) echo "$usage" >&2; exit 2 ;; esac
+runner="${E2E_RUNNER:-maestro}"
+case "$runner" in
+  maestro) run=(maestro) ;;
+  maestro-runner) run=(maestro-runner --no-ansi --platform android --driver devicelab) ;;
+  *) echo "E2E_RUNNER must be maestro or maestro-runner, not $runner" >&2; exit 2 ;;
+esac
 language="${locale%%-*}"
 cell="$size-$orientation-$locale"
 mkdir -p "$out"
@@ -118,15 +124,24 @@ if [ -z "${E2E_LOGIN:-}" ]; then
   sleep 1
 fi
 
-status=0
-maestro test "${flows[@]}" \
+console="$(mktemp)"
+echo "runner: $runner" | tee -a "$out/display.txt"
+set +e
+"${run[@]}" test "${flows[@]}" \
   -e APP_LANGUAGE="$language" \
   -e DEVICE_SIZE="$size" \
   -e ORIENTATION="$orientation" \
   "${signed_in[@]}" \
   --format junit \
   --output "$out/junit.xml" \
-  --test-output-dir "$out/maestro" || status=$?
+  --test-output-dir "$out/maestro" 2>&1 | tee "$console"
+status="${PIPESTATUS[0]}"
+set -e
+if grep -q 'telemetry (debug, not sent)' "$console"; then
+  echo "::error::maestro-runner built a telemetry event: telemetry is on"
+  status=1
+fi
+rm -f "$console"
 
 sleep 2
 if [ -z "${E2E_LOGIN:-}" ]; then
@@ -141,7 +156,14 @@ find "$out/maestro" -name device-logcat.txt -delete
 echo "after maestro: $(rotation_state)" | tee -a "$out/display.txt"
 
 mkdir -p "$out/screenshots"
-find "$out/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$out/screenshots/" \;
+if [ "$runner" = maestro ]; then
+  find "$out/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$out/screenshots/" \;
+else
+  while IFS= read -r -d '' shot; do
+    name="$(basename "$shot")"
+    cp "$shot" "$out/screenshots/${name#cmd-[0-9][0-9][0-9]-}"
+  done < <(find "$out/maestro" -path '*/assets/*' -name 'cmd-[0-9][0-9][0-9]-*.png' ! -name 'cmd-[0-9][0-9][0-9]-before.png' ! -name 'cmd-[0-9][0-9][0-9]-after.png' ! -name 'cmd-[0-9][0-9][0-9]-diff.png' -print0)
+fi
 node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
 
 if [ -n "${E2E_LOGIN:-}" ]; then

@@ -295,6 +295,7 @@ jobs:
     uses: ./.github/workflows/e2e-android.yml
     with:
       apk-artifact: e2e-apk-x86_64
+      runner: ${{ vars.E2E_RUNNER || 'maestro-runner' }}
       matrix: >-
         {"size": ["phone", "tablet"], "orientation": ["portrait", "landscape"], "locale": ["en-US", "id-ID"],
         "include": [{"size": "phone", "profile": "pixel_6"}, {"size": "tablet", "profile": "pixel_tablet"},
@@ -327,6 +328,7 @@ jobs:
     with:
       label: universal-
       apk-artifact: kaitech-android-apk
+      runner: ${{ vars.E2E_RUNNER || 'maestro-runner' }}
       matrix: >-
         {"include": [{"size": "phone", "orientation": "portrait", "locale": "en-US", "profile": "pixel_6", "cold_start": 0}]}
 

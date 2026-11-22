@@ -1,5 +1,5 @@
 name: Set up maestro-runner
-description: Installs a pinned, checksum-verified maestro-runner on PATH with telemetry and the update check off.
+description: Installs a pinned, checksum-verified maestro-runner on PATH with telemetry and the update check off and their host unreachable.
 runs:
   using: composite
   steps:
@@ -18,4 +18,6 @@ runs:
           echo "MAESTRO_RUNNER_NO_TELEMETRY=1"
           echo "DO_NOT_TRACK=1"
           echo "MAESTRO_RUNNER_NO_UPDATE_CHECK=1"
+          echo "MAESTRO_RUNNER_TELEMETRY_DEBUG=1"
         } >> "$GITHUB_ENV"
+        echo '0.0.0.0 open.devicelab.dev' | sudo tee -a /etc/hosts > /dev/null
