@@ -37,6 +37,14 @@ Never commit secrets, server addresses, client data, or credential files. Sign-i
 
 E2E flows live in `.maestro/` and run on an Android emulator in CI with a screen recording artifact.
 
+## Documentation
+
+- Write all repo documentation, README included, in English.
+- All documentation lives in `docs/`, indexed by `docs/README.md`. Do not add documentation anywhere else.
+- `README.md` is only a summary: the banner (`docs/assets/banner.svg`), one paragraph about the app, key facts, install links, a link to `docs/README.md`, and the license. No technical detail there.
+- A new feature or a change in behaviour updates the matching `docs/` page in the same PR.
+- App display text (`src/i18n/locales/en.json`, `id.json`, and the other catalogue pairs under `src/i18n/`) is not documentation and stays in both languages.
+
 ## Rules
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
