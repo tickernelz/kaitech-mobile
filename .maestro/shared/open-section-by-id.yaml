@@ -45,9 +45,18 @@ name: Find one Discovery section by its menu name (NAME, NAME_ID) and open it by
       visible:
         id: list-row-[0-9]+
     commands:
-      - tapOn:
-          id: list-row-[0-9]+
-          index: 0
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - retry:
+          maxRetries: 1
+          commands:
+            - tapOn:
+                id: list-row-[0-9]+
+                index: 0
+            - extendedWaitUntil:
+                visible:
+                  id: record-screen
+                timeout: 15000
       - extendedWaitUntil:
           visible:
             id: record-screen
