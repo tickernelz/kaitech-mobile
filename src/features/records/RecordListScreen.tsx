@@ -6,6 +6,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-n
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
 import { space, useTheme } from '../../theme';
+import { Button } from '../../ui/Button';
 import { IconButton } from '../../ui/IconButton';
 import { Icon } from '../../ui/icons';
 import { Text } from '../../ui/Text';
@@ -74,7 +75,8 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
       const actionContext = contextOf(action.context, { uid, context: {}, active_id: programme });
       if (!live) return;
       setActive(defaultFilters(search?.filters ?? [], actionContext));
-      setGroupBy(search?.groupBys.find((group) => group.name && actionContext[`search_default_${group.name}`])?.key ?? null);
+      const programmeWide = fields.engagement_id?.relation === 'ck.engagement' && action.res_model !== 'ck.engagement';
+      setGroupBy(search?.groupBys.find((group) => group.name && actionContext[`search_default_${group.name}`] && !(programmeWide && group.field === 'engagement_id'))?.key ?? null);
       setLoaded({ action, list, search, fields, spec: specOf(list.names, fields), formView, canCreate: list.create && formCreate });
     })().catch((failure: unknown) => live && setError(failure));
     return () => {
@@ -214,7 +216,7 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
         actions={
           <>
             {filters.length || linked || loaded?.search?.groupBys.length ? <IconButton icon="filter" label={t('records.filters')} onPress={() => setFiltering(true)} testID="list-filters" /> : null}
-            {loaded?.canCreate ? <IconButton icon="sparkle" label={t('records.add')} onPress={create} testID="list-add" /> : null}
+            {loaded?.canCreate ? <Button kind="secondary" label={t('records.add')} onPress={create} testID="list-add" /> : null}
           </>
         }
       />
