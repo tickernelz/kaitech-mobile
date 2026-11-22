@@ -1,5 +1,5 @@
 appId: io.kaitech.mobile
-name: Discovery buttons reach the server - pause and resume the proactive Coworker, snooze it, accept and reject RAID entries, add a note
+name: Discovery buttons reach the server - pause and resume the proactive Coworker, snooze it, accept and reject RAID entries, add a note to a department
 tags:
   - signed-in
 onFlowStart:
@@ -86,25 +86,6 @@ onFlowStart:
     env:
       SCREEN: b2-snoozed
 - back
-- scrollUntilVisible:
-    element:
-      id: chatter-input
-    speed: 90
-    timeout: 90000
-- tapOn:
-    id: chatter-input
-- inputText: ${NOTE}
-- runFlow: ../shared/dismiss-keyboard.yaml
-- tapOn:
-    id: chatter-post
-- extendedWaitUntil:
-    visible:
-      text: ${NOTE}
-    timeout: 30000
-- runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: b3-note
 - tapOn:
     id: header-back
 - runFlow:
@@ -159,3 +140,45 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: b5-raid-rejected
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      visible:
+        id: sections-search-clear
+    commands:
+      - tapOn:
+          id: sections-search-clear
+- tapOn:
+    id: sections-search
+- inputText: Department
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    text: Department
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: list-row-[0-9]+
+    timeout: 30000
+- tapOn:
+    id: list-row-[0-9]+
+    index: 0
+- scrollUntilVisible:
+    element:
+      id: chatter-input
+    speed: 90
+    timeout: 60000
+- tapOn:
+    id: chatter-input
+- inputText: ${NOTE}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: chatter-post
+- extendedWaitUntil:
+    visible:
+      text: ${NOTE}
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b6-note

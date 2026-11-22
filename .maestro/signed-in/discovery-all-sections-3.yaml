@@ -1,0 +1,185 @@
+appId: io.kaitech.mobile
+name: Web Discovery menus part 3 of 3 open their list and first record without an error
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat|tab-discovery)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-discovery
+- extendedWaitUntil:
+    visible:
+      id: programme-summary
+    timeout: 60000
+- runFlow:
+    when:
+      true: ${typeof PROGRAMME !== 'undefined' && PROGRAMME !== ''}
+    commands:
+      - tapOn:
+          id: programme-switch
+      - tapOn:
+          text: ${PROGRAMME}
+      - extendedWaitUntil:
+          visible:
+            id: programme-summary
+          timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: open-sections
+- tapOn:
+    id: open-sections
+- extendedWaitUntil:
+    visible:
+      id: sections-group-[0-9]+
+    timeout: 30000
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "RAID"
+    env:
+      MENU: 434
+      NAME: "RAID"
+      NAME_ID: "RAID"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Test Plans"
+    env:
+      MENU: 441
+      NAME: "Test Plans"
+      NAME_ID: "Rencana Uji"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Came Back Empty"
+    env:
+      MENU: 458
+      NAME: "Came Back Empty"
+      NAME_ID: "Kembali Kosong"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Other Odoo Servers"
+    env:
+      MENU: 482
+      NAME: "Other Odoo Servers"
+      NAME_ID: "Server Odoo Lain"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Contradictions"
+    env:
+      MENU: 459
+      NAME: "Contradictions"
+      NAME_ID: "Pertentangan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Model Rates"
+    env:
+      MENU: 468
+      NAME: "Model Rates"
+      NAME_ID: "Tarif Model"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Chase History"
+    env:
+      MENU: 460
+      NAME: "Chase History"
+      NAME_ID: "Riwayat Pengejaran"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Usage & Cost"
+    env:
+      MENU: 469
+      NAME: "Usage & Cost"
+      NAME_ID: "Pemakaian & Biaya"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Turns"
+    env:
+      MENU: 470
+      NAME: "Turns"
+      NAME_ID: "Giliran"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Conversations"
+    env:
+      MENU: 471
+      NAME: "Conversations"
+      NAME_ID: "Percakapan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Data Permissions"
+    env:
+      MENU: 472
+      NAME: "Data Permissions"
+      NAME_ID: "Izin Data"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Data Checks"
+    env:
+      MENU: 473
+      NAME: "Data Checks"
+      NAME_ID: "Pemeriksaan Data"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Timelines"
+    env:
+      MENU: 474
+      NAME: "Timelines"
+      NAME_ID: "Timeline"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Timeline Tasks"
+    env:
+      MENU: 475
+      NAME: "Timeline Tasks"
+      NAME_ID: "Tugas Timeline"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Deliverables"
+    env:
+      MENU: 476
+      NAME: "Deliverables"
+      NAME_ID: "Deliverable"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Contract Instalments"
+    env:
+      MENU: 477
+      NAME: "Contract Instalments"
+      NAME_ID: "Angsuran Kontrak"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Scorecards"
+    env:
+      MENU: 478
+      NAME: "Scorecards"
+      NAME_ID: "Scorecard"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Replay Runs"
+    env:
+      MENU: 479
+      NAME: "Replay Runs"
+      NAME_ID: "Run Replay"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Taken Back"
+    env:
+      MENU: 480
+      NAME: "Taken Back"
+      NAME_ID: "Ditarik Kembali"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Gates Red"
+    env:
+      MENU: 481
+      NAME: "Gates Red"
+      NAME_ID: "Gerbang Merah"
