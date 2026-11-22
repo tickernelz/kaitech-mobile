@@ -88,9 +88,6 @@ jobs:
       - run: npm run lint
       - name: Tablet config gate (rotation, iPad multitasking, Android multi-window)
         run: node scripts/check-tablet-config.mjs
-      - uses: ./.github/actions/setup-maestro
-      - name: Maestro flow syntax
-        run: find .maestro -name '*.yaml' ! -name config.yaml -print0 | xargs -0 -n1 -P "$(nproc)" maestro check-syntax
 
   typecheck:
     name: typecheck
@@ -108,6 +105,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - uses: ./.github/actions/setup-maestro
+      - name: Maestro flow syntax
+        run: find .maestro -name '*.yaml' ! -name config.yaml -print0 | xargs -0 -n1 -P "$(nproc)" maestro check-syntax
 
   unit:
     name: unit
