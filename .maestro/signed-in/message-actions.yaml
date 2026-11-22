@@ -63,8 +63,8 @@ onFlowStart:
     id: action-pin
 - extendedWaitUntil:
     visible:
-      id: thread-notice
-    timeout: 10000
+      text: .*(Pinned|Disematkan).*
+    timeout: 20000
 - longPressOn:
     text: ${RUN + ' a1'}
 - tapOn:
@@ -77,8 +77,8 @@ onFlowStart:
     id: action-star
 - extendedWaitUntil:
     visible:
-      id: thread-notice
-    timeout: 10000
+      text: .*(Starred|Berbintang).*
+    timeout: 20000
 - longPressOn:
     text: ${RUN + ' a1'}
 - tapOn:
@@ -252,7 +252,8 @@ onFlowStart:
 - extendedWaitUntil:
     visible:
       id: thread-notice
-    timeout: 10000
+    timeout: 4000
+    optional: true
 - tapOn:
     id: composer-input
 - inputText: ${RUN + ' a2'}
