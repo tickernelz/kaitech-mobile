@@ -30,7 +30,7 @@ import {
 import { featuresFromSession, noFeatures, type ChatFeatures } from './features';
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
-import type { Conversation, Member, Mention, Message, Pending, PendingFile } from './types';
+import type { Conversation, Member, Mention, Message, Pending, PendingFile, Reaction } from './types';
 import { setUploadProgress } from './progress';
 import { onPresenceChange, userInApp } from '../call/presence';
 import { notePhotoList, notePhotos } from '../people/photos';
@@ -272,7 +272,7 @@ function onNotifications(notifications: Notification[]) {
     for (const message of fullMessages(data, state.partnerId)) {
       if (state.threads[message.channelId]?.messages.some((existing) => existing.id === message.id)) upsertMessages(message.channelId, [message]);
     }
-    const reactions = reactionUpdates(data, state.partnerId);
+    const reactions = reactionUpdates(data, state.partnerId, currentReactions);
     if (reactions.size) {
       const threads = { ...state.threads };
       for (const [channelId, thread] of Object.entries(threads)) {
@@ -708,6 +708,14 @@ export async function discardSend(key: string) {
   removed?.files.forEach((file) => dropFile(file.uri));
 }
 
+function currentReactions(messageId: number): Reaction[] | undefined {
+  for (const thread of Object.values(state.threads)) {
+    const found = thread.messages.find((message) => message.id === messageId);
+    if (found) return found.reactions;
+  }
+  return undefined;
+}
+
 export async function toggleReaction(message: Message, content: string): Promise<string | null> {
   const current = client;
   if (!current) return 'signedOut';
@@ -715,7 +723,7 @@ export async function toggleReaction(message: Message, content: string): Promise
   const add = !existing?.mine;
   try {
     const data = await current.react(message.id, content, add);
-    const updates = reactionUpdates(data, state.partnerId);
+    const updates = reactionUpdates(data, state.partnerId, currentReactions);
     if (updates.has(message.id)) {
       patchThread(message.channelId, (thread) => ({
         messages: thread.messages.map((item) => (item.id === message.id ? { ...item, reactions: updates.get(message.id) ?? [] } : item)),
