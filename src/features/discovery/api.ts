@@ -71,7 +71,7 @@ export type Transcript = {
   pending_question: string;
 };
 
-export type Conversation = { id: number; name: string; last_activity_at: string | false };
+export type Conversation = { id: number; name: string; last_activity_at: string | false; turn_count: number };
 
 export type CardItem = {
   id: number;
@@ -187,10 +187,18 @@ export async function counts(account: Account, programme: number): Promise<Count
 
 export function conversations(account: Account, programme: number) {
   return rpc<Conversation[]>(account, 'ck.conversation', 'search_read', [[['engagement_id', '=', programme]]], {
-    fields: ['name', 'last_activity_at'],
+    fields: ['name', 'last_activity_at', 'turn_count'],
     order: 'last_activity_at desc, id desc',
     limit: 30,
   });
+}
+
+export async function renameConversation(account: Account, conversation: number, name: string) {
+  await rpc<boolean>(account, 'ck.conversation', 'write', [[conversation], { name }]);
+}
+
+export async function putAwayConversation(account: Account, conversation: number) {
+  await rpc<unknown>(account, 'ck.conversation', 'action_archive_or_unlink', [[conversation]]);
 }
 
 export function transcript(account: Account, conversation: number, cursor?: Cursor) {
@@ -279,8 +287,22 @@ export async function finding(account: Account, id: number): Promise<{ finding: 
   return { finding: found, sides };
 }
 
-export async function briefing(account: Account) {
-  return (await rpc<{ items: BriefingItem[] }>(account, 'ck.engagement', 'briefing_for_me')).items;
+export type DailyMessage = { on: boolean; channel: string; reaches: boolean };
+
+export type Briefing = { items: BriefingItem[]; daily: DailyMessage };
+
+function dailyFrom(value: unknown): DailyMessage {
+  const raw = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+  return { on: raw.on === true, channel: typeof raw.channel === 'string' ? raw.channel : '', reaches: raw.reaches === true };
+}
+
+export async function briefing(account: Account): Promise<Briefing> {
+  const answer = await rpc<{ items: BriefingItem[]; daily_message?: unknown }>(account, 'ck.engagement', 'briefing_for_me');
+  return { items: answer.items, daily: dailyFrom(answer.daily_message) };
+}
+
+export async function setDailyBriefing(account: Account, on: boolean): Promise<DailyMessage> {
+  return dailyFrom(await rpc<unknown>(account, 'ck.engagement', 'set_my_daily_briefing', [on]));
 }
 
 export function search(account: Account, q: string) {

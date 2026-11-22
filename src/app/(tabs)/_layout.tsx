@@ -9,6 +9,7 @@ import { radius, space, useTheme } from '../../theme';
 import { duration, easing } from '../../theme/motion';
 import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
+import { usePendingActivities } from '../../features/activity/useActivityOverview';
 
 const icons = { chat: 'chat', discovery: 'compass', mom: 'minutes', activity: 'bell' } as const satisfies Record<string, IconName>;
 
@@ -43,6 +44,7 @@ function TabButton({ name, rail, isFocused, ...props }: TabTriggerSlotProps & { 
       <View collapsable={false} style={styles.pill}>
         <Animated.View style={[styles.indicator, { backgroundColor: colors.primary }, indicator]} testID={`tab-indicator-${name}`} />
         <Icon name={icons[name]} color={glyph} variant={isFocused ? 'fill' : 'line'} />
+        {name === 'activity' ? <ActivityBadge /> : null}
       </View>
       {isFocused ? (
         <Text variant="label" numberOfLines={1} maxFontSizeMultiplier={1.3} style={[styles.label, { color: colors.ink }]}>
@@ -50,6 +52,20 @@ function TabButton({ name, rail, isFocused, ...props }: TabTriggerSlotProps & { 
         </Text>
       ) : null}
     </Pressable>
+  );
+}
+
+function ActivityBadge() {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const count = usePendingActivities();
+  if (!count) return null;
+  return (
+    <View style={[styles.badge, { backgroundColor: colors.danger, borderColor: colors.surface }]} accessibilityLabel={t('activities.pending', { count })} testID="tab-badge-activity">
+      <Text variant="label" maxFontSizeMultiplier={1.2} style={[styles.badgeText, { color: colors.onPrimary }]}>
+        {count > 99 ? '99+' : String(count)}
+      </Text>
+    </View>
   );
 }
 
@@ -88,6 +104,8 @@ const styles = StyleSheet.create({
   barItem: { flex: 1, alignItems: 'center', gap: 2, minHeight: 52, justifyContent: 'flex-start' },
   railItem: { alignItems: 'center', gap: space.xs, minHeight: 56, paddingHorizontal: space.xs },
   pill: { width: 64, height: 32, alignItems: 'center', justifyContent: 'center' },
+  badge: { position: 'absolute', top: -2, right: 6, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  badgeText: { fontSize: 10, lineHeight: 12 },
   indicator: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: radius.pill },
   label: { textAlign: 'center', maxWidth: '100%' },
 });

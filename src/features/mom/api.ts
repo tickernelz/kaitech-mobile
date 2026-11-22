@@ -130,6 +130,14 @@ export function playbackUrl(account: Account, recording: number): Promise<string
   return rpc<string>(account, 'ck.mom.recording', 'playback_url', [[recording]], { audio: true });
 }
 
+export function removalPreview(account: Account, recording: number): Promise<{ withdrawn: string[]; held: string }> {
+  return rpc<{ withdrawn: string[]; held: string }>(account, 'ck.mom.recording', 'removal_preview', [[recording]]);
+}
+
+export function removeRecording(account: Account, recording: number, title: string, password: string): Promise<{ ok: boolean; message?: string }> {
+  return rpc<{ ok: boolean; message?: string }>(account, 'ck.mom.recording', 'remove_by_uploader', [[recording], title, password]);
+}
+
 export function secondsOf(clockText: string): number | null {
   const said = clockText.trim();
   if (!/^\d+(:\d{1,2}){0,2}$/.test(said)) return null;

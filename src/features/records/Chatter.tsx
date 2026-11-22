@@ -18,7 +18,7 @@ export function useFailureAlert() {
   const errorText = useErrorText();
   return useCallback(
     (error: unknown) => {
-      Alert.alert('', error instanceof ApiError && error.said && error.code !== 'server' ? error.said : errorText(error));
+      Alert.alert('', error instanceof ApiError && error.detail ? error.detail : errorText(error));
     },
     [errorText],
   );

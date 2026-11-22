@@ -11,7 +11,9 @@ import { useWindowClass } from '../../layout/windowClass';
 import { HeaderActions } from '../../screens/HeaderActions';
 import { radius, space, useTheme } from '../../theme';
 import { Section } from '../../ui/List';
+import { RowActions, type RowBind } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
+import { textActions } from '../../ui/textActions';
 import { counts, findings, panel, programmes, type Panel, type Programme } from './api';
 import { CoworkerThread } from './CoworkerThread';
 import { Header } from './Header';
@@ -83,7 +85,9 @@ function Line({
   detail,
   onPress,
   testID,
+  bind,
 }: {
+  bind?: RowBind;
   icon: IconName;
   title: string;
   detail?: string;
@@ -111,11 +115,12 @@ function Line({
   );
   return onPress ? (
     <Pressable
+      {...bind}
       accessibilityRole="button"
       onPress={onPress}
       testID={testID}
       android_ripple={{ color: colors.select }}
-      style={({ pressed }) => [styles.line, pressed && { backgroundColor: colors.surface2 }]}>
+      style={({ pressed }) => [styles.line, pressed ? { backgroundColor: colors.surface2 } : bind && { backgroundColor: colors.surface }]}>
       {body}
     </Pressable>
   ) : (
@@ -187,6 +192,9 @@ export function DiscoveryHome() {
     else router.push({ pathname: '/program/[id]/coworker', params: { id: String(programme), ask: '1' } });
   };
 
+  const showFinding = (id: number) => {
+    router.push({ pathname: '/program/finding/[id]', params: { id: String(id), programme: String(programme) } });
+  };
   const openCard = (packet: { id: number; conversation_id: number }) => {
     if (expanded) {
       if (packet.conversation_id) openConversation(account, programme, packet.conversation_id);
@@ -243,13 +251,15 @@ export function DiscoveryHome() {
           {programmePanel.data.packets.length || programmePanel.data.needs_you.length ? (
             <Section title={t('discovery.home.waiting')}>
               {programmePanel.data.packets.map((packet) => (
-                <Line
+                <RowActions
                   key={`packet-${packet.id}`}
-                  icon="decision"
                   title={packet.name}
-                  onPress={() => openCard(packet)}
-                  testID={`waiting-card-${packet.id}`}
-                />
+                  actions={[{ key: 'open', icon: 'forward', label: t('row.open'), onPress: () => openCard(packet) }, ...textActions(t, packet.name)]}
+                  start={['copy']}
+                  end={['share', 'more']}
+                  testID={`waiting-card-${packet.id}`}>
+                  {(bind) => <Line bind={bind} icon="decision" title={packet.name} onPress={() => openCard(packet)} testID={`waiting-card-${packet.id}`} />}
+                </RowActions>
               ))}
               {programmePanel.data.needs_you.map((line) => (
                 <Line key={`agenda-${line.kind}`} icon="bulb" title={line.headline} />
@@ -279,15 +289,20 @@ export function DiscoveryHome() {
           </Section>
           {latest.data?.length ? (
             <Section title={t('discovery.home.recent')}>
-              {latest.data.slice(0, 3).map((row) => (
-                <Line
-                  key={row.id}
-                  icon="bulb"
-                  title={row.name}
-                  onPress={() => router.push({ pathname: '/program/finding/[id]', params: { id: String(row.id), programme: String(programme) } })}
-                  testID={`recent-finding-${row.id}`}
-                />
-              ))}
+              {latest.data.slice(0, 3).map((row) => {
+                const openFinding = () => showFinding(row.id);
+                return (
+                  <RowActions
+                    key={row.id}
+                    title={row.name}
+                    actions={[{ key: 'open', icon: 'forward', label: t('row.open'), onPress: openFinding }, ...textActions(t, row.name)]}
+                    start={['copy']}
+                    end={['share', 'more']}
+                    testID={`recent-finding-${row.id}`}>
+                    {(bind) => <Line bind={bind} icon="bulb" title={row.name} onPress={openFinding} testID={`recent-finding-${row.id}`} />}
+                  </RowActions>
+                );
+              })}
             </Section>
           ) : null}
         </>
