@@ -152,6 +152,8 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
+    env:
+      E2E_RUNNER: ${{ vars.E2E_RUNNER || 'maestro-runner' }}
     strategy:
       fail-fast: false
       matrix:
@@ -186,7 +188,10 @@ jobs:
           set -euo pipefail
           sha256sum -c --ignore-missing SHA256SUMS.txt
           rm SHA256SUMS.txt ./*-arm64-v8a*.apk
-      - uses: ./.github/actions/setup-maestro
+      - if: env.E2E_RUNNER == 'maestro'
+        uses: ./.github/actions/setup-maestro
+      - if: env.E2E_RUNNER == 'maestro-runner'
+        uses: ./.github/actions/setup-maestro-runner
       - uses: ./.github/actions/setup-gitleaks
       - name: Install on a clean emulator and run Maestro flows
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0

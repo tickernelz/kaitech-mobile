@@ -314,6 +314,7 @@ jobs:
     with:
       label: rows-
       apk-artifact: e2e-apk-x86_64
+      runner: ${{ vars.E2E_RUNNER_ROWS || vars.E2E_RUNNER || 'maestro-runner' }}
       flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
       matrix: >-
         {"size": ["phone", "tablet"], "orientation": ["portrait"], "locale": ["en-US", "id-ID"],
