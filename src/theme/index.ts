@@ -1,13 +1,15 @@
 import { useMemo } from 'react';
 import { Platform, useColorScheme, type TextStyle } from 'react-native';
+import { materialColors, type MaterialColors } from './material';
 import { colorsFor, type Colors, type Scheme } from './tokens';
 
 export { brandGradient, personColors, radius, space } from './tokens';
 export type { Colors, Scheme } from './tokens';
+export { materialColors, seedColor, type MaterialColors, type MaterialRole } from './material';
 
-export function useTheme(): { scheme: Scheme; colors: Colors } {
+export function useTheme(): { scheme: Scheme; colors: Colors; material: MaterialColors } {
   const scheme: Scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
-  return useMemo(() => ({ scheme, colors: colorsFor(scheme) }), [scheme]);
+  return useMemo(() => ({ scheme, colors: colorsFor(scheme), material: materialColors(scheme) }), [scheme]);
 }
 
 const brandFaces = { '600': 'SemiBold', '700': 'Bold', '800': 'ExtraBold' } as const;
