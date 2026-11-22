@@ -3,9 +3,15 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  SOURCE_SHA: ${{ github.sha }}
+  KAITECH_LINK_HOST: ${{ vars.KAITECH_LINK_HOST }}
+  KAITECH_DEFAULT_DB: ${{ vars.KAITECH_DEFAULT_DB }}
 
 concurrency:
   group: release-${{ github.ref }}
@@ -22,24 +28,172 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Tag must point at a commit on main
+      - name: The ref must point at a commit on main
         run: |
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
             echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not on main; release only reviewed, merged commits."
             exit 1
           }
       - uses: ./.github/actions/setup-gitleaks
-      - run: gitleaks git --redact --verbose --exit-code 1 .
+      - name: Scan full git history
+        run: gitleaks git --redact --verbose --exit-code 1 .
+      - name: Scan working tree
+        run: gitleaks dir --redact --verbose --exit-code 1 .
 
-  build:
-    name: build
+  android:
+    name: android apk ${{ matrix.variant }}
     needs: gitleaks
-    uses: ./.github/workflows/build.yml
-    secrets: inherit
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: universal
+            abis: armeabi-v7a,arm64-v8a,x86,x86_64
+            artifact: kaitech-android-apk
+          - variant: arm64-v8a
+            abis: arm64-v8a
+            artifact: kaitech-android-apk-arm64-v8a
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: ./.github/actions/build-android-apk
+        with:
+          abis: ${{ matrix.abis }}
+          variant: ${{ matrix.variant }}
+          artifact: ${{ matrix.artifact }}
+          save-cache: 'true'
+          google-services-json: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          key-password: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+  ios:
+    name: ios ipa (unsigned)
+    needs: gitleaks
+    runs-on: macos-26
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s "$(find /Applications -maxdepth 1 -name 'Xcode_26*.app' | sort -V | tail -1)"
+          xcodebuild -version
+          pod --version
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - id: pods
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/Library/Caches/ReactNative
+          key: ios-downloads-${{ hashFiles('package-lock.json', 'app.json', 'app.config.ts') }}
+          restore-keys: ios-downloads-
+      - run: npm ci
+      - name: Build number
+        run: echo "APP_BUILD_NUMBER=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
+      - run: npx expo prebuild --platform ios
+      - if: steps.pods.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/Library/Caches/ReactNative
+          key: ${{ steps.pods.outputs.cache-primary-key }}
+      - name: xcodebuild (no code signing)
+        run: |
+          mkdir -p build
+          if ! xcodebuild \
+            -workspace ios/Kaitech.xcworkspace \
+            -scheme Kaitech \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/ios \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build > build/xcodebuild.log 2>&1; then
+            grep -E 'error:' build/xcodebuild.log | head -50 || true
+            tail -100 build/xcodebuild.log
+            exit 1
+          fi
+          grep -E '^\*\* BUILD' build/xcodebuild.log
+      - name: Package IPA
+        run: |
+          set -euo pipefail
+          app=build/ios/Build/Products/Release-iphoneos/Kaitech.app
+          test -f "$app/main.jsbundle"
+          mkdir -p ipa/Payload dist
+          cp -R "$app" ipa/Payload/
+          ipa_name="kaitech-${APP_BUILD_NUMBER}-${SOURCE_SHA::7}-unsigned.ipa"
+          (cd ipa && zip -qry "../dist/$ipa_name" Payload)
+          (cd dist && shasum -a 256 ./*.ipa | tee SHA256SUMS-ios.txt)
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kaitech-ios-ipa
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Performance gate (IPA and JS bundle size)
+        id: perf
+        run: |
+          set -euo pipefail
+          ipa="$(find dist -maxdepth 1 -name '*.ipa' | head -1)"
+          node scripts/perf-gate.mjs --out perf-output/ios.json \
+            "ios.ipa_bytes=$(wc -c < "$ipa" | tr -d ' ')" \
+            "ios.js_bundle_bytes=$(wc -c < build/ios/Build/Products/Release-iphoneos/Kaitech.app/main.jsbundle | tr -d ' ')"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && steps.perf.outcome != 'skipped'
+        with:
+          name: perf-ios
+          path: perf-output/
+          if-no-files-found: warn
+          retention-days: 90
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: ios-build-log
+          path: build/xcodebuild.log
+          retention-days: 7
+
+  ios-bundle-scan:
+    name: ios bundle secret scan
+    needs: ios
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-gitleaks
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: kaitech-ios-ipa
+          path: dist
+      - run: |
+          set -euo pipefail
+          unzip -q dist/*.ipa 'Payload/Kaitech.app/main.jsbundle' -d "$RUNNER_TEMP/ipa"
+          gitleaks dir --redact --verbose --exit-code 1 "$RUNNER_TEMP/ipa"
 
   draft:
     name: draft GitHub Release
-    needs: build
+    needs: [android, ios, ios-bundle-scan]
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -167,15 +321,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
-        with:
-          distribution: temurin
-          java-version: '17'
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-apk
@@ -186,39 +331,89 @@ jobs:
           set -euo pipefail
           sha256sum -c --ignore-missing SHA256SUMS.txt
           rm SHA256SUMS.txt ./*-arm64-v8a*.apk
-      - uses: ./.github/actions/setup-maestro
-      - uses: ./.github/actions/setup-gitleaks
       - name: Install on a clean emulator and run Maestro flows
-        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        uses: ./.github/actions/android-e2e
         with:
-          api-level: 35
-          arch: x86_64
-          target: google_apis
+          apk-dir: release
+          artifact: e2e-android-release-${{ matrix.size }}-${{ matrix.orientation }}-${{ matrix.locale }}
+          output-prefix: release-
+          size: ${{ matrix.size }}
           profile: ${{ matrix.profile }}
-          disable-animations: true
-          force-avd-creation: true
-          emulator-options: -no-window -no-snapshot -wipe-data -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash scripts/e2e-android.sh release e2e-output/release-${{ matrix.size }}-${{ matrix.orientation }}-${{ matrix.locale }} ${{ matrix.locale }} ${{ matrix.size }} ${{ matrix.orientation }}
-      - name: Scan E2E output for secrets
-        id: scan-e2e
-        if: always()
-        run: |
-          if [ ! -d e2e-output ]; then
-            echo "no E2E output"
-            exit 0
-          fi
-          gitleaks dir --redact --verbose --exit-code 1 e2e-output
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always() && steps.scan-e2e.outcome == 'success'
+          locale: ${{ matrix.locale }}
+          orientations: ${{ matrix.orientation }}
+          runner: ${{ vars.E2E_RUNNER || 'auto' }}
+          snapshot: 'false'
+          retention-days: '90'
+
+  rows-from-release:
+    name: rows from release ${{ matrix.size }} ${{ matrix.locale }}${{ matrix.hide_direct == 'true' && ' hide-direct' || '' }}
+    needs: release-assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    concurrency:
+      group: kaitech-e2e-account
+      cancel-in-progress: false
+      queue: max
+    env:
+      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
+      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
+      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
+      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
+      E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
+      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
+      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
+      E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
+      E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
+      E2E_HIDE_DIRECT: ${{ matrix.hide_direct || 'false' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        size: [phone, tablet]
+        locale: [en-US, id-ID]
+        include:
+          - size: phone
+            profile: pixel_6
+          - size: tablet
+            profile: pixel_tablet
+          - size: phone
+            locale: en-US
+            hide_direct: 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          name: e2e-android-release-${{ matrix.size }}-${{ matrix.orientation }}-${{ matrix.locale }}
-          path: e2e-output/
-          if-no-files-found: warn
-          retention-days: 90
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-apk
+          path: release
+      - name: APK matches the draft release checksum, universal APK for the x86_64 emulator
+        working-directory: release
+        run: |
+          set -euo pipefail
+          sha256sum -c --ignore-missing SHA256SUMS.txt
+          rm SHA256SUMS.txt ./*-arm64-v8a*.apk
+      - name: Signed-in rows flows on a clean emulator
+        uses: ./.github/actions/android-e2e
+        with:
+          apk-dir: release
+          artifact: e2e-android-release-rows-${{ matrix.size }}-${{ matrix.locale }}${{ matrix.hide_direct == 'true' && '-hide-direct' || '' }}
+          output-prefix: release-rows-
+          size: ${{ matrix.size }}
+          profile: ${{ matrix.profile }}
+          locale: ${{ matrix.locale }}
+          orientations: portrait
+          flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
+          runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
+          audio: 'true'
+          snapshot: 'false'
+          retention-days: '90'
 
   publish:
     name: publish GitHub Release
-    needs: install-from-release
+    needs: [install-from-release, rows-from-release]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
