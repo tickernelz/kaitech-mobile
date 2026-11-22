@@ -144,7 +144,9 @@ find "$out/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$out/screenshots
 node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
 
 if [ -n "${E2E_LOGIN:-}" ]; then
-  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt -exec rm -rf {} +
+  mkdir -p "$out/failures"
+  find "$out/maestro" -path '*/screenshots/*.png' -exec cp {} "$out/failures/" \;
+  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out"; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2
