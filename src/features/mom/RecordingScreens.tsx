@@ -47,7 +47,7 @@ export function RecordingDepartmentsScreen({ recording, meeting }: { recording: 
       {board.data && card ? (
         <Departments key={card.id} board={board.data} card={card} meeting={meeting} />
       ) : (
-        <StateView loading={!board.error && !board.data} error={board.error} empty={{ title: t('mom.remove.gone') }} onRetry={() => void board.refresh()} />
+        <StateView loading={!board.error && !board.data} error={board.error} empty={{ title: t('mom.removeScreen.gone') }} onRetry={() => void board.refresh()} />
       )}
     </SafeAreaView>
   );

@@ -22,6 +22,9 @@ import { MeetingView } from './MeetingView';
 import { useCurrentProgramme } from '../discovery/Home';
 import { Line, MeetingChip, MeetingStatusIcon, needsAction, RecordingCard, SmallButton, UploadCard, useMomFormat, useStatusLabel } from './parts';
 import { RecorderBar } from './RecorderScreen';
+import { RemoveRecording } from './RemoveRecording';
+import { RowActions } from '../../ui/RowActions';
+import { textActions } from '../../ui/textActions';
 import { useRecording } from './recorder';
 import { useUploads } from './uploads';
 
@@ -42,6 +45,7 @@ export function MomHome() {
   const [selection, setSelection] = useState<{ account: string; meeting: number } | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const access = useMomAccess();
+  const [removing, setRemoving] = useState<{ meeting: number; title: string } | null>(null);
   const selected = selection && selection.account === active?.id ? selection.meeting : null;
   const meetings = useResource(`mom.board.${limit}`, (account) => board(account, limit));
   const uploads = useUploads(active?.id ?? null);
@@ -97,9 +101,25 @@ export function MomHome() {
             {group.map((row) => {
               const programme = row.programme.id === current?.id ? undefined : row.programme.name;
               const status = statusLabel(row);
+              const summary = [row.name, `${format.day(row.day)} · ${row.programme.name}`, status].filter(Boolean).join('\n');
               return (
-                <Line
+                <RowActions
                   key={row.id}
+                  title={row.name}
+                  subtitle={row.programme.name}
+                  actions={[
+                    { key: 'open', icon: 'forward', label: t('row.open'), onPress: () => open(row.id) },
+                    ...textActions(t, summary),
+                    ...(row.recordings
+                      ? [{ key: 'remove', icon: 'trash' as const, label: t('mom.remove.action'), tone: 'danger' as const, onPress: () => setRemoving({ meeting: row.id, title: row.name }) }]
+                      : []),
+                  ]}
+                  start={['share']}
+                  end={row.recordings ? ['remove', 'more'] : ['more']}
+                  testID={`meeting-${row.id}`}>
+                  {(bind) => (
+                <Line
+                  bind={bind}
                   icon={row.generatedAt ? 'minutes' : 'wave'}
                   title={row.name}
                   detail={programme}
@@ -110,6 +130,8 @@ export function MomHome() {
                   onPress={() => open(row.id)}
                   testID={`meeting-${row.id}`}
                 />
+                  )}
+                </RowActions>
               );
             })}
           </Section>
@@ -186,6 +208,15 @@ export function MomHome() {
             },
           ]}
           onClose={() => setMoreOpen(false)}
+        />
+      ) : null}
+      {removing && active ? (
+        <RemoveRecording
+          account={active}
+          meeting={removing.meeting}
+          title={removing.title}
+          onRemoved={() => void meetings.refresh()}
+          onClose={() => setRemoving(null)}
         />
       ) : null}
     </SafeAreaView>

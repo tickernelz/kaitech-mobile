@@ -1,0 +1,176 @@
+appId: io.kaitech.mobile
+name: Settings parity - Odoo account, notifications, language, security pages, API key behind the password check
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: open-settings
+- extendedWaitUntil:
+    visible:
+      id: settings
+    timeout: 30000
+- tapOn:
+    id: settings-account
+- extendedWaitUntil:
+    visible:
+      id: account-email
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: p2-account
+- scrollUntilVisible:
+    element:
+      id: account-timezone
+- tapOn:
+    id: account-timezone
+- extendedWaitUntil:
+    visible:
+      id: account-timezone-sheet-search
+    timeout: 10000
+- tapOn:
+    id: account-timezone-sheet-search
+- inputText: Jakarta
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: account-timezone-sheet-Asia/Jakarta
+- extendedWaitUntil:
+    notVisible:
+      id: account-timezone-sheet
+    timeout: 15000
+- assertVisible:
+    text: .*Asia/Jakarta.*
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: settings-notifications
+- extendedWaitUntil:
+    visible:
+      id: notifications-delivery-inbox
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: p3-notifications
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: settings-language
+- scrollUntilVisible:
+    element:
+      id: account-language-.*
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: p4-language
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: settings-security
+- extendedWaitUntil:
+    visible:
+      id: security-api-keys
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: p5-security
+- tapOn:
+    id: security-devices
+- extendedWaitUntil:
+    visible:
+      id: app-device-[0-9]+
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: devices-revoke-all
+    direction: DOWN
+- assertVisible:
+    id: devices-revoke-all
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: security-totp
+- extendedWaitUntil:
+    visible:
+      id: (totp-start|totp-disable)
+    timeout: 30000
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: security-passkeys
+- extendedWaitUntil:
+    visible:
+      id: passkeys-add-hint
+    timeout: 30000
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: security-api-keys
+- extendedWaitUntil:
+    visible:
+      id: api-key-add
+    timeout: 30000
+- tapOn:
+    id: api-key-add
+- extendedWaitUntil:
+    visible:
+      id: (identity-password|api-key-name)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: identity-password
+    commands:
+      - tapOn:
+          id: identity-password
+      - inputText: ${PASSWORD}
+      - runFlow: ../shared/dismiss-keyboard.yaml
+      - tapOn:
+          id: identity-confirm
+- extendedWaitUntil:
+    visible:
+      id: api-key-name
+    timeout: 30000
+- evalScript: ${output.key = 'E2E key ' + Date.now()}
+- tapOn:
+    id: api-key-name
+- inputText: ${output.key}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: api-key-create
+- tapOn:
+    id: api-key-create
+- extendedWaitUntil:
+    visible:
+      id: api-key-value
+    timeout: 30000
+- tapOn:
+    id: api-key-made-backdrop
+- scrollUntilVisible:
+    element:
+      text: ${output.key}
+    timeout: 30000
+- tapOn:
+    text: ${output.key}
+- tapOn:
+    text: (?i)(delete key|hapus kunci)
+- extendedWaitUntil:
+    notVisible:
+      text: ${output.key}
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: p6-api-keys

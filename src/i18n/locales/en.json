@@ -358,6 +358,19 @@
       "title": "Choose a programme",
       "waiting_one": "{{count}} card",
       "waiting_other": "{{count}} cards"
+    },
+    "rows": {
+      "rename": "Rename",
+      "renameShort": "Rename",
+      "title": "Title",
+      "save": "Save",
+      "archive": "Archive",
+      "delete": "Delete",
+      "archivedDone": "Conversation archived",
+      "deletedDone": "Conversation deleted",
+      "ask": "Ask the Coworker",
+      "askShort": "Ask",
+      "evidence": "Evidence"
     }
   },
   "activity": {
@@ -371,7 +384,14 @@
       "chase": "Follow-up",
       "agenda": "Agenda",
       "other": "Discovery"
-    }
+    },
+    "rows": {
+      "programme": "Open programme",
+      "programmeShort": "Programme"
+    },
+    "askAbout": "Go through this with me, every one of them: {{headline}}",
+    "daily": "Also send this to my {{channel}} each working-day morning",
+    "dailyNeedsLink": "Link your {{channel}} number to get this each working-day morning."
   },
   "search": {
     "open": "Search",
@@ -618,14 +638,14 @@
       "ask": "Ask the Coworker"
     },
     "remove": {
-      "title": "Remove this recording for good",
-      "warning": "This deletes the recording and its file from storage. It can't be undone.",
-      "withdrawn": "Withdrawn with it, so nothing stands on it any more:",
-      "typeTitle": "Type the title of the recording",
-      "password": "Your account password",
-      "confirm": "Remove for good",
-      "keep": "Keep it",
-      "gone": "This recording is no longer here."
+      "action": "Delete a recording",
+      "pick": "Which recording?",
+      "title": "Delete “{{title}}”",
+      "warning": "This deletes the audio, its transcript, and what it added to the programme. It can’t be undone.",
+      "typeTitle": "Type the title: {{title}}",
+      "password": "Your password",
+      "submit": "Delete",
+      "notYours": "Only the person who uploaded a recording can delete it."
     },
     "followups": {
       "title": "Follow-ups",
@@ -1210,6 +1230,16 @@
         "events": "Events ({{count}})",
         "previous": "Previous"
       }
+    },
+    "removeScreen": {
+      "title": "Remove this recording for good",
+      "warning": "This deletes the recording and its file from storage. It can't be undone.",
+      "withdrawn": "Withdrawn with it, so nothing stands on it any more:",
+      "typeTitle": "Type the title of the recording",
+      "password": "Your account password",
+      "confirm": "Remove for good",
+      "keep": "Keep it",
+      "gone": "This recording is no longer here."
     }
   },
   "appearance": {
@@ -1265,6 +1295,203 @@
       "photo_invalid": "This photo cannot be read.",
       "network": "No connection. Try again.",
       "generic": "Could not save. Try again."
+    }
+  },
+  "row": {
+    "more": "More",
+    "close": "Close",
+    "back": "Back",
+    "undo": "Undo",
+    "failed": "That didn't go through, so it's back where it was.",
+    "copy": "Copy",
+    "share": "Share",
+    "open": "Open",
+    "cancel": "Cancel"
+  },
+  "sheet": {
+    "close": "Close"
+  },
+  "date": {
+    "previous": "Previous month",
+    "next": "Next month"
+  },
+  "activities": {
+    "mine": "My activities",
+    "discovery": "Discovery",
+    "pending": "{{count}} activities due",
+    "filter": {
+      "all": "All {{count}}",
+      "overdue": "Late {{count}}",
+      "today": "Today {{count}}",
+      "planned": "Planned {{count}}"
+    },
+    "addTodo": "Add a to-do",
+    "meetingsToday": "Today's meetings ({{count}})",
+    "allDay": "All day",
+    "sectionCount": "{{name}} ({{count}})",
+    "noneTitle": "No activities",
+    "noneFiltered": "Nothing here",
+    "editTitle": "Edit activity",
+    "todoTitle": "Add a to-do",
+    "scheduleTitle": "Schedule an activity",
+    "type": "Type",
+    "summary": "Summary",
+    "due": "Due",
+    "pickDate": "Pick a date",
+    "inAWeek": "In a week",
+    "assignedTo": "Assigned to",
+    "nobody": "Nobody",
+    "findPerson": "Find a person",
+    "note": "Note",
+    "save": "Save",
+    "schedule": "Schedule",
+    "feedback": "Feedback (optional)",
+    "markDone": "Mark done",
+    "uploadDone": "Upload document and mark done",
+    "doneAndNext": "Done and schedule next",
+    "snooze": {
+      "title": "Reschedule",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "nextweek": "Next week"
+    },
+    "moveTo": "Move to {{date}}",
+    "edit": "Edit",
+    "openRecord": "Open record",
+    "cancel": "Cancel activity",
+    "keep": "Keep",
+    "cancelConfirm": "Cancel this activity? It is removed without a done note.",
+    "readOnly": "You can view this activity but not change it.",
+    "tooBig": "The file is larger than {{size}} MB.",
+    "when": {
+      "overdue_one": "{{count}} day late",
+      "overdue_other": "{{count}} days late",
+      "yesterday": "Yesterday",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "inDays_one": "In {{count}} day",
+      "inDays_other": "In {{count}} days"
+    },
+    "truncated": "Showing your {{count}} nearest activities. Open the web for older ones."
+  },
+  "choice": {
+    "search": "Search"
+  },
+  "notifications": {
+    "delivery": "Odoo notifications",
+    "deliveryChoice": {
+      "inbox": "Handle in Odoo",
+      "email": "Handle by email"
+    },
+    "channels": "Channel messages",
+    "channelChoice": {
+      "all": "All messages",
+      "mentions": "Mentions only",
+      "no_notif": "Nothing"
+    }
+  },
+  "account": {
+    "title": "Odoo account",
+    "contact": "Contact",
+    "email": "Email",
+    "phone": "Phone",
+    "save": "Save",
+    "preferences": "Preferences",
+    "timezone": "Time zone",
+    "calendarPrivacy": "Default calendar privacy",
+    "signature": "Email signature",
+    "notSet": "Not set",
+    "away": "Out of office",
+    "awayToggle": "Out of office",
+    "awayHint": "People who message you see your message",
+    "awayFrom": "From",
+    "awayTo": "Until",
+    "awayMessage": "Message",
+    "language": "Odoo account language",
+    "languageHint": "Used for emails and notifications the server sends you.",
+    "appLanguage": "App language"
+  },
+  "security": {
+    "thisPhone": "This phone",
+    "account": "Odoo account",
+    "identity": {
+      "title": "Confirm it is you",
+      "body": "Enter your Odoo password to continue.",
+      "password": "Password",
+      "confirm": "Confirm",
+      "wrong": "Wrong password. Try again."
+    },
+    "password": {
+      "title": "Change password",
+      "hint": "Changing the password signs out every Kaitech app on your account, this phone included, and the web on other browsers.",
+      "new": "New password",
+      "confirm": "Repeat new password",
+      "mismatch": "The passwords do not match.",
+      "save": "Change password",
+      "done": "Password changed.",
+      "signInAgain": "Every Kaitech app on your account signs out, this phone included. Sign in again with the new password.",
+      "ok": "Sign in again"
+    },
+    "totp": {
+      "title": "Two-step verification",
+      "on": "On",
+      "off": "Off",
+      "enabledBody": "Signing in asks for a code from your authenticator app.",
+      "disabledBody": "Add a code from an authenticator app to every sign-in.",
+      "start": "Turn on",
+      "scan": "Scan this code with your authenticator app, or open it on this phone.",
+      "qr": "Authenticator QR code",
+      "openApp": "Open in authenticator app",
+      "noApp": "No authenticator app on this phone. Enter the key by hand.",
+      "manual": "Or enter this key by hand:",
+      "copy": "Copy key",
+      "copied": "Copied",
+      "code": "Verification code",
+      "enable": "Turn on two-step verification",
+      "disable": "Turn off",
+      "disableConfirm": "Turn off two-step verification?"
+    },
+    "passkeys": {
+      "title": "Passkeys",
+      "hint": "Passkeys let you sign in to the web without a password.",
+      "created": "Added {{date}}",
+      "none": "No passkeys",
+      "addLater": "Add a passkey on the web for now; adding one from this phone needs a server update.",
+      "name": "Name",
+      "rename": "Rename",
+      "delete": "Delete passkey",
+      "deleteConfirm": "Delete the passkey {{name}}?"
+    },
+    "apiKeys": {
+      "title": "API keys",
+      "hint": "API keys let other programs act as you. Keep them secret.",
+      "created": "Created {{date}}",
+      "expires": "Expires {{date}}",
+      "none": "No API keys",
+      "add": "New API key",
+      "name": "What is it for?",
+      "duration": "Valid for",
+      "create": "Create key",
+      "ready": "API key ready",
+      "readyHint": "Copy it now. It is not shown again.",
+      "copy": "Copy key",
+      "copied": "Copied",
+      "delete": "Delete key",
+      "deleteConfirm": "Delete the API key {{name}}? Programs using it stop working."
+    },
+    "devices": {
+      "title": "Devices",
+      "current": "{{name}} (this one)",
+      "none": "No devices",
+      "revoke": "Sign out",
+      "revokeConfirm": "Sign out {{name}}?",
+      "revokeAll": "Sign out everywhere",
+      "revokeAllConfirm": "This signs out every device on your account, this phone included. You sign in again afterwards.",
+      "apps": "Kaitech app",
+      "appsHint": "Signing out a phone here ends its Kaitech app session at once.",
+      "browsers": "Browsers and other sessions",
+      "browsersHint": "Signing out a browser session ends that web session. A Kaitech app opens a new one by itself; sign it out under Kaitech app.",
+      "revokeAppConfirm": "Sign {{name}} out of the Kaitech app?"
     }
   }
 }

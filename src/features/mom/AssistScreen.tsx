@@ -72,7 +72,7 @@ function NotesForm({ data, meeting, refreshing, onRefresh }: { data: ManualNotes
       invalidate(`${active.id}:${assistKey('notes', meeting)}`);
     } catch (error) {
       if (error instanceof ApiError && error.code === 'refused' && seen) {
-        Alert.alert(t('mom.assist.notes.conflictTitle'), error.reason || t('mom.assist.notes.conflictBody'), [
+        Alert.alert(t('mom.assist.notes.conflictTitle'), error.detail?.trim() || t('mom.assist.notes.conflictBody'), [
           { text: t('mom.assist.notes.useTheirs'), onPress: onRefresh },
           { text: t('mom.assist.notes.keepMine'), onPress: () => void save(null) },
         ]);

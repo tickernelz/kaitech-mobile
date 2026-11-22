@@ -68,10 +68,6 @@ export type StatusItem = {
 
 export type ProcessingSummary = { processing: number; failed: number; working: StatusItem[]; failing: StatusItem[] };
 
-export type RemovalPreview = { withdrawn: string[]; held: string };
-
-export type RemovalResult = { ok: boolean; message?: string };
-
 export type RecordKind = 'recordings' | 'minutes' | 'removals';
 
 export type RecordLine = { id: number; title: string; detail: string; state: string; meetingId: number | false };
@@ -126,14 +122,6 @@ export function transcribe(account: Account, recording: number): Promise<unknown
 
 export function compareWithElevenLabs(account: Account, recording: number): Promise<unknown> {
   return rpc(account, 'ck.mom.recording', 'compare_with_elevenlabs', [[recording]]);
-}
-
-export function removalPreview(account: Account, recording: number): Promise<RemovalPreview> {
-  return rpc<RemovalPreview>(account, 'ck.mom.recording', 'removal_preview', [[recording]]);
-}
-
-export function removeRecording(account: Account, recording: number, typedTitle: string, password: string): Promise<RemovalResult> {
-  return rpc<RemovalResult>(account, 'ck.mom.recording', 'remove_by_uploader', [[recording], typedTitle, password]);
 }
 
 type Many2one = { id: number; display_name: string } | false;

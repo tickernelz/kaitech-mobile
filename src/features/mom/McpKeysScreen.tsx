@@ -104,7 +104,7 @@ function MakeKey({ onMade, onCancel }: { onMade: (shown: KeyShown) => void; onCa
           <Row key={one.id} title={one.name} selected={chosen.includes(one.id)} trailing={<Check visible={chosen.includes(one.id)} />} onPress={() => toggle(one.id)} testID={`mcp-programme-${one.id}`} />
         ))}
       </Section>
-      <TextField label={t('mom.remove.password')} hint={t('mom.admin.keys.passwordHint')} value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" testID="mcp-password" />
+      <TextField label={t('mom.removeScreen.password')} hint={t('mom.admin.keys.passwordHint')} value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" testID="mcp-password" />
       {problem ? (
         <Text tone="dangerInk" accessibilityRole="alert">
           {problem}

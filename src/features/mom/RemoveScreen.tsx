@@ -11,7 +11,8 @@ import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 import { Header } from '../discovery/Header';
 import { StateView, useErrorText } from '../discovery/ui';
-import { meetingRecordings, removalPreview, removeRecording } from './records';
+import { removalPreview, removeRecording } from './api';
+import { meetingRecordings } from './records';
 
 export function RemoveScreen({ recording, meeting }: { recording: number; meeting: number }) {
   const { t } = useTranslation();
@@ -63,11 +64,11 @@ export function RemoveScreen({ recording, meeting }: { recording: number; meetin
               {problem}
             </Text>
           ) : null}
-          <Button label={t('mom.remove.confirm')} kind="danger" onPress={() => void remove()} disabled={!ready} busy={busy} testID="mom-remove-confirm" />
-          <Button label={t('mom.remove.keep')} kind="secondary" onPress={() => router.back()} testID="mom-remove-keep" />
+          <Button label={t('mom.removeScreen.confirm')} kind="danger" onPress={() => void remove()} disabled={!ready} busy={busy} testID="mom-remove-confirm" />
+          <Button label={t('mom.removeScreen.keep')} kind="secondary" onPress={() => router.back()} testID="mom-remove-keep" />
         </>
       }>
-      <Header title={t('mom.remove.title')} />
+      <Header title={t('mom.removeScreen.title')} />
       {loading ? (
         <StateView loading={!preview.error && !board.error} error={preview.error ?? board.error} onRetry={() => void (preview.error ? preview.refresh() : board.refresh())} testID="mom-remove" />
       ) : card ? (
@@ -75,11 +76,11 @@ export function RemoveScreen({ recording, meeting }: { recording: number; meetin
           <Text variant="headline" selectable testID="mom-remove-name">
             {name}
           </Text>
-          <Text>{t('mom.remove.warning')}</Text>
+          <Text>{t('mom.removeScreen.warning')}</Text>
           {preview.data!.withdrawn.length ? (
             <View style={[styles.box, { borderColor: colors.line, backgroundColor: colors.surface }]}>
               <Text variant="callout" style={styles.strong}>
-                {t('mom.remove.withdrawn')}
+                {t('mom.removeScreen.withdrawn')}
               </Text>
               {preview.data!.withdrawn.map((line) => (
                 <Text key={line} variant="callout">
@@ -93,9 +94,9 @@ export function RemoveScreen({ recording, meeting }: { recording: number; meetin
               <Text variant="callout">{preview.data!.held}</Text>
             </View>
           ) : null}
-          <TextField label={t('mom.remove.typeTitle')} hint={name} value={title} onChangeText={setTitle} autoCorrect={false} autoCapitalize="none" testID="mom-remove-title" />
+          <TextField label={t('mom.removeScreen.typeTitle')} hint={name} value={title} onChangeText={setTitle} autoCorrect={false} autoCapitalize="none" testID="mom-remove-title" />
           <TextField
-            label={t('mom.remove.password')}
+            label={t('mom.removeScreen.password')}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -106,7 +107,7 @@ export function RemoveScreen({ recording, meeting }: { recording: number; meetin
           />
         </View>
       ) : (
-        <StateView empty={{ title: t('mom.remove.gone'), icon: 'trash' }} />
+        <StateView empty={{ title: t('mom.removeScreen.gone'), icon: 'trash' }} />
       )}
     </Screen>
   );

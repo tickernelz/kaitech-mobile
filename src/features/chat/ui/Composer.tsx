@@ -9,7 +9,9 @@ import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, type Outgoing } from '../chat';
 import { clearDraft, readDraft, writeDraft } from '../drafts';
 import { dropFile } from '../files';
-import { bodyPreview } from '../markdown';
+import { bodyPreview, editableSource } from '../markdown';
+import { editMessage, mentionsInBody } from '../messageActions';
+import { failureText } from './actions/failure';
 import { useUploadLimit } from '../limits';
 import { askForPushOnce } from '../push';
 import type { Mention, Message } from '../types';
@@ -26,7 +28,7 @@ import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 
 type Staged = Outgoing['files'][number];
 
-export type ComposerHandle = { reply(message: Message): void; focus(): void };
+export type ComposerHandle = { reply(message: Message): void; edit(message: Message): void; focus(): void };
 
 const now = () => Date.now();
 const clock = () => performance.now();
@@ -56,8 +58,8 @@ function RoundButton({ icon, label, onPress, filled, testID }: { icon: IconName;
   );
 }
 
-export const Composer = forwardRef<ComposerHandle, { accountId: string; channelId: number; messages: Message[]; onSent: () => void }>(function Composer(
-  { accountId, channelId, messages, onSent },
+export const Composer = forwardRef<ComposerHandle, { accountId: string; channelId: number; messages: Message[]; onSent: () => void; onNotice?: (text: string) => void }>(function Composer(
+  { accountId, channelId, messages, onSent, onNotice },
   ref,
 ) {
   const { t } = useTranslation('chat');
@@ -75,6 +77,9 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const [cursor, setCursor] = useState(initial.text.length);
   const [suggestions, setSuggestions] = useState<Mention[]>([]);
   const [sheet, setSheet] = useState(false);
+  const [editing, setEditing] = useState<Message | null>(null);
+  const [saving, setSaving] = useState(false);
+  const stash = useRef<{ text: string; mentions: Mention[]; parentId: number | null } | null>(null);
   const input = useRef<ComponentRef<typeof TextInput>>(null);
   const typingAt = useRef(0);
   const hardwareSubmit = windowClass !== 'compact';
@@ -84,6 +89,16 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   useImperativeHandle(ref, () => ({
     reply: (message) => {
       setParentId(message.id);
+      input.current?.focus();
+    },
+    edit: (message) => {
+      if (!editing) stash.current = { text, mentions, parentId };
+      const source = editableSource(message.body);
+      setEditing(message);
+      setParentId(null);
+      setText(source);
+      setCursor(source.length);
+      setMentions(mentionsInBody(message.body).map((mention) => ({ ...mention, token: null })));
       input.current?.focus();
     },
     focus: () => input.current?.focus(),
@@ -96,8 +111,27 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   useEffect(() => () => stagedRef.current.forEach((file) => dropFile(file.uri)), []);
 
   useEffect(() => {
-    writeDraft(accountId, channelId, { text, parentId, mentions });
-  }, [accountId, channelId, text, parentId, mentions]);
+    if (!editing) writeDraft(accountId, channelId, { text, parentId, mentions });
+  }, [accountId, channelId, editing, text, parentId, mentions]);
+
+  const stopEditing = () => {
+    const previous = stash.current ?? { text: '', mentions: [], parentId: null };
+    stash.current = null;
+    setEditing(null);
+    setText(previous.text);
+    setMentions(previous.mentions);
+    setParentId(previous.parentId);
+    setCursor(previous.text.length);
+  };
+
+  const saveEdit = async () => {
+    if (!editing || saving || !text.trim()) return;
+    setSaving(true);
+    const result = await editMessage(editing, text, mentions);
+    setSaving(false);
+    if (result.ok) stopEditing();
+    else onNotice?.(failureText(t, result));
+  };
 
   const query = mentionQuery(text, cursor);
   const queryText = query?.query ?? null;
@@ -153,6 +187,10 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   );
 
   const submit = () => {
+    if (editing) {
+      void saveEdit();
+      return;
+    }
     const startedAt = clock();
     const outgoing: Outgoing = { channelId, text, parentId, mentions, files };
     if (!outgoing.text.trim() && !outgoing.files.length) return;
@@ -205,6 +243,19 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           ))}
         </View>
       ) : null}
+      {editing ? (
+        <View style={[styles.replyBar, { backgroundColor: colors.surface2 }]} testID="composer-editing">
+          <View style={styles.flex}>
+            <Text variant="footnote" style={styles.strong}>
+              {t('composer.editing')}
+            </Text>
+            <Text variant="footnote" tone="inkSoft" numberOfLines={1}>
+              {bodyPreview(editing.body)}
+            </Text>
+          </View>
+          <RoundButton icon="close" label={t('composer.cancelEdit')} onPress={stopEditing} testID="composer-cancel-edit" />
+        </View>
+      ) : null}
       {parentId ? (
         <View style={[styles.replyBar, { backgroundColor: colors.surface2 }]} testID="composer-reply">
           <View style={styles.flex}>
@@ -238,7 +289,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           <RecordingStrip recording={recording} />
         ) : (
           <>
-            <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />
+            {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />}
             {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
             <View style={[styles.field, { backgroundColor: colors.surface, borderColor: colors.line }]}>
               <TextInput
@@ -265,8 +316,14 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
             </View>
           </>
         )}
-        {canSend ? <RoundButton icon="send" label={t('composer.send')} filled onPress={submit} testID="composer-send" /> : null}
-        <MicButton voice={voice} hidden={canSend} />
+        {editing ? (
+          <RoundButton icon="check" label={t('composer.saveEdit')} filled onPress={submit} testID="composer-save-edit" />
+        ) : (
+          <>
+            {canSend ? <RoundButton icon="send" label={t('composer.send')} filled onPress={submit} testID="composer-send" /> : null}
+            <MicButton voice={voice} hidden={canSend} />
+          </>
+        )}
       </View>
       {markup.showBar && !recording ? <FormatBar onApply={markup.apply} onHide={markup.hide} /> : null}
       <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} />

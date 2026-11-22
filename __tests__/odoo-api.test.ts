@@ -71,6 +71,12 @@ describe('rpc', () => {
     expect((calls[3].init.headers as Record<string, string>).Cookie).toBe('session_id=s2');
   });
 
+  it('keeps a caller context next to the app language, which the language always wins', async () => {
+    const calls = serve([session('s1'), () => ({ body: { result: true } })]);
+    await rpc(account, 'res.users.identitycheck', 'run_check', [[5]], { context: { password: 'pw', lang: 'en_US' } });
+    expect(JSON.parse(String(calls[1].init.body)).params.kwargs.context).toEqual({ password: 'pw', lang: 'id_ID' });
+  });
+
   it('turns an Odoo access error into a stable code', async () => {
     serve([session('s1'), () => ({ body: { error: { code: 200, data: { name: 'odoo.exceptions.AccessError' } } } })]);
     const failure = await rpc(account, 'ck.finding', 'search_read').catch((error: unknown) => error);
@@ -91,9 +97,9 @@ describe('rpc', () => {
       () => ({ body: { error: { code: 200, data: { name: 'odoo.exceptions.AccessError', message: 'ck.mom.recording (id=4) rule' } } } }),
     ]);
     const refused = (await rpc(account, 'ck.mom.recording', 'transcribe').catch((error: unknown) => error)) as ApiError;
-    expect([refused.code, refused.reason]).toEqual(['refused', 'Rekaman ini masih diunggah.']);
+    expect([refused.code, refused.detail]).toEqual(['refused', 'Rekaman ini masih diunggah.']);
     const forbidden = (await rpc(account, 'ck.mom.recording', 'transcribe').catch((error: unknown) => error)) as ApiError;
-    expect([forbidden.code, forbidden.reason]).toEqual(['forbidden', '']);
+    expect([forbidden.code, forbidden.detail]).toEqual(['forbidden', null]);
   });
 });
 

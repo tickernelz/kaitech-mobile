@@ -86,7 +86,7 @@ export function errorKey(error: unknown): string {
 export function useErrorText() {
   const { t } = useTranslation();
   return (error: unknown) => {
-    if (error instanceof ApiError && error.reason) return error.reason;
+    if (error instanceof ApiError && error.detail?.trim()) return error.detail.trim();
     return t(errorKey(error) as never, { defaultValue: t('errors.unknown') }) as string;
   };
 }

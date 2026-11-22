@@ -24,6 +24,8 @@ export type Conversation = {
   mutedUntil: string | null;
   activityAt: number;
   last: LastMessage | null;
+  pinned: boolean | null;
+  archived: boolean | null;
 };
 
 export type Attachment = {
@@ -37,7 +39,7 @@ export type Attachment = {
   url: string | null;
 };
 
-export type Reaction = { content: string; count: number; mine: boolean };
+export type Reaction = { content: string; count: number; mine: boolean; people?: string[] };
 
 export type Message = {
   id: number;
@@ -50,6 +52,11 @@ export type Message = {
   attachments: Attachment[];
   parentId: number | null;
   reactions: Reaction[];
+  starred?: boolean;
+  pinnedAt?: string | null;
+  edited?: boolean;
+  translation?: { body: string; lang: string } | null;
+  translated?: boolean;
 };
 
 export type Mention = { id: number; name: string; token: string | null };
