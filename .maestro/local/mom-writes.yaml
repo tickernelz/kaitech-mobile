@@ -1,5 +1,5 @@
 appId: io.kaitech.mobile
-name: MoM writes on the seeded meeting - flag and unflag a line, correct and restore it, save the Final header, write and clear my note
+name: MoM writes on the seeded meeting - flag and unflag a line, correct and restore it, relabel and undo, validate a speaker and take it back, save the Final header, write and clear my note
 tags:
   - signed-in
 onFlowStart:
@@ -97,6 +97,66 @@ onFlowStart:
     id: editor-filter-all
 - assertNotVisible:
     text: .*${'E2E ' + RUN}.*
+- tapOn:
+    id: editor-segment-[0-9]+
+    index: 0
+- tapOn:
+    id: segment-speaker
+- tapOn:
+    id: segment-label-text
+- eraseText: 40
+- inputText: ${'S' + RUN}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: segment-relabel
+- extendedWaitUntil:
+    notVisible:
+      id: segment-sheet
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      text: ${'S' + RUN}
+    timeout: 30000
+- tapOn:
+    id: editor-more
+- tapOn:
+    id: mom-more-speakers
+- extendedWaitUntil:
+    visible:
+      id: editor-speakers
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: relabel-undo-[0-9]+
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: x5-relabel-history
+- tapOn:
+    id: relabel-undo-[0-9]+
+    index: 0
+- extendedWaitUntil:
+    notVisible:
+      id: relabel-undo-[0-9]+
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: speaker-validate-[0-9]+
+    direction: UP
+- tapOn:
+    id: speaker-validate-[0-9]+
+    index: 0
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: x6-speaker-validated
+- tapOn:
+    id: speaker-validate-[0-9]+
+    index: 0
+- tapOn:
+    id: header-back
+- assertNotVisible:
+    text: ${'S' + RUN}
 - tapOn:
     id: header-back
 - runFlow:
