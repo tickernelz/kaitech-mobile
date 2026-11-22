@@ -1,4 +1,5 @@
 import { recordingVerbs } from '../src/features/mom/recordingActions';
+import { searchDomain } from '../src/features/mom/records';
 import type { RecordingCard } from '../src/features/mom/records';
 
 const card = (change: Partial<RecordingCard> = {}, progress: Partial<RecordingCard['transcription']> = {}): RecordingCard => ({
@@ -25,6 +26,21 @@ const card = (change: Partial<RecordingCard> = {}, progress: Partial<RecordingCa
 });
 
 const team = { canChange: true, isClient: false };
+
+jest.mock('../src/api/odoo', () => ({ rpc: jest.fn() }));
+
+describe('record search', () => {
+  it('looks in every field the web board searches, joined by or', () => {
+    expect(searchDomain(['name', 'meeting_id.name', 'department_id.name'], 'hr')).toEqual([
+      '|',
+      '|',
+      ['name', 'ilike', 'hr'],
+      ['meeting_id.name', 'ilike', 'hr'],
+      ['department_id.name', 'ilike', 'hr'],
+    ]);
+    expect(searchDomain(['title'], 'x')).toEqual([['title', 'ilike', 'x']]);
+  });
+});
 
 describe('recording verbs follow the web board', () => {
   it('offers transcribe again, compare and remove on a transcribed recording its uploader owns', () => {

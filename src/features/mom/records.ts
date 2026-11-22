@@ -140,24 +140,24 @@ type Many2one = { id: number; display_name: string } | false;
 
 const named = { fields: { display_name: {} } };
 
-const listed: Record<RecordKind, { model: string; specification: Record<string, unknown>; order: string; search: string }> = {
+const listed: Record<RecordKind, { model: string; specification: Record<string, unknown>; order: string; search: string[] }> = {
   recordings: {
     model: 'ck.mom.recording',
-    specification: { name: {}, engagement_id: named, meeting_id: named, state: {}, size_label: {}, uploaded_by_id: named },
+    specification: { name: {}, engagement_id: named, meeting_id: named, department_id: named, state: {}, size_label: {}, uploaded_by_id: named },
     order: 'create_date desc, id desc',
-    search: 'name',
+    search: ['name', 'meeting_id.name', 'filename', 'department_id.name'],
   },
   minutes: {
     model: 'ck.mom.document',
     specification: { meeting_id: named, engagement_id: named, version: {}, state: {} },
     order: 'id desc',
-    search: 'meeting_id.name',
+    search: ['meeting_id.name', 'engagement_id.name'],
   },
   removals: {
     model: 'ck.mom.removal',
     specification: { create_date: {}, user_id: named, title: {}, engagement_id: named, meeting_id: named, outcome: {}, reason: {} },
     order: 'create_date desc, id desc',
-    search: 'title',
+    search: ['title', 'meeting_id.name', 'reason'],
   },
 };
 
@@ -167,6 +167,7 @@ type Raw = {
   title?: string;
   engagement_id?: Many2one;
   meeting_id?: Many2one;
+  department_id?: Many2one;
   uploaded_by_id?: Many2one;
   user_id?: Many2one;
   size_label?: string;
@@ -182,12 +183,16 @@ const label = (value: Many2one | undefined) => (value ? value.display_name : '')
 function lineOf(kind: RecordKind, row: Raw): RecordLine {
   const meetingId = row.meeting_id ? row.meeting_id.id : false;
   if (kind === 'recordings') {
-    return { id: row.id, title: row.name ?? '', detail: [label(row.meeting_id), label(row.engagement_id), row.size_label, label(row.uploaded_by_id)].filter(Boolean).join(' · '), state: row.state ?? '', meetingId };
+    return { id: row.id, title: row.name ?? '', detail: [label(row.meeting_id), label(row.department_id), label(row.engagement_id), row.size_label, label(row.uploaded_by_id)].filter(Boolean).join(' · '), state: row.state ?? '', meetingId };
   }
   if (kind === 'minutes') {
     return { id: row.id, title: label(row.meeting_id), detail: [label(row.engagement_id), row.version ? `v${row.version}` : ''].filter(Boolean).join(' · '), state: row.state ?? '', meetingId };
   }
   return { id: row.id, title: row.title ?? '', detail: [label(row.user_id), label(row.meeting_id), row.reason || ''].filter(Boolean).join(' · '), state: row.outcome ?? '', meetingId };
+}
+
+export function searchDomain(fields: string[], said: string): unknown[] {
+  return [...fields.slice(1).map(() => '|'), ...fields.map((field) => [field, 'ilike', said])];
 }
 
 type Views = { models: Record<string, { fields: Record<string, { selection?: [string, string][] }> }> };
@@ -201,7 +206,7 @@ export async function recordPage(account: Account, kind: RecordKind, search: str
   const shape = listed[kind];
   const said = search.trim();
   const field = kind === 'removals' ? 'outcome' : 'state';
-  const domain = [...(said ? [[shape.search, 'ilike', said]] : []), ...(state ? [[field, '=', state]] : [])];
+  const domain = [...(said ? searchDomain(shape.search, said) : []), ...(state ? [[field, '=', state]] : [])];
   const [page, labels] = await Promise.all([
     rpc<{ length: number; records: Raw[] }>(account, shape.model, 'web_search_read', [], {
       domain,
