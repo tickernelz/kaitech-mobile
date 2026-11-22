@@ -1,0 +1,14 @@
+appId: io.kaitech.mobile
+name: Sign in only, for multi-device checks
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- extendedWaitUntil:
+    visible:
+      id: open-settings
+    timeout: 60000

@@ -371,7 +371,10 @@
       "chase": "Tindak lanjut",
       "agenda": "Agenda",
       "other": "Discovery"
-    }
+    },
+    "askAbout": "Bahas ini bersamaku, satu per satu: {{headline}}",
+    "daily": "Kirim juga ke {{channel}}-ku tiap pagi hari kerja",
+    "dailyNeedsLink": "Tautkan nomor {{channel}} agar ringkasan ini terkirim tiap pagi hari kerja."
   },
   "search": {
     "open": "Cari",
@@ -624,6 +627,192 @@
       "generic": "Gagal menyimpan. Coba lagi."
     }
   },
+  "sheet": {
+    "close": "Tutup"
+  },
+  "date": {
+    "previous": "Bulan sebelumnya",
+    "next": "Bulan berikutnya"
+  },
+  "activities": {
+    "mine": "Aktivitas saya",
+    "discovery": "Discovery",
+    "pending": "{{count}} aktivitas jatuh tempo",
+    "filter": {
+      "all": "Semua {{count}}",
+      "overdue": "Terlambat {{count}}",
+      "today": "Hari ini {{count}}",
+      "planned": "Terencana {{count}}"
+    },
+    "addTodo": "Tambah to-do",
+    "meetingsToday": "Rapat hari ini ({{count}})",
+    "allDay": "Seharian",
+    "sectionCount": "{{name}} ({{count}})",
+    "noneTitle": "Tidak ada aktivitas",
+    "noneFiltered": "Tidak ada di sini",
+    "editTitle": "Ubah aktivitas",
+    "todoTitle": "Tambah to-do",
+    "scheduleTitle": "Jadwalkan aktivitas",
+    "type": "Jenis",
+    "summary": "Ringkasan",
+    "due": "Tenggat",
+    "pickDate": "Pilih tanggal",
+    "inAWeek": "Seminggu lagi",
+    "assignedTo": "Ditugaskan ke",
+    "nobody": "Belum ada",
+    "findPerson": "Cari orang",
+    "note": "Catatan",
+    "save": "Simpan",
+    "schedule": "Jadwalkan",
+    "feedback": "Umpan balik (opsional)",
+    "markDone": "Tandai selesai",
+    "uploadDone": "Unggah dokumen dan tandai selesai",
+    "doneAndNext": "Selesai dan jadwalkan berikutnya",
+    "snooze": {
+      "title": "Tunda",
+      "today": "Hari ini",
+      "tomorrow": "Besok",
+      "nextweek": "Minggu depan"
+    },
+    "moveTo": "Pindah ke {{date}}",
+    "edit": "Ubah",
+    "openRecord": "Buka rekaman",
+    "cancel": "Batalkan aktivitas",
+    "keep": "Biarkan",
+    "cancelConfirm": "Batalkan aktivitas ini? Aktivitas dihapus tanpa catatan selesai.",
+    "readOnly": "Kamu bisa melihat aktivitas ini tetapi tidak bisa mengubahnya.",
+    "tooBig": "Berkas lebih besar dari {{size}} MB.",
+    "when": {
+      "overdue_one": "Terlambat {{count}} hari",
+      "overdue_other": "Terlambat {{count}} hari",
+      "yesterday": "Kemarin",
+      "today": "Hari ini",
+      "tomorrow": "Besok",
+      "inDays_one": "{{count}} hari lagi",
+      "inDays_other": "{{count}} hari lagi"
+    },
+    "truncated": "Menampilkan {{count}} aktivitas terdekat. Buka web untuk yang lebih lama."
+  },
+  "choice": {
+    "search": "Cari"
+  },
+  "notifications": {
+    "delivery": "Notifikasi Odoo",
+    "deliveryChoice": {
+      "inbox": "Tangani di Odoo",
+      "email": "Tangani lewat email"
+    },
+    "channels": "Pesan kanal",
+    "channelChoice": {
+      "all": "Semua pesan",
+      "mentions": "Hanya sebutan",
+      "no_notif": "Tidak ada"
+    }
+  },
+  "account": {
+    "title": "Akun Odoo",
+    "contact": "Kontak",
+    "email": "Email",
+    "phone": "Telepon",
+    "save": "Simpan",
+    "preferences": "Preferensi",
+    "timezone": "Zona waktu",
+    "calendarPrivacy": "Privasi kalender bawaan",
+    "signature": "Tanda tangan email",
+    "notSet": "Belum diatur",
+    "away": "Di luar kantor",
+    "awayToggle": "Di luar kantor",
+    "awayHint": "Orang yang mengirim pesan melihat pesanmu",
+    "awayFrom": "Dari",
+    "awayTo": "Sampai",
+    "awayMessage": "Pesan",
+    "language": "Bahasa akun Odoo",
+    "languageHint": "Dipakai untuk email dan notifikasi yang dikirim server kepadamu.",
+    "appLanguage": "Bahasa aplikasi"
+  },
+  "security": {
+    "thisPhone": "HP ini",
+    "account": "Akun Odoo",
+    "identity": {
+      "title": "Pastikan ini kamu",
+      "body": "Masukkan kata sandi Odoo untuk melanjutkan.",
+      "password": "Kata sandi",
+      "confirm": "Konfirmasi",
+      "wrong": "Kata sandi salah. Coba lagi."
+    },
+    "password": {
+      "title": "Ganti kata sandi",
+      "hint": "Mengganti kata sandi mengeluarkan semua aplikasi Kaitech di akunmu, termasuk HP ini, dan web di browser lain.",
+      "new": "Kata sandi baru",
+      "confirm": "Ulangi kata sandi baru",
+      "mismatch": "Kata sandinya tidak sama.",
+      "save": "Ganti kata sandi",
+      "done": "Kata sandi sudah diganti.",
+      "signInAgain": "Semua aplikasi Kaitech di akunmu keluar, termasuk HP ini. Masuk lagi dengan kata sandi baru.",
+      "ok": "Masuk lagi"
+    },
+    "totp": {
+      "title": "Verifikasi dua langkah",
+      "on": "Aktif",
+      "off": "Nonaktif",
+      "enabledBody": "Saat masuk, kamu diminta kode dari aplikasi autentikator.",
+      "disabledBody": "Tambahkan kode dari aplikasi autentikator di setiap proses masuk.",
+      "start": "Aktifkan",
+      "scan": "Pindai kode ini dengan aplikasi autentikator, atau buka di HP ini.",
+      "qr": "Kode QR autentikator",
+      "openApp": "Buka di aplikasi autentikator",
+      "noApp": "Belum ada aplikasi autentikator di HP ini. Masukkan kuncinya manual.",
+      "manual": "Atau masukkan kunci ini manual:",
+      "copy": "Salin kunci",
+      "copied": "Tersalin",
+      "code": "Kode verifikasi",
+      "enable": "Aktifkan verifikasi dua langkah",
+      "disable": "Nonaktifkan",
+      "disableConfirm": "Nonaktifkan verifikasi dua langkah?"
+    },
+    "passkeys": {
+      "title": "Passkey",
+      "hint": "Passkey membuatmu bisa masuk ke web tanpa kata sandi.",
+      "created": "Ditambahkan {{date}}",
+      "none": "Belum ada passkey",
+      "addLater": "Untuk sementara tambahkan passkey lewat web; menambah dari HP ini menunggu pembaruan server.",
+      "name": "Nama",
+      "rename": "Ganti nama",
+      "delete": "Hapus passkey",
+      "deleteConfirm": "Hapus passkey {{name}}?"
+    },
+    "apiKeys": {
+      "title": "API key",
+      "hint": "API key membuat program lain bisa bertindak atas namamu. Rahasiakan.",
+      "created": "Dibuat {{date}}",
+      "expires": "Berlaku sampai {{date}}",
+      "none": "Belum ada API key",
+      "add": "API key baru",
+      "name": "Untuk apa?",
+      "duration": "Berlaku selama",
+      "create": "Buat kunci",
+      "ready": "API key siap",
+      "readyHint": "Salin sekarang. Kunci ini tidak ditampilkan lagi.",
+      "copy": "Salin kunci",
+      "copied": "Tersalin",
+      "delete": "Hapus kunci",
+      "deleteConfirm": "Hapus API key {{name}}? Program yang memakainya berhenti bekerja."
+    },
+    "devices": {
+      "title": "Perangkat",
+      "current": "{{name}} (yang ini)",
+      "none": "Belum ada perangkat",
+      "revoke": "Keluarkan",
+      "revokeConfirm": "Keluarkan {{name}}?",
+      "revokeAll": "Keluar di semua perangkat",
+      "revokeAllConfirm": "Ini mengeluarkan semua perangkat di akunmu, termasuk HP ini. Sesudahnya kamu masuk lagi.",
+      "apps": "Aplikasi Kaitech",
+      "appsHint": "Mengeluarkan HP di sini langsung mengakhiri sesi aplikasi Kaitech-nya.",
+      "browsers": "Browser dan sesi lain",
+      "browsersHint": "Mengeluarkan sesi browser mengakhiri sesi web itu. Aplikasi Kaitech membuka sesi baru sendiri; keluarkan lewat bagian Aplikasi Kaitech.",
+      "revokeAppConfirm": "Keluarkan {{name}} dari aplikasi Kaitech?"
+    }
+  },
   "person": {
     "presence": {
       "online": "Online",
@@ -638,8 +827,5 @@
     "email": "Email",
     "phone": "Telepon",
     "viewProfile": "Lihat profil di web"
-  },
-  "sheet": {
-    "close": "Tutup"
   }
 }
