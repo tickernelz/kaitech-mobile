@@ -128,4 +128,4 @@ npm test
 npm run i18n:check
 ```
 
-Changed workflows: `actionlint`. Changed flows: `maestro check-syntax <flow>`.
+Changed workflows: `actionlint -ignore 'unexpected key "queue"'` (actionlint 1.7.12 does not know `concurrency.queue` yet). Changed flows: `maestro check-syntax <flow>`.
