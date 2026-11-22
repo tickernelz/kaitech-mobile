@@ -58,25 +58,7 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: w3-tasks
-- tapOn:
-    id: header-back
-- runFlow:
-    when:
-      visible:
-        id: header-back
-    commands:
-      - tapOn:
-          id: header-back
-- repeat:
-    while:
-      notVisible:
-        id: mom-menu
-    times: 40
-    commands:
-      - swipe:
-          start: 22%, 30%
-          end: 22%, 80%
-          duration: 400
+- runFlow: ../shared/back-to-mom-home.yaml
 - tapOn:
     id: mom-menu
 - runFlow:
