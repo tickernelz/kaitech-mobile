@@ -1,0 +1,115 @@
+name: E2E runner trial
+
+on:
+  workflow_dispatch:
+    inputs:
+      driver:
+        description: maestro-runner driver
+        type: choice
+        options: [devicelab, uiautomator2]
+        default: devicelab
+      first:
+        description: Runner that goes first for each flow
+        type: choice
+        options: [cli, runner]
+        default: cli
+      flows:
+        description: Flows to run with both runners (a negative control is always added)
+        type: string
+        default: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml .maestro/welcome.yaml .maestro/sign-in-form.yaml
+      apk-run-id:
+        description: CI run on main whose e2e-apk-x86_64 artifact is tested (empty for the newest)
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  trial:
+    name: maestro CLI vs maestro-runner (${{ inputs.driver }}, ${{ inputs.first }} first)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    concurrency:
+      group: kaitech-e2e-account
+      cancel-in-progress: false
+      queue: max
+    env:
+      E2E_TRIAL_FLOWS: ${{ inputs.flows }}
+      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
+      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
+      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
+      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
+      E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
+      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
+      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
+      E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
+      E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
+      MAESTRO_RUNNER_TELEMETRY_DEBUG: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Download the e2e APK built on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APK_RUN_ID: ${{ inputs.apk-run-id }}
+        run: |
+          set -euo pipefail
+          run_id="$APK_RUN_ID"
+          if [ -z "$run_id" ]; then
+            for id in $(gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --branch main --event push --limit 20 --json databaseId --jq '.[].databaseId'); do
+              if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id/artifacts?name=e2e-apk-x86_64" --jq '.artifacts[] | select(.expired == false) | .id' | grep -q .; then
+                run_id="$id"
+                break
+              fi
+            done
+          fi
+          [ -n "$run_id" ] || { echo "no unexpired e2e-apk-x86_64 artifact on main" >&2; exit 1; }
+          gh run download "$run_id" -R "$GITHUB_REPOSITORY" -n e2e-apk-x86_64 -D dist
+          echo "APK: e2e-apk-x86_64 from CI run $run_id at $(gh run view "$run_id" -R "$GITHUB_REPOSITORY" --json headSha --jq .headSha)" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: ./.github/actions/setup-maestro
+      - uses: ./.github/actions/setup-maestro-runner
+      - uses: ./.github/actions/setup-gitleaks
+      - name: Send maestro-runner telemetry and update checks nowhere
+        run: echo '0.0.0.0 open.devicelab.dev' | sudo tee -a /etc/hosts
+      - name: Run each flow with both runners on one emulator
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          TRIAL_FIRST: ${{ inputs.first }}
+          TRIAL_DRIVER: ${{ inputs.driver }}
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash scripts/e2e-runner-trial.sh dist e2e-output "$TRIAL_FIRST" "$TRIAL_DRIVER"
+      - name: Scan trial output for secrets
+        id: scan-e2e
+        if: always()
+        run: |
+          if [ ! -d e2e-output ]; then
+            echo "no trial output"
+            exit 0
+          fi
+          gitleaks dir --redact --verbose --exit-code 1 e2e-output
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && steps.scan-e2e.outcome == 'success'
+        with:
+          name: e2e-runner-trial-${{ inputs.driver }}-${{ inputs.first }}-first
+          path: e2e-output/
+          if-no-files-found: warn
+          retention-days: 30
