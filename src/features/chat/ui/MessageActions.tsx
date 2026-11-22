@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { radius, space, useTheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
-import { Sheet, SheetRow } from '../../../ui/Sheet';
+import { Sheet, SheetItem } from '../../../ui/Sheet';
 import { Text } from '../../../ui/Text';
 import type { Message } from '../types';
 
@@ -43,7 +43,7 @@ export function MessageActions({
     onAction(action, message);
   };
   const row = (action: MessageAction, icon: IconName, label: string, danger = false) =>
-    options[action] ? <SheetRow key={action} icon={icon} label={label} onPress={act(action)} danger={danger} testID={`action-${action}`} /> : null;
+    options[action] ? <SheetItem key={action} icon={icon} label={label} onPress={act(action)} danger={danger} testID={`action-${action}`} /> : null;
   const extra = [
     row('thread', 'thread', t('actions.thread')),
     row('pin', 'pin', message.pinnedAt ? t('actions.unpin') : t('actions.pin')),
@@ -94,11 +94,11 @@ export function MessageActions({
         more ? (
           extra
         ) : (
-          <SheetRow icon="more" label={t('actions.more')} onPress={() => setMore(true)} testID="action-more" />
+          <SheetItem icon="more" label={t('actions.more')} onPress={() => setMore(true)} testID="action-more" />
         )
       ) : null}
       {mine ? (
-        <SheetRow
+        <SheetItem
           icon="eye"
           label={readers ? t('actions.readBy', { count: readers }) : t('actions.notRead')}
           onPress={options.readers ? act('readers') : undefined}

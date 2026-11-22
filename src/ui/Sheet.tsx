@@ -1,13 +1,15 @@
 import type { ReactNode } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useKeyboardState } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../theme';
-import { Icon, type IconName } from './icons';
 import { Text } from './Text';
+import { Icon, type IconName } from './icons';
 
 export function Sheet({
   title,
+  detail,
   onClose,
   children,
   footer,
@@ -15,6 +17,7 @@ export function Sheet({
   testID,
 }: {
   title?: string;
+  detail?: string;
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
@@ -24,71 +27,86 @@ export function Sheet({
   const { t } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboard = useKeyboardState((state) => (state.isVisible ? state.height : 0));
+  const head = title ? (
+    <View style={styles.head}>
+      <View style={styles.fill}>
+        <Text variant="headline" accessibilityRole="header" numberOfLines={2}>
+          {title}
+        </Text>
+        {detail ? (
+          <Text variant="footnote" tone="inkSoft">
+            {detail}
+          </Text>
+        ) : null}
+      </View>
+      <Pressable accessibilityRole="button" accessibilityLabel={t('sheet.close')} onPress={onClose} hitSlop={8} style={styles.close} testID={testID ? `${testID}-close` : undefined}>
+        <Icon name="close" color={colors.inkSoft} />
+      </Pressable>
+    </View>
+  ) : null;
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <KeyboardAvoidingView behavior="padding" style={styles.flex}>
-        <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('app.close')}>
-          <Pressable
-            style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]}
-            onPress={() => undefined}
-            accessibilityViewIsModal
-            testID={testID}>
-            {title ? (
-              <View style={styles.head}>
-                <Text variant="headline" accessibilityRole="header" numberOfLines={1} style={styles.flex}>
-                  {title}
-                </Text>
-                <Pressable accessibilityRole="button" accessibilityLabel={t('app.close')} onPress={onClose} hitSlop={8} style={styles.close} testID={testID ? `${testID}-close` : undefined}>
-                  <Icon name="close" color={colors.inkSoft} />
-                </Pressable>
-              </View>
-            ) : null}
-            {scroll ? (
-              <ScrollView style={styles.body} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-                {children}
-              </ScrollView>
-            ) : (
-              <View style={[styles.body, styles.content]}>{children}</View>
-            )}
-            {footer ? <View style={styles.footer}>{footer}</View> : null}
-          </Pressable>
+      <Pressable
+        style={[styles.scrim, { backgroundColor: colors.scrim, paddingBottom: keyboard }]}
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel={t('sheet.close')}
+        testID={testID ? `${testID}-backdrop` : undefined}>
+        <Pressable
+          style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: keyboard ? space.lg : Math.max(insets.bottom, space.lg) }]}
+          onPress={() => undefined}
+          accessibilityViewIsModal
+          testID={testID}>
+          {scroll ? (
+            <ScrollView style={styles.grow} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" bounces={false}>
+              {head}
+              {children}
+            </ScrollView>
+          ) : (
+            <View style={styles.body}>
+              {head}
+              {children}
+            </View>
+          )}
+          {footer ? <View style={styles.footer}>{footer}</View> : null}
         </Pressable>
-      </KeyboardAvoidingView>
+      </Pressable>
     </Modal>
   );
 }
 
-export function SheetRow({
+export function SheetItem({
   icon,
   label,
   detail,
   onPress,
+  disabled,
   danger,
   selected,
-  disabled,
   testID,
 }: {
   icon?: IconName;
   label: string;
   detail?: string;
   onPress?: () => void;
+  disabled?: boolean;
   danger?: boolean;
   selected?: boolean;
-  disabled?: boolean;
   testID?: string;
 }) {
   const { colors } = useTheme();
-  const ink = danger ? colors.danger : colors.ink;
+  const ink = danger ? colors.dangerInk : colors.ink;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ selected, disabled }}
+      accessibilityState={{ disabled: !!disabled, selected }}
       disabled={disabled || !onPress}
       onPress={onPress}
-      style={({ pressed }) => [styles.row, (pressed || selected) && { backgroundColor: colors.surface2 }, disabled && styles.disabled]}
+      style={({ pressed }) => [styles.item, (pressed || selected) && { backgroundColor: colors.surface2 }, disabled && styles.dim]}
       testID={testID}>
       {icon ? <Icon name={icon} color={ink} /> : null}
-      <View style={styles.flex}>
+      <View style={styles.fill}>
         <Text variant="body" style={{ color: ink }} numberOfLines={2}>
           {label}
         </Text>
@@ -104,14 +122,14 @@ export function SheetRow({
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
+  fill: { flex: 1 },
+  grow: { flexGrow: 0 },
   scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 560, maxHeight: '88%', borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.lg },
-  head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingBottom: space.sm },
-  close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  body: { flexGrow: 0 },
-  content: { paddingHorizontal: space.lg, gap: space.xs },
+  body: { paddingHorizontal: space.lg, gap: space.xs },
+  head: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm, paddingLeft: space.sm, paddingBottom: space.sm },
+  close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginTop: -space.sm },
   footer: { paddingHorizontal: space.lg, paddingTop: space.md, gap: space.sm },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 52, paddingHorizontal: space.sm, borderRadius: radius.md },
-  disabled: { opacity: 0.5 },
+  item: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 52, paddingHorizontal: space.sm, borderRadius: radius.md },
+  dim: { opacity: 0.5 },
 });

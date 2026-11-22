@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, TextInput, View } from 'react-native';
 import { radius, space, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
-import { Sheet, SheetRow } from '../../../../ui/Sheet';
+import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
 import { forwardDraft, forwardTo, type ForwardDraft, type Result } from '../../messageActions';
 import type { Message } from '../../types';
@@ -70,10 +70,10 @@ export function ForwardSheet({ message, onClose, onDone }: { message: Message; o
       ) : null}
       {draft?.ok ? (
         <>
-          <SheetRow icon="chat" label={t('forward.picked', { count: picked.length })} detail={more ? undefined : t('forward.pickMore')} onPress={() => setMore((value) => !value)} testID="forward-more" />
+          <SheetItem icon="chat" label={t('forward.picked', { count: picked.length })} detail={more ? undefined : t('forward.pickMore')} onPress={() => setMore((value) => !value)} testID="forward-more" />
           {more
             ? draft.value.messages.map((item) => (
-                <SheetRow
+                <SheetItem
                   key={item.id}
                   label={item.preview || t('list.files', { count: item.files })}
                   detail={item.author}
@@ -96,7 +96,7 @@ export function ForwardSheet({ message, onClose, onDone }: { message: Message; o
             testID="forward-search"
           />
           {targets.map((item) => (
-            <SheetRow
+            <SheetItem
               key={item.id}
               icon={item.kind === 'chat' ? 'chat' : item.kind === 'group' ? 'people' : 'hash'}
               label={item.name}
