@@ -228,6 +228,14 @@ onFlowStart:
           start: 22%, 30%
           end: 22%, 80%
           duration: 400
+- repeat:
+    while:
+      visible:
+        id: upload-dismiss
+    times: 5
+    commands:
+      - tapOn:
+          id: upload-dismiss
 - tapOn:
     text: ${'E2E FU ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
     index: 0

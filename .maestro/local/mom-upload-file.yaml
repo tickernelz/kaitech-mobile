@@ -45,6 +45,14 @@ name: MoM upload a meeting file from the phone instead of recording it, then rem
       id: upload-done
     timeout: 180000
 - takeScreenshot: u1-uploaded-${DEVICE_SIZE}-${APP_LANGUAGE}
+- repeat:
+    while:
+      visible:
+        id: upload-dismiss
+    times: 5
+    commands:
+      - tapOn:
+          id: upload-dismiss
 - tapOn:
     text: ${'Uji unggah ' + DEVICE_SIZE + ' ' + APP_LANGUAGE}
     index: 0
