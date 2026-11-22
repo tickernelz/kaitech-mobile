@@ -7,7 +7,7 @@ import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, useChat, type Outgoing } from '../chat';
-import { cannedResponses, markCannedUsed, sendLater, type Canned } from '../composerExtras';
+import { cannedQuery, cannedResponses, markCannedUsed, sendLater, type Canned } from '../composerExtras';
 import { hasFeature } from '../features';
 import { EmojiPicker } from './EmojiPicker';
 import { GifSheet } from './composer/GifSheet';
@@ -37,15 +37,6 @@ export type ComposerHandle = { reply(message: Message): void; edit(message: Mess
 
 const now = () => Date.now();
 const clock = () => performance.now();
-
-export function cannedQuery(text: string, cursor: number): { start: number; query: string } | null {
-  const before = text.slice(0, cursor);
-  const at = before.lastIndexOf('::');
-  if (at < 0 || (at > 0 && !/\s/.test(before[at - 1]))) return null;
-  const query = before.slice(at + 2);
-  if (/\s/.test(query) || query.length > 32) return null;
-  return { start: at, query };
-}
 
 export function mentionQuery(text: string, cursor: number): { start: number; query: string } | null {
   const before = text.slice(0, cursor);

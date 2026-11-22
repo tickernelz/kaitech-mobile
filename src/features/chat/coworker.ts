@@ -137,9 +137,11 @@ export function recordCards(urls: string[]) {
 export function linksIn(html: string, origin: string): string[] {
   const host = origin.replace(/^https?:\/\//, '');
   const out = new Set<string>();
-  for (const match of html.matchAll(/href="([^"]+)"/g)) {
-    const href = match[1].replace(/&amp;/g, '&');
-    if (/data-oe-model="res\.partner"/.test(match[0])) continue;
+  for (const match of html.matchAll(/<a\b[^>]*>/g)) {
+    const tag = match[0];
+    const found = /href="([^"]+)"/.exec(tag);
+    if (!found || /data-oe-model="res\.partner"/.test(tag)) continue;
+    const href = found[1].replace(/&amp;/g, '&');
     const absolute = href.startsWith('/') ? `${origin}${href}` : href;
     if (absolute.includes(`//${host}/odoo/`) || absolute.includes(`//${host}/web#`) || absolute.includes(`//${host}/mail/view`)) out.add(absolute);
   }

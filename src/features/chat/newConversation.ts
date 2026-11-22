@@ -2,7 +2,7 @@ import { route, rpc } from '../../api/odoo';
 import { refreshConversations } from './chat';
 import { run, type Person } from './messageActions';
 
-function channelOf(data: unknown): number {
+export function channelOf(data: unknown): number {
   const responses = (data as { DataResponse?: unknown } | null)?.DataResponse;
   const list = Array.isArray(responses) ? responses : responses ? [responses] : [];
   for (const item of list) {

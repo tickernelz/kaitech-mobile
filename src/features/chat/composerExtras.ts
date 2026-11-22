@@ -4,6 +4,15 @@ import { composeBody, mentionsInText } from './html';
 import { run, odooDatetime } from './messageActions';
 import type { Mention, PendingFile } from './types';
 
+export function cannedQuery(text: string, cursor: number): { start: number; query: string } | null {
+  const before = text.slice(0, cursor);
+  const at = before.lastIndexOf('::');
+  if (at < 0 || (at > 0 && !/\s/.test(before[at - 1]))) return null;
+  const query = before.slice(at + 2);
+  if (/\s/.test(query) || query.length > 32) return null;
+  return { start: at, query };
+}
+
 export type Canned = { id: number; source: string; substitution: string };
 
 export function cannedResponses(query: string) {

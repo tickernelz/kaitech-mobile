@@ -132,7 +132,7 @@ export function deleteThread(channelId: number) {
 
 export type Scheduled = { id: number; body: string; date: number; files: number };
 
-function scheduledFrom(data: unknown): Scheduled[] {
+export function scheduledFrom(data: unknown): Scheduled[] {
   return list(data, 'mail.scheduled.message')
     .map((item) => {
       const date = typeof item.scheduled_date === 'string' ? Date.parse(`${item.scheduled_date.replace(' ', 'T')}Z`) : NaN;
