@@ -348,10 +348,6 @@ onFlowStart:
       - tapOn:
           id: ${output.row}
 - extendedWaitUntil:
-    notVisible:
-      text: ${RUN + ' sub'}
-    timeout: 15000
-- extendedWaitUntil:
     visible:
       id: thread-more
     timeout: 15000
