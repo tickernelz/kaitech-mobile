@@ -1,8 +1,10 @@
+import { searchEmoji } from '../src/features/chat/emoji/emoji';
 import { featuresFromSession, hasFeature } from '../src/features/chat/features';
 import { editableSource } from '../src/features/chat/markdown';
 import { mentionsInBody, odooDate, odooDatetime } from '../src/features/chat/messageActions';
 import { editedBody, isRemoved, messagePatches, messagesFromStore } from '../src/features/chat/odoo';
 
+jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined }));
 jest.mock('../src/api/odoo', () => ({ route: jest.fn(), rpc: jest.fn(), ApiError: class extends Error {} }));
 jest.mock('../src/features/chat/chat', () => ({ chatClient: () => null, patchMessages: jest.fn(), refreshConversations: jest.fn() }));
 
@@ -64,6 +66,15 @@ describe('editing a sent message', () => {
 
   it('falls back to plain text for rich HTML from the web', () => {
     expect(editableSource('<ul><li>satu</li><li>dua</li></ul>')).toContain('satu');
+  });
+});
+
+describe('emoji search', () => {
+  it('puts the emoji named after the word before ones only tagged with it', () => {
+    const found = searchEmoji('rocket');
+    expect(found[0]).toBe('\u{1F680}');
+    expect(found.length).toBeGreaterThan(1);
+    expect(searchEmoji('zzzz-none')).toEqual([]);
   });
 });
 

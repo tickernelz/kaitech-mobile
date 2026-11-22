@@ -24,14 +24,15 @@ export function emojiGroups(): EmojiGroup[] {
 export function searchEmoji(query: string, limit = 80): string[] {
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (!terms.length) return [];
-  const out: string[] = [];
+  const named: string[] = [];
+  const tagged: string[] = [];
   for (const group of emojiGroups()) {
     for (const item of group.items) {
-      if (terms.every((term) => item.words.includes(term))) out.push(item.emoji);
-      if (out.length >= limit) return out;
+      if (!terms.every((term) => item.words.includes(term))) continue;
+      (item.words.startsWith(terms[0]) ? named : tagged).push(item.emoji);
     }
   }
-  return out;
+  return [...named, ...tagged].slice(0, limit);
 }
 
 export function recentEmoji(): string[] {
