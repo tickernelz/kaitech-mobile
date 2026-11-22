@@ -101,6 +101,14 @@ for flow in "${flows[@]}"; do
   done
 done
 adb shell pm list instrumentation | tr -d '\r' > "$out/instrumentation.txt" || true
+adb logcat -d -b crash > "$out/crash.txt" || true
+if [ -z "${E2E_LOGIN:-}" ]; then
+  while IFS=$'\t' read -r name runner code _; do
+    [ "$code" = 0 ] && continue
+    mkdir -p "$out/$name/$runner/failures"
+    find "$out/$name/$runner/raw" -name '*.png' -exec cp {} "$out/$name/$runner/failures/" \;
+  done < <(tail -n +2 "$out/results.tsv")
+fi
 
 status=0
 node scripts/e2e-runner-trial-summary.mjs "$out" "$(basename "$negative" .yaml)" || status=1
