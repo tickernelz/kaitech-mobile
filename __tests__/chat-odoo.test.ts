@@ -20,7 +20,7 @@ const store = {
   'res.partner': [{ id: 7, name: 'Budi Santoso' }],
   'mail.guest': [{ id: 2, name: 'Tamu' }],
   'ir.attachment': [{ id: 30, name: 'catatan.m4a', mimetype: 'audio/mp4', file_size: 2048, raw_access_token: 'tok', checksum: 'abc', voice_ids: [1] }],
-  'mail.message.reaction': [{ message: 12, content: '👍', count: 2, partners: [7, 9] }],
+  MessageReactions: [{ message: 12, content: '👍', count: 2, partners: [7, 9] }],
   'discuss.channel.member': [
     { id: 1, channel_id: { id: 4, model: 'discuss.channel' }, partner_id: 7, seen_message_id: 12 },
     { id: 2, channel_id: { id: 4, model: 'discuss.channel' }, partner_id: 9, seen_message_id: 11 },

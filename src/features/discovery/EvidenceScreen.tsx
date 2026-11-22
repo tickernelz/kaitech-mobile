@@ -9,7 +9,9 @@ import { useFormatters } from '../../i18n';
 import { Panes } from '../../layout/Panes';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
+import { RowActions } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
+import { textActions } from '../../ui/textActions';
 import { evidencePage, evidence as readEvidence, findings as readFindings, programmes, type Evidence, type EvidenceKind, type Finding } from './api';
 import { parseServerDate } from './dates';
 import { findingTone, FindingView } from './FindingView';
@@ -52,31 +54,37 @@ function EvidenceRow({ row }: { row: Evidence }) {
   const { date } = useFormatters();
   const at = parseServerDate(row.stated_at);
   const used = row.question_ids.length;
+  const source = [
+    t(sourceLabelKey(row.source_kind) as never) as string,
+    row.source_text_id ? row.source_text_id[1] : '',
+    row.stated_by_profile_id ? row.stated_by_profile_id[1] : '',
+    at ? date(at) : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  const quoted = `\u201C${row.quote}\u201D`;
   return (
-    <View style={[styles.item, { backgroundColor: colors.surface, borderColor: colors.line }]} testID={`evidence-${row.id}`}>
-      <Text selectable>
-        {'\u201C'}
-        {row.quote}
-        {'\u201D'}
-      </Text>
+    <RowActions title={quoted} subtitle={source} actions={textActions(t, `${quoted}\n${source}`)} start={['copy']} end={['share', 'more']} testID={`evidence-${row.id}`}>
+      {(bind) => (
+    <Pressable
+      {...bind}
+      accessibilityLabel={`${quoted}, ${source}`}
+      style={({ pressed }) => [styles.item, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}
+      testID={`evidence-${row.id}`}>
+      <Text>{quoted}</Text>
       <View style={styles.meta}>
         <Icon name={sourceIcon(row.source_kind)} size={16} color={colors.inkSoft} />
         <Text variant="footnote" tone="inkSoft" style={styles.fill}>
-          {[
-            t(sourceLabelKey(row.source_kind) as never) as string,
-            row.source_text_id ? row.source_text_id[1] : '',
-            row.stated_by_profile_id ? row.stated_by_profile_id[1] : '',
-            at ? date(at) : '',
-          ]
-            .filter(Boolean)
-            .join(' · ')}
+          {source}
         </Text>
       </View>
       <View style={styles.chips}>
         {row.conflict ? <Chip tone="warn" label={t('discovery.evidence.conflict')} /> : null}
         {used ? <Chip tone="ok" label={t('discovery.evidence.used', { count: used })} /> : <Chip label={t('discovery.evidence.unused')} />}
       </View>
-    </View>
+    </Pressable>
+      )}
+    </RowActions>
   );
 }
 
@@ -84,7 +92,15 @@ function FindingRow({ row, selected, onPress }: { row: Finding; selected: boolea
   const { t } = useTranslation();
   const { colors } = useTheme();
   return (
+    <RowActions
+      title={row.name}
+      actions={[{ key: 'open', icon: 'forward', label: t('row.open'), onPress }, ...textActions(t, `${row.name}\n${row.body}`)]}
+      start={['copy']}
+      end={['share', 'more']}
+      testID={`finding-${row.id}`}>
+      {(bind) => (
     <Pressable
+      {...bind}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
@@ -105,6 +121,8 @@ function FindingRow({ row, selected, onPress }: { row: Finding; selected: boolea
         {t('discovery.finding.sides', { count: row.side_ids.length })}
       </Text>
     </Pressable>
+      )}
+    </RowActions>
   );
 }
 

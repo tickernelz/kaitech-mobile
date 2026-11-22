@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { radius, space, useTheme } from '../theme';
+import type { RowBind } from './RowActions';
 import { Text } from './Text';
 
 export function Section({ title, children }: { title?: string; children: ReactNode }) {
@@ -26,7 +27,9 @@ export function Row({
   tone = 'ink',
   testID,
   selected,
+  bind,
 }: {
+  bind?: RowBind;
   title: string;
   detail?: string;
   leading?: ReactNode;
@@ -60,12 +63,13 @@ export function Row({
   }
   return (
     <Pressable
+      {...bind}
       accessibilityRole={selected === undefined ? 'button' : 'radio'}
       accessibilityState={selected === undefined ? undefined : { selected }}
       android_ripple={{ color: colors.select }}
       onPress={onPress}
       testID={testID}
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface2 }]}>
+      style={({ pressed }) => [styles.row, pressed ? { backgroundColor: colors.surface2 } : bind && { backgroundColor: colors.canvas }]}>
       {content}
     </Pressable>
   );

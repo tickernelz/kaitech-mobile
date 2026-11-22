@@ -37,6 +37,8 @@ const cloud = 'M7 19a4.5 4.5 0 0 1-.9-8.9A6 6 0 0 1 17.8 9.2 5 5 0 0 1 17 19Z';
 const bell = [body('M5 17h14l-1.5-2.5V10a5.5 5.5 0 0 0-11 0v4.5Z'), line('M10 20.5h4')];
 const handset = 'M4 5.5 6.5 3l4 4L8 9.5l6.5 6.5 2.5-2.5 4 4-2.5 2.5A14.5 14.5 0 0 1 4 5.5Z';
 const fullSlash = slash('M3 3l18 18');
+const pinParts = [body('M9 3h6l-1 5.5 3.5 3.5V14H6.5v-2L10 8.5Z'), line('M12 14v7')];
+const archiveParts = [body(tile(3, 4, 21, 8.5, 1.5)), line('M5 8.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5')];
 
 export const glyphs = {
   back: { parts: [line('M20 12H5'), line('M11 5l-7 7 7 7')] },
@@ -81,6 +83,16 @@ export const glyphs = {
   steps: { parts: [line('M9 6h12M9 12h12M9 18h12'), dot(square(3, 4.5, 3)), dot(square(3, 10.5, 3)), dot(square(3, 16.5, 3))] },
   more: { parts: [dot(square(3.5, 10.5, 3)), dot(square(10.5, 10.5, 3)), dot(square(17.5, 10.5, 3))] },
   copy: { parts: [body(tile(9, 9, 21, 21)), line('M15 6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v9h3')] },
+  edit: { parts: [body('M4 20v-4L15 5l4 4L8 20Z'), cut('M12.5 7.5l4 4')] },
+  pin: { parts: [body('M9 3h6l-1 6 4 4H6l4-4Z'), line('M12 13v8')] },
+  star: { parts: [body('M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z')] },
+  link: { parts: [line('M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1'), line('M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1')] },
+  task: { parts: [body(tile(3, 3, 21, 21)), cut('M7.5 12.5l3 3 6-6.5')] },
+  calendar: { parts: [body(tile(3, 5, 21, 21)), cut('M3 10h18'), line('M8 2.5v4M16 2.5v4')] },
+  emoji: { parts: [body(circle(12, 12, 9)), cut('M8.5 14.5a4.5 4.5 0 0 0 7 0'), cutDot(`${circle(9, 10, 1.25)}${circle(15, 10, 1.25)}`)] },
+  unread: { parts: [body('M3 21V7a3 3 0 0 1 3-3h8v2a5 5 0 0 0 7 4.6V15a3 3 0 0 1-3 3H8Z'), dot(circle(19, 5, 3))] },
+  globe: { parts: [line(circle(12, 12, 9)), line('M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18')] },
+  forwardMessage: { parts: [line('M14 5l6 6-6 6'), line('M20 11H10a6 6 0 0 0-6 6v2')] },
   share: { parts: [line('M12 3v12'), line('M7.5 7.5 12 3l4.5 4.5'), line('M7 10H5v11h14V10h-2')] },
   sign: { parts: [body('M4 17v-3.5L13.5 4 17 7.5 7.5 17Z'), dot('M12 19h9v2h-9Z')] },
   trash: { parts: [line('M3 6h18M9 6V3h6v3'), line('M5.5 6 7 21h10l1.5-15'), line('M10 10.5v6M14 10.5v6')] },
@@ -114,6 +126,10 @@ export const glyphs = {
   zoomIn: { parts: [line(circle(10.5, 10.5, 7)), line('M15.5 15.5 21 21'), line('M7.5 10.5h6M10.5 7.5v6')] },
   zoomOut: { parts: [line(circle(10.5, 10.5, 7)), line('M15.5 15.5 21 21'), line('M7.5 10.5h6')] },
   table: { parts: [body(tile(3, 4, 21, 20)), cut('M3 9.5h18M3 14.5h18M9 9.5V20')] },
+  pinOff: { parts: [...pinParts, fullSlash] },
+  archive: { parts: [...archiveParts, line('M10 12.5h4')] },
+  unarchive: { parts: [...archiveParts, line('M12 17.5V12M9.5 14.5 12 12l2.5 2.5')] },
+  leave: { parts: [line('M13 4H6v16h7'), line('M10 12h10.5M17 8.5l3.5 3.5-3.5 3.5')] },
 } satisfies Record<string, Glyph>;
 
 export type IconName = keyof typeof glyphs;

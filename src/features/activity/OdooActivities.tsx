@@ -8,6 +8,8 @@ import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
+import { RowActions } from '../../ui/RowActions';
+import { textActions } from '../../ui/textActions';
 import { Text } from '../../ui/Text';
 import { Icon } from '../../ui/icons';
 import { rememberProgramme } from '../discovery/store';
@@ -97,7 +99,7 @@ export function OdooActivities({ items, header }: { items: Resource<Overview>; h
                     key={meeting.id}
                     accessibilityRole="button"
                     onPress={() => openRecord('calendar.event', meeting.id)}
-                    style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}
+                    style={({ pressed }) => [styles.row, styles.spaced, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}
                     testID={`activities-meeting-${meeting.id}`}>
                     <View style={[styles.icon, { backgroundColor: colors.infoBand }]}>
                       <Icon name="meeting" size={20} color={colors.infoInk} />
@@ -123,26 +125,46 @@ export function OdooActivities({ items, header }: { items: Resource<Overview>; h
         renderItem={({ item }) => {
           const late = item.state === 'overdue';
           const when = due(item.deadline);
+          const title = item.summary || item.typeName;
+          const subtitle = item.resName ? `${when} · ${item.resName}` : when;
           return (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={[item.summary || item.typeName, item.resName, when].filter(Boolean).join(', ')}
-              onPress={() => setSelected(item)}
-              style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}
-              testID={`activity-odoo-${item.id}`}>
-              <View style={[styles.icon, { backgroundColor: late ? colors.dangerBand : colors.surface2 }]}>
-                <Icon name={iconOfCategory(item.category)} size={20} color={late ? colors.dangerInk : colors.selectInk} />
-              </View>
-              <View style={styles.fill}>
-                <Text variant="callout" numberOfLines={2}>
-                  {item.summary || item.typeName}
-                </Text>
-                <Text variant="footnote" numberOfLines={1} style={{ color: late ? colors.dangerInk : colors.inkFaint }}>
-                  {item.resName ? `${when} · ${item.resName}` : when}
-                </Text>
-              </View>
-              <Icon name="forward" size={20} color={colors.inkFaint} />
-            </Pressable>
+            <View style={styles.spaced}>
+              <RowActions
+                title={title}
+                subtitle={subtitle}
+                actions={[
+                  { key: 'open', icon: 'forward', label: t('row.open'), onPress: () => setSelected(item) },
+                  ...(item.canWrite ? [{ key: 'edit', icon: 'sign' as const, label: t('activities.edit'), onPress: () => setForm({ kind: 'edit', activity: item }) }] : []),
+                  ...(item.resId ? [{ key: 'record', icon: 'external' as const, label: t('activities.openRecord'), onPress: () => openRecord(item.resModel, item.resId) }] : []),
+                  ...textActions(t, item.resName ? `${title}\n${item.resName}` : title),
+                ]}
+                start={item.canWrite ? ['edit'] : ['open']}
+                end={item.resId ? ['record', 'more'] : ['copy', 'more']}
+                testID={`activity-odoo-${item.id}`}>
+                {(bind) => (
+                  <Pressable
+                    {...bind}
+                    accessibilityRole="button"
+                    accessibilityLabel={[title, item.resName, when].filter(Boolean).join(', ')}
+                    onPress={() => setSelected(item)}
+                    style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}
+                    testID={`activity-odoo-${item.id}`}>
+                    <View style={[styles.icon, { backgroundColor: late ? colors.dangerBand : colors.surface2 }]}>
+                      <Icon name={iconOfCategory(item.category)} size={20} color={late ? colors.dangerInk : colors.selectInk} />
+                    </View>
+                    <View style={styles.fill}>
+                      <Text variant="callout" numberOfLines={2}>
+                        {title}
+                      </Text>
+                      <Text variant="footnote" numberOfLines={1} style={{ color: late ? colors.dangerInk : colors.inkFaint }}>
+                        {subtitle}
+                      </Text>
+                    </View>
+                    <Icon name="forward" size={20} color={colors.inkFaint} />
+                  </Pressable>
+                )}
+              </RowActions>
+            </View>
           );
         }}
         ListFooterComponent={
@@ -193,6 +215,7 @@ const styles = StyleSheet.create({
   block: { gap: space.sm },
   footer: { paddingTop: space.md, textAlign: 'center' },
   section: { paddingTop: space.md, paddingBottom: space.xs, paddingHorizontal: space.xs },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, marginBottom: space.sm },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
+  spaced: { marginBottom: space.sm },
   icon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
 });
