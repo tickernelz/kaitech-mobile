@@ -320,6 +320,7 @@ jobs:
     with:
       label: rows-
       apk-artifact: e2e-apk-x86_64
+      audio: true
       flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
       matrix: >-
         {"size": ["phone", "tablet"], "orientations": ["portrait"], "locale": ["en-US", "id-ID"],
