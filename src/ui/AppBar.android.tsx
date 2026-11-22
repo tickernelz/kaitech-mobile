@@ -5,6 +5,8 @@ import { space, useTheme } from '../theme';
 import { spring } from '../theme/motion';
 import { Text } from './Text';
 
+export const largeTitleOwnsActions = false;
+
 const expandedTitleHeight = 48;
 
 export function useCollapsingTitle(): { collapsed: boolean; onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void } {
@@ -12,7 +14,7 @@ export function useCollapsingTitle(): { collapsed: boolean; onScroll: (event: Na
   return { collapsed, onScroll: (event) => setCollapsed(event.nativeEvent.contentOffset.y > expandedTitleHeight) };
 }
 
-export function CollapsedAppBar({ title, collapsed, actions }: { title: string; collapsed: boolean; actions?: ReactNode }) {
+export function TopAppBar({ title, collapsed, navigation, actions }: { title: string; collapsed: boolean; navigation?: ReactNode; actions?: ReactNode }) {
   const { material } = useTheme();
   const reduceMotion = useReducedMotion();
   const shown = useSharedValue(collapsed ? 1 : 0);
@@ -22,21 +24,19 @@ export function CollapsedAppBar({ title, collapsed, actions }: { title: string; 
   }, [collapsed, reduceMotion, shown]);
   const fade = useAnimatedStyle(() => ({ opacity: shown.get() }));
   return (
-    <Animated.View
-      pointerEvents={collapsed ? 'box-none' : 'none'}
-      importantForAccessibility={collapsed ? 'auto' : 'no-hide-descendants'}
-      style={[styles.bar, { backgroundColor: material.surfaceContainer }, fade]}
-      testID="app-bar-collapsed">
-      <Text variant="title" accessibilityRole="header" numberOfLines={1} style={[styles.title, { color: material.onSurface }]}>
-        {title}
-      </Text>
-      {actions ? <View style={styles.actions}>{actions}</View> : null}
-    </Animated.View>
+    <View style={[styles.bar, { backgroundColor: collapsed ? material.surfaceContainer : material.background }]} testID="app-bar">
+      {navigation}
+      <Animated.View style={[styles.title, fade]} importantForAccessibility={collapsed ? 'auto' : 'no-hide-descendants'} testID="app-bar-title">
+        <Text variant="title" accessibilityRole="header" numberOfLines={1} style={{ color: material.onSurface }}>
+          {title}
+        </Text>
+      </Animated.View>
+      {actions}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  bar: { position: 'absolute', top: 0, left: 0, right: 0, height: 64, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingLeft: space.lg, paddingRight: space.xs },
-  title: { flex: 1 },
-  actions: { flexDirection: 'row', alignItems: 'center' },
+  bar: { height: 64, flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.xs },
+  title: { flex: 1, paddingLeft: space.md },
 });

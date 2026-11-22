@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { radius, space, useTheme } from '../../../theme';
-import { CollapsedAppBar, useCollapsingTitle } from '../../../ui/AppBar';
+import { TopAppBar, largeTitleOwnsActions, useCollapsingTitle } from '../../../ui/AppBar';
 import { Text } from '../../../ui/Text';
 import { loadArchived, loadMoreConversations, refreshConversations, useChat } from '../chat';
 import { IconButton } from '../../../ui/IconButton';
@@ -163,10 +163,11 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
   const unreadTotal = useMemo(() => conversations.filter((conversation) => conversation.unread > 0).length, [conversations]);
   const bar = useCollapsingTitle();
 
+  const archiveBack = <IconButton icon="back" label={t('translation:row.back')} onPress={() => setInArchive(false)} testID="chat-archive-back" />;
   const archiveHeader = (
     <View style={styles.header}>
       <View style={styles.titleRow}>
-        <IconButton icon="back" label={t('translation:row.back')} onPress={() => setInArchive(false)} testID="chat-archive-back" />
+        {largeTitleOwnsActions ? archiveBack : null}
         <Text variant="display" accessibilityRole="header" style={styles.flex}>
           {t('rowActions.archivedTitle')}
         </Text>
@@ -198,7 +199,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
         <Text variant="display" accessibilityRole="header" style={styles.flex}>
           {t('translation:tabs.chat')}
         </Text>
-        <HeaderActions />
+        {largeTitleOwnsActions ? <HeaderActions /> : null}
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityRole="tablist">
         {filters.map((name) => {
@@ -264,6 +265,12 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
 
   return (
     <View style={styles.flex} testID="chat-list">
+      <TopAppBar
+        title={inArchive ? t('rowActions.archivedTitle') : t('translation:tabs.chat')}
+        collapsed={bar.collapsed}
+        navigation={inArchive ? archiveBack : null}
+        actions={inArchive ? null : <HeaderActions />}
+      />
       <FlashList
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
@@ -286,11 +293,6 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
             colors={[colors.primary]}
           />
         }
-      />
-      <CollapsedAppBar
-        title={inArchive ? t('rowActions.archivedTitle') : t('translation:tabs.chat')}
-        collapsed={bar.collapsed}
-        actions={inArchive ? null : <HeaderActions />}
       />
     </View>
   );
