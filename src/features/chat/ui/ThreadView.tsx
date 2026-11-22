@@ -14,7 +14,7 @@ import { plainText } from '../html';
 import { bodyPreview, bodyShape } from '../markdown';
 import { readersOf, readState } from '../odoo';
 import type { Message, Pending } from '../types';
-import { CallButtons } from '../../call/ui/CallButtons';
+import { CallButton } from '../../call/ui/CallButton';
 import { Avatar } from './Avatar';
 import { Composer, type ComposerHandle } from './Composer';
 import { useChatFormat } from './format';
@@ -252,7 +252,7 @@ export function ThreadView({
           {subtitle}
         </Text>
       </Pressable>
-      {!bubble && (type === 'chat' || type === 'group' || type === 'channel') ? <CallButtons channelId={channelId} channelName={name} /> : null}
+      {!bubble && (type === 'chat' || type === 'group' || type === 'channel') ? <CallButton channelId={channelId} channelName={name} /> : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('notify.title')}

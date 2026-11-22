@@ -1,12 +1,11 @@
 import { controlsFor, groupedMore, pillLimit, type ControlInput } from '../src/features/call/controls';
 
-const base: ControlInput = { phase: 'active', video: true, cameraOn: true, sharing: false, share: true, record: true, pip: true, wide: false, invite: true, crowd: true };
+const base: ControlInput = { phase: 'active', cameraOn: true, sharing: false, share: true, record: true, pip: true, wide: false, invite: true, crowd: true };
 
 describe('call controls', () => {
   it.each([
-    ['video', base],
-    ['video, camera off', { ...base, cameraOn: false }],
-    ['voice', { ...base, video: false }],
+    ['camera on', base],
+    ['camera off', { ...base, cameraOn: false }],
     ['sharing', { ...base, sharing: true }],
     ['connecting', { ...base, phase: 'connecting' as const, share: false, record: false }],
   ])('%s keeps the phone pill within the limit, with the microphone and the hang-up last', (_, input) => {
@@ -26,6 +25,12 @@ describe('call controls', () => {
     const { pill, more } = controlsFor({ ...base, sharing: true });
     expect(pill[0]).toBe('share');
     expect(more).not.toContain('share');
+  });
+
+  it('offers the camera in every call, also while sharing the screen', () => {
+    expect(controlsFor({ ...base, cameraOn: false }).pill).toEqual(['speaker', 'mute', 'camera', 'more', 'hangup']);
+    expect(controlsFor(base).pill).toEqual(['flip', 'mute', 'camera', 'more', 'hangup']);
+    expect(controlsFor({ ...base, sharing: true }).more).toContain('camera');
   });
 
   it('moves participants onto the pill on a wide screen', () => {

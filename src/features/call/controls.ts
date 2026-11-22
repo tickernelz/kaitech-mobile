@@ -41,7 +41,6 @@ export function groupedMore(actions: CallAction[]): { group: MoreGroup; actions:
 
 export type ControlInput = {
   phase: 'idle' | 'incoming' | 'outgoing' | 'connecting' | 'active' | 'reconnecting' | 'ended';
-  video: boolean;
   cameraOn: boolean;
   sharing: boolean;
   share: boolean;
@@ -67,9 +66,13 @@ export function controlsFor(input: ControlInput): { pill: CallAction[]; more: Ca
   extras.push('people');
   let lead: CallAction[];
   if (input.sharing) lead = ['share', 'mute'];
-  else if (input.video) lead = [...(input.cameraOn ? (['flip'] as const) : []), 'mute', 'camera'];
-  else lead = ['speaker', 'mute'];
-  const more: CallAction[] = [...(input.video || input.sharing ? (['speaker'] as const) : []), ...(live ? (['output', 'deafen'] as const) : []), ...extras];
+  else lead = [input.cameraOn ? 'flip' : 'speaker', 'mute', 'camera'];
+  const more: CallAction[] = [
+    ...(input.cameraOn || input.sharing ? (['speaker'] as const) : []),
+    ...(live ? (['output', 'deafen'] as const) : []),
+    ...(input.sharing ? (['camera'] as const) : []),
+    ...extras,
+  ];
   if (input.wide) {
     lead.push('people');
     more.splice(more.indexOf('people'), 1);

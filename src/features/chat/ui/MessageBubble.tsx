@@ -229,7 +229,7 @@ export const MessageBubble = memo(function MessageBubble({
                 const live = callState();
                 const busy = live.phase !== 'idle' && live.phase !== 'ended';
                 router.push({ pathname: '/call/[id]', params: { id: String(busy ? live.channelId : message.channelId) } });
-                if (!busy) void startCall({ channelId: message.channelId, channelName: conversationById(getChat(), message.channelId)?.name ?? '', video: false });
+                if (!busy) void startCall({ channelId: message.channelId, channelName: conversationById(getChat(), message.channelId)?.name ?? '' });
               }}
               testID={`call-notice-${message.id}-join`}>
               <Text variant="footnote" tone="link">

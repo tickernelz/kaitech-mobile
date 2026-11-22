@@ -22,23 +22,15 @@ export function IncomingCall() {
           {call.callerName}
         </Text>
         <Text variant="callout" tone="inkSoft" style={styles.center}>
-          {call.video ? t('incoming.video') : t('incoming.voice')}
+          {t('incoming')}
         </Text>
       </View>
       <View style={styles.actions}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('decline')} onPress={() => void decline()} style={[styles.round, { backgroundColor: colors.danger }]} testID="incoming-decline">
           <Icon name="phoneEnd" size={32} color={colors.onPrimary} />
         </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={call.video ? t('answerVoice') : t('answerVideo')}
-          onPress={() => void answer(!call.video)}
-          style={[styles.round, { backgroundColor: colors.surface2 }]}
-          testID="incoming-answer-other">
-          <Icon name={call.video ? 'phone' : 'video'} size={28} color={colors.ink} />
-        </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={t('answer')} onPress={() => void answer()} style={[styles.round, { backgroundColor: colors.ok }]} testID="incoming-answer">
-          <Icon name={call.video ? 'video' : 'phone'} size={32} color={colors.onPrimary} />
+          <Icon name="phone" size={32} color={colors.onPrimary} />
         </Pressable>
       </View>
     </View>

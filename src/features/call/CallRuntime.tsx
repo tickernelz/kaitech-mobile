@@ -68,7 +68,7 @@ export function CallStrip() {
       onPress={() => router.push({ pathname: '/call/[id]', params: { id: String(call.channelId) } })}
       style={[styles.strip, { height: insets.top + callStripHeight, paddingTop: insets.top, paddingLeft: insets.left + space.lg, paddingRight: insets.right + space.lg, backgroundColor: colors.okBand }]}
       testID="call-banner">
-      <Icon name={call.video ? 'video' : 'phone'} size={16} color={colors.okInk} variant="fill" />
+      <Icon name="phone" size={16} color={colors.okInk} variant="fill" />
       {call.muted ? <Icon name="micOff" size={16} color={colors.okInk} /> : null}
       <Text variant="label" numberOfLines={1} style={[styles.text, { color: colors.okInk }]}>
         {status ? `${name} · ${status}` : name}

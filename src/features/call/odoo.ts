@@ -5,7 +5,6 @@ export type Invitation = {
   callId: number;
   callerName: string;
   callerPartnerId: number | null;
-  video: boolean;
   channelType: string;
   channelName: string;
 };
@@ -67,7 +66,6 @@ export function invitationsFrom(store: unknown, partnerId: number): Invitation[]
       callId,
       callerName: caller.name,
       callerPartnerId: caller.partnerId,
-      video: session?.is_camera_on === true,
       channelType: text(channel?.channel_type) || 'chat',
       channelName: text(channel?.name),
     });

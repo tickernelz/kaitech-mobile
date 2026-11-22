@@ -21,7 +21,6 @@ object CallPip {
     val height: Int = 4,
     val muted: Boolean = false,
     val camera: Boolean = false,
-    val video: Boolean = false,
     val sharing: Boolean = false,
     val hint: Rect? = null,
   )
@@ -126,7 +125,7 @@ object CallPip {
     )
     if (current.sharing) {
       out += action(context, R.drawable.kaitech_call_stop_share, R.string.kaitech_call_stop_sharing, CallNotifications.ACTION_STOP_SHARING, 2)
-    } else if (current.video) {
+    } else {
       out += if (current.camera) {
         action(context, R.drawable.kaitech_call_videocam, R.string.kaitech_call_camera_off, ACTION_TOGGLE_CAMERA, 2)
       } else {

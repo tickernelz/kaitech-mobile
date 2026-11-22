@@ -6,7 +6,6 @@ export type CallAction = {
   active?: boolean;
   channelId?: number;
   callId?: number;
-  video?: boolean;
   title?: string;
   body?: string;
   caller?: string;
@@ -15,17 +14,14 @@ export type CallAction = {
   system?: boolean;
 };
 
-export type RingCall = { title: string; body: string; channelId: number; callId: number; video: boolean; db: string; uid: number };
-export type OngoingCall = { video: boolean; title: string; body: string; channelId: number; muted: boolean; camera: boolean };
-
 type NativeCall = {
   takePending(): Promise<CallAction[]>;
   takeLaunchAction(): Promise<CallAction | null>;
-  ring(title: string, body: string, channelId: number, callId: number, video: boolean, db: string, uid: number): Promise<boolean>;
+  ring(title: string, body: string, channelId: number, callId: number, db: string, uid: number): Promise<boolean>;
   ringing(): Promise<boolean>;
   cancelRing(channelId: number): Promise<boolean>;
-  startCall(video: boolean, title: string, body: string, channelId: number): Promise<boolean>;
-  updateCall(video: boolean, title: string, body: string, channelId: number, muted: boolean, camera: boolean, sharing: boolean): Promise<boolean>;
+  startCall(title: string, body: string, channelId: number): Promise<boolean>;
+  updateCall(title: string, body: string, channelId: number, muted: boolean, camera: boolean, sharing: boolean): Promise<boolean>;
   stopCall(): Promise<boolean>;
   setInCall(value: boolean): Promise<boolean>;
   setLocked(value: boolean): Promise<boolean>;
@@ -35,7 +31,7 @@ type NativeCall = {
   isResumed(): boolean;
   enterPictureInPicture(): Promise<boolean>;
   leavePictureInPicture(): Promise<boolean>;
-  setPictureInPicture(enabled: boolean, width: number, height: number, muted: boolean, camera: boolean, video: boolean, sharing: boolean): Promise<boolean>;
+  setPictureInPicture(enabled: boolean, width: number, height: number, muted: boolean, camera: boolean, sharing: boolean): Promise<boolean>;
   setPictureInPictureHint(x: number, y: number, width: number, height: number): Promise<boolean>;
   canUseFullScreenIntent(): Promise<boolean>;
   openFullScreenIntentSettings(): Promise<boolean>;

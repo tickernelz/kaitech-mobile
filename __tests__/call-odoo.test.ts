@@ -14,9 +14,9 @@ const ringing = {
 };
 
 describe('call invitations from the Odoo store', () => {
-  it('names the caller and the call kind for the invited phone owner', () => {
+  it('names the caller for the invited phone owner, whatever the caller camera', () => {
     expect(invitationsFrom(ringing, 1121)).toEqual([
-      { channelId: 145, callId: 24, callerName: 'Web Caller', callerPartnerId: 1122, video: true, channelType: 'chat', channelName: 'Web, HP' },
+      { channelId: 145, callId: 24, callerName: 'Web Caller', callerPartnerId: 1122, channelType: 'chat', channelName: 'Web, HP' },
     ]);
   });
 

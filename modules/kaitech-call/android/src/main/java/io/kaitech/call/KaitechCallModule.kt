@@ -38,8 +38,8 @@ class KaitechCallModule : Module() {
 
     AsyncFunction("takeLaunchAction") { CallIntents.takeLaunch(appContext) }
 
-    AsyncFunction("ring") { title: String, body: String, channelId: Int, callId: Int, video: Boolean, db: String, uid: Int ->
-      CallService.ring(requireContext(), CallService.Ring(title, body, channelId, callId, video, db, uid, system = true))
+    AsyncFunction("ring") { title: String, body: String, channelId: Int, callId: Int, db: String, uid: Int ->
+      CallService.ring(requireContext(), CallService.Ring(title, body, channelId, callId, db, uid, system = true))
       true
     }
 
@@ -50,13 +50,13 @@ class KaitechCallModule : Module() {
       true
     }
 
-    AsyncFunction("startCall") { video: Boolean, title: String, body: String, channelId: Int ->
-      CallService.call(requireContext(), CallService.Ongoing(video, title, body, channelId, muted = false, camera = video))
+    AsyncFunction("startCall") { title: String, body: String, channelId: Int ->
+      CallService.call(requireContext(), CallService.Ongoing(title, body, channelId, muted = false, camera = false))
       true
     }
 
-    AsyncFunction("updateCall") { video: Boolean, title: String, body: String, channelId: Int, muted: Boolean, camera: Boolean, sharing: Boolean ->
-      CallService.call(requireContext(), CallService.Ongoing(video, title, body, channelId, muted, camera, sharing))
+    AsyncFunction("updateCall") { title: String, body: String, channelId: Int, muted: Boolean, camera: Boolean, sharing: Boolean ->
+      CallService.call(requireContext(), CallService.Ongoing(title, body, channelId, muted, camera, sharing))
       true
     }
 
@@ -96,8 +96,8 @@ class KaitechCallModule : Module() {
       true
     }.runOnQueue(Queues.MAIN)
 
-    AsyncFunction("setPictureInPicture") { enabled: Boolean, width: Int, height: Int, muted: Boolean, camera: Boolean, video: Boolean, sharing: Boolean ->
-      CallPip.spec = CallPip.spec.copy(enabled = enabled, width = width, height = height, muted = muted, camera = camera, video = video, sharing = sharing)
+    AsyncFunction("setPictureInPicture") { enabled: Boolean, width: Int, height: Int, muted: Boolean, camera: Boolean, sharing: Boolean ->
+      CallPip.spec = CallPip.spec.copy(enabled = enabled, width = width, height = height, muted = muted, camera = camera, sharing = sharing)
       CallPip.apply(appContext.currentActivity)
       true
     }.runOnQueue(Queues.MAIN)
