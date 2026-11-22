@@ -134,8 +134,9 @@ onFlowStart:
 - tapOn:
     id: header-back
 - tapOn:
+    id: list-search-clear
+- tapOn:
     id: list-search
-- eraseText: 60
 - inputText: ${RAID_REJECT}
 - runFlow: ../shared/dismiss-keyboard.yaml
 - extendedWaitUntil:

@@ -222,7 +222,12 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
         }
       />
       <View style={styles.search}>
-        <TextField label={t('records.search')} value={query} onChangeText={setQuery} autoCorrect={false} returnKeyType="search" testID="list-search" />
+        <View style={styles.searchRow}>
+          <View style={styles.fill}>
+            <TextField label={t('records.search')} value={query} onChangeText={setQuery} autoCorrect={false} returnKeyType="search" testID="list-search" />
+          </View>
+          {query ? <IconButton icon="close" label={t('records.clear')} onPress={() => setQuery('')} testID="list-search-clear" /> : null}
+        </View>
         {chosen.length || (linked && !onlyProgramme) || grouping ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
             {linked && !onlyProgramme ? (
@@ -319,6 +324,7 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   strong: { fontWeight: '600' },
+  searchRow: { flexDirection: 'row', alignItems: 'flex-end', gap: space.xs },
   search: { paddingHorizontal: space.lg, paddingBottom: space.sm, gap: space.sm, width: '100%', maxWidth: 720, alignSelf: 'center' },
   chips: { gap: space.sm },
   listContent: { paddingHorizontal: space.lg, paddingBottom: space.xxl },
