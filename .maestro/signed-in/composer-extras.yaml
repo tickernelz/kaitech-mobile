@@ -119,8 +119,8 @@ onFlowStart:
 - tapOn:
     id: scheduled-delete
 - extendedWaitUntil:
-    visible:
-      id: scheduled-none
+    notVisible:
+      text: ${'.*' + RUN + ' c2 later'}
     timeout: 20000
 - tapOn:
     id: scheduled-sheet-close

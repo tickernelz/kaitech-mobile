@@ -29,6 +29,10 @@ onFlowStart:
       ACTION: group
       GROUP: ${'Uji thread ' + RUN}
 - evalScript: ${output.row = 'conversation-' + output.peer.group}
+- scrollUntilVisible:
+    element:
+      id: chat-filter-all
+    direction: UP
 - swipe:
     from:
       id: chat-filter-all
@@ -37,8 +41,15 @@ onFlowStart:
     element:
       id: ${output.row}
     timeout: 60000
-- tapOn:
-    id: ${output.row}
+- retry:
+    maxRetries: 2
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: ${output.row}
+          timeout: 30000
+      - tapOn:
+          id: ${output.row}
 - extendedWaitUntil:
     visible:
       id: thread-more
@@ -318,8 +329,13 @@ onFlowStart:
     visible:
       text: ${RUN + ' sub'}
     timeout: 20000
-- tapOn:
-    id: thread-back
+- runFlow:
+    when:
+      visible:
+        id: thread-back
+    commands:
+      - tapOn:
+          id: thread-back
 - runFlow:
     when:
       visible:

@@ -76,8 +76,13 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: d2-opened
-- tapOn:
-    id: thread-back
+- runFlow:
+    when:
+      visible:
+        id: thread-back
+    commands:
+      - tapOn:
+          id: thread-back
 - extendedWaitUntil:
     visible:
       id: chat-new

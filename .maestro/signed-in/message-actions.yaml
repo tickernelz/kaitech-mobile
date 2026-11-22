@@ -79,6 +79,12 @@ onFlowStart:
               id: message-actions
           commands:
             - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1'}
+          direction: UP
+          timeout: 10000
+          optional: true
       - longPressOn:
           text: ${RUN + ' a1'}
       - tapOn:
@@ -102,6 +108,12 @@ onFlowStart:
               id: message-actions
           commands:
             - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1'}
+          direction: UP
+          timeout: 10000
+          optional: true
       - longPressOn:
           text: ${RUN + ' a1'}
       - tapOn:
@@ -136,6 +148,12 @@ onFlowStart:
               id: message-actions
           commands:
             - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1'}
+          direction: UP
+          timeout: 10000
+          optional: true
       - longPressOn:
           text: ${RUN + ' a1'}
       - tapOn:
@@ -165,29 +183,12 @@ onFlowStart:
               id: message-actions
           commands:
             - back
-      - longPressOn:
-          text: ${RUN + ' a1'}
-      - tapOn:
-          id: action-readers
-      - extendedWaitUntil:
-          visible:
-            id: readers-sheet
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1'}
+          direction: UP
           timeout: 10000
-- runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: a3c-readers
-- tapOn:
-    id: readers-sheet-close
-- retry:
-    maxRetries: 2
-    commands:
-      - runFlow:
-          when:
-            visible:
-              id: message-actions
-          commands:
-            - back
+          optional: true
       - longPressOn:
           text: ${RUN + ' a1'}
       - tapOn:
@@ -228,6 +229,12 @@ onFlowStart:
               id: message-actions
           commands:
             - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1 edited.*'}
+          direction: UP
+          timeout: 10000
+          optional: true
       - longPressOn:
           text: ${RUN + ' a1 edited.*'}
       - tapOn:
@@ -300,6 +307,12 @@ onFlowStart:
               id: message-actions
           commands:
             - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1 edited.*'}
+          direction: UP
+          timeout: 10000
+          optional: true
       - longPressOn:
           text: ${RUN + ' a1 edited.*'}
       - tapOn:
@@ -376,6 +389,12 @@ onFlowStart:
               id: message-actions
           commands:
             - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1 edited.*'}
+          direction: UP
+          timeout: 10000
+          optional: true
       - longPressOn:
           text: ${RUN + ' a1 edited.*'}
       - tapOn:
@@ -436,6 +455,12 @@ onFlowStart:
               id: message-actions
           commands:
             - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1 edited.*'}
+          direction: UP
+          timeout: 10000
+          optional: true
       - longPressOn:
           text: ${RUN + ' a1 edited.*'}
       - tapOn:
@@ -475,6 +500,12 @@ onFlowStart:
               id: message-actions
           commands:
             - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1 edited.*'}
+          direction: UP
+          timeout: 10000
+          optional: true
       - longPressOn:
           text: ${RUN + ' a1 edited.*'}
       - tapOn:

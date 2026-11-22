@@ -351,7 +351,8 @@ export function lastMessageOf(message: Message, plain: string): LastMessage {
 }
 
 export function subChannelsFromStore(data: unknown): { id: number; name: string; fromMessageId: number | null }[] {
-  return records(data, 'discuss.channel')
+  const store = isRecord(data) && isRecord(data.store_data) ? data.store_data : data;
+  return records(store, 'discuss.channel')
     .filter((raw) => id(raw.id) !== null && id(raw.parent_channel_id) !== null)
     .map((raw) => ({ id: id(raw.id) ?? 0, name: text(raw.name), fromMessageId: id(raw.from_message_id) }));
 }
