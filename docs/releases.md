@@ -19,8 +19,8 @@ All evidence comes from the Android emulator or the iPad simulator; nothing has 
 | Area | Platform and size | Orientation | Language | Evidence |
 |---|---|---|---|---|
 | Install the APK from the Release on a clean emulator, welcome screen, the Sign in button opens the lab0 sign-in page with no form, the "Use another server" form checks the address and database and then returns to the default; on the phone also a rotation in the middle of the form without losing input | Android 15 phone (`pixel_6`) and 10-inch tablet (`pixel_tablet`) | portrait, landscape | en, id | job `install from release` in the Release run of every tag, recordings `e2e-android-release-*` |
-| The same flow with the x86_64 APK | Android 15 phone and tablet | portrait, landscape | en, id | CI on every push to `main`, recordings `e2e-android-*` |
-| The same flow on iPad (trial, non-blocking) | iPad simulator on a macOS runner | portrait, landscape | en | workflow `iPad trial`; the result for each tag is in that tag's `iPad trial` run |
+| The same flow with the x86_64 APK | Android 15 phone and tablet | portrait, landscape | en, id | `E2E` workflow nightly (smoke: phone portrait en on every merge to `main`), recordings `e2e-android-*` |
+| The same flow on iPad (non-blocking) | iPad simulator on the `macos-26` runner | portrait, landscape | en | `E2E` workflow nightly, artifact `e2e-ipad-en-US` |
 | Sign-in to lab0 from the CI APK through the App Link `lab0.kaitech.io`, verified by Android itself (`pm get-app-links`: verified), from the welcome screen until Chat opens | Android 15 phone (`pixel_6`) | portrait | en | local recording of the CI APK, not published (internal tracker ZHA-7373) |
 | Sign in to the server, then sign out (F0) | Android phone and tablet | not recorded | en, id | local recording with a build that carries the link domain, not published (internal tracker ZHA-7236) |
 | Chat: list, thread, offline send queue, attachments, voice messages, two panes on the tablet (F1) | Android phone and tablet | portrait, landscape | en, id | local recording (ZHA-7238) |
