@@ -49,7 +49,7 @@ onFlowStart:
     timeout: 10000
 - tapOn:
     id: new-search
-- inputText: ${PEER_SEARCH}
+- inputText: ${PEER.split(' (')[0]}
 - tapOn:
     id: new-search-.*
     index: 0

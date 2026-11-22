@@ -21,10 +21,24 @@ onFlowStart:
     id: tab-button-chat
 - extendedWaitUntil:
     visible:
-      text: ${GROUP}
+      id: chat-list
+    timeout: 30000
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: group
+      GROUP: ${'Uji thread ' + RUN}
+- evalScript: ${output.row = 'conversation-' + output.peer.group}
+- swipe:
+    from:
+      id: chat-filter-all
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      id: ${output.row}
     timeout: 60000
 - tapOn:
-    text: ${GROUP}
+    id: ${output.row}
 - extendedWaitUntil:
     visible:
       id: thread-more
@@ -47,7 +61,7 @@ onFlowStart:
     id: thread-action-search
 - tapOn:
     id: search-input
-- inputText: ${SEARCH}
+- inputText: halo
 - extendedWaitUntil:
     visible:
       id: found-.*
@@ -59,7 +73,7 @@ onFlowStart:
         id: found-.*
     commands:
       - eraseText: 40
-      - inputText: ${SEARCH}
+      - inputText: halo
 - extendedWaitUntil:
     visible:
       id: found-.*

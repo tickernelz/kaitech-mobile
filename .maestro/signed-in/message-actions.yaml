@@ -19,6 +19,11 @@ onFlowStart:
       - runFlow: ../shared/sign-in.yaml
 - tapOn:
     id: tab-button-chat
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: group
+      GROUP: ${'Uji teruskan ' + RUN}
 - extendedWaitUntil:
     visible:
       text: ${PEER}
@@ -141,7 +146,7 @@ onFlowStart:
     timeout: 15000
 - tapOn:
     id: forward-search
-- inputText: ${FORWARD_TO}
+- inputText: ${'Uji teruskan ' + RUN}
 - tapOn:
     id: forward-target-.*
     index: 0
