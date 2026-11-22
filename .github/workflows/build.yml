@@ -303,9 +303,9 @@ jobs:
     with:
       apk-artifact: e2e-apk-x86_64
       matrix: >-
-        {"size": ["phone", "tablet"], "orientation": ["portrait", "landscape"], "locale": ["en-US", "id-ID"],
+        {"size": ["phone", "tablet"], "orientations": ["portrait landscape"], "locale": ["en-US", "id-ID"],
         "include": [{"size": "phone", "profile": "pixel_6"}, {"size": "tablet", "profile": "pixel_tablet"},
-        {"size": "phone", "orientation": "portrait", "locale": "en-US", "cold_start": 5}]}
+        {"size": "phone", "locale": "en-US", "cold_start": 5}]}
 
   e2e-android-rows:
     name: e2e android rows
@@ -322,7 +322,7 @@ jobs:
       apk-artifact: e2e-apk-x86_64
       flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
       matrix: >-
-        {"size": ["phone", "tablet"], "orientation": ["portrait"], "locale": ["en-US", "id-ID"],
+        {"size": ["phone", "tablet"], "orientations": ["portrait"], "locale": ["en-US", "id-ID"],
         "include": [{"size": "phone", "profile": "pixel_6"}, {"size": "tablet", "profile": "pixel_tablet"},
         {"size": "phone", "locale": "en-US", "hide_direct": "true"}]}
 
@@ -335,7 +335,7 @@ jobs:
       label: universal-
       apk-artifact: kaitech-android-apk
       matrix: >-
-        {"include": [{"size": "phone", "orientation": "portrait", "locale": "en-US", "profile": "pixel_6", "cold_start": 0}]}
+        {"include": [{"size": "phone", "orientations": "portrait", "locale": "en-US", "profile": "pixel_6", "cold_start": 0}]}
 
   e2e-android:
     name: e2e android ${{ matrix.locale }}

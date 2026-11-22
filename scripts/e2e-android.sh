@@ -17,39 +17,46 @@ apk="$(find "$apk_dir" -maxdepth 1 -name '*.apk' | head -1)"
 
 region="${locale#*-}"
 
+framework_config() { adb shell am get-config 2>/dev/null | tr -d '\r' | grep -m1 '^config:' || true; }
+
 adb wait-for-device
-is_root() { [ "$(adb shell id -u 2>/dev/null | tr -d '\r')" = 0 ]; }
-for _ in $(seq 1 10); do
-  adb root >/dev/null 2>&1 || true
+config="$(framework_config)"
+locale_reboot=no
+if [[ "$config" != *"-$language-r$region-"* ]]; then
+  locale_reboot="yes, from ${config:-none}"
+  is_root() { [ "$(adb shell id -u 2>/dev/null | tr -d '\r')" = 0 ]; }
+  for _ in $(seq 1 10); do
+    adb root >/dev/null 2>&1 || true
+    adb wait-for-device
+    is_root && break
+    sleep 3
+  done
+  is_root || { echo "adb root unavailable on the emulator" >&2; exit 1; }
+  adb shell setprop persist.sys.locale "$locale"
+  adb reboot
+  adb wait-for-disconnect
   adb wait-for-device
-  is_root && break
-  sleep 3
-done
-is_root || { echo "adb root unavailable on the emulator" >&2; exit 1; }
-adb shell setprop persist.sys.locale "$locale"
-adb reboot
-adb wait-for-disconnect
-adb wait-for-device
-booted=""
-for _ in $(seq 1 150); do
-  if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; then
-    booted=1
-    break
-  fi
-  sleep 2
-done
-[ -n "$booted" ] || { echo "emulator did not finish booting after the locale reboot" >&2; exit 1; }
+  booted=""
+  for _ in $(seq 1 150); do
+    if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; then
+      booted=1
+      break
+    fi
+    sleep 2
+  done
+  [ -n "$booted" ] || { echo "emulator did not finish booting after the locale reboot" >&2; exit 1; }
+fi
 
 ready=""
 for _ in $(seq 1 120); do
-  config="$(adb shell am get-config 2>/dev/null | tr -d '\r' | grep -m1 '^config:' || true)"
+  config="$(framework_config)"
   if [[ "$config" == *"-$language-r$region-"* ]] && adb shell service check package 2>/dev/null | grep -q found; then
     ready=1
     break
   fi
   sleep 2
 done
-echo "framework config: ${config:-none} (expected $language-r$region)" | tee "$out/locale.txt"
+echo "framework config: ${config:-none} (expected $language-r$region), locale reboot: $locale_reboot" | tee "$out/locale.txt"
 [ -n "$ready" ] || { echo "framework did not come up in $locale" >&2; exit 1; }
 sleep 5
 
@@ -75,6 +82,10 @@ sleep 3
 
 adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
 adb shell am set-debug-app --persistent com.android.chrome
+if adb shell pm path io.kaitech.mobile 2>/dev/null | grep -q '^package:'; then
+  adb uninstall io.kaitech.mobile
+fi
+adb logcat -c
 adb install -r "$apk"
 adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' | head -2 | tee "$out/installed.txt"
 
