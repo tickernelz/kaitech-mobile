@@ -4,6 +4,20 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+    paths:
+      - 'src/**'
+      - 'modules/**'
+      - 'plugins/**'
+      - 'patches/**'
+      - 'index.ts'
+      - 'app.json'
+      - 'app.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.maestro/**'
+      - 'scripts/e2e-ipad.sh'
+      - '.github/workflows/ipad-trial.yml'
+      - '.github/actions/**'
   workflow_dispatch:
 
 permissions:
