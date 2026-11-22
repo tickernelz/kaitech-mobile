@@ -1,0 +1,177 @@
+appId: io.kaitech.mobile
+name: MoM writes on the seeded meeting - flag and unflag a line, correct and restore it, save the Final header, write and clear my note
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/pick-test-programme.yaml
+- runFlow: ../shared/open-seeded-meeting.yaml
+- extendedWaitUntil:
+    visible:
+      id: meeting-tab-transcript
+    timeout: 30000
+- tapOn:
+    id: meeting-tab-transcript
+- tapOn:
+    id: transcript-edit
+- extendedWaitUntil:
+    visible:
+      id: editor-segment-[0-9]+
+    timeout: 60000
+- tapOn:
+    id: editor-segment-[0-9]+
+    index: 0
+- tapOn:
+    id: segment-flag
+- extendedWaitUntil:
+    notVisible:
+      id: segment-sheet
+    timeout: 30000
+- tapOn:
+    id: editor-filter-flagged
+- extendedWaitUntil:
+    visible:
+      id: editor-segment-[0-9]+
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: x1-flagged
+- tapOn:
+    id: editor-segment-[0-9]+
+    index: 0
+- tapOn:
+    id: segment-flag
+- extendedWaitUntil:
+    notVisible:
+      id: segment-sheet
+    timeout: 30000
+- tapOn:
+    id: editor-filter-all
+- tapOn:
+    id: editor-segment-[0-9]+
+    index: 0
+- tapOn:
+    id: segment-text
+- extendedWaitUntil:
+    visible:
+      id: segment-save
+    timeout: 10000
+- tapOn:
+    id: segment-text
+- inputText: ${' E2E ' + RUN}
+- tapOn:
+    id: segment-save
+- extendedWaitUntil:
+    notVisible:
+      id: segment-sheet
+    timeout: 30000
+- tapOn:
+    id: editor-filter-changed
+- extendedWaitUntil:
+    visible:
+      text: .*${'E2E ' + RUN}.*
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: x2-corrected
+- tapOn:
+    text: .*${'E2E ' + RUN}.*
+    index: 0
+- tapOn:
+    id: segment-restore
+- extendedWaitUntil:
+    notVisible:
+      id: segment-sheet
+    timeout: 30000
+- tapOn:
+    id: editor-filter-all
+- assertNotVisible:
+    text: .*${'E2E ' + RUN}.*
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: meeting-tab-final
+    commands:
+      - tapOn:
+          id: header-back
+- tapOn:
+    id: meeting-tab-final
+- scrollUntilVisible:
+    element:
+      id: final-options
+- tapOn:
+    id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-header
+- tapOn:
+    id: mom-more-header
+- extendedWaitUntil:
+    visible:
+      id: final-header-save
+    timeout: 30000
+- tapOn:
+    id: final-header-save
+- extendedWaitUntil:
+    notVisible:
+      id: final-header-save
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: x3-header-saved
+- tapOn:
+    id: meeting-more
+- tapOn:
+    id: mom-more-assist-notes
+- extendedWaitUntil:
+    visible:
+      id: assist-note-body
+    timeout: 30000
+- tapOn:
+    id: assist-note-body
+- inputText: ${'E2E note ' + RUN}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: assist-note-save
+- extendedWaitUntil:
+    visible:
+      id: assist-note-save
+      enabled: false
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: x4-note-saved
+- tapOn:
+    id: header-back
+- tapOn:
+    id: meeting-more
+- tapOn:
+    id: mom-more-assist-notes
+- extendedWaitUntil:
+    visible:
+      text: .*${'E2E note ' + RUN}.*
+    timeout: 30000
+- tapOn:
+    id: assist-note-body
+- eraseText: 80
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: assist-note-save
+- extendedWaitUntil:
+    notVisible:
+      text: .*${'E2E note ' + RUN}.*
+    timeout: 30000
