@@ -34,25 +34,7 @@ onFlowStart:
       id: setup-consent
 - tapOn:
     id: setup-consent
-- scrollUntilVisible:
-    element:
-      id: setup-start
-- tapOn:
-    id: setup-start
-- runFlow:
-    when:
-      visible:
-        text: (While using the app|Saat aplikasi digunakan)
-    commands:
-      - tapOn:
-          text: (While using the app|Saat aplikasi digunakan)
-- runFlow:
-    when:
-      visible:
-        text: (Allow|Izinkan)
-    commands:
-      - tapOn:
-          text: (Allow|Izinkan)
+- runFlow: ../shared/start-recording.yaml
 - extendedWaitUntil:
     visible:
       id: recorder-stop
