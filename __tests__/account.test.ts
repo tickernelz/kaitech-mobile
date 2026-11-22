@@ -59,6 +59,30 @@ describe('account preferences', () => {
   });
 });
 
+describe('empty and refused answers', () => {
+  it('reads an empty user row as empty settings', () => {
+    expect(meFrom({})).toEqual({ email: '', phone: '', tz: '', lang: '', signature: '', notificationType: '', outOfOfficeFrom: '', outOfOfficeTo: '', outOfOfficeMessage: '', calendarPrivacy: '', totpEnabled: false });
+    expect(plainSignature('')).toBe('');
+    expect(signatureHtml('   ')).toBe('');
+    expect(localDayFromOdoo('')).toBe('');
+  });
+
+  it('hides the channel default when the user has no Discuss settings row yet', async () => {
+    mockAnswers.push([]);
+    expect(await discussSettings(account)).toBeNull();
+  });
+
+  it('fails loudly when the API key wizard answers without a key', async () => {
+    mockAnswers.push(12, { res_model: 'res.users.apikeys.show', context: {} });
+    await expect(makeApiKey(account, 'CI', '30')).rejects.toThrow('api_key_missing');
+  });
+
+  it('asks for the password again when run_check answers another identity check', () => {
+    expect(identityOf({ res_model: 'res.users.identitycheck', res_id: 32 })).toBe(32);
+    expect(identityOf({ res_model: 'auth_totp.wizard', res_id: 8 })).toBeNull();
+  });
+});
+
 describe('identity check', () => {
   it('stops at the password check the web asks for, then resumes with the password in the context', async () => {
     mockAnswers.push(identityAction);

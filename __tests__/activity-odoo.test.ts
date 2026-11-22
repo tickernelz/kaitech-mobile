@@ -6,6 +6,7 @@ import {
   byModel,
   defaultDeadline,
   groupsFrom,
+  markDone,
   markDoneAndNext,
   noteHtml,
   overview,
@@ -18,11 +19,12 @@ import {
 
 const mockCalls: { kind: 'rpc' | 'route'; target: string; method?: string; args?: unknown[]; kwargs?: Record<string, unknown> }[] = [];
 const mockAnswers: unknown[] = [];
+let mockFailure: Error | null = null;
 
 jest.mock('../src/api/odoo', () => ({
   rpc: (_account: unknown, model: string, method: string, args: unknown[] = [], kwargs: Record<string, unknown> = {}) => {
     mockCalls.push({ kind: 'rpc', target: model, method, args, kwargs });
-    return Promise.resolve(mockAnswers.shift());
+    return mockFailure ? Promise.reject(mockFailure) : Promise.resolve(mockAnswers.shift());
   },
   route: (_account: unknown, path: string, params: Record<string, unknown>) => {
     mockCalls.push({ kind: 'route', target: path, kwargs: params });
@@ -159,7 +161,29 @@ describe('choices', () => {
   });
 });
 
-describe('server mockCalls', () => {
+describe('empty and refused answers', () => {
+  it('shows no activities and no meetings when the user has none', async () => {
+    mockAnswers.push({ Store: {} }, []);
+    expect(await overview(account)).toEqual({ groups: [], meetings: [], activities: [] });
+    expect(groupsFrom(undefined)).toEqual({ groups: [], meetings: [] });
+    expect(pendingCount([])).toBe(0);
+    expect(byModel([], [])).toEqual([]);
+  });
+
+  it('skips rows the server answers without an id or a record model', () => {
+    expect(activityFrom({ summary: 'x', res_model: 'crm.lead' })).toBeNull();
+    expect(activityFrom({ id: 3 })).toBeNull();
+  });
+
+  it('passes a server refusal through to the screen instead of swallowing it', async () => {
+    mockFailure = new Error('forbidden');
+    await expect(overview(account)).rejects.toThrow('forbidden');
+    await expect(markDone(account, 1, '')).rejects.toThrow('forbidden');
+    mockFailure = null;
+  });
+});
+
+describe('server calls', () => {
   it('reads only the signed-in user\'s activities and the web systray groups', async () => {
     mockAnswers.push({ Store: { activityGroups: [{ model: 'crm.lead', name: 'Lead', overdue_count: 1 }] } }, [row()]);
     const result = await overview(account);

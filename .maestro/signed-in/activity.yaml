@@ -91,12 +91,14 @@ onFlowStart:
     id: activity-edit
 - extendedWaitUntil:
     visible:
-      id: activity-summary
+      id: activity-note
     timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: activity-note
 - tapOn:
-    id: activity-summary
-- eraseText: 80
-- inputText: ${output.todo + ' edited'}
+    id: activity-note
+- inputText: E2E note
 - runFlow: ../shared/dismiss-keyboard.yaml
 - scrollUntilVisible:
     element:
@@ -105,19 +107,27 @@ onFlowStart:
     id: activity-schedule-save
 - scrollUntilVisible:
     element:
-      text: ${output.todo + ' edited'}
+      text: ${output.todo}
     timeout: 30000
 - tapOn:
-    text: ${output.todo + ' edited'}
+    text: ${output.todo}
+- extendedWaitUntil:
+    visible:
+      id: activity-sheet-note
+    timeout: 10000
+- assertVisible:
+    text: E2E note
 - tapOn:
     id: activity-feedback
 - inputText: E2E feedback
-- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: activity-done
 - tapOn:
     id: activity-done
 - extendedWaitUntil:
     notVisible:
-      text: ${output.todo + ' edited'}
+      text: ${output.todo}
     timeout: 15000
 - evalScript: ${output.second = 'E2E cancel ' + Date.now()}
 - tapOn:
