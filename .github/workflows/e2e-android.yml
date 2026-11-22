@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   cell:
-    name: ${{ matrix.size }} ${{ matrix.orientation }} ${{ matrix.locale }}
+    name: ${{ matrix.size }} ${{ matrix.orientations }} ${{ matrix.locale }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -60,10 +60,10 @@ jobs:
           path: dist
       - uses: ./.github/actions/setup-maestro
       - uses: ./.github/actions/setup-gitleaks
-      - name: Run Maestro flows on emulator
+      - name: Run Maestro flows on one emulator per orientation in turn
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
-          COLD_START_RUNS: ${{ matrix.cold_start || 0 }}
+          PORTRAIT_COLD_START_RUNS: ${{ matrix.cold_start || 0 }}
         with:
           api-level: 35
           arch: x86_64
@@ -71,7 +71,7 @@ jobs:
           profile: ${{ matrix.profile }}
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash scripts/e2e-android.sh dist e2e-output/${{ inputs.label }}${{ matrix.size }}-${{ matrix.orientation }}-${{ matrix.locale }} ${{ matrix.locale }} ${{ matrix.size }} ${{ matrix.orientation }}
+          script: for o in ${{ matrix.orientations }}; do runs=0; [ "$o" = portrait ] && runs="$PORTRAIT_COLD_START_RUNS"; COLD_START_RUNS="$runs" bash scripts/e2e-android.sh dist "e2e-output/${{ inputs.label }}${{ matrix.size }}-$o-${{ matrix.locale }}" ${{ matrix.locale }} ${{ matrix.size }} "$o" || status=1; done; exit "${status:-0}"
       - name: Scan E2E output for secrets
         id: scan-e2e
         if: always()
@@ -84,7 +84,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && steps.scan-e2e.outcome == 'success'
         with:
-          name: e2e-android-${{ inputs.label }}${{ matrix.size }}-${{ matrix.orientation }}-${{ matrix.locale }}
+          name: e2e-android-${{ inputs.label }}${{ matrix.size }}-${{ matrix.locale }}
           path: e2e-output/
           if-no-files-found: warn
           retention-days: 30
