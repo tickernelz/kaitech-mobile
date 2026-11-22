@@ -55,6 +55,10 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: a2-more
+- scrollUntilVisible:
+    element:
+      id: action-pin
+    direction: DOWN
 - tapOn:
     id: action-pin
 - extendedWaitUntil:
@@ -65,6 +69,10 @@ onFlowStart:
     text: ${RUN + ' a1'}
 - tapOn:
     id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-star
+    direction: DOWN
 - tapOn:
     id: action-star
 - extendedWaitUntil:
@@ -155,6 +163,10 @@ onFlowStart:
           text: ${RUN + ' a1 edited.*'}
       - tapOn:
           id: action-more
+      - scrollUntilVisible:
+          element:
+            id: action-task
+          direction: DOWN
       - tapOn:
           id: action-task
       - extendedWaitUntil:
@@ -175,6 +187,10 @@ onFlowStart:
     text: ${RUN + ' a1 edited.*'}
 - tapOn:
     id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-activity
+    direction: DOWN
 - tapOn:
     id: action-activity
 - extendedWaitUntil:
@@ -199,6 +215,10 @@ onFlowStart:
           text: ${RUN + ' a1 edited.*'}
       - tapOn:
           id: action-more
+      - scrollUntilVisible:
+          element:
+            id: action-meeting
+          direction: DOWN
       - tapOn:
           id: action-meeting
       - extendedWaitUntil:
@@ -223,6 +243,10 @@ onFlowStart:
     text: ${RUN + ' a1 edited.*'}
 - tapOn:
     id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-link
+    direction: DOWN
 - tapOn:
     id: action-link
 - extendedWaitUntil:
@@ -253,22 +277,6 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: a10-deleted
-- setAirplaneMode: enabled
-- longPressOn:
-    text: ${RUN + ' a1 edited.*'}
-- tapOn:
-    id: action-more
-- tapOn:
-    id: action-star
-- extendedWaitUntil:
-    visible:
-      text: (Can't reach the server.*|Server tidak bisa dihubungi.*)
-    timeout: 20000
-- runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: a11-offline
-- setAirplaneMode: disabled
 - runScript:
     file: ../scripts/actions-peer.js
 - assertTrue: ${output.actions.edited == 1 && output.actions.removed == 1 && output.actions.pinned == 1 && output.actions.reacted == 1 && output.actions.forwarded == 1}
@@ -276,6 +284,10 @@ onFlowStart:
     text: ${RUN + ' a1 edited.*'}
 - tapOn:
     id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-unread
+    direction: DOWN
 - tapOn:
     id: action-unread
 - runFlow:
@@ -290,3 +302,33 @@ onFlowStart:
           file: ../shared/screenshot.yaml
           env:
             SCREEN: a12-unread
+- runFlow:
+    when:
+      true: ${DEVICE_SIZE == 'phone'}
+    commands:
+      - tapOn:
+          text: ${PEER}
+      - extendedWaitUntil:
+          visible:
+            id: composer-input
+          timeout: 30000
+- setAirplaneMode: enabled
+- longPressOn:
+    text: ${RUN + ' a1 edited.*'}
+- tapOn:
+    id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-star
+    direction: DOWN
+- tapOn:
+    id: action-star
+- extendedWaitUntil:
+    visible:
+      text: (Can't reach the server.*|Server tidak bisa dihubungi.*)
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a13-offline
+- setAirplaneMode: disabled

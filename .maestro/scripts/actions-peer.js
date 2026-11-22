@@ -29,8 +29,8 @@ var edited = search(RUN + ' a1 edited').filter(function (message) {
   return html(message).indexOf('o-mail-Message-edited') >= 0;
 });
 var all = rpc('/discuss/channel/messages', { channel_id: Number(CHANNEL_ID), fetch_params: { limit: 30 } }, cookie).result.data;
-var reactions = (all['mail.message.reaction'] || []).filter(function (reaction) {
-  return reaction.content === '\u{1F680}';
+var reactions = (all['MessageReactions'] || []).filter(function (reaction) {
+  return reaction.content === '\uD83D\uDE80' && edited.length && reaction.message === edited[0].id;
 });
 var mine = (all['mail.message'] || []).filter(function (message) {
   return edited.length && message.id === edited[0].id;
@@ -45,6 +45,7 @@ var forwarded = rpc('/web/dataset/call_kw/mail.message/search_count', {
   kwargs: {},
 }, cookie).result;
 
+console.log('actions ' + JSON.stringify({ edited: edited.length, reactions: reactions.length, removed: removed.length, forwarded: forwarded }));
 output.actions = {
   edited: edited.length,
   pinned: mine.length && mine[0].pinned_at ? 1 : 0,
