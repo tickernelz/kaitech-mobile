@@ -116,6 +116,46 @@ onFlowStart:
     env:
       SCREEN: m8-meeting-more
 - tapOn:
+    id: mom-more-history-[0-9]+
+- extendedWaitUntil:
+    visible:
+      id: recording-history
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m10-history
+- tapOn:
+    id: header-back
+- tapOn:
+    id: meeting-more
+- tapOn:
+    id: mom-more-departments-[0-9]+
+- extendedWaitUntil:
+    visible:
+      id: recording-departments
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: recording-department-[1-9][0-9]*
+    commands:
+      - tapOn:
+          id: recording-department-[1-9][0-9]*
+          index: 0
+      - extendedWaitUntil:
+          visible:
+            id: recording-department-0
+          timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m11-departments
+- tapOn:
+    id: header-back
+- tapOn:
+    id: meeting-more
+- tapOn:
     id: mom-more-remove-[0-9]+
 - extendedWaitUntil:
     visible:

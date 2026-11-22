@@ -55,6 +55,41 @@ name: MoM upload a meeting file from the phone instead of recording it, then rem
 - tapOn:
     id: meeting-more
 - tapOn:
+    id: mom-more-assist-notes
+- extendedWaitUntil:
+    visible:
+      id: assist-note-body
+    timeout: 30000
+- tapOn:
+    id: assist-note-body
+- inputText: Catatan uji ZHA-7442 dari ponsel
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: assist-note-save
+- tapOn:
+    id: assist-note-attach
+- extendedWaitUntil:
+    visible:
+      text: zha7442-catatan.txt
+    timeout: 30000
+- tapOn:
+    text: zha7442-catatan.txt
+- extendedWaitUntil:
+    visible:
+      id: note-remove-[0-9]+
+    timeout: 60000
+- takeScreenshot: u2-notes-${DEVICE_SIZE}-${APP_LANGUAGE}
+- tapOn:
+    id: note-remove-[0-9]+
+- extendedWaitUntil:
+    notVisible:
+      id: note-remove-[0-9]+
+    timeout: 30000
+- tapOn:
+    id: header-back
+- tapOn:
+    id: meeting-more
+- tapOn:
     id: mom-more-remove-[0-9]+
 - extendedWaitUntil:
     visible:
