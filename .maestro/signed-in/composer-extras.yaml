@@ -1,0 +1,123 @@
+appId: io.kaitech.mobile
+name: Composer extras from the attach sheet
+tags:
+  - signed-in
+  - chat-actions
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      text: ${PEER}
+    timeout: 60000
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- tapOn:
+    id: composer-attach
+- extendedWaitUntil:
+    visible:
+      id: extra-emoji
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c1-attach-sheet
+- tapOn:
+    id: extra-emoji
+- tapOn:
+    id: emoji-search
+- inputText: rocket
+- tapOn:
+    id: emoji-cell-0
+- tapOn:
+    id: composer-input
+- inputText: ${' ' + RUN + ' c1'}
+- tapOn:
+    id: composer-send
+- extendedWaitUntil:
+    visible:
+      text: ${'.*' + RUN + ' c1'}
+    timeout: 20000
+- tapOn:
+    id: composer-input
+- inputText: ${RUN + ' c2 later'}
+- tapOn:
+    id: composer-attach
+- tapOn:
+    id: extra-later
+- extendedWaitUntil:
+    visible:
+      id: later-sheet
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c2-later
+- tapOn:
+    id: later-tomorrow
+- extendedWaitUntil:
+    visible:
+      id: thread-notice
+    timeout: 20000
+- tapOn:
+    id: thread-more
+- tapOn:
+    id: thread-action-scheduled
+- extendedWaitUntil:
+    visible:
+      text: ${'.*' + RUN + ' c2 later'}
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c3-scheduled
+- tapOn:
+    text: ${'.*' + RUN + ' c2 later'}
+- tapOn:
+    text: (DELETE|Delete|HAPUS|Hapus)
+- extendedWaitUntil:
+    visible:
+      id: thread-notice
+    timeout: 20000
+- runFlow:
+    when:
+      true: ${URGENT == 'yes'}
+    commands:
+      - tapOn:
+          id: composer-attach
+      - tapOn:
+          id: extra-urgent
+      - extendedWaitUntil:
+          visible:
+            id: composer-urgent
+          timeout: 10000
+      - tapOn:
+          id: composer-input
+      - inputText: ${RUN + ' c3 urgent'}
+      - tapOn:
+          id: composer-send
+- tapOn:
+    id: composer-input
+- inputText: '::'
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: c4-canned
+- eraseText: 2
