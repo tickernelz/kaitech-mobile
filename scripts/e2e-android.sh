@@ -92,6 +92,8 @@ sleep 3
   echo "before maestro: $(rotation_state)"
 } | tee "$out/display.txt"
 
+adb shell settings put global hide_error_dialogs 1
+adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null
 adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
 adb shell am set-debug-app --persistent com.android.chrome
 if adb shell pm path io.kaitech.mobile 2>/dev/null | grep -q '^package:'; then
