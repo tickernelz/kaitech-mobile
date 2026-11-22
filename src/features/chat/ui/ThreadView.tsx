@@ -353,10 +353,12 @@ export function ThreadView({
   const shownStatus = !typing.length && twoPeople && status ? status : null;
   const readStatus = shownStatus ? () => Alert.alert(name, shownStatus) : undefined;
 
+  const parentId = thread.info?.parentId ?? null;
+  const back = twoPane ? (parentId ? () => onOpenChannel(parentId) : undefined) : onBack;
   const header = (
     <View style={[styles.header, { borderBottomColor: colors.line }]}>
-      {twoPane || !onBack ? null : (
-        <Pressable accessibilityRole="button" accessibilityLabel={t('thread.back')} onPress={onBack} hitSlop={8} style={styles.headerButton} testID="thread-back">
+      {!back ? null : (
+        <Pressable accessibilityRole="button" accessibilityLabel={t('thread.back')} onPress={back} hitSlop={8} style={styles.headerButton} testID="thread-back">
           <Icon name="back" color={colors.ink} />
         </Pressable>
       )}
@@ -511,7 +513,8 @@ export function ThreadView({
           onTakeBack={(taken) => composer.current?.restore(taken.body, taken.partnerIds)}
           onNotice={setNotice}
           onLeft={() => {
-            if (onBack && !twoPane) onBack();
+            if (twoPane && parentId) onOpenChannel(parentId);
+            else onBack?.();
           }}
         />
       ) : null}

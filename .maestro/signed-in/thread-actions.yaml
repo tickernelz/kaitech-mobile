@@ -334,6 +334,7 @@ onFlowComplete:
     visible:
       text: ${RUN + ' sub'}
     timeout: 20000
+- hideKeyboard
 - runFlow:
     when:
       visible:

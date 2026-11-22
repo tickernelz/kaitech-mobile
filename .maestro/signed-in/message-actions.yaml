@@ -487,6 +487,36 @@ onFlowComplete:
 - runFlow:
     when:
       visible:
+        id: thread-back
+      notVisible:
+        id: chat-list
+    commands:
+      - tapOn:
+          id: thread-back
+- extendedWaitUntil:
+    visible:
+      id: chat-starred-open
+    timeout: 30000
+- tapOn:
+    id: chat-starred-open
+- extendedWaitUntil:
+    visible:
+      id: found-.*
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a14-starred
+- tapOn:
+    id: found-.*
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
         id: chat-list
     commands:
       - tapOn:
@@ -530,33 +560,3 @@ onFlowComplete:
     env:
       SCREEN: a13-offline
 - setAirplaneMode: disabled
-- runFlow:
-    when:
-      visible:
-        id: thread-back
-      notVisible:
-        id: chat-list
-    commands:
-      - tapOn:
-          id: thread-back
-- extendedWaitUntil:
-    visible:
-      id: chat-starred-open
-    timeout: 30000
-- tapOn:
-    id: chat-starred-open
-- extendedWaitUntil:
-    visible:
-      id: found-.*
-    timeout: 20000
-- runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: a14-starred
-- tapOn:
-    id: found-.*
-    index: 0
-- extendedWaitUntil:
-    visible:
-      id: composer-input
-    timeout: 30000
