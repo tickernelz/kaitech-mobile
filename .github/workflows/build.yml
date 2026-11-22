@@ -367,6 +367,10 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    concurrency:
+      group: kaitech-e2e-account
+      cancel-in-progress: false
+      queue: max
     env:
       E2E_APK_ARTIFACT: e2e-apk-x86_64
       E2E_LABEL: rows-
