@@ -173,6 +173,7 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
 const editedMark = /<span class=["']o-mail-Message-edited["']\s*(?:\/>|><\/span>)/g;
 
 export function editedBody(html: string): { body: string; edited: boolean } {
+  if (!html.includes('o-mail-Message-edited')) return { body: html, edited: false };
   const body = html.replace(editedMark, '');
   return { body, edited: body.length !== html.length };
 }
@@ -199,8 +200,12 @@ export function messagePatches(data: unknown): Map<number, MessagePatch> {
   return patches;
 }
 
+const removedMax = 64;
+
 export function isRemoved(message: Pick<Message, 'type' | 'body' | 'attachments'>): boolean {
-  return message.type === 'comment' && !message.attachments.length && !message.body.replace(/<[^>]*>|&nbsp;|\s/g, '');
+  if (message.type !== 'comment' || message.attachments.length) return false;
+  if (message.body.length > removedMax) return false;
+  return !message.body.replace(/<[^>]*>|&nbsp;|\s/g, '');
 }
 
 export function membersFromStore(data: unknown): Map<number, Member[]> {
