@@ -253,6 +253,24 @@ Di CI, setiap alur jalan dua kali, di emulator ber-locale `en-US` dan `id-ID`. `
 
 Jalankan lokal: `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATION=portrait .maestro`. Ketiga variabel wajib dikirim lewat `-e`; jangan beri nilai bawaan di blok `env:` alur, karena nilai itu menimpa `-e`.
 
+### Emulator lokal bersama
+
+Di PC pengembang, jalankan emulator hanya lewat `scripts/emulator.sh`, bukan satu pasang AVD baru per task:
+
+```bash
+scripts/emulator.sh run phone -- bash scripts/e2e-android.sh dist e2e-output/phone-portrait-en-US en-US phone portrait
+scripts/emulator.sh run tablet -- maestro test -e APP_LANGUAGE=en -e DEVICE_SIZE=tablet -e ORIENTATION=landscape .maestro
+scripts/emulator.sh status
+scripts/emulator.sh stop
+```
+
+- Dua AVD bersama, `kaitech-phone` (`pixel_6`) dan `kaitech-tablet` (`pixel_tablet`), Android 15 `google_apis` x86_64, dibuat otomatis saat pertama dipakai dengan RAM bawaan profil, sama dengan CI.
+- Emulator jalan dengan `-gpu host -read-only -no-snapshot -no-window -no-audio -no-boot-anim` sebagai unit systemd pengguna `kaitech-emulator-<slot>` (`Nice=10`, `CPUQuota=400%`, `MemoryMax=6G`). `-read-only` membuat setiap boot bersih dan membolehkan beberapa emulator dari AVD yang sama.
+- Paling banyak `KAITECH_EMULATOR_SLOTS` (bawaan 3) emulator hidup di PC, dijaga `flock` per slot di `$XDG_RUNTIME_DIR/kaitech-emulator`. Perintah yang datang saat semua slot terpakai menunggu giliran.
+- Emulator yang sudah hidup dengan ukuran yang sama dipakai ulang: launcher menjalankan `pm clear io.kaitech.mobile`, lalu perintahmu dengan `ANDROID_SERIAL` menunjuk emulator itu, di bawah `nice`. Emulator yang menganggur `KAITECH_EMULATOR_IDLE_MINUTES` (bawaan 30) menit dimatikan oleh timer `kaitech-emulator-reap-<slot>`.
+- `KAITECH_EMULATOR_GPU=swangle_indirect` hanya untuk membandingkan atau bila GPU host bermasalah; render software adalah biaya CPU terbesar emulator.
+- CI tidak memakai launcher ini: runner GitHub tidak punya GPU dan tetap memakai `swiftshader_indirect`.
+
 ### Matriks perangkat
 
 Superapp harus responsif di ponsel dan tablet, Android dan iOS, portrait dan landscape. Setiap sel Android adalah job tersendiri dengan emulatornya sendiri, jadi kedelapan sel jalan paralel.
