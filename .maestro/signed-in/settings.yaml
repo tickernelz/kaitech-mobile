@@ -89,8 +89,10 @@ onFlowStart:
     id: security-devices
 - extendedWaitUntil:
     visible:
-      id: device-[0-9]+
+      id: app-device-[0-9]+
     timeout: 30000
+- assertVisible:
+    id: devices-revoke-all
 - tapOn:
     id: settings-back
 - tapOn:

@@ -1,0 +1,36 @@
+appId: io.kaitech.mobile
+name: Sign another Kaitech app device of this account out from Devices
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: open-settings
+- tapOn:
+    id: settings-security
+- tapOn:
+    id: security-devices
+- extendedWaitUntil:
+    visible:
+      id: app-device-${TARGET}
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: v1-devices
+- tapOn:
+    id: app-device-${TARGET}
+- tapOn:
+    text: (Sign out|Keluarkan)
+- extendedWaitUntil:
+    notVisible:
+      id: app-device-${TARGET}
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: v2-device-out
