@@ -12,6 +12,7 @@ onFlowStart:
       id: welcome-sign-in
     timeout: 30000
 - runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/pick-test-programme.yaml
 - tapOn:
     id: tab-button-mom
 - extendedWaitUntil:
@@ -77,7 +78,7 @@ onFlowStart:
             SCREEN: m6-status
       - back
 - tapOn:
-    id: mom-more
+    id: mom-menu
 - extendedWaitUntil:
     visible:
       id: mom-more-sheet

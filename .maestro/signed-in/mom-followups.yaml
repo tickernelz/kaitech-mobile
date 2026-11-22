@@ -12,6 +12,7 @@ onFlowStart:
       id: welcome-sign-in
     timeout: 30000
 - runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/pick-test-programme.yaml
 - tapOn:
     id: tab-button-mom
 - extendedWaitUntil:
@@ -67,10 +68,10 @@ onFlowStart:
     timeout: 180000
 - scrollUntilVisible:
     element:
-      id: mom-more
+      id: mom-menu
     direction: UP
 - tapOn:
-    id: mom-more
+    id: mom-menu
 - tapOn:
     id: mom-more-followups
 - extendedWaitUntil:
@@ -221,7 +222,7 @@ onFlowStart:
 - repeat:
     while:
       notVisible:
-        id: mom-more
+        id: mom-menu
     times: 20
     commands:
       - swipe:

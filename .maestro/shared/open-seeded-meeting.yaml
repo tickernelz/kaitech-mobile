@@ -1,0 +1,24 @@
+appId: io.kaitech.mobile
+name: Open the seeded test meeting on the MoM tab, loading older days when it is not on the first page
+---
+- tapOn:
+    id: tab-button-mom
+- repeat:
+    while:
+      notVisible:
+        id: meeting-${MINUTES_MEETING}
+    times: 60
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: mom-more
+          commands:
+            - tapOn:
+                id: mom-more
+      - swipe:
+          start: 22%, 75%
+          end: 22%, 35%
+          duration: 500
+- tapOn:
+    id: meeting-${MINUTES_MEETING}

@@ -12,20 +12,8 @@ onFlowStart:
       id: welcome-sign-in
     timeout: 30000
 - runFlow: ../shared/sign-in.yaml
-- tapOn:
-    id: tab-button-mom
-- repeat:
-    while:
-      notVisible:
-        id: meeting-${MINUTES_MEETING}
-    times: 40
-    commands:
-      - swipe:
-          start: 22%, 75%
-          end: 22%, 35%
-          duration: 500
-- tapOn:
-    id: meeting-${MINUTES_MEETING}
+- runFlow: ../shared/pick-test-programme.yaml
+- runFlow: ../shared/open-seeded-meeting.yaml
 - extendedWaitUntil:
     visible:
       id: meeting-tab-transcript

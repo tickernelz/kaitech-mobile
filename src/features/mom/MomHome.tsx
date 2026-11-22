@@ -79,7 +79,7 @@ export function MomHome() {
         <Text variant="display" accessibilityRole="header" style={styles.fill}>
           {t('tabs.mom')}
         </Text>
-        <IconButton icon="more" label={t('mom.menu.title')} onPress={() => setMoreOpen(true)} testID="mom-more" />
+        <IconButton icon="more" label={t('mom.menu.title')} onPress={() => setMoreOpen(true)} testID="mom-menu" />
         <HeaderActions />
       </View>
       <StatusRow onOpenMeeting={open} />
