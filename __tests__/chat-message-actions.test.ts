@@ -2,7 +2,7 @@ import { searchEmoji } from '../src/features/chat/emoji/emoji';
 import { featuresFromSession, hasFeature } from '../src/features/chat/features';
 import { editableSource } from '../src/features/chat/markdown';
 import { mentionsInBody, odooDate, odooDatetime } from '../src/features/chat/messageActions';
-import { editedBody, isRemoved, messagePatches, messagesFromStore } from '../src/features/chat/odoo';
+import { editedBody, isRemoved, messagePatches, messagesFromStore, reactionUpdates } from '../src/features/chat/odoo';
 
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined }));
 jest.mock('../src/api/odoo', () => ({ route: jest.fn(), rpc: jest.fn(), ApiError: class extends Error {} }));
@@ -66,6 +66,26 @@ describe('editing a sent message', () => {
 
   it('falls back to plain text for rich HTML from the web', () => {
     expect(editableSource('<ul><li>satu</li><li>dua</li></ul>')).toContain('satu');
+  });
+});
+
+describe('reaction answers from Odoo 19', () => {
+  const thumbs = { content: '\u{1F44D}', count: 2, mine: false, people: [] };
+  const existing = () => [thumbs];
+
+  it('adds the reaction the server confirms and keeps the others', () => {
+    const answer = {
+      MessageReactions: [{ content: '\u{1F680}', count: 1, guests: [], message: 7, partners: [3] }],
+      'mail.message': [{ id: 7, reactions: [['ADD', [{ message: 7, content: '\u{1F680}' }]]] }],
+      'res.partner': [{ id: 3, name: 'Uji' }],
+    };
+    expect(reactionUpdates(answer, 3, existing).get(7)).toEqual([thumbs, { content: '\u{1F680}', count: 1, mine: true, people: ['Uji'] }]);
+  });
+
+  it('removes only the reaction the server deleted', () => {
+    const answer = { 'mail.message': [{ id: 7, reactions: [['DELETE', { message: 7, content: '\u{1F680}' }]] }] };
+    const current = () => [thumbs, { content: '\u{1F680}', count: 1, mine: true }];
+    expect(reactionUpdates(answer, 3, current).get(7)).toEqual([thumbs]);
   });
 });
 

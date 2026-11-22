@@ -124,7 +124,7 @@ function reactionsFromStore(data: unknown, myPartnerId: number): Map<number, Rea
   const byMessage = new Map<number, Reaction[]>();
   const partners = new Map(records(data, 'res.partner').map((partner) => [id(partner.id), text(partner.name)]));
   const guests = new Map(records(data, 'mail.guest').map((guest) => [id(guest.id), text(guest.name)]));
-  for (const raw of records(data, 'mail.message.reaction')) {
+  for (const raw of records(data, 'MessageReactions')) {
     const messageId = id(raw.message);
     const content = text(raw.content);
     if (!messageId || !content) continue;
@@ -272,12 +272,37 @@ export function seenFromStore(data: unknown): { channelId: number; partnerId: nu
   return out;
 }
 
-export function reactionUpdates(data: unknown, myPartnerId: number): Map<number, Reaction[]> {
+function reactionContent(value: unknown): string {
+  return isRecord(value) ? text(value.content) : '';
+}
+
+export function reactionUpdates(data: unknown, myPartnerId: number, current: (messageId: number) => Reaction[] | undefined): Map<number, Reaction[]> {
   const byMessage = reactionsFromStore(data, myPartnerId);
   const updates = new Map<number, Reaction[]>();
   for (const raw of records(data, 'mail.message')) {
     const messageId = id(raw.id);
-    if (messageId && 'reactions' in raw && !('body' in raw)) updates.set(messageId, byMessage.get(messageId) ?? []);
+    if (!messageId || !('reactions' in raw) || 'body' in raw) continue;
+    const fresh = byMessage.get(messageId) ?? [];
+    const value = raw.reactions;
+    const commands = Array.isArray(value) && value.every((item) => Array.isArray(item) && typeof item[0] === 'string');
+    if (!commands) {
+      updates.set(messageId, fresh);
+      continue;
+    }
+    let list = [...(current(messageId) ?? [])];
+    for (const [op, payload] of value as [string, unknown][]) {
+      const items = Array.isArray(payload) ? payload : [payload];
+      for (const item of items) {
+        const content = reactionContent(item);
+        if (!content) continue;
+        list = list.filter((reaction) => reaction.content !== content);
+        if (op !== 'DELETE') {
+          const found = fresh.find((reaction) => reaction.content === content);
+          if (found) list.push(found);
+        }
+      }
+    }
+    updates.set(messageId, list);
   }
   return updates;
 }
