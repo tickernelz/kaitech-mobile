@@ -177,6 +177,89 @@ onFlowStart:
     id: header-back
 - tapOn:
     id: tab-button-activity
+- extendedWaitUntil:
+    visible:
+      id: activities-add-todo
+    timeout: 60000
+- evalScript: ${output.todo = 'Uji baris todo ' + RUN}
+- tapOn:
+    id: activities-add-todo
+- extendedWaitUntil:
+    visible:
+      id: activity-summary
+    timeout: 10000
+- tapOn:
+    id: activity-summary
+- inputText: ${output.todo}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: activity-schedule-save
+- tapOn:
+    id: activity-schedule-save
+- scrollUntilVisible:
+    element:
+      text: ${output.todo}
+    timeout: 30000
+- longPressOn:
+    text: ${output.todo}
+- extendedWaitUntil:
+    visible:
+      id: row-action-edit
+    timeout: 5000
+- assertVisible:
+    id: row-action-record
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r14-activity-odoo-more
+- tapOn:
+    id: row-action-edit
+- extendedWaitUntil:
+    visible:
+      id: activity-schedule
+    timeout: 10000
+- back
+- extendedWaitUntil:
+    notVisible:
+      id: activity-schedule
+    timeout: 5000
+- swipe:
+    from:
+      text: ${output.todo}
+    direction: RIGHT
+- extendedWaitUntil:
+    visible:
+      id: activity-odoo-[0-9]+-swipe-edit
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r15-activity-odoo-swipe
+- tapOn:
+    id: activity-odoo-[0-9]+-swipe-edit
+- extendedWaitUntil:
+    visible:
+      id: activity-schedule
+    timeout: 10000
+- back
+- extendedWaitUntil:
+    notVisible:
+      id: activity-schedule
+    timeout: 5000
+- tapOn:
+    text: ${output.todo}
+- scrollUntilVisible:
+    element:
+      id: activity-done
+- tapOn:
+    id: activity-done
+- extendedWaitUntil:
+    notVisible:
+      text: ${output.todo}
+    timeout: 15000
+- tapOn:
+    id: activity-source-discovery
 - tapOn:
     id: activity-filter-all
 - extendedWaitUntil:
@@ -199,7 +282,7 @@ onFlowStart:
       - runFlow:
           file: ../shared/screenshot.yaml
           env:
-            SCREEN: r14-activity-swipe
+            SCREEN: r16-activity-swipe
       - tapOn:
           id: activity-.*-0-swipe-programme
       - extendedWaitUntil:
