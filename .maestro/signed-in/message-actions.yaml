@@ -123,6 +123,62 @@ onFlowStart:
     visible:
       text: "\U0001F680 1"
     timeout: 15000
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: read
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - longPressOn:
+          text: ${RUN + ' a1'}
+      - tapOn:
+          id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-reactions
+    direction: DOWN
+- tapOn:
+    id: action-reactions
+- extendedWaitUntil:
+    visible:
+      id: reactions-sheet
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a3b-reactions
+- tapOn:
+    id: reactions-sheet-close
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - longPressOn:
+          text: ${RUN + ' a1'}
+      - tapOn:
+          id: action-readers
+      - extendedWaitUntil:
+          visible:
+            id: readers-sheet
+          timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a3c-readers
+- tapOn:
+    id: readers-sheet-close
 - retry:
     maxRetries: 2
     commands:

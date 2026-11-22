@@ -153,6 +153,36 @@ onFlowStart:
     id: thread-more
 - scrollUntilVisible:
     element:
+      id: thread-action-meeting
+    direction: DOWN
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: thread-action-meeting
+    commands:
+      - tapOn:
+          id: thread-action-meeting
+      - extendedWaitUntil:
+          visible:
+            id: meeting-sheet
+          timeout: 15000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: b9-meeting
+      - tapOn:
+          id: meeting-sheet-close
+- runFlow:
+    when:
+      visible:
+        id: thread-actions
+    commands:
+      - back
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
       id: thread-action-pin
     direction: DOWN
 - tapOn:
