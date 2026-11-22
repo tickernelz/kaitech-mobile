@@ -177,6 +177,14 @@ export function ThreadView({
     return () => clearTimeout(timer);
   }, [notice]);
 
+  const react = useCallback(
+    async (message: Message, content: string) => {
+      const failure = await toggleReaction(message, content);
+      if (failure) setNotice(failureText(t, { code: failure, detail: null }));
+    },
+    [t],
+  );
+
   const report = useCallback((result: Result<unknown>, done?: string) => {
     if (!result.ok) setNotice(failureText(t, result));
     else if (done) setNotice(done);
@@ -300,13 +308,13 @@ export function ThreadView({
             hasThread={!!thread.subChannels[message.id]}
             onLongPress={startActing}
             onQuotePress={jumpTo}
-            onReact={(target, content) => void toggleReaction(target, content)}
+            onReact={(target, content) => void react(target, content)}
             onOpenThread={(target) => void openSub(target)}
           />
         </View>
       );
     },
-    [colors, dayLabel, highlight, jumpTo, online, openSub, origin, partnerId, quoteOf, startActing, thread.members, thread.subChannels, twoPeople, type],
+    [colors, dayLabel, highlight, jumpTo, online, openSub, origin, partnerId, quoteOf, react, startActing, thread.members, thread.subChannels, twoPeople, type],
   );
 
   const typing = thread.typing;
@@ -417,7 +425,7 @@ export function ThreadView({
         readers={acting ? readersOf(acting, thread.members, partnerId) : 0}
         options={acting ? optionsFor(acting) : {}}
         onClose={() => setActing(null)}
-        onReact={(message, content) => void toggleReaction(message, content)}
+        onReact={(message, content) => void react(message, content)}
         onAction={onAction}
       />
       {sheet?.kind === 'emoji' ? (
@@ -427,7 +435,7 @@ export function ThreadView({
           onPick={(emoji) => {
             const target = sheet.message;
             setSheet(null);
-            void toggleReaction(target, emoji);
+            void react(target, emoji);
           }}
         />
       ) : null}

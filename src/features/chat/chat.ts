@@ -708,9 +708,9 @@ export async function discardSend(key: string) {
   removed?.files.forEach((file) => dropFile(file.uri));
 }
 
-export async function toggleReaction(message: Message, content: string) {
+export async function toggleReaction(message: Message, content: string): Promise<string | null> {
   const current = client;
-  if (!current) return;
+  if (!current) return 'signedOut';
   const existing = message.reactions.find((reaction) => reaction.content === content);
   const add = !existing?.mine;
   try {
@@ -721,8 +721,9 @@ export async function toggleReaction(message: Message, content: string) {
         messages: thread.messages.map((item) => (item.id === message.id ? { ...item, reactions: updates.get(message.id) ?? [] } : item)),
       }));
     }
-  } catch {
-    return;
+    return null;
+  } catch (error) {
+    return errorCode(error);
   }
 }
 
