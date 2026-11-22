@@ -608,8 +608,13 @@
     "usePhoto": "Use this photo",
     "cancel": "Cancel",
     "photo": "Profile photo of {{name}}",
+    "status": "Status",
+    "statusEmpty": "No status",
+    "statusCount": "{{used}} of {{limit}} characters",
     "errors": {
       "name_invalid": "Use 1 to 64 characters.",
+      "status_too_long": "Use up to 80 characters.",
+      "status_invalid": "Use one line without special characters.",
       "photo_type_unsupported": "Use a JPEG or PNG photo.",
       "photo_too_large": "This photo is too large.",
       "photo_invalid": "This photo cannot be read.",
