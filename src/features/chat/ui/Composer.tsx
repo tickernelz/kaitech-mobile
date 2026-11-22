@@ -5,6 +5,8 @@ import { useKeyboardState } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
+import { FloatingSurface } from '../../../ui/FloatingSurface';
+import { useSurface } from '../../../ui/glass';
 import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, useChat, type Outgoing } from '../chat';
 import { cannedQuery, cannedResponses, markCannedUsed, sendLater, type Canned } from '../composerExtras';
@@ -298,10 +300,11 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const recording = voice.recording;
 
   const canSend = (text.trim().length > 0 || files.length > 0) && !recording;
+  const glass = useSurface() === 'glass';
   const bottom = keyboardVisible ? space.sm : Math.max(insets.bottom, space.sm);
 
   return (
-    <View style={[styles.container, { borderTopColor: colors.line, backgroundColor: colors.canvas, paddingBottom: bottom }]} testID="composer">
+    <View style={[styles.container, glass ? styles.bare : { borderTopColor: colors.line }, { backgroundColor: colors.canvas, paddingBottom: bottom }]} testID="composer">
       {queryText !== null && suggestions.length ? (
         <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="mention-suggestions">
           {suggestions.map((person) => (
@@ -390,7 +393,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           <>
             {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />}
             {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
-            <View style={[styles.field, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+            <FloatingSurface solid={colors.surface} style={[styles.field, glass ? styles.bare : { borderColor: colors.line }]}>
               <TextInput
                 ref={input}
                 value={text}
@@ -412,7 +415,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
                 testID="composer-input"
                 style={[styles.input, { color: colors.ink }]}
               />
-            </View>
+            </FloatingSurface>
           </>
         )}
         {editing ? (
@@ -446,6 +449,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   strong: { fontWeight: '600' },
   container: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm, paddingHorizontal: space.sm, gap: space.sm },
+  bare: { borderWidth: 0, borderTopWidth: 0 },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: space.xs },
   round: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   field: { flex: 1, minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, justifyContent: 'center' },
