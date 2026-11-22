@@ -1,5 +1,5 @@
 import { photoFrom, type Photo } from '../people/photo';
-import type { Attachment, Conversation, ConversationType, LastMessage, Member, Message, Reaction } from './types';
+import type { Attachment, CallRecord, Conversation, ConversationType, LastMessage, Member, Message, Reaction } from './types';
 
 type Raw = Record<string, unknown>;
 
@@ -151,6 +151,11 @@ function reactionsFromStore(data: unknown, myPartnerId: number): Map<number, Rea
   return byMessage;
 }
 
+function callOf(historyIds: number[], calls: Map<number, CallRecord>): { call?: CallRecord } {
+  const found = historyIds.map((historyId) => calls.get(historyId)).find((record) => record !== undefined);
+  return found ? { call: found } : {};
+}
+
 export function messagesFromStore(data: unknown, myPartnerId: number): Message[] {
   const partners = new Map(records(data, 'res.partner').map((partner) => [id(partner.id), text(partner.name)]));
   const guests = new Map(records(data, 'mail.guest').map((guest) => [id(guest.id), text(guest.name)]));
@@ -160,6 +165,11 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
     if (attachment) attachments.set(attachment.id, attachment);
   }
   const reactions = reactionsFromStore(data, myPartnerId);
+  const calls = new Map<number, CallRecord>();
+  for (const raw of records(data, 'discuss.call.history')) {
+    const historyId = id(raw.id);
+    if (historyId && typeof raw.duration_hour === 'number') calls.set(historyId, { minutes: Math.round(raw.duration_hour * 60), ongoing: !raw.end_dt });
+  }
   const messages: Message[] = [];
   for (const raw of records(data, 'mail.message')) {
     const messageId = id(raw.id);
@@ -180,6 +190,7 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
         .filter((item): item is Attachment => item !== undefined),
       parentId: id(raw.parent_id),
       reactions: reactions.get(messageId) ?? [],
+      ...callOf(ids(raw.call_history_ids), calls),
       ...editedBody(text(raw.body)),
       starred: raw.starred === true,
       urgent: Array.isArray(raw.kaitech_chat_urgent_partner_ids) && raw.kaitech_chat_urgent_partner_ids.length > 0,

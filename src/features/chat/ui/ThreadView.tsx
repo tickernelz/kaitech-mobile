@@ -362,14 +362,21 @@ export function ThreadView({
           <Icon name="back" color={colors.ink} />
         </Pressable>
       )}
-      <Avatar
-        name={name}
-        seed={conversation?.partnerId ?? channelId}
-        size={40}
-        partnerId={type === 'chat' ? conversation?.partnerId : undefined}
-        photo={type === 'chat' ? undefined : (conversation?.photo ?? null)}
-        icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined}
-      />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('thread.openPerson', { name })}
+        disabled={type !== 'chat' || !conversation?.partnerId}
+        onPress={() => conversation?.partnerId && router.push({ pathname: '/person/[id]', params: { id: String(conversation.partnerId), name } })}
+        testID="thread-person">
+        <Avatar
+          name={name}
+          seed={conversation?.partnerId ?? channelId}
+          size={40}
+          partnerId={type === 'chat' ? conversation?.partnerId : undefined}
+          photo={type === 'chat' ? undefined : (conversation?.photo ?? null)}
+          icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined}
+        />
+      </Pressable>
       <Pressable style={styles.flex} accessible={false} disabled={!readStatus} onPress={readStatus} testID="thread-heading">
         <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
           {name}
