@@ -108,6 +108,7 @@ if [ -n "${E2E_LOGIN:-}" ]; then
     -e CHANNEL_ID="$E2E_CHANNEL_ID" -e PEER="$E2E_PEER"
     -e PROGRAMME="$E2E_PROGRAMME" -e SEARCH="$E2E_SEARCH"
     -e HIDE_DIRECT="${E2E_HIDE_DIRECT:-false}" -e RUN="E2E$(date +%s)${RANDOM}"
+    -e MINUTES_NAME="${E2E_MINUTES_NAME:-}" -e FOLLOWUP_OWNER="${E2E_FOLLOWUP_OWNER:-}"
   )
 fi
 
