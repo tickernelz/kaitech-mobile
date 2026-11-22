@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
@@ -17,6 +18,8 @@ import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
 import { recordingIdOf } from '../../call/recording';
 import { RecordingCard } from '../../call/ui/RecordingCard';
+import { callState, startCall } from '../../call/call';
+import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
 
 export type AuthorFace = 'show' | 'space' | 'none';
@@ -210,13 +213,32 @@ export const MessageBubble = memo(function MessageBubble({
   const time = clock(message.date);
   const text = bodyPreview(message.body);
   if (isCallNotice(message)) {
+    const call = message.call;
+    const label = [t(call?.ongoing ? 'thread.callOngoing' : 'thread.call'), call && !call.ongoing ? t('thread.callMinutes', { count: Math.max(1, call.minutes) }) : null, time].filter(Boolean).join(' · ');
     return (
-      <View style={styles.notice} accessible accessibilityLabel={`${t('thread.call')}, ${time}`} testID={`call-notice-${message.id}`}>
+      <View style={styles.notice} accessible={!call?.ongoing} accessibilityLabel={label} testID={`call-notice-${message.id}`}>
         <View style={[styles.noticePill, styles.callNotice, { backgroundColor: colors.surface2 }]}>
           <Icon name="phone" size={16} color={colors.inkSoft} />
           <Text variant="footnote" tone="inkSoft">
-            {t('thread.call')} · {time}
+            {label}
           </Text>
+          {call?.ongoing ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('thread.callJoin')}
+              hitSlop={8}
+              onPress={() => {
+                const live = callState();
+                const busy = live.phase !== 'idle' && live.phase !== 'ended';
+                router.push({ pathname: '/call/[id]', params: { id: String(busy ? live.channelId : message.channelId) } });
+                if (!busy) void startCall({ channelId: message.channelId, channelName: conversationById(getChat(), message.channelId)?.name ?? '', video: false });
+              }}
+              testID={`call-notice-${message.id}-join`}>
+              <Text variant="footnote" tone="link">
+                {t('thread.callJoin')}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
     );
@@ -316,7 +338,18 @@ export const MessageBubble = memo(function MessageBubble({
   }
   return (
     <View style={[styles.wrap, styles.withFace]} testID={`message-${message.id}`}>
-      {face === 'show' ? <Avatar name={message.author} seed={message.authorId ?? 0} partnerId={message.authorId} size={faceSize} /> : <View style={styles.faceSpace} />}
+      {face === 'show' ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('thread.openPerson', { name: message.author })}
+          disabled={!message.authorId}
+          onPress={() => message.authorId && router.push({ pathname: '/person/[id]', params: { id: String(message.authorId), name: message.author } })}
+          testID={`message-${message.id}-author`}>
+          <Avatar name={message.author} seed={message.authorId ?? 0} partnerId={message.authorId} size={faceSize} />
+        </Pressable>
+      ) : (
+        <View style={styles.faceSpace} />
+      )}
       <View style={styles.faceColumn}>{body}</View>
     </View>
   );

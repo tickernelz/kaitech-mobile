@@ -13,6 +13,8 @@ import { Button } from '../../ui/Button';
 import { Row, Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
 
+const previewCount = 10;
+
 export default function DeviceSettings() {
   const { t } = useTranslation();
   const { active } = useSession();
@@ -23,6 +25,8 @@ export default function DeviceSettings() {
   const browsers = useResource('account.devices', devices, 30_000);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
+  const [allApps, setAllApps] = useState(false);
+  const [allBrowsers, setAllBrowsers] = useState(false);
   if (!active) return null;
 
   const guard = async (work: () => Promise<unknown>) => {
@@ -65,11 +69,21 @@ export default function DeviceSettings() {
     ]);
 
   const others = (apps.data ?? []).filter((device) => !device.current);
+  const shownApps = allApps ? (apps.data ?? []) : (apps.data ?? []).slice(0, previewCount);
+  const shownBrowsers = allBrowsers ? (browsers.data ?? []) : (browsers.data ?? []).slice(0, previewCount);
+  const moreApps = (apps.data?.length ?? 0) - shownApps.length;
+  const moreBrowsers = (browsers.data?.length ?? 0) - shownBrowsers.length;
   return (
     <SettingsPage title={t('security.devices.title')} testID="settings-devices-screen">
+      <Button kind="danger" label={t('security.devices.revokeAll')} busy={busy} onPress={revokeAll} testID="devices-revoke-all" />
+      {failed ? (
+        <Text variant="footnote" tone="dangerInk" accessibilityLiveRegion="polite" testID="devices-error">
+          {failed}
+        </Text>
+      ) : null}
       <Section title={t('security.devices.apps')}>
         {apps.data?.length ? (
-          apps.data.map((device) => {
+          shownApps.map((device) => {
             const last = parseServerDate(device.lastUsedAt) ?? parseServerDate(device.signedInAt);
             const name = device.name || device.platform;
             return (
@@ -86,6 +100,7 @@ export default function DeviceSettings() {
         ) : (
           <StateView loading={apps.loading} error={apps.error} empty={{ title: t('security.devices.none'), icon: 'phone' }} onRetry={() => void apps.refresh()} testID="app-devices" />
         )}
+        {moreApps > 0 ? <Row title={t('security.devices.showMore', { count: moreApps })} tone="link" onPress={() => setAllApps(true)} testID="app-devices-more" /> : null}
       </Section>
       {others.length ? (
         <Text variant="footnote" tone="inkSoft">
@@ -94,7 +109,7 @@ export default function DeviceSettings() {
       ) : null}
       <Section title={t('security.devices.browsers')}>
         {browsers.data?.length ? (
-          browsers.data.map((device) => {
+          shownBrowsers.map((device) => {
             const last = parseServerDate(device.last);
             return (
               <Row
@@ -110,16 +125,11 @@ export default function DeviceSettings() {
         ) : (
           <StateView loading={browsers.loading} error={browsers.error} empty={{ title: t('security.devices.none'), icon: 'table' }} onRetry={() => void browsers.refresh()} testID="devices" />
         )}
+        {moreBrowsers > 0 ? <Row title={t('security.devices.showMore', { count: moreBrowsers })} tone="link" onPress={() => setAllBrowsers(true)} testID="devices-more" /> : null}
       </Section>
       <Text variant="footnote" tone="inkSoft">
         {t('security.devices.browsersHint')}
       </Text>
-      <Button kind="danger" label={t('security.devices.revokeAll')} busy={busy} onPress={revokeAll} testID="devices-revoke-all" />
-      {failed ? (
-        <Text variant="footnote" tone="dangerInk" accessibilityLiveRegion="polite" testID="devices-error">
-          {failed}
-        </Text>
-      ) : null}
       {identity.sheet}
     </SettingsPage>
   );

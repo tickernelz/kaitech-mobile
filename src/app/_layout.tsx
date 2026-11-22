@@ -68,6 +68,7 @@ export default function RootLayout() {
             <Stack.Screen name="mom" />
             <Stack.Screen name="search" options={{ animation: 'fade' }} />
             <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="person/[id]" options={{ presentation: 'modal' }} />
             <Stack.Screen name="add-account" options={{ presentation: 'modal' }} />
           </Stack.Protected>
           <Stack.Protected guard={signedIn && !session.onboarded} redirectTo={home}>
