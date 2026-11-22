@@ -67,3 +67,5 @@ node scripts/ci-metrics.mjs 40 41 42 45
 ```
 
 Changes to the matrix itself (fewer emulator boots, fewer rows cells, path filters, moving iOS) are proposed with these numbers and their effect on coverage first.
+
+Probe for ZHA-7475: a pull request that changes only this file.
