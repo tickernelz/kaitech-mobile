@@ -1,6 +1,8 @@
 name: E2E runner trial
 
 on:
+  push:
+    branches: [ci/zha7479-maestro-runner-trial]
   workflow_dispatch:
     inputs:
       driver:
@@ -28,19 +30,19 @@ permissions:
 
 jobs:
   trial:
-    name: maestro CLI vs maestro-runner (${{ inputs.driver }}, ${{ inputs.first }} first)
+    name: maestro CLI vs maestro-runner (${{ inputs.driver || 'devicelab' }}, ${{ inputs.first || 'cli' }} first)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     concurrency:
-      group: kaitech-e2e-account
+      group: ${{ contains(inputs.flows, 'signed-in') && 'kaitech-e2e-account' || format('e2e-runner-trial-{0}', github.run_id) }}
       cancel-in-progress: false
       queue: max
     env:
-      E2E_TRIAL_FLOWS: ${{ inputs.flows }}
-      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
-      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
-      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
-      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_TRIAL_FLOWS: ${{ inputs.flows || '.maestro/welcome.yaml .maestro/sign-in-form.yaml' }}
+      E2E_LOGIN: ${{ contains(inputs.flows, 'signed-in') && secrets.KAITECH_E2E_LOGIN || '' }}
+      E2E_PASSWORD: ${{ contains(inputs.flows, 'signed-in') && secrets.KAITECH_E2E_PASSWORD || '' }}
+      E2E_WEB_LOGIN: ${{ contains(inputs.flows, 'signed-in') && secrets.KAITECH_E2E_WEB_LOGIN || '' }}
+      E2E_WEB_PASSWORD: ${{ contains(inputs.flows, 'signed-in') && secrets.KAITECH_E2E_WEB_PASSWORD || '' }}
       E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
       E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
       E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
@@ -87,8 +89,8 @@ jobs:
       - name: Run each flow with both runners on one emulator
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
-          TRIAL_FIRST: ${{ inputs.first }}
-          TRIAL_DRIVER: ${{ inputs.driver }}
+          TRIAL_FIRST: ${{ inputs.first || 'cli' }}
+          TRIAL_DRIVER: ${{ inputs.driver || 'devicelab' }}
         with:
           api-level: 35
           arch: x86_64
@@ -109,7 +111,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && steps.scan-e2e.outcome == 'success'
         with:
-          name: e2e-runner-trial-${{ inputs.driver }}-${{ inputs.first }}-first
+          name: e2e-runner-trial-${{ inputs.driver || 'devicelab' }}-${{ inputs.first || 'cli' }}-first
           path: e2e-output/
           if-no-files-found: warn
           retention-days: 30
