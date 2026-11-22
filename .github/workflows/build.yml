@@ -311,7 +311,7 @@ jobs:
           restore-keys: ios-downloads-
       - run: npm ci
       - run: npx expo prebuild --platform ios
-      - name: xcodebuild for the simulator (no code signing)
+      - name: xcodebuild for the simulator (ad-hoc signed so the keychain works)
         run: |
           mkdir -p build
           if ! xcodebuild \
@@ -321,7 +321,10 @@ jobs:
             -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build/ios \
-            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY=- \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM= \
+            PROVISIONING_PROFILE_SPECIFIER= \
             build > build/xcodebuild.log 2>&1; then
             grep -E 'error:' build/xcodebuild.log | head -50 || true
             tail -100 build/xcodebuild.log

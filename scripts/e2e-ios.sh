@@ -26,7 +26,7 @@ IFS=$'\t' read -r udid device_name runtime_name < <(
       .filter((r) => r.platform === "iOS" && r.isAvailable && Number.parseFloat(r.version) >= minimum)
       .sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }));
     const preference = JSON.parse(process.env.PREFERENCE);
-    const byPreference = (list) => preference.map((p) => list.find((d) => d.name.startsWith(p))).find(Boolean);
+    const byPreference = (list) => preference.map((p) => list.find((d) => d.name === p)).find(Boolean) ?? preference.map((p) => list.find((d) => d.name.startsWith(p))).find(Boolean);
     console.error(`iOS runtimes from ${minimum}: ${ios.map((r) => r.name).join(", ") || "none"}`);
     for (const runtime of ios) {
       const existing = (devices[runtime.identifier] ?? []).filter((d) => d.isAvailable && d.name.startsWith(family));
