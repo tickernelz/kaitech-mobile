@@ -1,0 +1,159 @@
+appId: io.kaitech.mobile
+name: Discovery buttons reach the server - pause and resume the proactive Coworker, snooze it, accept and reject RAID entries, add a note
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat|tab-discovery)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-discovery
+- extendedWaitUntil:
+    visible:
+      id: programme-summary
+    timeout: 60000
+- runFlow:
+    when:
+      true: ${typeof PROGRAMME !== 'undefined' && PROGRAMME !== ''}
+    commands:
+      - tapOn:
+          id: programme-switch
+      - tapOn:
+          text: ${PROGRAMME}
+      - extendedWaitUntil:
+          visible:
+            id: programme-summary
+          timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: open-sections
+- tapOn:
+    id: open-sections
+- tapOn:
+    id: sections-programme
+- extendedWaitUntil:
+    visible:
+      id: record-more
+    timeout: 30000
+- tapOn:
+    id: record-more
+- tapOn:
+    text: (Pause Proactive|Jeda Proaktif)
+- extendedWaitUntil:
+    visible:
+      id: record-more
+    timeout: 30000
+- tapOn:
+    id: record-more
+- assertVisible:
+    text: (Resume Proactive|Lanjutkan Proaktif)
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b1-paused
+- tapOn:
+    text: (Resume Proactive|Lanjutkan Proaktif)
+- extendedWaitUntil:
+    visible:
+      id: record-more
+    timeout: 30000
+- tapOn:
+    id: record-more
+- assertVisible:
+    text: (Pause Proactive|Jeda Proaktif)
+- tapOn:
+    text: (Snooze 24h|Tunda 24 jam)
+- extendedWaitUntil:
+    visible:
+      id: record-more
+    timeout: 30000
+- tapOn:
+    id: record-more
+- assertNotVisible:
+    text: (Snooze 24h|Tunda 24 jam)
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b2-snoozed
+- back
+- scrollUntilVisible:
+    element:
+      id: chatter-input
+- tapOn:
+    id: chatter-input
+- inputText: ${NOTE}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: chatter-post
+- extendedWaitUntil:
+    visible:
+      text: ${NOTE}
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b3-note
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      visible:
+        id: sections-search-clear
+    commands:
+      - tapOn:
+          id: sections-search-clear
+- tapOn:
+    id: sections-search
+- inputText: RAID
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    text: RAID
+    index: -1
+- extendedWaitUntil:
+    visible:
+      text: ${RAID_ACCEPT}
+    timeout: 30000
+- tapOn:
+    text: ${RAID_ACCEPT}
+- tapOn:
+    id: button-action_accept
+- extendedWaitUntil:
+    notVisible:
+      id: button-action_accept
+    timeout: 30000
+- assertVisible:
+    text: (Accepted|Diterima)
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b4-raid-accepted
+- tapOn:
+    id: header-back
+- extendedWaitUntil:
+    visible:
+      text: ${RAID_REJECT}
+    timeout: 30000
+- tapOn:
+    text: ${RAID_REJECT}
+- tapOn:
+    id: button-action_reject
+- extendedWaitUntil:
+    notVisible:
+      id: button-action_reject
+    timeout: 30000
+- assertVisible:
+    text: (Rejected|Ditolak)
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b5-raid-rejected

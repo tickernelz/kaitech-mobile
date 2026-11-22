@@ -1,0 +1,87 @@
+appId: io.kaitech.mobile
+name: Find one Discovery section by its menu name (NAME, NAME_ID) and open it by its web menu id, wait for its screen, open its first record when there is one, and come back
+---
+- scrollUntilVisible:
+    element:
+      id: sections-search
+    direction: UP
+- runFlow:
+    when:
+      visible:
+        id: sections-search-clear
+    commands:
+      - tapOn:
+          id: sections-search-clear
+- tapOn:
+    id: sections-search
+- inputText: "${APP_LANGUAGE === 'id' ? NAME_ID : NAME}"
+- runFlow: dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: section-${MENU}
+    centerElement: true
+- tapOn:
+    id: section-${MENU}
+- extendedWaitUntil:
+    visible:
+      id: (list-row-[0-9]+|list-rows-empty|list-group|list-groups-empty|coworker-screen|tab-discovery|record-screen)
+    timeout: 45000
+- assertNotVisible:
+    id: (list-error|record-error)
+- runFlow:
+    when:
+      visible:
+        id: list-group
+    commands:
+      - tapOn:
+          id: list-group
+          index: 0
+      - extendedWaitUntil:
+          visible:
+            id: (list-row-[0-9]+|list-rows-empty)
+          timeout: 30000
+- runFlow:
+    file: screenshot.yaml
+    env:
+      SCREEN: a${MENU}-list
+- runFlow:
+    when:
+      visible:
+        id: list-row-[0-9]+
+    commands:
+      - tapOn:
+          id: list-row-[0-9]+
+          index: 0
+      - extendedWaitUntil:
+          visible:
+            id: record-screen
+          timeout: 30000
+      - extendedWaitUntil:
+          notVisible:
+            id: record-loading
+          timeout: 30000
+      - assertNotVisible:
+          id: record-error
+      - runFlow:
+          file: screenshot.yaml
+          env:
+            SCREEN: a${MENU}-record
+      - tapOn:
+          id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: sections-screen
+    commands:
+      - tapOn:
+          id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: sections-screen
+    commands:
+      - back
+- extendedWaitUntil:
+    visible:
+      id: sections-screen
+    timeout: 15000

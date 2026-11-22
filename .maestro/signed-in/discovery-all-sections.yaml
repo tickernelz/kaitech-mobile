@@ -1,0 +1,493 @@
+appId: io.kaitech.mobile
+name: Every web Discovery menu the test account can see opens its list and first record without an error
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat|tab-discovery)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-discovery
+- extendedWaitUntil:
+    visible:
+      id: programme-summary
+    timeout: 60000
+- runFlow:
+    when:
+      true: ${typeof PROGRAMME !== 'undefined' && PROGRAMME !== ''}
+    commands:
+      - tapOn:
+          id: programme-switch
+      - tapOn:
+          text: ${PROGRAMME}
+      - extendedWaitUntil:
+          visible:
+            id: programme-summary
+          timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: open-sections
+- tapOn:
+    id: open-sections
+- extendedWaitUntil:
+    visible:
+      id: sections-group-[0-9]+
+    timeout: 30000
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Programs"
+    env:
+      MENU: 411
+      NAME: "Programs"
+      NAME_ID: "Program"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Interviews"
+    env:
+      MENU: 413
+      NAME: "Interviews"
+      NAME_ID: "Wawancara"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "People"
+    env:
+      MENU: 418
+      NAME: "People"
+      NAME_ID: "Orang"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Source Documents"
+    env:
+      MENU: 423
+      NAME: "Source Documents"
+      NAME_ID: "Dokumen Sumber"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Process Chains"
+    env:
+      MENU: 428
+      NAME: "Process Chains"
+      NAME_ID: "Rantai Proses"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Requirements"
+    env:
+      MENU: 436
+      NAME: "Requirements"
+      NAME_ID: "Requirement"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Stages & Gates"
+    env:
+      MENU: 447
+      NAME: "Stages & Gates"
+      NAME_ID: "Tahap & Gerbang"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Answer Summaries"
+    env:
+      MENU: 453
+      NAME: "Answer Summaries"
+      NAME_ID: "Ringkasan Jawaban"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Question Bank"
+    env:
+      MENU: 462
+      NAME: "Question Bank"
+      NAME_ID: "Bank Pertanyaan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Approval Packets"
+    env:
+      MENU: 483
+      NAME: "Approval Packets"
+      NAME_ID: "Paket Persetujuan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Questions"
+    env:
+      MENU: 414
+      NAME: "Questions"
+      NAME_ID: "Pertanyaan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Departments"
+    env:
+      MENU: 419
+      NAME: "Departments"
+      NAME_ID: "Department"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Evidence"
+    env:
+      MENU: 424
+      NAME: "Evidence"
+      NAME_ID: "Bukti"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Diagrams"
+    env:
+      MENU: 429
+      NAME: "Diagrams"
+      NAME_ID: "Diagram"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Fit-Gap & RICEFW"
+    env:
+      MENU: 437
+      NAME: "Fit-Gap & RICEFW"
+      NAME_ID: "Analisis Fit-Gap & RICEFW"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Approvals"
+    env:
+      MENU: 443
+      NAME: "Approvals"
+      NAME_ID: "Persetujuan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Artifacts"
+    env:
+      MENU: 448
+      NAME: "Artifacts"
+      NAME_ID: "Artefak"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Name Mentions"
+    env:
+      MENU: 454
+      NAME: "Name Mentions"
+      NAME_ID: "Penyebutan Nama"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Chase Policies"
+    env:
+      MENU: 463
+      NAME: "Chase Policies"
+      NAME_ID: "Kebijakan Pengejaran"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Architecture Maps"
+    env:
+      MENU: 430
+      NAME: "Architecture Maps"
+      NAME_ID: "Peta Arsitektur"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Portal Invites"
+    env:
+      MENU: 415
+      NAME: "Portal Invites"
+      NAME_ID: "Undangan Portal"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Role Map"
+    env:
+      MENU: 420
+      NAME: "Role Map"
+      NAME_ID: "Peta Peran"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Meetings"
+    env:
+      MENU: 425
+      NAME: "Meetings"
+      NAME_ID: "Rapat"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Pain Points"
+    env:
+      MENU: 431
+      NAME: "Pain Points"
+      NAME_ID: "Pain Point"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Traceability"
+    env:
+      MENU: 438
+      NAME: "Traceability"
+      NAME_ID: "Keterlacakan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Acceptance Records"
+    env:
+      MENU: 444
+      NAME: "Acceptance Records"
+      NAME_ID: "Berita Acara"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Attestations"
+    env:
+      MENU: 449
+      NAME: "Attestations"
+      NAME_ID: "Atestasi"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Improvised Questions"
+    env:
+      MENU: 455
+      NAME: "Improvised Questions"
+      NAME_ID: "Pertanyaan Dadakan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Sign-Off Matrix"
+    env:
+      MENU: 464
+      NAME: "Sign-Off Matrix"
+      NAME_ID: "Matriks Sign-Off"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Respondent Consents"
+    env:
+      MENU: 416
+      NAME: "Respondent Consents"
+      NAME_ID: "Persetujuan Narasumber"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Glossary"
+    env:
+      MENU: 421
+      NAME: "Glossary"
+      NAME_ID: "Glosarium"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Action Items"
+    env:
+      MENU: 426
+      NAME: "Action Items"
+      NAME_ID: "Butir Tindakan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Business Rules"
+    env:
+      MENU: 432
+      NAME: "Business Rules"
+      NAME_ID: "Aturan Bisnis"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Setup Suggestions"
+    env:
+      MENU: 439
+      NAME: "Setup Suggestions"
+      NAME_ID: "Saran Setup"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Signatures"
+    env:
+      MENU: 445
+      NAME: "Signatures"
+      NAME_ID: "Tanda Tangan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Phase Locks"
+    env:
+      MENU: 450
+      NAME: "Phase Locks"
+      NAME_ID: "Kunci Fase"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Corrections"
+    env:
+      MENU: 456
+      NAME: "Corrections"
+      NAME_ID: "Koreksi"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Document Formats"
+    env:
+      MENU: 465
+      NAME: "Document Formats"
+      NAME_ID: "Format Dokumen"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Artifact Catalogue"
+    env:
+      MENU: 466
+      NAME: "Artifact Catalogue"
+      NAME_ID: "Katalog Artefak"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Decisions"
+    env:
+      MENU: 433
+      NAME: "Decisions"
+      NAME_ID: "Keputusan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Prototypes"
+    env:
+      MENU: 440
+      NAME: "Prototypes"
+      NAME_ID: "Prototipe"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "How Kaitech Phases Work"
+    env:
+      MENU: 451
+      NAME: "How Kaitech Phases Work"
+      NAME_ID: "Cara Kaitech Membagi Tahap Kerja"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Answers That Disagree"
+    env:
+      MENU: 457
+      NAME: "Answers That Disagree"
+      NAME_ID: "Jawaban Yang Bertentangan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Number Layouts"
+    env:
+      MENU: 467
+      NAME: "Number Layouts"
+      NAME_ID: "Tata Letak Nomor"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "RAID"
+    env:
+      MENU: 434
+      NAME: "RAID"
+      NAME_ID: "RAID"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Test Plans"
+    env:
+      MENU: 441
+      NAME: "Test Plans"
+      NAME_ID: "Rencana Uji"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Came Back Empty"
+    env:
+      MENU: 458
+      NAME: "Came Back Empty"
+      NAME_ID: "Kembali Kosong"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Other Odoo Servers"
+    env:
+      MENU: 482
+      NAME: "Other Odoo Servers"
+      NAME_ID: "Server Odoo Lain"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Contradictions"
+    env:
+      MENU: 459
+      NAME: "Contradictions"
+      NAME_ID: "Pertentangan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Model Rates"
+    env:
+      MENU: 468
+      NAME: "Model Rates"
+      NAME_ID: "Tarif Model"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Chase History"
+    env:
+      MENU: 460
+      NAME: "Chase History"
+      NAME_ID: "Riwayat Pengejaran"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Usage & Cost"
+    env:
+      MENU: 469
+      NAME: "Usage & Cost"
+      NAME_ID: "Pemakaian & Biaya"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Turns"
+    env:
+      MENU: 470
+      NAME: "Turns"
+      NAME_ID: "Giliran"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Conversations"
+    env:
+      MENU: 471
+      NAME: "Conversations"
+      NAME_ID: "Percakapan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Data Permissions"
+    env:
+      MENU: 472
+      NAME: "Data Permissions"
+      NAME_ID: "Izin Data"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Data Checks"
+    env:
+      MENU: 473
+      NAME: "Data Checks"
+      NAME_ID: "Pemeriksaan Data"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Timelines"
+    env:
+      MENU: 474
+      NAME: "Timelines"
+      NAME_ID: "Timeline"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Timeline Tasks"
+    env:
+      MENU: 475
+      NAME: "Timeline Tasks"
+      NAME_ID: "Tugas Timeline"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Deliverables"
+    env:
+      MENU: 476
+      NAME: "Deliverables"
+      NAME_ID: "Deliverable"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Contract Instalments"
+    env:
+      MENU: 477
+      NAME: "Contract Instalments"
+      NAME_ID: "Angsuran Kontrak"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Scorecards"
+    env:
+      MENU: 478
+      NAME: "Scorecards"
+      NAME_ID: "Scorecard"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Replay Runs"
+    env:
+      MENU: 479
+      NAME: "Replay Runs"
+      NAME_ID: "Run Replay"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Taken Back"
+    env:
+      MENU: 480
+      NAME: "Taken Back"
+      NAME_ID: "Ditarik Kembali"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Gates Red"
+    env:
+      MENU: 481
+      NAME: "Gates Red"
+      NAME_ID: "Gerbang Merah"

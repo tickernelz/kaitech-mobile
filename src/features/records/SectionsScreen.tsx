@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
 import { radius, space, useTheme } from '../../theme';
 import { Icon } from '../../ui/icons';
+import { IconButton } from '../../ui/IconButton';
 import { Row, Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
@@ -75,7 +76,12 @@ export function SectionsScreen({ programme, name }: { programme: number; name?: 
           />
           <Row title={t('records.knowledge')} detail={t('records.knowledgeDetail')} onPress={() => router.push({ pathname: '/program/[id]/knowledge', params: { id } })} testID="sections-knowledge" />
         </Section>
-        <TextField label={t('records.findSection')} value={query} onChangeText={setQuery} testID="sections-search" />
+        <View style={styles.searchRow}>
+          <View style={styles.fill}>
+            <TextField label={t('records.findSection')} value={query} onChangeText={setQuery} testID="sections-search" />
+          </View>
+          {query ? <IconButton icon="close" label={t('records.clear')} onPress={() => setQuery('')} testID="sections-search-clear" /> : null}
+        </View>
         {!groups.data ? (
           <StateView loading={groups.loading || !groups.error} error={groups.error} onRetry={() => void groups.refresh()} testID="sections" />
         ) : (
@@ -119,6 +125,7 @@ export function SectionsScreen({ programme, name }: { programme: number; name?: 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   strong: { fontWeight: '600' },
+  searchRow: { flexDirection: 'row', alignItems: 'flex-end', gap: space.xs },
   content: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.xxl, gap: space.md, width: '100%', maxWidth: 720, alignSelf: 'center' },
   group: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   groupHead: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg },

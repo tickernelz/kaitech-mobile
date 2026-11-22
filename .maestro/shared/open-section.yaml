@@ -1,9 +1,15 @@
 appId: io.kaitech.mobile
 name: Find a Discovery section by its web menu name (SECTION in English, SECTION_ID as the server translates it), open its list and its first record
 ---
+- runFlow:
+    when:
+      visible:
+        id: sections-search-clear
+    commands:
+      - tapOn:
+          id: sections-search-clear
 - tapOn:
     id: sections-search
-- eraseText: 40
 - inputText: "${APP_LANGUAGE === 'id' ? SECTION_ID : SECTION}"
 - runFlow: dismiss-keyboard.yaml
 - tapOn:

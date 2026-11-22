@@ -144,9 +144,15 @@ onFlowStart:
       SECTION: Question Bank
       SECTION_ID: Bank Pertanyaan
       SHOT: s09-config
+- runFlow:
+    when:
+      visible:
+        id: sections-search-clear
+    commands:
+      - tapOn:
+          id: sections-search-clear
 - tapOn:
     id: sections-search
-- eraseText: 40
 - inputText: "${APP_LANGUAGE === 'id' ? 'Glosarium' : 'Glossary'}"
 - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
