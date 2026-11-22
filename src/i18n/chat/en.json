@@ -23,7 +23,9 @@
       "all": "All",
       "unread": "Unread",
       "people": "Direct",
-      "rooms": "Groups"
+      "rooms": "Groups",
+      "mention": "Mentions",
+      "agent": "Coworker"
     },
     "offline": "You're offline. Messages go out when you're back online.",
     "offlineQueued_one": "You're offline. {{count}} message will go out when you're back online.",
@@ -33,7 +35,9 @@
       "all": "No conversations yet.",
       "unread": "You're all caught up.",
       "people": "No direct conversations yet.",
-      "rooms": "You're not in any group or channel yet."
+      "rooms": "You're not in any group or channel yet.",
+      "mention": "Nobody mentioned you lately.",
+      "agent": "No conversation with the Coworker yet."
     },
     "loading": "Loading conversations…"
   },
@@ -80,12 +84,18 @@
     "shareInstead": "Share",
     "table": "Table, {{columns}} columns and {{rows}} rows. Scroll sideways to see all of it.",
     "background": "Chat background",
+    "openPerson": "Open {{name}}",
+    "callOngoing": "Call in progress",
+    "callJoin": "Join",
+    "callMinutes_one": "{{count}} min",
+    "callMinutes_other": "{{count}} min",
     "removed": "This message was deleted",
     "edited": "edited",
     "pinned": "Pinned",
     "starred": "Starred",
     "translatedFrom": "Translated from {{lang}}",
-    "translated": "Translated"
+    "translated": "Translated",
+    "urgent": "Urgent"
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",
@@ -186,7 +196,12 @@
     "bubble": "Bubble",
     "failed": "Couldn't change this. Try again later.",
     "bubbleClosed": "Open Kaitech to read this conversation.",
-    "failedNetwork": "Could not change this. Check your connection and try again."
+    "failedNetwork": "Could not change this. Check your connection and try again.",
+    "level": {
+      "all": "All messages",
+      "mentions": "Mentions only",
+      "no_notif": "Nothing"
+    }
   },
   "rowActions": {
     "pin": "Pin",
@@ -307,5 +322,162 @@
     "busy": "Busy then: {{names}}",
     "schedule": "Schedule",
     "done": "Meeting scheduled for {{when}}"
+  },
+  "threadActions": {
+    "more": "More",
+    "notifications": "Notifications",
+    "search": "Search in conversation",
+    "searchHint": "Search messages",
+    "noResults": "No message matches.",
+    "pinned": "Pinned messages",
+    "noPinned": "Nothing is pinned yet.",
+    "files": "Files",
+    "noFiles": "No files here yet.",
+    "threads": "Threads",
+    "noThreads": "No threads yet. Long-press a message to start one.",
+    "members_one": "{{count}} member",
+    "members_other": "{{count}} members",
+    "scheduled": "Scheduled messages",
+    "meeting": "Schedule a meeting",
+    "pinConversation": "Pin conversation",
+    "unpinConversation": "Unpin conversation",
+    "pinnedDone": "Conversation pinned",
+    "unpinned": "Conversation unpinned",
+    "translateOn": "Translate into {{language}} automatically",
+    "translateOff": "Stop translating automatically",
+    "translateStarted": "Messages will be translated",
+    "translateStopped": "Automatic translation is off",
+    "announcementOn": "Make it an announcement channel",
+    "announcementOff": "Let every member write",
+    "announcementChanged": "Channel kind changed",
+    "rename": "Rename",
+    "info": "Name and description",
+    "markRead": "Mark all as read",
+    "leave": "Leave",
+    "leaveTitle": "Leave {{name}}?",
+    "leaveBody": "You will no longer see this conversation unless someone invites you again.",
+    "hide": "Hide conversation",
+    "hideTitle": "Hide this conversation?",
+    "hideBody": "It comes back when a new message arrives.",
+    "delete": "Delete thread",
+    "deleteTitle": "Delete this thread?",
+    "deleteBody": "Its messages are deleted for everyone."
+  },
+  "members": {
+    "title": "Members",
+    "invite": "Invite people",
+    "inviteSearch": "Search people",
+    "inviteSend_one": "Invite {{count}} person",
+    "inviteSend_other": "Invite {{count}} people",
+    "invited_one": "{{count}} person invited",
+    "invited_other": "{{count}} people invited",
+    "roleTitle": "Change role",
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    }
+  },
+  "rename": {
+    "title": "Rename",
+    "titleInfo": "Name and description",
+    "name": "Name",
+    "chatHint": "Only you see this name.",
+    "description": "Description",
+    "save": "Save",
+    "done": "Saved"
+  },
+  "scheduled": {
+    "title": "Scheduled messages",
+    "none": "Nothing scheduled here.",
+    "sendNow": "Send now",
+    "edit": "Edit",
+    "cancel": "Delete",
+    "sent": "Sent",
+    "cancelled": "Scheduled message deleted"
+  },
+  "extras": {
+    "emoji": "Emoji",
+    "gif": "GIF",
+    "gifSearch": "Search GIFs",
+    "gifSend": "Send this GIF",
+    "canned": "Canned responses",
+    "later": "Send later",
+    "laterEmpty": "Write a message or attach a file first.",
+    "laterPick": "Pick a time",
+    "laterAt": "Send {{when}}",
+    "laterCustom": "Another time",
+    "quick": {
+      "tomorrow": "Tomorrow morning",
+      "monday": "Monday morning"
+    },
+    "scheduled": "Scheduled. Only you see it until then.",
+    "urgent": "Mark as urgent",
+    "notUrgent": "Not urgent",
+    "urgentOn": "Urgent: the people here get a loud alert",
+    "urgentLeft_one": "{{count}} left today",
+    "urgentLeft_other": "{{count}} left today"
+  },
+  "work": {
+    "title": "Coworker work",
+    "none": "Nothing is running.",
+    "many_one": "{{count}} Coworker task running",
+    "many_other": "{{count}} Coworker tasks running",
+    "step": "{{agent}}: {{step}}",
+    "state": {
+      "queued": "{{agent}} is waiting to start",
+      "running": "{{agent}} is working",
+      "away": "{{agent}} handed it to Wardmote"
+    },
+    "stopped": "{{agent}} was stopped by {{name}}",
+    "askedBy": "Asked by {{name}}",
+    "stop": "Stop this work",
+    "stopping": "Stopping"
+  },
+  "cards": {
+    "wardmote": "{{agent}} asks to hand this on",
+    "state": {
+      "proposed": "Waiting for your answer",
+      "away": "Sent",
+      "stopped": "Not sent",
+      "other": "Done"
+    },
+    "approve": "Send",
+    "refuse": "Don't send",
+    "openIssue": "Open the issue",
+    "locked": "You can't open this record",
+    "kind": {
+      "task": "Task",
+      "project": "Project",
+      "programme": "Program",
+      "meeting": "Meeting",
+      "email": "Email",
+      "recording": "Recording",
+      "other": "Record"
+    }
+  },
+  "linked": {
+    "project": "Project",
+    "programme": "Program"
+  },
+  "threadActionsWork": {
+    "label": "Coworker work"
+  },
+  "newChat": {
+    "title": "New conversation",
+    "kind": {
+      "chat": "Chat or group",
+      "channel": "Channel"
+    },
+    "name": "Channel name",
+    "announcement": "Announcement channel",
+    "announcementHint": "Only owners and admins write",
+    "with": "With",
+    "members": "Members",
+    "search": "Search people",
+    "groupHint": "More than one person starts a group chat.",
+    "startChat": "Start chat",
+    "createGroup": "Create group",
+    "createChannel": "Create channel"
   }
 }

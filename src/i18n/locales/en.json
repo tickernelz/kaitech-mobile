@@ -402,19 +402,24 @@
     "groups": {
       "chat": "Messages",
       "discovery": "Discovery",
-      "mom": "Meetings"
+      "mom": "Meetings",
+      "people": "People and channels"
     },
     "kind": {
       "programme": "Programme",
       "conversation": "Coworker conversation",
       "card": "Decision card",
       "recording": "Recording",
-      "minutes": "Minutes"
+      "minutes": "Minutes",
+      "person": "Person",
+      "channel": "Channel",
+      "channelJoin": "Channel · join"
     },
     "ask": "Ask the Coworker: \"{{q}}\"",
     "noneTitle": "No results",
     "noneBody": "Try other words or ask the Coworker.",
-    "hintTitle": "Search everything"
+    "hintTitle": "Search everything",
+    "seeAll": "See all {{count}}"
   },
   "mom": {
     "record": "Record a meeting",
@@ -808,7 +813,12 @@
       "hint": "Passkeys let you sign in to the web without a password.",
       "created": "Added {{date}}",
       "none": "No passkeys",
-      "addLater": "Add a passkey on the web for now; adding one from this phone needs a server update.",
+      "add": "Add a passkey",
+      "addBody": "Your phone keeps the passkey in its password manager. You can then sign in to the web on this phone or a nearby computer without a password.",
+      "addContinue": "Continue",
+      "addOnWeb": "Add a passkey on the web; this phone has no passkey manager the app can use.",
+      "noProvider": "This phone has no passkey manager. Turn on Google Password Manager or another passkey provider in the phone settings.",
+      "failed": "The passkey was not created. Try again.",
       "name": "Name",
       "rename": "Rename",
       "delete": "Delete passkey",
@@ -843,7 +853,8 @@
       "appsHint": "Signing out a phone here ends its Kaitech app session at once.",
       "browsers": "Browsers and other sessions",
       "browsersHint": "Signing out a browser session ends that web session. A Kaitech app opens a new one by itself; sign it out under Kaitech app.",
-      "revokeAppConfirm": "Sign {{name}} out of the Kaitech app?"
+      "revokeAppConfirm": "Sign {{name}} out of the Kaitech app?",
+      "showMore": "Show {{count}} more"
     }
   },
   "records": {
@@ -920,5 +931,20 @@
     "dateShape": "YYYY-MM-DD",
     "dateTimeShape": "YYYY-MM-DD HH:MM",
     "groupedBy": "Group by {{name}}"
+  },
+  "person": {
+    "presence": {
+      "online": "Online",
+      "away": "Away",
+      "busy": "Busy",
+      "offline": "Offline"
+    },
+    "missing": "This person is not available",
+    "message": "Send message",
+    "jobTitle": "Job position",
+    "company": "Company",
+    "email": "Email",
+    "phone": "Phone",
+    "viewProfile": "View profile on the web"
   }
 }

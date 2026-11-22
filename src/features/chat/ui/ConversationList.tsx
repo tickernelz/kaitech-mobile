@@ -7,6 +7,8 @@ import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { loadArchived, loadMoreConversations, refreshConversations, useChat } from '../chat';
 import { IconButton } from '../../../ui/IconButton';
+import { hasFeature } from '../features';
+import { listFilters, matches, type Filter } from '../listFilters';
 import { pushSupported } from '../push';
 import type { Conversation } from '../types';
 import { Avatar } from './Avatar';
@@ -14,16 +16,6 @@ import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { RowActions } from '../../../ui/RowActions';
 import { conversationActions } from './conversationActions';
-
-type Filter = 'all' | 'unread' | 'people' | 'rooms';
-const filters: Filter[] = ['all', 'unread', 'people', 'rooms'];
-
-function matches(conversation: Conversation, filter: Filter): boolean {
-  if (filter === 'unread') return conversation.unread > 0;
-  if (filter === 'people') return conversation.type === 'chat';
-  if (filter === 'rooms') return conversation.type !== 'chat';
-  return true;
-}
 
 function usePreview() {
   const { t } = useTranslation('chat');
@@ -148,7 +140,10 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
   const pending = useChat((state) => state.pending);
   const archivedSummary = useChat((state) => state.archivedSummary);
   const archived = useChat((state) => state.archived);
-  const [filter, setFilter] = useState<Filter>('all');
+  const [chosen, setFilter] = useState<Filter>('all');
+  const features = useChat((state) => state.features);
+  const filters = useMemo(() => listFilters(hasFeature(features, 'chat_filters'), hasFeature(features, 'agents')), [features]);
+  const filter = filters.includes(chosen) ? chosen : 'all';
   const [inArchive, setInArchive] = useState(false);
   const [pulled, setPulled] = useState(false);
   const waiting = useMemo(() => {

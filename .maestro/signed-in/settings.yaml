@@ -111,8 +111,20 @@ onFlowStart:
     id: security-passkeys
 - extendedWaitUntil:
     visible:
-      id: passkeys-add-hint
+      id: passkeys-add
     timeout: 30000
+- tapOn:
+    id: passkeys-add
+- extendedWaitUntil:
+    visible:
+      id: passkey-add-name
+    timeout: 10000
+- assertVisible:
+    id: passkey-add-continue
+- tapOn:
+    id: passkey-add-sheet-close
+- assertNotVisible:
+    id: passkey-add-sheet
 - tapOn:
     id: settings-back
 - tapOn:

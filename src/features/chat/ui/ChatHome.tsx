@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Panes } from '../../../layout/Panes';
 import { useWindowClass } from '../../../layout/windowClass';
@@ -10,6 +10,8 @@ import { Text } from '../../../ui/Text';
 import { Wordmark } from '../../../ui/Wordmark';
 import { focusedMessage, selectChannel, selectedChannel, useSelectedChannel } from '../selection';
 import { ConversationList } from './ConversationList';
+import { NewConversationSheet } from './list/NewConversationSheet';
+import { Icon } from '../../../ui/icons';
 import { ThreadView } from './ThreadView';
 
 function toId(value: string | string[] | undefined): number | null {
@@ -26,6 +28,7 @@ export function ChatHome() {
   const { windowClass } = useWindowClass();
   const expanded = windowClass === 'expanded';
   const selected = useSelectedChannel();
+  const [creating, setCreating] = useState(false);
 
   const open = useCallback(
     (id: number, message?: number | null) => {
@@ -64,7 +67,31 @@ export function ChatHome() {
 
   return (
     <SafeAreaView edges={['top', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-chat">
-      <Panes list={<ConversationList selectedId={expanded ? selected : null} onOpen={open} />} detail={detail} />
+      <Panes
+        list={
+          <View style={styles.fill}>
+            <ConversationList selectedId={expanded ? selected : null} onOpen={open} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('newChat.title')}
+              onPress={() => setCreating(true)}
+              style={({ pressed }) => [styles.fab, { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 }]}
+              testID="chat-new">
+              <Icon name="edit" color={colors.onPrimary} />
+            </Pressable>
+          </View>
+        }
+        detail={detail}
+      />
+      {creating ? (
+        <NewConversationSheet
+          onClose={() => setCreating(false)}
+          onOpen={(id) => {
+            setCreating(false);
+            open(id);
+          }}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -74,4 +101,5 @@ const styles = StyleSheet.create({
   center: { textAlign: 'center' },
   placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
   faint: { opacity: 0.25 },
+  fab: { position: 'absolute', right: space.lg, bottom: space.lg, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', elevation: 3 },
 });
