@@ -202,6 +202,7 @@ async function activeCall() {
 
 describe('call actions from More', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.resetModules();
     mockUpdates.length = 0;
     mockRooms.length = 0;
@@ -212,6 +213,11 @@ describe('call actions from More', () => {
   afterEach(async () => {
     const call = require('../src/features/call/call');
     await call.hangUp('left');
+    await flush();
+    jest.runOnlyPendingTimers();
+    await flush();
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   it('deafen stops the microphone and incoming audio, and tells the web through the session and the deaf attribute', async () => {
