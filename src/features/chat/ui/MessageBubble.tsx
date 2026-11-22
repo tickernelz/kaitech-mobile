@@ -18,7 +18,7 @@ import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
 import { recordingIdOf } from '../../call/recording';
 import { RecordingCard } from '../../call/ui/RecordingCard';
-import { startCall } from '../../call/call';
+import { callState, startCall } from '../../call/call';
 import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
 
@@ -226,8 +226,10 @@ export const MessageBubble = memo(function MessageBubble({
               accessibilityLabel={t('thread.callJoin')}
               hitSlop={8}
               onPress={() => {
-                router.push({ pathname: '/call/[id]', params: { id: String(message.channelId) } });
-                void startCall({ channelId: message.channelId, channelName: conversationById(getChat(), message.channelId)?.name ?? '', video: false });
+                const live = callState();
+                const busy = live.phase !== 'idle' && live.phase !== 'ended';
+                router.push({ pathname: '/call/[id]', params: { id: String(busy ? live.channelId : message.channelId) } });
+                if (!busy) void startCall({ channelId: message.channelId, channelName: conversationById(getChat(), message.channelId)?.name ?? '', video: false });
               }}
               testID={`call-notice-${message.id}-join`}>
               <Text variant="footnote" tone="link">

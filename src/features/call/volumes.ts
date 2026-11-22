@@ -19,7 +19,6 @@ export async function loadVolumes(account: Account): Promise<Map<number, number>
 }
 
 export async function saveVolume(account: Account, partnerId: number, volume: number) {
-  const id = await settingsId(account);
-  if (id === null) return;
+  const id = (await settingsId(account)) ?? (await rpc<number>(account, 'res.users.settings', 'create', [{ user_id: account.userId }]));
   await rpc<unknown>(account, 'res.users.settings', 'set_volume_setting', [[id], partnerId, volume]);
 }

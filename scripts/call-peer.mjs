@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { Buffer } from 'node:buffer';
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readFileSync as read, rmSync, writeFileSync } from 'node:fs';
@@ -146,6 +147,7 @@ function refresh() {
     name: p.name,
     mic: p.isMicrophoneEnabled,
     camera: p.isCameraEnabled,
+    attributes: { ...(p.attributes || {}) },
     tracks: [...p.trackPublications.values()].map((t) => t.kind + ':' + (t.source || '')),
   }));
   send();
@@ -156,6 +158,7 @@ async function start(call) {
     globalThis.room = room;
     room.on(LivekitClient.RoomEvent.ParticipantConnected, () => { log('participant connected'); refresh(); });
     room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => { log('participant left'); refresh(); });
+    room.on(LivekitClient.RoomEvent.ParticipantAttributesChanged, (changed, participant) => { log('attributes from ' + (participant && participant.identity) + ' ' + JSON.stringify(changed)); refresh(); });
     room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
       log('subscribed ' + track.kind + ' from ' + (track.participant && track.participant.identity));
       if (track.kind === 'video' && track.source === 'screen_share') {

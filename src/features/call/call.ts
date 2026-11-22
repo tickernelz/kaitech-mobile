@@ -535,10 +535,21 @@ function reset() {
 
 export async function toggleMute() {
   if (!room) return;
-  const next = !state.muted;
-  await room.localParticipant.setMicrophoneEnabled(!next).catch(() => undefined);
-  publish({ muted: next });
-  void send({ is_muted: next });
+  if (state.muted || state.deaf) {
+    const values: SessionValues = {};
+    if (state.muted) values.is_muted = false;
+    if (state.deaf) values.is_deaf = false;
+    publish({ muted: false, deaf: false });
+    applyDeaf();
+    tell({ deaf: '0' });
+    await room.localParticipant.setMicrophoneEnabled(true).catch(() => undefined);
+    void send(values);
+  } else {
+    publish({ muted: true });
+    await room.localParticipant.setMicrophoneEnabled(false).catch(() => undefined);
+    void send({ is_muted: true });
+  }
+  collectPeople();
   presence();
 }
 
@@ -626,14 +637,16 @@ export function toggleHand() {
   collectPeople();
 }
 
-export function toggleDeafen() {
+export async function toggleDeafen() {
   if (!room || state.phase !== 'active') return;
   const next = !state.deaf;
   publish({ deaf: next });
   applyDeaf();
   tell({ deaf: next ? '1' : '0' });
+  await room.localParticipant.setMicrophoneEnabled(!next && !state.muted).catch(() => undefined);
   void send({ is_deaf: next });
   collectPeople();
+  presence();
 }
 
 export function toggleVideoOnly() {
@@ -686,7 +699,7 @@ function presence() {
     state.screenSharing || shareStarting ? i18n.t('call:sharingTitle') : state.channelName || state.callerName,
     i18n.t(state.screenSharing ? 'call:sharingScreen' : 'call:inCall'),
     state.channelId,
-    state.muted,
+    state.muted || state.deaf,
     state.cameraOn,
     state.screenSharing,
   );
@@ -712,7 +725,7 @@ export function pictureInPictureSpec(current: CallState = state): PipSpec {
     allowed: pictureInPictureAllowed(),
     phase: current.phase,
     video: current.video,
-    muted: current.muted,
+    muted: current.muted || current.deaf,
     cameraOn: current.cameraOn,
     screenSharing: current.screenSharing,
     people: current.people,

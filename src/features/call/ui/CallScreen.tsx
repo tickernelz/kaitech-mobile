@@ -95,7 +95,7 @@ export function CallScreen() {
     crowd: call.people.length > 2,
   });
   const state: ControlState = {
-    muted: call.muted,
+    muted: call.muted || call.deaf,
     cameraOn: call.cameraOn,
     speaker: call.speaker,
     sharing: call.screenSharing,
@@ -159,7 +159,7 @@ export function CallScreen() {
     if (action === 'share') void toggleScreenShare();
     if (action === 'record') void toggleRecording();
     if (action === 'pip') void enterPictureInPicture();
-    if (action === 'deafen') toggleDeafen();
+    if (action === 'deafen') void toggleDeafen();
     if (action === 'hand') toggleHand();
     if (action === 'videoOnly') toggleVideoOnly();
     if (action === 'spotlight') setSpotlight((current) => !current);

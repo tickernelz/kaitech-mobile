@@ -52,10 +52,12 @@ describe('participant volume', () => {
     expect((await loadVolumes(account)).size).toBe(0);
   });
 
-  it('saves nothing when the user has no settings record', async () => {
-    mockAnswers.push([]);
+  it('creates the settings record first when the user has none, like the web', async () => {
+    mockAnswers.push([], 21, true);
     await saveVolume(account, 3, 0.4);
-    expect(mockCalls.map((call) => call.method)).toEqual(['search_read']);
+    expect(mockCalls.map((call) => `${call.model}.${call.method}`)).toEqual(['res.users.settings.search_read', 'res.users.settings.create', 'res.users.settings.set_volume_setting']);
+    expect(mockCalls[1].args).toEqual([{ user_id: 9 }]);
+    expect(mockCalls[2].args).toEqual([[21], 3, 0.4]);
   });
 
   it('saves a volume on the user settings record', async () => {
