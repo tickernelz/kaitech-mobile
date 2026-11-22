@@ -431,5 +431,22 @@
   },
   "threadActionsWork": {
     "label": "Coworker work"
+  },
+  "newChat": {
+    "title": "New conversation",
+    "kind": {
+      "chat": "Chat or group",
+      "channel": "Channel"
+    },
+    "name": "Channel name",
+    "announcement": "Announcement channel",
+    "announcementHint": "Only owners and admins write",
+    "with": "With",
+    "members": "Members",
+    "search": "Search people",
+    "groupHint": "More than one person starts a group chat.",
+    "startChat": "Start chat",
+    "createGroup": "Create group",
+    "createChannel": "Create channel"
   }
 }

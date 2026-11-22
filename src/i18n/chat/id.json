@@ -431,5 +431,22 @@
   },
   "threadActionsWork": {
     "label": "Pekerjaan Coworker"
+  },
+  "newChat": {
+    "title": "Percakapan baru",
+    "kind": {
+      "chat": "Chat atau grup",
+      "channel": "Channel"
+    },
+    "name": "Nama channel",
+    "announcement": "Channel pengumuman",
+    "announcementHint": "Hanya pemilik dan admin yang menulis",
+    "with": "Dengan",
+    "members": "Anggota",
+    "search": "Cari orang",
+    "groupHint": "Lebih dari satu orang membuat grup.",
+    "startChat": "Mulai chat",
+    "createGroup": "Buat grup",
+    "createChannel": "Buat channel"
   }
 }
