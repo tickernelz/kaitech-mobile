@@ -163,5 +163,13 @@ if (ACTION === 'tidy') {
     }
   }
   if (kept.length) throw new Error('could not close activities ' + kept.join(','));
-  output.peer = { tidied: stale.length };
+  var partner = rpc('/web/session/get_session_info', {}, cookie).result.partner_id;
+  var memberships = callKw('discuss.channel.member', 'search_read', [[
+    ['partner_id', '=', partner],
+    ['channel_id.channel_type', '=', 'group'],
+    '|', ['channel_id.name', 'ilike', RUN],
+    '&', ['channel_id.name', 'ilike', 'E2E'], ['channel_id.create_date', '<', hourAgo],
+  ]], { fields: ['channel_id'] });
+  for (var g = 0; g < memberships.length; g++) callKw('discuss.channel', 'action_unfollow', [[memberships[g].channel_id[0]]]);
+  output.peer = { tidied: stale.length, left: memberships.length };
 }

@@ -5,6 +5,15 @@ tags:
   - rows
 onFlowStart:
   - runFlow: ../shared/orientation.yaml
+  - runScript:
+      file: ../scripts/web-peer.js
+      env:
+        ACTION: tidy
+onFlowComplete:
+  - runScript:
+      file: ../scripts/web-peer.js
+      env:
+        ACTION: tidy
 ---
 - launchApp
 - extendedWaitUntil:
