@@ -25,10 +25,17 @@ import {
   toggleMute,
   toggleRecording,
   toggleScreenShare,
+  personVolume,
+  setPersonVolume,
+  toggleDeafen,
+  toggleHand,
   toggleSpeaker,
+  toggleVideoOnly,
   useCallState,
   type CallPerson,
 } from '../call';
+import { conversationById, getChat } from '../../chat/chat';
+import { InviteSheet, OutputSheet } from './CallSheets';
 import { usePictureInPictureAllowed } from '../pipSetting';
 import { useElapsed } from '../clock';
 import { controlsFor, type CallAction } from '../controls';
@@ -66,6 +73,9 @@ export function CallScreen() {
   const onStage = call.video || Boolean(presenter);
   const remoteVideo = remote.some((person) => person.cameraOn || person.screenOn);
   const [sheet, setSheet] = useState<'more' | 'people' | null>(null);
+  const [panel, setPanel] = useState<'invite' | 'output' | null>(null);
+  const [spotlight, setSpotlight] = useState(false);
+  const canInvite = (conversationById(getChat(), call.channelId)?.type ?? 'chat') !== 'chat';
   const [swapped, setSwapped] = useState(false);
   const pinned = call.phase !== 'active' || !call.video || !remoteVideo || call.screenSharing || sheet !== null;
   const hide = useAutoHide(pinned, `${call.muted}|${call.cameraOn}|${call.recording}|${call.speaker}`);
@@ -81,13 +91,19 @@ export function CallScreen() {
     record: call.phase === 'active',
     pip: pictureInPictureSupported(),
     wide: width >= wideMin,
+    invite: canInvite,
+    crowd: call.people.length > 2,
   });
   const state: ControlState = {
-    muted: call.muted,
+    muted: call.muted || call.deaf,
     cameraOn: call.cameraOn,
     speaker: call.speaker,
     sharing: call.screenSharing,
     recording: call.phase === 'active' ? { on: call.recording, busy: call.recordingBusy } : null,
+    deaf: call.deaf,
+    hand: call.hand,
+    spotlight,
+    videoOnly: call.videoOnly,
   };
 
   const [measured, setMeasured] = useState<{ width: number; height: number } | null>(null);
@@ -97,10 +113,12 @@ export function CallScreen() {
   };
 
   const grid = useMemo(() => {
-    const ids = call.people.map((person) => person.sid);
-    const stage = stageFor(call.people.length, measured?.width ?? width, (measured?.height ?? height) - tileGap);
+    const withVideo = call.people.filter((person) => person.cameraOn || person.screenOn);
+    const shown = call.videoOnly && withVideo.length ? withVideo : call.people;
+    const ids = shown.map((person) => person.sid);
+    const stage = stageFor(shown.length, measured?.width ?? width, (measured?.height ?? height) - tileGap);
     return { stage, ids: pagesFor(ids, call.speaking, stage.perPage)[0] ?? [] };
-  }, [call.people, call.speaking, width, height, measured]);
+  }, [call.people, call.speaking, call.videoOnly, width, height, measured]);
 
   const live = useRef(call.phase !== 'idle');
   useEffect(() => {
@@ -141,6 +159,11 @@ export function CallScreen() {
     if (action === 'share') void toggleScreenShare();
     if (action === 'record') void toggleRecording();
     if (action === 'pip') void enterPictureInPicture();
+    if (action === 'deafen') void toggleDeafen();
+    if (action === 'hand') toggleHand();
+    if (action === 'videoOnly') toggleVideoOnly();
+    if (action === 'spotlight') setSpotlight((current) => !current);
+    if (action === 'invite' || action === 'output') setPanel(action);
     if (action === 'close') router.back();
     if (action === 'hangup') {
       void hangUp('left');
@@ -164,7 +187,11 @@ export function CallScreen() {
     );
   }
 
-  const big: CallPerson | null = duo ? (swapped ? self : remote[0]) : remote.length === 0 && self && call.video && self.cameraOn ? self : null;
+  const spotted =
+    spotlight && call.people.length > 2
+      ? (remote.find((person) => person.sid === call.focus?.sid) ?? remote.find((person) => call.speaking.includes(person.sid)) ?? remote[0] ?? null)
+      : null;
+  const big: CallPerson | null = spotted ?? (duo ? (swapped ? self : remote[0]) : remote.length === 0 && self && call.video && self.cameraOn ? self : null);
   const small = duo ? (swapped ? remote[0] : self) : null;
   const scrimTop = insets.top + scrimSize;
   const pillBottom = insets.bottom + edge;
@@ -275,7 +302,18 @@ export function CallScreen() {
         <CallPill actions={controls.pill} state={state} onStage={onStage} vertical={vertical} shown={hide.shown} motion={hide.bottom} onAction={onAction} onTouch={hide.poke} />
       </View>
 
-      <MoreSheet view={sheet} actions={controls.more} state={state} people={call.people} onAction={onAction} onClose={() => setSheet(null)} />
+      <MoreSheet
+        view={sheet}
+        actions={controls.more}
+        state={state}
+        people={call.people}
+        onAction={onAction}
+        onClose={() => setSheet(null)}
+        onVolume={(person, volume) => setPersonVolume(person.sid, volume)}
+        volumeOf={(person) => personVolume(person.partnerId)}
+      />
+      {panel === 'invite' ? <InviteSheet channelId={call.channelId} onClose={() => setPanel(null)} /> : null}
+      {panel === 'output' ? <OutputSheet current={call.output} onClose={() => setPanel(null)} /> : null}
 
       {Platform.OS === 'ios' && share ? (
         <View style={styles.picker} pointerEvents="none">

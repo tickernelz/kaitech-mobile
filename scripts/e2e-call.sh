@@ -41,6 +41,7 @@ maestro --device "$serial" test .maestro/signed-in/call.yaml \
   -e APP_LANGUAGE="$language" -e DEVICE_SIZE="$size" -e ORIENTATION="$orientation" \
   --format junit --output "$out/junit.xml" --test-output-dir "$out/maestro" || status=$?
 
+node scripts/call-peer.mjs logs > "$out/peer-logs.json" || true
 node scripts/call-peer.mjs leave > "$out/peer-leave.json" || true
 sleep 2
 adb -s "$serial" shell pkill -INT screenrecord >/dev/null 2>&1 || true

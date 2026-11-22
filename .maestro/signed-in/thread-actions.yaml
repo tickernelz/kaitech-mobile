@@ -1,0 +1,187 @@
+appId: io.kaitech.mobile
+name: Thread actions behind the header More button
+tags:
+  - signed-in
+  - chat-actions
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      text: ${GROUP}
+    timeout: 60000
+- tapOn:
+    text: ${GROUP}
+- extendedWaitUntil:
+    visible:
+      id: thread-more
+    timeout: 30000
+- tapOn:
+    id: thread-more
+- extendedWaitUntil:
+    visible:
+      id: thread-actions
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b1-thread-actions
+- scrollUntilVisible:
+    element:
+      id: thread-action-search
+    direction: DOWN
+- tapOn:
+    id: thread-action-search
+- tapOn:
+    id: search-input
+- inputText: ${SEARCH}
+- extendedWaitUntil:
+    visible:
+      id: found-.*
+    timeout: 15000
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: found-.*
+    commands:
+      - eraseText: 40
+      - inputText: ${SEARCH}
+- extendedWaitUntil:
+    visible:
+      id: found-.*
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b2-search
+- tapOn:
+    id: found-.*
+    index: 0
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-pinned
+    direction: DOWN
+- tapOn:
+    id: thread-action-pinned
+- extendedWaitUntil:
+    visible:
+      id: pinned-sheet
+    timeout: 15000
+- tapOn:
+    id: pinned-sheet-close
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-files
+    direction: DOWN
+- tapOn:
+    id: thread-action-files
+- extendedWaitUntil:
+    visible:
+      id: files-sheet
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b3-files
+- tapOn:
+    id: files-sheet-close
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-members
+    direction: DOWN
+- tapOn:
+    id: thread-action-members
+- extendedWaitUntil:
+    visible:
+      id: members-sheet
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b4-members
+- tapOn:
+    id: members-sheet-close
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-scheduled
+    direction: DOWN
+- tapOn:
+    id: thread-action-scheduled
+- extendedWaitUntil:
+    visible:
+      id: scheduled-sheet
+    timeout: 15000
+- tapOn:
+    id: scheduled-sheet-close
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-pin
+    direction: DOWN
+- tapOn:
+    id: thread-action-pin
+- extendedWaitUntil:
+    visible:
+      id: thread-notice
+    timeout: 15000
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-pin
+    direction: DOWN
+- tapOn:
+    id: thread-action-pin
+- extendedWaitUntil:
+    visible:
+      id: thread-notice
+    timeout: 15000
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-notify
+    direction: DOWN
+- tapOn:
+    id: thread-action-notify
+- extendedWaitUntil:
+    visible:
+      id: notify-sheet
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: b5-notify
+- tapOn:
+    id: notify-level-mentions
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-read
+    direction: DOWN
+- tapOn:
+    id: thread-action-read

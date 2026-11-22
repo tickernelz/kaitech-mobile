@@ -44,6 +44,24 @@ describe('messagesFromStore', () => {
   });
 });
 
+describe('call history on call notices', () => {
+  const notice = (id: number, history: number[]) => ({ id, model: 'discuss.channel', res_id: 4, message_type: 'notification', body: '<div data-oe-type="call">started a call</div>', call_history_ids: history, date: '2026-11-22 01:00:00' });
+
+  it('reads the duration the web shows and whether the call still runs', () => {
+    const store = {
+      'mail.message': [notice(1, [7]), notice(2, [8]), notice(3, [])],
+      'discuss.call.history': [
+        { id: 7, duration_hour: 0.2, end_dt: '2026-11-22 01:12:00' },
+        { id: 8, duration_hour: 0.05, end_dt: false },
+      ],
+    };
+    const [ended, running, bare] = messagesFromStore(store, 9);
+    expect(ended.call).toEqual({ minutes: 12, ongoing: false });
+    expect(running.call).toEqual({ minutes: 3, ongoing: true });
+    expect(bare.call).toBeUndefined();
+  });
+});
+
 describe('read state', () => {
   it('counts a message read once another member has seen it', () => {
     const members = membersFromStore(store).get(4) ?? [];
