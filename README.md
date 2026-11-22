@@ -265,10 +265,10 @@ scripts/emulator.sh stop
 ```
 
 - Dua AVD bersama, `kaitech-phone` (`pixel_6`) dan `kaitech-tablet` (`pixel_tablet`), Android 15 `google_apis` x86_64, dibuat otomatis saat pertama dipakai dengan RAM bawaan profil, sama dengan CI. Jangan membuat AVD per task.
-- Emulator jalan di `emulator-5680` dengan `-gpu host -read-only -no-snapshot -no-window -no-audio -no-boot-anim` sebagai unit systemd pengguna `kaitech-emulator` (`Nice=10`, `CPUQuota=400%`, `MemoryMax=8G`). `-read-only` membuat setiap boot bersih.
+- Emulator jalan di `emulator-5584` (di dalam rentang 5555-5585 yang dipindai ulang adb server setelah `adb kill-server`) dengan `-gpu host -read-only -no-snapshot -no-window -no-audio -no-boot-anim` sebagai unit systemd pengguna `kaitech-emulator` (`Nice=10`, `CPUQuota=400%`, `MemoryMax=8G`). `-read-only` membuat setiap boot bersih.
 - Satu kunci `flock` di `$XDG_RUNTIME_DIR/kaitech-emulator/lock`: run yang datang saat emulator dipakai run lain menunggu giliran (atau pakai CI). Launcher menolak menyalakan emulator (keluar dengan kode 3) selama ada emulator lain di PC, termasuk yang dinyalakan tanpa launcher, dan mencetak daftarnya.
 - Emulator yang sudah hidup dengan ukuran yang sama dipakai ulang: launcher menjalankan `pm clear io.kaitech.mobile`, lalu perintahmu dengan `ANDROID_SERIAL` menunjuk emulator itu, di bawah `nice`. Ukuran lain mematikan emulator itu dulu. `adb` mengikuti `ANDROID_SERIAL`, Maestro tidak: selalu beri `maestro --device "$ANDROID_SERIAL"`, karena tanpa itu Maestro memilih perangkat lain yang tersambung, termasuk ponsel fisik lewat USB.
-- Emulator yang menganggur `KAITECH_EMULATOR_IDLE_MINUTES` (bawaan 5) menit dimatikan oleh timer `kaitech-emulator-reap`; `scripts/emulator.sh stop` mematikannya saat itu juga, jalankan begitu selesai.
+- Timer `kaitech-emulator-reap` dipasang begitu run mendapat kunci dan dipasang ulang setelah perintah selesai. Ia memeriksa tiap `KAITECH_EMULATOR_IDLE_MINUTES` (bawaan 5) menit dan mematikan emulator beserta dirinya sendiri begitu kunci bebas, jadi run yang dibunuh (Ctrl-C, timeout, SIGKILL, OOM) tidak meninggalkan emulator menyala. `scripts/emulator.sh stop` mematikannya saat itu juga dan keluar dengan kode 75 bila emulator sedang dipakai run lain; jalankan begitu selesai.
 - `KAITECH_EMULATOR_GPU=swangle_indirect` hanya untuk membandingkan atau bila GPU host bermasalah, dengan alasan tertulis; render software adalah biaya CPU terbesar emulator.
 - CI tidak memakai launcher ini: runner GitHub tidak punya GPU dan tetap memakai `swiftshader_indirect`.
 

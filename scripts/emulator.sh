@@ -11,13 +11,19 @@ idle_minutes="${KAITECH_EMULATOR_IDLE_MINUTES:-5}"
 state="${XDG_RUNTIME_DIR:-/tmp}/kaitech-emulator"
 unit=kaitech-emulator
 reaper=kaitech-emulator-reap
-port=5680
+port=5584
 device="emulator-$port"
 package=io.kaitech.mobile
 mkdir -p "$state"
 
 live_size() {
   if systemctl --user is-active -q "$unit"; then cat "$state/size" 2>/dev/null || true; fi
+}
+arm_reaper() {
+  systemctl --user stop "$reaper.timer" 2>/dev/null || true
+  systemd-run --user --collect -q -u "$reaper" \
+    --on-active="${idle_minutes}m" --on-unit-inactive="${idle_minutes}m" \
+    flock -n -E 0 "$state/lock" systemctl --user stop "$unit" "$reaper.timer" || true
 }
 booted() { [ "$(timeout 10 adb -s "$device" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; }
 main_pid() { systemctl --user show -p MainPID --value "$unit" 2>/dev/null || echo 0; }
@@ -79,7 +85,7 @@ run() {
     echo "the PC emulator is in use by another run; waiting for it" >&2
     flock "$lock"
   fi
-  systemctl --user stop "$reaper.timer" 2>/dev/null || true
+  arm_reaper
   if [ "$(live_size)" != "$size" ] || ! booted; then
     boot "$size"
   elif adb -s "$device" shell pm path "$package" >/dev/null 2>&1; then
@@ -87,8 +93,7 @@ run() {
   fi
   echo "running on $device" >&2
   ANDROID_SERIAL="$device" nice -n 10 "$@" {lock}>&- || status=$?
-  systemd-run --user --collect -q -u "$reaper" --on-active="${idle_minutes}m" \
-    flock -n "$state/lock" systemctl --user stop "$unit" || true
+  arm_reaper
   exit "$status"
 }
 
@@ -100,9 +105,11 @@ status() {
 }
 
 stop() {
+  local rc=0
   [ -n "$(live_size)" ] || return 0
-  flock -n -E 75 "$state/lock" systemctl --user stop "$unit" ||
-    { [ "$?" = 75 ] && echo "the emulator is busy, left running" >&2; }
+  flock -n -E 75 "$state/lock" systemctl --user stop "$unit" "$reaper.timer" || rc=$?
+  [ "$rc" != 75 ] || echo "the emulator is busy, left running" >&2
+  return "$rc"
 }
 
 case "${1:-}" in
