@@ -6,7 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';
 import { radius, space, type as typography, useTheme } from '../../theme';
+import { RowActions } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
+import { textActions } from '../../ui/textActions';
 import { search, type SearchHits } from '../discovery/api';
 import { openConversation, rememberProgramme, useLastProgramme } from '../discovery/store';
 import { Icon, type IconName } from '../../ui/icons';
@@ -228,11 +230,20 @@ export function SearchScreen() {
               </Text>
             </Pressable>
           ) : (
-            <Pressable
+          <RowActions
+            title={item.title}
+            subtitle={item.detail}
+            actions={[{ key: 'open', icon: 'forward', label: t('row.open'), onPress: item.open }, ...textActions(t, `${item.title}\n${item.detail}`)]}
+            start={['copy']}
+            end={['share', 'more']}
+            testID={`search-hit-${item.key}`}>
+            {(bind) => (
+          <Pressable
+            {...bind}
             accessibilityRole="button"
             onPress={item.open}
             testID={`search-hit-${item.key}`}
-            style={({ pressed }) => [styles.hit, pressed && { backgroundColor: colors.surface2 }]}>
+            style={({ pressed }) => [styles.hit, { backgroundColor: pressed ? colors.surface2 : colors.canvas }]}>
             <View style={[styles.hitIcon, { backgroundColor: colors.surface2 }]}>
               <Icon name={item.icon} size={20} color={colors.selectInk} />
             </View>
@@ -244,7 +255,9 @@ export function SearchScreen() {
                 {item.detail}
               </Text>
             </View>
-            </Pressable>
+          </Pressable>
+            )}
+          </RowActions>
           )
         }
         ListEmptyComponent={

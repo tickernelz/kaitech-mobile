@@ -84,7 +84,13 @@
     "callOngoing": "Call in progress",
     "callJoin": "Join",
     "callMinutes_one": "{{count}} min",
-    "callMinutes_other": "{{count}} min"
+    "callMinutes_other": "{{count}} min",
+    "removed": "This message was deleted",
+    "edited": "edited",
+    "pinned": "Pinned",
+    "starred": "Starred",
+    "translatedFrom": "Translated from {{lang}}",
+    "translated": "Translated"
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",
@@ -123,7 +129,10 @@
       "hide": "Hide formatting",
       "show": "Show formatting",
       "glyph": "Aa"
-    }
+    },
+    "editing": "Editing message",
+    "cancelEdit": "Cancel editing",
+    "saveEdit": "Save changes"
   },
   "permissions": {
     "cameraTitle": "Camera access is off",
@@ -147,7 +156,24 @@
     "react": "React with {{emoji}}",
     "readBy_one": "Read by {{count}} person",
     "readBy_other": "Read by {{count}} people",
-    "notRead": "Not read yet"
+    "notRead": "Not read yet",
+    "forward": "Forward",
+    "edit": "Edit",
+    "delete": "Delete",
+    "more": "More",
+    "moreEmoji": "More reactions",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "star": "Star",
+    "unstar": "Remove star",
+    "unread": "Mark as unread",
+    "link": "Copy link",
+    "task": "Make a task",
+    "activity": "Make an activity",
+    "meeting": "Schedule a meeting",
+    "reactions": "Who reacted",
+    "translate": "Translate",
+    "original": "Show original"
   },
   "push": {
     "channel": "Messages"
@@ -166,5 +192,125 @@
     "failed": "Couldn't change this. Try again later.",
     "bubbleClosed": "Open Kaitech to read this conversation.",
     "failedNetwork": "Could not change this. Check your connection and try again."
+  },
+  "rowActions": {
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "markRead": "Mark as read",
+    "markUnread": "Mark as unread",
+    "read": "Read",
+    "unread": "Unread",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "hide": "Remove from list",
+    "leave": "Leave",
+    "archivedDone": "Conversation archived",
+    "unarchivedDone": "Moved back to Chats",
+    "hiddenDone": "Removed from the list",
+    "leftDone": "You left {{name}}",
+    "archivedTitle": "Archived",
+    "archivedEmpty": "No archived conversations.",
+    "failed": "Couldn't change this. Try again."
+  },
+  "act": {
+    "copied": "Text copied",
+    "linkCopied": "Link copied",
+    "pinned": "Message pinned",
+    "unpinned": "Message unpinned",
+    "starred": "Message starred",
+    "unstarred": "Star removed",
+    "markedUnread": "Marked as unread",
+    "deleteTitle": "Delete this message?",
+    "deleteBody": "Everyone in this conversation will see that it was deleted.",
+    "cancel": "Cancel",
+    "failed": "That didn't work. Try again.",
+    "forbidden": "You don't have access to do that.",
+    "noTranslation": "This message is already in your language."
+  },
+  "emoji": {
+    "title": "Reactions",
+    "search": "Search emoji",
+    "none": "No emoji found",
+    "category": {
+      "recent": "Recent",
+      "smileys": "Smileys",
+      "people": "People",
+      "nature": "Nature",
+      "food": "Food",
+      "travel": "Travel",
+      "activities": "Activities",
+      "objects": "Objects",
+      "symbols": "Symbols"
+    }
+  },
+  "when": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "none": "No date"
+  },
+  "pick": {
+    "remove": "Remove {{name}}"
+  },
+  "reactions": {
+    "title": "Who reacted",
+    "count_one": "{{count}} person",
+    "count_other": "{{count}} people"
+  },
+  "readers": {
+    "title": "Read by",
+    "read": "{{count}} of {{total}} read it",
+    "notYet_one": "{{count}} hasn't read it yet",
+    "notYet_other": "{{count}} haven't read it yet",
+    "more_one": "And {{count}} more",
+    "more_other": "And {{count}} more"
+  },
+  "forward": {
+    "title": "Forward",
+    "picked_one": "{{count}} message picked",
+    "picked_other": "{{count}} messages picked",
+    "pickMore": "Tap to add messages around it",
+    "to": "Send to",
+    "search": "Search conversations",
+    "noTargets": "No conversation matches.",
+    "send_one": "Forward {{count}} message",
+    "send_other": "Forward {{count}} messages",
+    "done_one": "Forwarded {{count}} message to {{name}}",
+    "done_other": "Forwarded {{count}} messages to {{name}}"
+  },
+  "task": {
+    "title": "Make a task",
+    "name": "Title",
+    "project": "Project",
+    "projectSearch": "Search projects",
+    "private": "Without a project the task is private.",
+    "assignees": "Assignees",
+    "assigneeSearch": "Add an assignee",
+    "deadline": "Deadline",
+    "create": "Create task",
+    "done": "Task {{name}} created"
+  },
+  "activity": {
+    "title": "Make an activity",
+    "summary": "Summary",
+    "type": "Type",
+    "due": "Due date",
+    "create": "Schedule",
+    "done": "Activity scheduled"
+  },
+  "meeting": {
+    "title": "Schedule a meeting",
+    "name": "Title",
+    "attendees": "Attendees",
+    "addAttendee": "Add someone from this conversation",
+    "duration": "Duration",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "free": "Everyone is free",
+    "start": "Start",
+    "busy": "Busy then: {{names}}",
+    "schedule": "Schedule",
+    "done": "Meeting scheduled for {{when}}"
   }
 }

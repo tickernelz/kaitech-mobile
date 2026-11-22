@@ -8,26 +8,32 @@ import { ChatClient, errorCode, sendErrorFrom } from './api';
 import { forgetChatAccount } from './cleanup';
 import { forgetDrafts } from './drafts';
 import { clearOpenedFiles, dropFile, sweepStaging } from './files';
-import { allPendingFileUris, cachedConversations, cachedMessages, forgetAccount, pendingFor, removePending, savePending, storeConversations, storeMessages } from './db';
+import { allPendingFileUris, cachedConversations, dropConversation, cachedMessages, forgetAccount, pendingFor, removePending, savePending, storeConversations, storeMessages } from './db';
 import { composeBody, mentionsInText } from './html';
 import { bodyPreview } from './markdown';
 import {
   channelInfoFromStore,
+  conversationFrom,
   conversationPage,
   conversationPhotos,
+  listOrder,
+  type ArchivedSummary,
   fullMessages,
   lastMessageOf,
   membersFromStore,
+  messagePatches,
   messagesFromStore,
+  type MessagePatch,
   reactionUpdates,
   seenFromStore,
   subChannelsFromStore,
   typingFromStore,
   type ChannelInfo,
 } from './odoo';
+import { featuresFromSession, noFeatures, type ChatFeatures } from './features';
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
-import type { Conversation, Member, Mention, Message, Pending, PendingFile } from './types';
+import type { Conversation, Member, Mention, Message, Pending, PendingFile, Reaction } from './types';
 import { setUploadProgress } from './progress';
 import { onPresenceChange, userInApp } from '../call/presence';
 import { notePhotoList, notePhotos } from '../people/photos';
@@ -67,6 +73,11 @@ export type ChatState = {
   realtime: RealtimeState;
   openChannels: number[];
   invited: number[];
+  archivedSummary: ArchivedSummary | null;
+  archived: Conversation[] | null;
+  archivedCursor: string | null;
+  archivedLoading: boolean;
+  features: ChatFeatures;
 };
 
 const emptyThread: Thread = { messages: [], loading: false, loaded: false, hasOlder: true, loadingOlder: false, error: null, members: [], typing: [], hasNewer: false, info: null, subChannels: {} };
@@ -89,6 +100,11 @@ let state: ChatState = {
   realtime: 'closed',
   openChannels: [],
   invited: [],
+  archivedSummary: null,
+  archived: null,
+  archivedCursor: null,
+  archivedLoading: false,
+  features: noFeatures,
 };
 
 const listeners = new Set<() => void>();
@@ -173,6 +189,21 @@ function delivered(sent: Sent) {
   void fetchNewer(pending.channelId);
 }
 
+export function patchMessages(patches: Map<number, MessagePatch>) {
+  if (!patches.size) return;
+  let threads: Record<number, Thread> | null = null;
+  for (const [key, thread] of Object.entries(state.threads)) {
+    if (!thread.messages.some((message) => patches.has(message.id))) continue;
+    const messages = thread.messages.map((message) => {
+      const patch = patches.get(message.id);
+      return patch ? { ...message, ...patch } : message;
+    });
+    threads = { ...(threads ?? state.threads), [Number(key)]: { ...thread, messages } };
+    if (state.accountId) void storeMessages(state.accountId, Number(key), messages.filter((message) => patches.has(message.id)));
+  }
+  if (threads) set({ threads });
+}
+
 function upsertMessages(channelId: number, incoming: Message[]) {
   if (!incoming.length || !state.accountId) return;
   const arrived = new Set(incoming.map((message) => message.id));
@@ -195,7 +226,7 @@ function touchConversation(channelId: number, message: Message): boolean {
     unread: mine || visible ? current.unread : current.unread + 1,
   };
   const rest = state.conversations.filter((conversation) => conversation.id !== channelId);
-  const conversations = [updated, ...rest].sort((a, b) => b.activityAt - a.activityAt || b.id - a.id);
+  const conversations = listOrder([updated, ...rest]);
   set({ conversations });
   if (state.accountId) void storeConversations(state.accountId, [updated], false);
   return true;
@@ -242,12 +273,19 @@ function onNotifications(notifications: Notification[]) {
       if (active && state.openChannels.includes(channelId)) scheduleRead(channelId);
       continue;
     }
+    if (notification.type === 'mail.message/toggle_star') {
+      const payload = notification.payload as { message_ids?: unknown; starred?: unknown };
+      const ids = Array.isArray(payload.message_ids) ? payload.message_ids.filter((item): item is number => typeof item === 'number') : [];
+      patchMessages(new Map(ids.map((messageId) => [messageId, { starred: payload.starred === true }])));
+      continue;
+    }
     if (notification.type !== 'mail.record/insert') continue;
     const data = notification.payload;
+    patchMessages(messagePatches(data));
     for (const message of fullMessages(data, state.partnerId)) {
       if (state.threads[message.channelId]?.messages.some((existing) => existing.id === message.id)) upsertMessages(message.channelId, [message]);
     }
-    const reactions = reactionUpdates(data, state.partnerId);
+    const reactions = reactionUpdates(data, state.partnerId, currentReactions);
     if (reactions.size) {
       const threads = { ...state.threads };
       for (const [channelId, thread] of Object.entries(threads)) {
@@ -313,6 +351,15 @@ function stop() {
   teardown = [];
 }
 
+async function loadFeatures(current: ChatClient) {
+  try {
+    const info = await current.sessionInfo();
+    if (client === current) set({ features: featuresFromSession(info) });
+  } catch {
+    return;
+  }
+}
+
 export function startChat(account: Account) {
   if (state.accountId === account.id && client) return;
   stop();
@@ -324,7 +371,7 @@ export function startChat(account: Account) {
     accountId: account.id,
     partnerId: account.partnerId,
     origin: account.origin,
-    conversations: cachedConversations(account.id),
+    conversations: listOrder(cachedConversations(account.id)),
     nextCursor: null,
     listLoading: false,
     listLoaded: false,
@@ -334,9 +381,16 @@ export function startChat(account: Account) {
     delivered: [],
     openChannels: [],
     invited: [],
+    archivedSummary: null,
+    archived: null,
+    archivedCursor: null,
+    archivedLoading: false,
+    features: noFeatures,
   };
+  leaving = new Set();
   listeners.forEach((listener) => listener());
   const current = client;
+  void loadFeatures(current);
   outbox = new Outbox(
     {
       upload: async (item: Pending, file: PendingFile) => {
@@ -409,7 +463,8 @@ export function startChat(account: Account) {
 
 export function stopChat() {
   stop();
-  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [] });
+  leaving = new Set();
+  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [], archivedSummary: null, archived: null, archivedCursor: null, features: noFeatures });
 }
 
 onAccountForgotten((id) => {
@@ -428,7 +483,7 @@ export async function refreshConversations() {
     if (client !== current) return;
     const page = conversationPage(body);
     notePhotoList(account, conversationPhotos(body));
-    set({ conversations: page.conversations, nextCursor: page.nextCursor, listLoaded: true, listLoading: false });
+    set({ conversations: listOrder(staying(page.conversations)), nextCursor: page.nextCursor, listLoaded: true, listLoading: false, archivedSummary: page.archived });
     await storeConversations(account, page.conversations, true);
   } catch (error) {
     if (client === current) set({ listLoading: false, listError: errorCode(error) });
@@ -446,7 +501,7 @@ export async function loadMoreConversations() {
     const page = conversationPage(body);
     notePhotoList(account, conversationPhotos(body));
     const known = new Set(state.conversations.map((conversation) => conversation.id));
-    set({ conversations: [...state.conversations, ...page.conversations.filter((conversation) => !known.has(conversation.id))], nextCursor: page.nextCursor, listLoading: false });
+    set({ conversations: [...state.conversations, ...staying(page.conversations).filter((conversation) => !known.has(conversation.id))], nextCursor: page.nextCursor, listLoading: false });
     await storeConversations(account, page.conversations, false);
   } catch (error) {
     if (client === current) set({ listLoading: false, listError: errorCode(error) });
@@ -672,21 +727,30 @@ export async function discardSend(key: string) {
   removed?.files.forEach((file) => dropFile(file.uri));
 }
 
-export async function toggleReaction(message: Message, content: string) {
+function currentReactions(messageId: number): Reaction[] | undefined {
+  for (const thread of Object.values(state.threads)) {
+    const found = thread.messages.find((message) => message.id === messageId);
+    if (found) return found.reactions;
+  }
+  return undefined;
+}
+
+export async function toggleReaction(message: Message, content: string): Promise<string | null> {
   const current = client;
-  if (!current) return;
+  if (!current) return 'signedOut';
   const existing = message.reactions.find((reaction) => reaction.content === content);
   const add = !existing?.mine;
   try {
     const data = await current.react(message.id, content, add);
-    const updates = reactionUpdates(data, state.partnerId);
+    const updates = reactionUpdates(data, state.partnerId, currentReactions);
     if (updates.has(message.id)) {
       patchThread(message.channelId, (thread) => ({
         messages: thread.messages.map((item) => (item.id === message.id ? { ...item, reactions: updates.get(message.id) ?? [] } : item)),
       }));
     }
-  } catch {
-    return;
+    return null;
+  } catch (error) {
+    return errorCode(error);
   }
 }
 
@@ -715,4 +779,115 @@ export async function muteConversation(channelId: number, minutes: number): Prom
 
 export function chatClient(): ChatClient | null {
   return client;
+}
+
+let leaving = new Set<number>();
+
+function staying(conversations: Conversation[]): Conversation[] {
+  return leaving.size ? conversations.filter((conversation) => !leaving.has(conversation.id)) : conversations;
+}
+
+function replaceConversation(updated: Conversation) {
+  if (state.archived?.some((item) => item.id === updated.id)) set({ archived: state.archived.map((item) => (item.id === updated.id ? updated : item)) });
+  if (!state.conversations.some((item) => item.id === updated.id)) return;
+  set({ conversations: listOrder(state.conversations.map((item) => (item.id === updated.id ? updated : item))) });
+  if (state.accountId) void storeConversations(state.accountId, [updated], false);
+}
+
+function knownConversation(channelId: number): Conversation | null {
+  return conversationById(state, channelId) ?? state.archived?.find((item) => item.id === channelId) ?? null;
+}
+
+export async function setConversationRead(channelId: number, read: boolean): Promise<string | null> {
+  const current = client;
+  const conversation = knownConversation(channelId);
+  const lastId = conversation?.last?.id;
+  if (!current || !conversation || !lastId) return 'unavailable';
+  const before = conversation.unread;
+  replaceConversation({ ...conversation, unread: read ? 0 : Math.max(1, before) });
+  try {
+    if (read) await current.markAsRead(channelId, lastId);
+    else await current.markUnread(channelId, lastId);
+    return null;
+  } catch (error) {
+    const latest = client === current ? knownConversation(channelId) : null;
+    if (latest) replaceConversation({ ...latest, unread: before });
+    return errorCode(error);
+  }
+}
+
+export async function setConversationPinned(channelId: number, pinned: boolean): Promise<string | null> {
+  const current = client;
+  const conversation = knownConversation(channelId);
+  if (!current || !conversation || conversation.pinned === null) return 'unavailable';
+  replaceConversation({ ...conversation, pinned });
+  try {
+    if ((await current.pin(channelId, pinned)) === pinned) return null;
+    throw new Error('unavailable');
+  } catch (error) {
+    const latest = client === current ? knownConversation(channelId) : null;
+    if (latest) replaceConversation({ ...latest, pinned: !pinned });
+    return error instanceof Error && error.message === 'unavailable' ? 'unavailable' : errorCode(error);
+  }
+}
+
+export type Removal = 'archive' | 'unarchive' | 'hide' | 'leave';
+
+export function removalOf(channelId: number, kind: Removal): { apply: () => void; revert: () => void; commit: () => Promise<boolean> } | null {
+  const current = client;
+  const account = state.accountId;
+  const listed = conversationById(state, channelId);
+  const fromArchive = !listed;
+  const conversation = listed ?? state.archived?.find((item) => item.id === channelId);
+  if (!current || !account || !conversation) return null;
+  const owned = () => client === current && state.accountId === account;
+  const take = () => {
+    if (fromArchive) set({ archived: (state.archived ?? []).filter((item) => item.id !== channelId) });
+    else set({ conversations: state.conversations.filter((item) => item.id !== channelId) });
+  };
+  return {
+    apply: () => {
+      leaving.add(channelId);
+      take();
+    },
+    revert: () => {
+      leaving.delete(channelId);
+      if (!owned()) return;
+      if (fromArchive) set({ archived: [conversation, ...(state.archived ?? []).filter((item) => item.id !== channelId)] });
+      else set({ conversations: listOrder([conversation, ...state.conversations.filter((item) => item.id !== channelId)]) });
+    },
+    commit: async () => {
+      try {
+        if (kind === 'archive' || kind === 'unarchive') {
+          const updated = conversationFrom(await current.archive(channelId, kind === 'archive'));
+          if (!updated || updated.archived !== (kind === 'archive')) return false;
+        } else if (kind === 'hide') {
+          await current.hide(channelId);
+        } else {
+          await current.leave(channelId);
+        }
+      } catch {
+        return false;
+      } finally {
+        leaving.delete(channelId);
+      }
+      await dropConversation(account, channelId);
+      if (owned() && (kind === 'unarchive' || kind === 'archive')) void refreshConversations();
+      return true;
+    },
+  };
+}
+
+export async function loadArchived(more = false) {
+  const current = client;
+  if (!current || state.archivedLoading || (more && !state.archivedCursor)) return;
+  set({ archivedLoading: true });
+  try {
+    const page = conversationPage(await current.conversations(more ? state.archivedCursor : null, { archived: true }));
+    if (client !== current) return;
+    const kept = staying(page.conversations);
+    set({ archived: more ? [...(state.archived ?? []), ...kept] : kept, archivedCursor: page.nextCursor, archivedLoading: false });
+  } catch {
+    if (client === current) set({ archivedLoading: false, archived: state.archived ?? [] });
+  }
 }

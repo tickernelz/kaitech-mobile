@@ -1,0 +1,237 @@
+appId: io.kaitech.mobile
+name: Chat rows, long press opens More, swipe shows quick actions, mute, unread, leave with Undo, remove a direct chat
+tags:
+  - signed-in
+  - rows
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      id: chat-list
+    timeout: 30000
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: group
+      GROUP: ${'Uji baris ' + RUN}
+- evalScript: ${output.row = 'conversation-' + output.peer.group}
+- swipe:
+    from:
+      id: chat-filter-all
+    direction: DOWN
+- scrollUntilVisible:
+    element:
+      id: ${output.row}
+    timeout: 60000
+- longPressOn:
+    id: ${output.row}
+- extendedWaitUntil:
+    visible:
+      id: row-sheet
+    timeout: 5000
+- assertVisible:
+    id: row-action-mute
+- assertVisible:
+    id: row-action-read
+- assertVisible:
+    id: row-action-remove
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r1-chat-more
+- tapOn:
+    id: row-action-mute
+- tapOn:
+    id: row-action-mute-hours8
+- extendedWaitUntil:
+    visible:
+      id: icon-bellOff
+      childOf:
+        id: ${output.row}
+    timeout: 15000
+- swipe:
+    from:
+      id: ${output.row}
+    direction: RIGHT
+- extendedWaitUntil:
+    visible:
+      id: ${output.row + '-swipe-read'}
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r2-chat-swipe-right
+- tapOn:
+    id: ${output.row + '-swipe-read'}
+- extendedWaitUntil:
+    notVisible:
+      text: ${'Uji baris ' + RUN + ', (1 unread message|1 pesan belum dibaca),.*'}
+    timeout: 15000
+- swipe:
+    from:
+      id: ${output.row}
+    direction: RIGHT
+- tapOn:
+    id: ${output.row + '-swipe-read'}
+- extendedWaitUntil:
+    visible:
+      text: ${'Uji baris ' + RUN + ', (1 unread message|1 pesan belum dibaca),.*'}
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r3-chat-muted-unread
+- swipe:
+    from:
+      id: ${output.row}
+    direction: LEFT
+- extendedWaitUntil:
+    visible:
+      id: ${output.row + '-swipe-more'}
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r4-chat-swipe-left
+- runFlow:
+    when:
+      visible:
+        id: ${output.row + '-swipe-archive'}
+    commands:
+      - tapOn:
+          id: ${output.row + '-swipe-archive'}
+      - extendedWaitUntil:
+          notVisible:
+            id: ${output.row}
+          timeout: 5000
+      - extendedWaitUntil:
+          notVisible:
+            id: undo-bar
+          timeout: 15000
+      - scrollUntilVisible:
+          element:
+            id: chat-archive-open
+          direction: UP
+      - tapOn:
+          id: chat-archive-open
+      - extendedWaitUntil:
+          visible:
+            id: ${output.row}
+          timeout: 15000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: r5-chat-archived
+      - longPressOn:
+          id: ${output.row}
+      - tapOn:
+          id: row-action-archive
+      - extendedWaitUntil:
+          notVisible:
+            id: undo-bar
+          timeout: 15000
+      - tapOn:
+          id: chat-archive-back
+      - scrollUntilVisible:
+          element:
+            id: ${output.row}
+          timeout: 30000
+- longPressOn:
+    id: ${output.row}
+- extendedWaitUntil:
+    visible:
+      id: row-sheet
+    timeout: 5000
+- runFlow:
+    when:
+      visible:
+        id: row-action-pin
+    commands:
+      - tapOn:
+          id: row-action-pin
+      - scrollUntilVisible:
+          element:
+            id: chat-filter-all
+          direction: UP
+      - extendedWaitUntil:
+          visible:
+            id: icon-pin
+            childOf:
+              id: ${output.row}
+          timeout: 15000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: r6-chat-pinned
+      - longPressOn:
+          id: ${output.row}
+- tapOn:
+    id: row-action-remove
+- tapOn:
+    id: undo-action
+- assertNotVisible:
+    id: undo-bar
+- extendedWaitUntil:
+    visible:
+      id: ${output.row}
+    timeout: 5000
+- longPressOn:
+    id: ${output.row}
+- tapOn:
+    id: row-action-remove
+- extendedWaitUntil:
+    notVisible:
+      id: undo-bar
+    timeout: 15000
+- assertNotVisible:
+    id: ${output.row}
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: left
+      TARGET: ${String(output.peer.group)}
+- runFlow:
+    when:
+      true: ${HIDE_DIRECT === 'true'}
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: ${PEER}
+          timeout: 60000
+      - longPressOn:
+          text: ${PEER}
+      - tapOn:
+          id: row-action-remove
+      - extendedWaitUntil:
+          notVisible:
+            id: undo-bar
+          timeout: 15000
+      - assertNotVisible:
+          text: ${PEER}
+      - runScript:
+          file: ../scripts/web-peer.js
+          env:
+            ACTION: say
+            TARGET: ${CHANNEL_ID}
+      - extendedWaitUntil:
+          visible:
+            text: ${PEER}
+          timeout: 60000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: r8-chat-back-after-message
