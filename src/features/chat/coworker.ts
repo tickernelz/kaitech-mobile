@@ -29,7 +29,7 @@ export type Wardmote = {
   status: string;
 };
 
-export type AgentCard = { packets: Card[]; wardmote: Wardmote | null; handedBy: string | null };
+export type AgentCard = { packets: Card[]; wardmote: Wardmote | null; handedBy: string | null; said: string };
 
 export type RecordCard = { kind: string; model: string; id: number; locked: boolean; title: string; status: string; key: string; parent: string; people: string[] };
 
@@ -98,11 +98,11 @@ export function agentCardsFor(channelId: number, messageIds: number[]) {
     for (const id of messageIds) {
       const card = isRecord(raw) ? raw[String(id)] : undefined;
       if (!isRecord(card)) {
-        out.set(id, { packets: [], wardmote: null, handedBy: null });
+        out.set(id, { packets: [], wardmote: null, handedBy: null, said: '' });
         continue;
       }
       const handed = isRecord(card.handed) ? str(card.handed.by) || null : null;
-      out.set(id, { packets: Array.isArray(card.packets) ? (card.packets as Card[]) : [], wardmote: wardmoteFrom(card.wardmote), handedBy: handed });
+      out.set(id, { packets: Array.isArray(card.packets) ? (card.packets as Card[]) : [], wardmote: wardmoteFrom(card.wardmote), handedBy: handed, said: str(card.said) });
     }
     return out;
   });

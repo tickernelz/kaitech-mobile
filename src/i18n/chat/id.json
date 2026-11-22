@@ -90,7 +90,8 @@
     "starred": "Berbintang",
     "translatedFrom": "Diterjemahkan dari {{lang}}",
     "translated": "Diterjemahkan",
-    "urgent": "Mendesak"
+    "urgent": "Mendesak",
+    "agentTag": "Agent"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",

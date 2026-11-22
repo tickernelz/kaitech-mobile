@@ -90,7 +90,8 @@
     "starred": "Starred",
     "translatedFrom": "Translated from {{lang}}",
     "translated": "Translated",
-    "urgent": "Urgent"
+    "urgent": "Urgent",
+    "agentTag": "Agent"
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",
