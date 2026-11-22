@@ -56,6 +56,7 @@
     "olderMessage": "Earlier message",
     "typing_one": "{{name}} is typing…",
     "typing_other": "{{name}} are typing…",
+    "status": "Status: {{status}}",
     "kind": {
       "chat": "Direct message",
       "group": "Group",

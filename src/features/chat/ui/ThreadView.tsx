@@ -34,6 +34,7 @@ import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
 import { NotifySheet } from './NotifySheet';
 import { router } from 'expo-router';
 import { ChatBackground } from '../../appearance/ChatBackground';
+import { usePartnerStatus } from '../../people/statuses';
 
 type Row =
   | { kind: 'day'; key: string; date: number }
@@ -113,6 +114,7 @@ export function ThreadView({
   const name = conversation?.name || thread.info?.name || '';
   const type = conversation?.type ?? (thread.info?.type as 'chat' | 'group' | 'channel' | undefined) ?? 'channel';
   const twoPeople = type === 'chat';
+  const status = usePartnerStatus(accountId, twoPeople ? conversation?.partnerId : null);
 
   const scrollTo = useCallback(
     (messageId: number) => {
@@ -292,10 +294,12 @@ export function ThreadView({
   const subtitle = typing.length
     ? t('thread.typing', { name: typing.map((typist) => typist.name.split(' ')[0]).join(', '), count: typing.length })
     : type === 'chat'
-      ? t('thread.kind.chat')
+      ? (status ?? t('thread.kind.chat'))
       : thread.info?.memberCount
         ? t(`thread.members.${type === 'group' ? 'group' : 'channel'}`, { count: thread.info.memberCount })
         : t(`thread.kind.${type === 'group' ? 'group' : 'channel'}`);
+  const shownStatus = !typing.length && twoPeople && status ? status : null;
+  const readStatus = shownStatus ? () => Alert.alert(name, shownStatus) : undefined;
 
   const header = (
     <View style={[styles.header, { borderBottomColor: colors.line }]}>
@@ -312,14 +316,22 @@ export function ThreadView({
         photo={type === 'chat' ? undefined : (conversation?.photo ?? null)}
         icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined}
       />
-      <View style={styles.flex}>
+      <Pressable style={styles.flex} accessible={false} disabled={!readStatus} onPress={readStatus} testID="thread-heading">
         <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
           {name}
         </Text>
-        <Text variant="footnote" tone={typing.length ? 'link' : 'inkSoft'} numberOfLines={1} accessibilityLiveRegion="polite">
+        <Text
+          variant="footnote"
+          tone={typing.length ? 'link' : 'inkSoft'}
+          numberOfLines={1}
+          accessibilityLiveRegion="polite"
+          accessibilityLabel={shownStatus ? t('thread.status', { status: shownStatus }) : undefined}
+          accessibilityRole={readStatus ? 'button' : undefined}
+          onPress={readStatus}
+          testID="thread-subtitle">
           {subtitle}
         </Text>
-      </View>
+      </Pressable>
       {!bubble && (type === 'chat' || type === 'group' || type === 'channel') ? <CallButtons channelId={channelId} channelName={name} /> : null}
       <Pressable
         accessibilityRole="button"
