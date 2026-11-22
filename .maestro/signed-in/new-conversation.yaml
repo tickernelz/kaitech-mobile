@@ -23,6 +23,10 @@ onFlowStart:
     visible:
       id: chat-new
     timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: chat-filter-mention
+    direction: UP
 - tapOn:
     id: chat-filter-mention
 - extendedWaitUntil:

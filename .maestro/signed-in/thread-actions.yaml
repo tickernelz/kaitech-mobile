@@ -341,8 +341,16 @@ onFlowStart:
       visible:
         id: chat-list
     commands:
+      - scrollUntilVisible:
+          element:
+            id: ${output.row}
+          timeout: 30000
       - tapOn:
           id: ${output.row}
+- extendedWaitUntil:
+    notVisible:
+      text: ${RUN + ' sub'}
+    timeout: 15000
 - extendedWaitUntil:
     visible:
       id: thread-more
