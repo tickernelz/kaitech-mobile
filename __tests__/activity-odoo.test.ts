@@ -12,6 +12,7 @@ import {
   pendingCount,
   plainNote,
   schedule,
+  snoozeDay,
   type Activity,
 } from '../src/features/activity/odoo';
 
@@ -115,6 +116,14 @@ describe('dates', () => {
     expect(dueOf('2026-11-27', today)).toEqual({ key: 'inDays', count: 5 });
     expect(dueOf('2026-12-05', today)?.key).toBe('on');
     expect(dueOf('', today)).toBeNull();
+  });
+
+  it('reschedules on the phone\'s own day, with next week on Monday like the web', () => {
+    expect(snoozeDay('today', today)).toBe('2026-11-22');
+    expect(snoozeDay('tomorrow', today)).toBe('2026-11-23');
+    expect(snoozeDay('nextweek', today)).toBe('2026-11-23');
+    expect(snoozeDay('nextweek', new Date(2026, 10, 23, 9))).toBe('2026-11-30');
+    expect(snoozeDay('nextweek', new Date(2026, 10, 28, 9))).toBe('2026-11-30');
   });
 
   it('proposes the deadline the activity type plans', () => {

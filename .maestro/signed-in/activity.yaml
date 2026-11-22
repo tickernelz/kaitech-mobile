@@ -77,7 +77,7 @@ onFlowStart:
       id: activity-sheet
     timeout: 15000
 - tapOn:
-    id: activities-filter-today
+    id: activities-filter-all
 - scrollUntilVisible:
     element:
       text: ${output.todo}

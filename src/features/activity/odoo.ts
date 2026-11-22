@@ -237,8 +237,15 @@ export async function markDoneAndNext(account: Account, activity: Activity, feed
 
 export type Snooze = 'today' | 'tomorrow' | 'nextweek';
 
+export function snoozeDay(when: Snooze, today: Date): string {
+  const day = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  if (when === 'tomorrow') day.setDate(day.getDate() + 1);
+  if (when === 'nextweek') day.setDate(day.getDate() + 7 - ((day.getDay() + 6) % 7));
+  return isoDay(day);
+}
+
 export function snooze(account: Account, id: number, when: Snooze) {
-  return rpc<unknown>(account, 'mail.activity', `action_reschedule_${when}`, [[id]]);
+  return rpc<boolean>(account, 'mail.activity', 'write', [[id], { date_deadline: snoozeDay(when, new Date()) }]);
 }
 
 export function cancel(account: Account, id: number) {
