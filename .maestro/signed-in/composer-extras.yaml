@@ -83,7 +83,8 @@ onFlowStart:
 - extendedWaitUntil:
     visible:
       id: thread-notice
-    timeout: 20000
+    timeout: 4000
+    optional: true
 - tapOn:
     id: thread-more
 - scrollUntilVisible:
@@ -107,7 +108,8 @@ onFlowStart:
 - extendedWaitUntil:
     visible:
       id: thread-notice
-    timeout: 20000
+    timeout: 4000
+    optional: true
 - runFlow:
     when:
       true: ${URGENT == 'yes'}
