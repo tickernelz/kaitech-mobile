@@ -314,7 +314,6 @@ jobs:
           locale: ${{ matrix.locale }}
           orientations: ${{ matrix.orientation }}
           runner: ${{ vars.E2E_RUNNER || 'auto' }}
-          snapshot: 'false'
           retention-days: '90'
 
   rows-from-release:
@@ -374,7 +373,6 @@ jobs:
           flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
           audio: 'true'
-          snapshot: 'false'
           retention-days: '90'
 
   publish:

@@ -136,8 +136,6 @@ jobs:
           flows: ${{ needs.plan.outputs.flows }}
           runner: ${{ vars.E2E_RUNNER || 'auto' }}
           cold-start: ${{ matrix.size == 'phone' && matrix.locale == 'en-US' && '5' || '0' }}
-          snapshot: ${{ matrix.size == 'phone' }}
-          save-snapshot: ${{ env.SAVE_CACHES }}
 
   android-rows:
     name: android rows
@@ -185,7 +183,6 @@ jobs:
           flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
           audio: 'true'
-          snapshot: 'false'
 
   ipad:
     name: ipad simulator en-US
