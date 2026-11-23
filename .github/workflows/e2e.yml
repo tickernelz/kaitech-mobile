@@ -136,8 +136,6 @@ jobs:
           flows: ${{ needs.plan.outputs.flows }}
           runner: ${{ vars.E2E_RUNNER || 'auto' }}
           cold-start: ${{ matrix.size == 'phone' && matrix.locale == 'en-US' && '5' || '0' }}
-          snapshot: ${{ matrix.size == 'phone' }}
-          save-snapshot: ${{ env.SAVE_CACHES }}
 
   android-rows:
     name: android rows
@@ -189,7 +187,6 @@ jobs:
           flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
           audio: 'true'
-          snapshot: 'false'
 
   ios:
     name: ios simulator en-US
@@ -248,6 +245,7 @@ jobs:
         working-directory: ios
         run: pod install
       - name: xcodebuild for the simulator (no code signing)
+        id: xcodebuild
         if: steps.app.outputs.cache-hit != 'true'
         run: |
           mkdir -p build
@@ -273,7 +271,13 @@ jobs:
             exit 1
           fi
           grep -E '^\*\* BUILD' build/xcodebuild.log
-          echo "compilation cache: $(du -sm build/cas | cut -f1) MB"
+          cas_mb="$(du -sm build/cas | cut -f1)"
+          echo "compilation cache: $cas_mb MB"
+          if [ "$cas_mb" -le 3072 ]; then
+            echo "cas-fits=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::compilation cache is $cas_mb MB, over 3072 MB: not saved"
+          fi
           mkdir -p build/native-app
           cp -R build/ios/Build/Products/Release-iphonesimulator/Kaitech.app build/native-app/
       - if: steps.app.outputs.cache-hit != 'true' && env.SAVE_CACHES == 'true'
@@ -281,7 +285,7 @@ jobs:
         with:
           path: build/native-app
           key: ios-simulator-app-arm64-${{ steps.fingerprint.outputs.hash }}
-      - if: steps.app.outputs.cache-hit != 'true' && steps.cas.outputs.cache-hit != 'true' && env.SAVE_CACHES == 'true'
+      - if: steps.app.outputs.cache-hit != 'true' && steps.cas.outputs.cache-hit != 'true' && steps.xcodebuild.outputs.cas-fits == 'true' && env.SAVE_CACHES == 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build/cas
