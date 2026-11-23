@@ -1,10 +1,14 @@
 appId: io.kaitech.mobile
-name: Dismiss the keyboard without the iOS back swipe
+name: Dismiss the keyboard once it is up, without the iOS back swipe
 ---
 - runFlow:
     when:
       platform: Android
     commands:
+      - extendedWaitUntil:
+          visible:
+            id: '(com\.google\.android|com\.android)\.inputmethod\.latin:id/.+'
+          timeout: 10000
       - hideKeyboard
 - runFlow:
     when:

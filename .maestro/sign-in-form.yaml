@@ -73,6 +73,21 @@ onFlowStart:
             id: sign-in-database
             focused: true
           timeout: 10000
+      - runFlow:
+          when:
+            true: ${ORIENTATION === 'portrait' || DEVICE_SIZE === 'tablet'}
+          commands:
+            - runFlow:
+                file: shared/screenshot.yaml
+                env:
+                  SCREEN: sign-in-keyboard
+            - tapOn:
+                id: sign-in-continue
+            - extendedWaitUntil:
+                visible:
+                  id: sign-in-server-error
+                  text: "${APP_LANGUAGE === 'id' ? 'Server harus memakai koneksi aman .https..' : 'The server must use a secure connection .https..'}"
+                timeout: 10000
       - pressKey: Enter
       - extendedWaitUntil:
           visible:
@@ -85,7 +100,12 @@ onFlowStart:
 - runFlow:
     when:
       platform: iOS
-    file: shared/dismiss-keyboard.yaml
+    commands:
+      - runFlow:
+          file: shared/screenshot.yaml
+          env:
+            SCREEN: sign-in-keyboard
+      - runFlow: shared/dismiss-keyboard.yaml
 - runFlow:
     when:
       true: ${ORIENTATION === 'portrait' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
