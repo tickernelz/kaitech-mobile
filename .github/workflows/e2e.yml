@@ -188,6 +188,58 @@ jobs:
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
           audio: 'true'
 
+  android-mom:
+    name: android mom
+    needs: [plan, android-apk, android-rows]
+    if: always() && (needs.plan.outputs.mode == 'full' || needs.plan.outputs.mode == 'android') && needs.android-apk.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    concurrency:
+      group: kaitech-e2e-account-${{ matrix.size }}-${{ matrix.locale }}
+      cancel-in-progress: false
+      queue: max
+    env:
+      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
+      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
+      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
+      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
+      E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
+      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
+      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
+      E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
+      E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
+      E2E_MINUTES_NAME: Kickoff Payroll
+      E2E_FOLLOWUP_OWNER: '183'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { size: phone, locale: en-US }
+          - { size: phone, locale: id-ID }
+          - { size: tablet, locale: en-US }
+          - { size: tablet, locale: id-ID }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: e2e-apk-x86_64
+          path: dist
+      - uses: ./.github/actions/android-e2e
+        with:
+          apk-dir: dist
+          artifact: e2e-android-mom-${{ matrix.size }}-${{ matrix.locale }}
+          output-prefix: mom-
+          size: ${{ matrix.size }}
+          locale: ${{ matrix.locale }}
+          orientations: portrait
+          flows: .maestro/signed-in/mom-more.yaml .maestro/signed-in/mom-followups.yaml .maestro/signed-in/mom-final.yaml .maestro/signed-in/mom-minutes.yaml .maestro/signed-in/mom-editor.yaml .maestro/signed-in/mom-workspace.yaml
+          runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
+          audio: 'true'
+
   ios:
     name: ios simulator en-US
     needs: plan
