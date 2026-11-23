@@ -106,6 +106,7 @@ if adb shell pm path "$gboard" 2>/dev/null | grep -q '^package:'; then
   adb shell am force-stop "$gboard"
   current="$(adb shell "cat $gboard_prefs 2>/dev/null" | tr -d '\r' | grep '<' || true)"
   [ -n "$current" ] || current="<?xml version='1.0' encoding='utf-8' standalone='yes' ?>"$'\n'"<map>"$'\n'"</map>"
+  current="$(sed 's#<map */>#<map>\n</map>#' <<< "$current")"
   for key in $verbatim_keys; do
     current="$(grep -v "name=\"$key\"" <<< "$current" | sed "s#</map>#    <boolean name=\"$key\" value=\"false\" />\n</map>#")"
   done
@@ -113,7 +114,12 @@ if adb shell pm path "$gboard" 2>/dev/null | grep -q '^package:'; then
   adb shell chown "$gboard_owner" "$gboard_dir" "$gboard_prefs"
   adb shell chmod 660 "$gboard_prefs"
   adb shell restorecon -R "$gboard_dir"
-  echo "gboard typing: $(adb shell cat "$gboard_prefs" | tr -d '\r' | grep -cE "value=\"false\"") verbatim keys off, $(adb shell ls -Z "$gboard_prefs" | tr -d '\r')" | tee -a "$out/display.txt"
+  keys_off="$(adb shell cat "$gboard_prefs" | tr -d '\r' | grep -oE "name=\"(${verbatim_keys// /|}|enable_auto_capitalization)\" value=\"false\"" | sed 's/enable_auto_capitalization/auto_cap/' | sort -u | wc -l)"
+  echo "gboard typing: $keys_off of 5 verbatim keys off, $(adb shell ls -Z "$gboard_prefs" | tr -d '\r')" | tee -a "$out/display.txt"
+  if [ "$keys_off" != 5 ]; then
+    echo "gboard prefs did not take the verbatim keys" >&2
+    exit 1
+  fi
 fi
 
 adb shell settings put global hide_error_dialogs 1
