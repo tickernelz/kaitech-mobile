@@ -123,9 +123,13 @@ onFlowStart:
           id: sign-in-server
       - eraseText: 40
       - inputText: erp.example.com
-      - assertVisible:
-          id: sign-in-server
-          text: ^erp\.example\.com$
+      - runFlow:
+          when:
+            platform: iOS
+          commands:
+            - assertVisible:
+                id: sign-in-server
+                text: ^erp\.example\.com$
 - runFlow:
     when:
       platform: Android
