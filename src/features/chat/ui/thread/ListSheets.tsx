@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, TextInput, View } from 'react-native';
 import { radius, space, useTheme } from '../../../../theme';
+import { Button } from '../../../../ui/Button';
 import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
 import { bodyPreview } from '../../markdown';
 import type { Result } from '../../messageActions';
+import { useChat } from '../../chat';
+import { starredMessages, unstarAll } from '../../starred';
 import { channelFiles, pinnedMessages, searchMessages } from '../../threadActions';
 import type { Attachment, Message } from '../../types';
 import { useChatFormat } from '../format';
@@ -26,7 +29,7 @@ function useLoad<T>(load: (channelId: number) => Promise<Result<T>>, channelId: 
 
 const loadFiles = (channelId: number) => channelFiles(channelId, null);
 
-function MessageRows({ messages, onOpen, empty }: { messages: Message[]; onOpen: (message: Message) => void; empty: string }) {
+function MessageRows({ messages, onOpen, empty, place }: { messages: Message[]; onOpen: (message: Message) => void; empty: string; place?: (message: Message) => string | undefined }) {
   const { t } = useTranslation('chat');
   const { dayLabel, clock } = useChatFormat();
   if (!messages.length) {
@@ -40,7 +43,7 @@ function MessageRows({ messages, onOpen, empty }: { messages: Message[]; onOpen:
     <SheetItem
       key={message.id}
       label={bodyPreview(message.body) || t('list.files', { count: message.attachments.length })}
-      detail={`${message.author} · ${dayLabel(message.date)} ${clock(message.date)}`}
+      detail={[place?.(message), message.author, `${dayLabel(message.date)} ${clock(message.date)}`].filter(Boolean).join(' · ')}
       onPress={() => onOpen(message)}
       testID={`found-${message.id}`}
     />
@@ -67,6 +70,54 @@ export function PinnedSheet({ channelId, onClose, onOpen }: { channelId: number;
   return (
     <Sheet title={t('threadActions.pinned')} onClose={onClose} testID="pinned-sheet">
       <Loading result={result}>{(messages) => <MessageRows messages={messages} onOpen={onOpen} empty={t('threadActions.noPinned')} />}</Loading>
+    </Sheet>
+  );
+}
+
+export function StarredSheet({ onClose, onOpen }: { onClose: () => void; onOpen: (message: Message) => void }) {
+  const { t } = useTranslation('chat');
+  const [result, setResult] = useState<Result<Message[]> | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    void starredMessages().then((next) => live && setResult(next));
+    return () => {
+      live = false;
+    };
+  }, []);
+  const clear = () =>
+    Alert.alert(t('starredList.clearTitle'), t('starredList.clearBody'), [
+      { text: t('act.cancel'), style: 'cancel' },
+      {
+        text: t('starredList.confirm'),
+        style: 'destructive',
+        onPress: () => {
+          setBusy(true);
+          setFailure(null);
+          void unstarAll().then((next) => {
+            setBusy(false);
+            if (next.ok) setResult({ ok: true, value: [] });
+            else setFailure(failureText(t, next));
+          });
+        },
+      },
+    ]);
+  const conversations = useChat((state) => state.conversations);
+  const names = useMemo(() => new Map(conversations.map((conversation) => [conversation.id, conversation.name])), [conversations]);
+  const any = result?.ok === true && result.value.length > 0;
+  return (
+    <Sheet
+      title={t('starredList.title')}
+      onClose={onClose}
+      testID="starred-sheet"
+      footer={any ? <Button label={t('starredList.clear')} kind="danger" busy={busy} onPress={clear} testID="starred-clear" /> : undefined}>
+      <Loading result={result}>{(messages) => <MessageRows messages={messages} onOpen={onOpen} empty={t('starredList.empty')} place={(message) => names.get(message.channelId)} />}</Loading>
+      {failure ? (
+        <Text variant="callout" tone="danger" style={styles.pad}>
+          {failure}
+        </Text>
+      ) : null}
     </Sheet>
   );
 }
