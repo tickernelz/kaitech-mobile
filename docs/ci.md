@@ -49,9 +49,9 @@ Pull request runs of the same pull request cancel each other; labelling a pull r
 `@expo/fingerprint` hashes everything that decides the native build: native dependencies and autolinking, config plugins, the resolved Expo config (so every value `app.config.ts` and `app.json` produce), `patches/`, and through `fingerprint.config.js` the whole of `modules/kaitech-call/` and `plugins/`. Code under `src/` is not part of it.
 
 - Android: the `android apk x86_64` job restores the x86_64 release APK cached under `native-apk-x86_64-<signing>-<fingerprint>`. On a hit, `@expo/repack-app` (`--js-bundle-only`) puts this commit's Hermes bundle into it and signs it with the same key, skipping prebuild and Gradle. On a miss, the APK is built (Gradle cache, ccache) and saved under that key when the run is on `main`.
-- iOS: the iPad job restores the simulator `Kaitech.app` cached under `ios-simulator-app-<fingerprint>` and repacks only the JS bundle on a hit. On a miss it restores `ios/Pods`, `Podfile.lock` and the CocoaPods and React Native download caches under `ios-pods-<fingerprint>`, runs `pod install` and `xcodebuild`, and saves both when the run is on `main`.
+- iOS: the iPad job restores the simulator `Kaitech.app` cached under `ios-simulator-app-<fingerprint>` and repacks only the JS bundle on a hit. On a miss it runs `pod install` and `xcodebuild` and saves the app when the run is on `main`. Pods are not cached: the entry took 2,102 MB of the quota and only saves `pod install` (130-221 s) on a fingerprint change, next to 19-32 minutes of `xcodebuild`.
 
-Release builds never use these caches: every release artifact is compiled from source.
+Release builds never use these caches: every release artifact is compiled from source. `release.yml` writes no cache at all: a release on a tag cannot read entries another tag wrote, and a release dispatched on `main` (run 45104485957) wrote 2,861 MB of Gradle, ccache and CocoaPods entries for its own jobs that nothing else restores.
 
 ### Emulator
 
@@ -81,7 +81,7 @@ To release: raise `version` in `app.json` through a pull request, then after the
 
 ## Caches
 
-Written only from `refs/heads/main` (push, nightly schedule, dispatch on `main`) and read by every pull request, branch and tag. GitHub lets a run read caches of its own ref and of `main`, never of another branch, and evicts the least recently used entries once the repository passes its 10 GB quota; caches written by branches were never read by anyone else and pushed the `main` set out (ZHA-7494: 12,440 MB in 16 entries, none on `main`). Gradle runs with `cache-read-only` outside `main`. The one exception is `setup-node`'s npm cache, which saves on a `package-lock.json` it has not seen; the `cache cleanup` job removes it when the pull request closes.
+Written only from `refs/heads/main` (push, nightly schedule, dispatch on `main`) and read by every pull request, branch and tag. GitHub lets a run read caches of its own ref and of `main`, never of another branch, and evicts the least recently used entries once the repository passes its 10 GB quota; caches written by branches were never read by anyone else and pushed the `main` set out (ZHA-7494: 12,440 MB in 16 entries, none on `main`). Gradle runs with `cache-read-only` outside `main`. One full E2E set on `main` measured 7,726 MB with the pods entry (runs 45104004339 and 45104149712); without it 5,624 MB, under the 8 GB target with room for a second fingerprint while LRU evicts the first. The one exception is `setup-node`'s npm cache, which saves on a `package-lock.json` it has not seen; the `cache cleanup` job removes it when the pull request closes.
 
 Every job that touches a cache writes a table to its run summary: each cache with `hit`, `partial` (an older entry through a restore prefix), `miss` or `not used`, its key, and whether the ref writes.
 
@@ -89,11 +89,9 @@ Every job that touches a cache writes a table to its run summary: each cache wit
 |---|---|---|
 | `native-apk-<variant>-<signing>-<fingerprint>` | x86_64 E2E APK | native fingerprint |
 | `ios-simulator-app-<fingerprint>` | iPad simulator app | native fingerprint |
-| `ios-pods-<fingerprint>` | `ios/Pods`, `Podfile.lock`, CocoaPods and React Native downloads | native fingerprint |
 | `avd-api35-x86_64-google_apis-pixel_6-v1` | phone AVD with a booted snapshot | profile |
 | Gradle (`setup-gradle`) | dependencies, wrapper, Gradle build cache | managed by the action |
 | `ccache-android-<variant>-…` | NDK C/C++ objects | `package-lock.json`, `app.json`, `app.config.ts` |
-| `ios-downloads-…` | CocoaPods and React Native downloads (release IPA) | same files |
 
 ## Performance gate
 
