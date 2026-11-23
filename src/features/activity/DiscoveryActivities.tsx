@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { update, type Resource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
@@ -28,7 +29,15 @@ export function activityKindKey(kind: string): string {
   return ['card', 'coworker_asks', 'answer', 'chase', 'agenda'].includes(kind) ? `activity.kind.${kind}` : 'activity.kind.other';
 }
 
-export function DiscoveryActivities({ items, header }: { items: Resource<Briefing>; header: ReactElement }) {
+export function DiscoveryActivities({
+  items,
+  header,
+  onScroll,
+}: {
+  items: Resource<Briefing>;
+  header: ReactElement;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+}) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
@@ -80,6 +89,8 @@ export function DiscoveryActivities({ items, header }: { items: Resource<Briefin
       data={shown}
       keyExtractor={(item, index) => `${item.kind}-${item.packet_id ?? item.conversation_id ?? item.engagement_id}-${index}`}
       contentContainerStyle={styles.list}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
       onRefresh={() => void items.refresh()}
       refreshing={items.loading && !!items.data}
       ListHeaderComponent={

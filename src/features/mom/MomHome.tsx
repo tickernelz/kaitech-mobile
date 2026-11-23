@@ -12,6 +12,7 @@ import { useSession } from '../../auth/session';
 import { Panes } from '../../layout/Panes';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
 import { HeaderActions } from '../../screens/HeaderActions';
+import { TopAppBar, largeTitleOwnsActions, useCollapsingTitle } from '../../ui/AppBar';
 import { space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Section } from '../../ui/List';
@@ -44,6 +45,7 @@ export function MomHome() {
   const [limit, setLimit] = useState(pageSize);
   const [selection, setSelection] = useState<{ account: string; meeting: number } | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
+  const bar = useCollapsingTitle();
   const access = useMomAccess();
   const [removing, setRemoving] = useState<{ meeting: number; title: string } | null>(null);
   const selected = selection && selection.account === active?.id ? selection.meeting : null;
@@ -74,81 +76,100 @@ export function MomHome() {
     if (day === localDay(-1)) return tChat('time.yesterday');
     return format.day(day);
   };
+  const menu = <IconButton icon="more" label={t('mom.menu.title')} onPress={() => setMoreOpen(true)} testID="mom-menu" />;
   const list = (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={meetings.loading && !!meetings.data} onRefresh={() => void meetings.refresh()} />}
-      testID="mom-home">
-      <View style={styles.top}>
-        <Text variant="display" accessibilityRole="header" style={styles.fill}>
-          {t('tabs.mom')}
-        </Text>
-        <IconButton icon="more" label={t('mom.menu.title')} onPress={() => setMoreOpen(true)} testID="mom-menu" />
-        <HeaderActions />
-      </View>
-      <StatusRow onOpenMeeting={open} />
-      {ownRecording ? (
-        <RecordingCard recording={ownRecording} onOpen={() => router.push('/mom/record')} />
-      ) : (
-        <Button label={t('mom.record')} onPress={() => router.push('/mom/new')} testID="mom-record" />
-      )}
-      {uploads.map((upload) => (
-        <UploadCard key={upload.key} upload={upload} />
-      ))}
-      {rows.length ? (
-        days.map(([day, group]) => (
-          <Section key={day} title={dayTitle(day)}>
-            {group.map((row) => {
-              const programme = row.programme.id === current?.id ? undefined : row.programme.name;
-              const status = statusLabel(row);
-              const summary = [row.name, `${format.day(row.day)} · ${row.programme.name}`, status].filter(Boolean).join('\n');
-              return (
-                <RowActions
-                  key={row.id}
-                  title={row.name}
-                  subtitle={row.programme.name}
-                  actions={[
-                    { key: 'open', icon: 'forward', label: t('row.open'), onPress: () => open(row.id) },
-                    ...textActions(t, summary),
-                    ...(row.recordings
-                      ? [{ key: 'remove', icon: 'trash' as const, label: t('mom.remove.action'), tone: 'danger' as const, onPress: () => setRemoving({ meeting: row.id, title: row.name }) }]
-                      : []),
-                  ]}
-                  start={['share']}
-                  end={row.recordings ? ['remove', 'more'] : ['more']}
-                  testID={`meeting-${row.id}`}>
-                  {(bind) => (
-                <Line
-                  bind={bind}
-                  icon={row.generatedAt ? 'minutes' : 'wave'}
-                  title={row.name}
-                  detail={programme}
-                  trailing={needsAction(row) ? <MeetingChip row={row} /> : undefined}
-                  end={needsAction(row) ? undefined : <MeetingStatusIcon row={row} />}
-                  label={[row.name, programme, status].filter(Boolean).join(', ')}
-                  selected={expanded ? selected === row.id : undefined}
-                  onPress={() => open(row.id)}
-                  testID={`meeting-${row.id}`}
-                />
-                  )}
-                </RowActions>
-              );
-            })}
-          </Section>
-        ))
-      ) : (
-        <StateView
-          loading={meetings.loading && !meetings.data}
-          error={meetings.data ? undefined : meetings.error}
-          empty={{ title: t('mom.noneTitle'), icon: 'minutes' }}
-          onRetry={() => void meetings.refresh()}
-          testID="mom-meetings"
-        />
-      )}
-      {meetings.data && meetings.data.total > rows.length ? (
-        <SmallButton label={t('mom.more')} onPress={() => setLimit((count) => count + pageSize)} testID="mom-more" />
-      ) : null}
-    </ScrollView>
+    <View style={styles.fill}>
+      <TopAppBar
+        title={t('tabs.mom')}
+        collapsed={bar.collapsed}
+        actions={
+          <>
+            {menu}
+            <HeaderActions />
+          </>
+        }
+      />
+      <ScrollView
+        onScroll={bar.onScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={meetings.loading && !!meetings.data} onRefresh={() => void meetings.refresh()} />}
+        testID="mom-home">
+        <View style={styles.top}>
+          <Text variant="display" accessibilityRole="header" style={styles.fill}>
+            {t('tabs.mom')}
+          </Text>
+          {largeTitleOwnsActions ? (
+            <>
+              {menu}
+              <HeaderActions />
+            </>
+          ) : null}
+        </View>
+        <StatusRow onOpenMeeting={open} />
+        {ownRecording ? (
+          <RecordingCard recording={ownRecording} onOpen={() => router.push('/mom/record')} />
+        ) : (
+          <Button label={t('mom.record')} onPress={() => router.push('/mom/new')} testID="mom-record" />
+        )}
+        {uploads.map((upload) => (
+          <UploadCard key={upload.key} upload={upload} />
+        ))}
+        {rows.length ? (
+          days.map(([day, group]) => (
+            <Section key={day} title={dayTitle(day)}>
+              {group.map((row) => {
+                const programme = row.programme.id === current?.id ? undefined : row.programme.name;
+                const status = statusLabel(row);
+                const summary = [row.name, `${format.day(row.day)} · ${row.programme.name}`, status].filter(Boolean).join('\n');
+                return (
+                  <RowActions
+                    key={row.id}
+                    title={row.name}
+                    subtitle={row.programme.name}
+                    actions={[
+                      { key: 'open', icon: 'forward', label: t('row.open'), onPress: () => open(row.id) },
+                      ...textActions(t, summary),
+                      ...(row.recordings
+                        ? [{ key: 'remove', icon: 'trash' as const, label: t('mom.remove.action'), tone: 'danger' as const, onPress: () => setRemoving({ meeting: row.id, title: row.name }) }]
+                        : []),
+                    ]}
+                    start={['share']}
+                    end={row.recordings ? ['remove', 'more'] : ['more']}
+                    testID={`meeting-${row.id}`}>
+                    {(bind) => (
+                  <Line
+                    bind={bind}
+                    icon={row.generatedAt ? 'minutes' : 'wave'}
+                    title={row.name}
+                    detail={programme}
+                    trailing={needsAction(row) ? <MeetingChip row={row} /> : undefined}
+                    end={needsAction(row) ? undefined : <MeetingStatusIcon row={row} />}
+                    label={[row.name, programme, status].filter(Boolean).join(', ')}
+                    selected={expanded ? selected === row.id : undefined}
+                    onPress={() => open(row.id)}
+                    testID={`meeting-${row.id}`}
+                  />
+                    )}
+                  </RowActions>
+                );
+              })}
+            </Section>
+          ))
+        ) : (
+          <StateView
+            loading={meetings.loading && !meetings.data}
+            error={meetings.data ? undefined : meetings.error}
+            empty={{ title: t('mom.noneTitle'), icon: 'minutes' }}
+            onRetry={() => void meetings.refresh()}
+            testID="mom-meetings"
+          />
+        )}
+        {meetings.data && meetings.data.total > rows.length ? (
+          <SmallButton label={t('mom.more')} onPress={() => setLimit((count) => count + pageSize)} testID="mom-more" />
+        ) : null}
+      </ScrollView>
+    </View>
   );
 
   const detail = (

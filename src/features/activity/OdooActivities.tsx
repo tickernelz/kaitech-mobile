@@ -2,7 +2,8 @@ import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { useMemo, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, SectionList, StyleSheet, View } from 'react-native';
+import { SectionList, StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import type { Resource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';
@@ -22,7 +23,15 @@ import { ScheduleSheet, type ScheduleMode } from './ScheduleSheet';
 
 const filters: Filter[] = ['all', 'overdue', 'today', 'planned'];
 
-export function OdooActivities({ items, header }: { items: Resource<Overview>; header: ReactElement }) {
+export function OdooActivities({
+  items,
+  header,
+  onScroll,
+}: {
+  items: Resource<Overview>;
+  header: ReactElement;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+}) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
@@ -65,6 +74,8 @@ export function OdooActivities({ items, header }: { items: Resource<Overview>; h
         keyExtractor={(activity) => String(activity.id)}
         contentContainerStyle={styles.list}
         stickySectionHeadersEnabled={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         onRefresh={() => void items.refresh()}
         refreshing={items.loading && !!items.data}
         ListHeaderComponent={
