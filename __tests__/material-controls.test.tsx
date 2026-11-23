@@ -145,6 +145,24 @@ describe('Android pressables', () => {
     expect(drawn.plain.props.android_ripple).toEqual({ color: '#1514181A' });
     expect(drawn.own.props.android_ripple).toEqual({ color: '#FF0000' });
   });
+
+  test('with the default ripple the pressed styling is dropped, so a press shows one state layer; a caller with its own ripple keeps it', async () => {
+    const drawn: Record<string, { props: { style: (state: { pressed: boolean; hovered: boolean }) => unknown } }> = {};
+    const tinted = ({ pressed }: { pressed: boolean }) => ({ backgroundColor: pressed ? 'grey' : 'white' });
+    function Probe(props: Parameters<typeof RipplePressable>[0] & { name: string }) {
+      const { name, ...rest } = props;
+      drawn[name] = RipplePressable(rest) as (typeof drawn)[string];
+      return null;
+    }
+    await render(
+      <>
+        <Probe name="plain" style={tinted} onPress={() => undefined} />
+        <Probe name="own" style={tinted} android_ripple={{ color: '#FF0000' }} onPress={() => undefined} />
+      </>,
+    );
+    expect(drawn.plain.props.style({ pressed: true, hovered: false })).toEqual({ backgroundColor: 'white' });
+    expect(drawn.own.props.style({ pressed: true, hovered: false })).toEqual({ backgroundColor: 'grey' });
+  });
 });
 
 describe('Android Material 3 floating action button', () => {
