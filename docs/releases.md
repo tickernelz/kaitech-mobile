@@ -14,13 +14,13 @@ Install steps: [Android](install-android.md), [iOS](install-ios.md). How a relea
 
 ## Proven
 
-All evidence comes from the Android emulator or the iPad simulator; nothing has been tested on a physical device yet. Numbers and recordings from the emulator hold for the emulator.
+All evidence comes from the Android emulator or the iPhone simulator; nothing has been tested on a physical device yet. Numbers and recordings from the emulator hold for the emulator.
 
 | Area | Platform and size | Orientation | Language | Evidence |
 |---|---|---|---|---|
 | Install the APK from the Release on a clean emulator, welcome screen, the Sign in button opens the lab0 sign-in page with no form, the "Use another server" form checks the address and database and then returns to the default; on the phone also a rotation in the middle of the form without losing input | Android 15 phone (`pixel_6`) and 10-inch tablet (`pixel_tablet`) | portrait, landscape | en, id | job `install from release` in the Release run of every tag, recordings `e2e-android-release-*` |
 | The same flow with the x86_64 APK | Android 15 phone and tablet | portrait, landscape | en, id | `E2E` workflow nightly (smoke: phone portrait en on every merge to `main`), recordings `e2e-android-*` |
-| The same flow on iPad (non-blocking) | iPad simulator on the `macos-26` runner | portrait, landscape | en | `E2E` workflow nightly, artifact `e2e-ipad-en-US` |
+| The same flow on iPhone (non-blocking) | iPhone simulator on the `macos-26` runner | portrait, landscape | en | `E2E` workflow nightly, artifact `e2e-ios-en-US` |
 | Sign-in to lab0 from the CI APK through the App Link `lab0.kaitech.io`, verified by Android itself (`pm get-app-links`: verified), from the welcome screen until Chat opens | Android 15 phone (`pixel_6`) | portrait | en | local recording of the CI APK, not published (internal tracker ZHA-7373) |
 | Sign in to the server, then sign out (F0) | Android phone and tablet | not recorded | en, id | local recording with a build that carries the link domain, not published (internal tracker ZHA-7236) |
 | Chat: list, thread, offline send queue, attachments, voice messages, two panes on the tablet (F1) | Android phone and tablet | portrait, landscape | en, id | local recording (ZHA-7238) |
@@ -30,7 +30,7 @@ All evidence comes from the Android emulator or the iPad simulator; nothing has 
 
 ## Not yet verified
 
-- iPhone: the IPA is built in CI, but there is no UI test on an iPhone simulator or a real iPhone yet. A real iPad has not been tested either.
+- iPad: the iPad simulator is not tested since ZHA-7503; only the iPad configuration inside the IPA is checked. A real iPad or iPhone has not been tested.
 - Android split-screen, iPad Split View and Slide Over, foldables, 200% system font scale, and a physical keyboard on tablets. Their configuration is checked (free orientation, multi-window on, `UIRequiresFullScreen` off) in the release APK and IPA, but the behaviour has not been tested.
 - Sign-in on iOS, APNs, VoIP push, CallKit, iOS Universal Links, MoM recording in the background and upload on iOS: need an Apple Developer account.
 - Live Activity: not built yet; updating it from the server needs APNs.
