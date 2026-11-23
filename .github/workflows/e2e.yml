@@ -208,10 +208,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {size: phone, profile: pixel_6, locale: en-US, orientations: portrait}
-          - {size: phone, profile: pixel_6, locale: id-ID, orientations: portrait}
-          - {size: tablet, profile: pixel_tablet, locale: en-US, orientations: landscape}
-          - {size: tablet, profile: pixel_tablet, locale: id-ID, orientations: landscape}
+          - {size: phone, locale: en-US, orientations: portrait}
+          - {size: phone, locale: id-ID, orientations: portrait}
+          - {size: tablet, locale: en-US, orientations: landscape}
+          - {size: tablet, locale: id-ID, orientations: landscape}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -227,7 +227,6 @@ jobs:
           artifact: e2e-android-chat-${{ matrix.size }}-${{ matrix.locale }}
           output-prefix: chat-
           size: ${{ matrix.size }}
-          profile: ${{ matrix.profile }}
           locale: ${{ matrix.locale }}
           orientations: ${{ matrix.orientations }}
           flows: .maestro/signed-in/message-actions.yaml .maestro/signed-in/thread-actions.yaml .maestro/signed-in/composer-extras.yaml .maestro/signed-in/new-conversation.yaml
