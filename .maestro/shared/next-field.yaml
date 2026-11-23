@@ -1,0 +1,12 @@
+appId: io.kaitech.mobile
+name: Move from the server field to the database field on Android, pressing Enter again when the first one moved nothing
+---
+- retry:
+    maxRetries: 1
+    commands:
+      - pressKey: Enter
+      - extendedWaitUntil:
+          visible:
+            id: sign-in-database
+            focused: true
+          timeout: 5000

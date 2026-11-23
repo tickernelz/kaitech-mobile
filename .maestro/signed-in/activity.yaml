@@ -52,6 +52,10 @@ onFlowStart:
       id: activity-schedule-save
 - tapOn:
     id: activity-schedule-save
+- extendedWaitUntil:
+    notVisible:
+      id: activity-schedule
+    timeout: 15000
 - tapOn:
     id: activities-filter-planned
 - scrollUntilVisible:
@@ -105,6 +109,10 @@ onFlowStart:
       id: activity-schedule-save
 - tapOn:
     id: activity-schedule-save
+- extendedWaitUntil:
+    notVisible:
+      id: activity-schedule
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: ${output.todo}
@@ -143,6 +151,10 @@ onFlowStart:
       id: activity-schedule-save
 - tapOn:
     id: activity-schedule-save
+- extendedWaitUntil:
+    notVisible:
+      id: activity-schedule
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: ${output.second}
