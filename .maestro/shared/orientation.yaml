@@ -1,5 +1,5 @@
 appId: io.kaitech.mobile
-name: Rotate an iOS simulator to the cell orientation
+name: Rotate an iOS simulator to a landscape cell
 ---
 - runFlow:
     when:
@@ -7,9 +7,3 @@ name: Rotate an iOS simulator to the cell orientation
       true: ${ORIENTATION === 'landscape'}
     commands:
       - setOrientation: LANDSCAPE_LEFT
-- runFlow:
-    when:
-      platform: iOS
-      true: ${ORIENTATION === 'portrait'}
-    commands:
-      - setOrientation: PORTRAIT
