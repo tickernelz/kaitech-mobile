@@ -78,6 +78,7 @@ runs:
         pactl set-default-sink emulator
         pactl set-default-source emulator.monitor
         echo "PULSE_SERVER=unix:$socket" >> "$GITHUB_ENV"
+        echo "PULSE_LOG=4" >> "$GITHUB_ENV"
         PULSE_SERVER="unix:$socket" pactl info | grep -E '^(Server String|Default Sink|Default Source):'
     - name: Run Maestro flows, one orientation after another
       uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
@@ -92,7 +93,7 @@ runs:
         profile: ${{ steps.device.outputs.profile }}
         disable-animations: true
         force-avd-creation: true
-        emulator-options: -no-window -no-snapshot -wipe-data -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '' }} -no-boot-anim -camera-back none
+        emulator-options: -no-window -no-snapshot -wipe-data -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '-debug audio,audioin' }} -no-boot-anim -camera-back none
         script: for o in ${{ inputs.orientations }}; do runs=0; [ "$o" = portrait ] && runs="$PORTRAIT_COLD_START_RUNS"; COLD_START_RUNS="$runs" bash scripts/e2e-android.sh "${{ inputs.apk-dir }}" "e2e-output/${{ inputs.output-prefix }}${{ inputs.size }}-$o-${{ inputs.locale }}" ${{ inputs.locale }} ${{ inputs.size }} "$o" || status=1; done; exit "${status:-0}"
     - name: Scan E2E output for secrets
       id: scan-e2e
