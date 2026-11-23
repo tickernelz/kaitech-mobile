@@ -14,7 +14,7 @@ inputs:
     description: true to reuse a native build with the same fingerprint and repack only the JS bundle.
     default: 'false'
   save-cache:
-    description: true to write the Gradle, ccache and native APK caches.
+    description: true to write the Gradle, ccache and native APK caches; pass true only on refs/heads/main.
     default: 'false'
   google-services-json:
     description: google-services.json content; empty builds without push.
@@ -117,6 +117,16 @@ runs:
       uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       with:
         cache-read-only: ${{ inputs.save-cache != 'true' }}
+    - name: Measure the restored Gradle dependencies
+      id: gradle
+      if: steps.native.outputs.native == 'built'
+      shell: bash
+      run: |
+        mb="$(du -sm "$HOME/.gradle/caches/modules-2" 2>/dev/null | cut -f1 || true)"
+        mb="${mb:-0}"
+        echo "Gradle dependencies after restore: ${mb} MB"
+        echo "mb=$mb" >> "$GITHUB_OUTPUT"
+        if [ "$mb" -gt 0 ]; then echo "hit=true" >> "$GITHUB_OUTPUT"; else echo "hit=false" >> "$GITHUB_OUTPUT"; fi
     - id: ccache
       if: steps.native.outputs.native == 'built'
       uses: ./.github/actions/setup-ccache
@@ -167,6 +177,26 @@ runs:
       with:
         path: ${{ runner.temp }}/native-apk
         key: native-apk-${{ inputs.variant }}-${{ env.SIGNING }}-${{ steps.fingerprint.outputs.hash }}
+    - name: Cache summary
+      if: always()
+      shell: bash
+      env:
+        WRITES: ${{ inputs.save-cache }}
+        NATIVE_OUTCOME: ${{ steps.native-apk.outcome }}
+        NATIVE_HIT: ${{ steps.native-apk.outputs.cache-hit }}
+        NATIVE_KEY: ${{ steps.native-apk.outputs.cache-primary-key }}
+        CCACHE_OUTCOME: ${{ steps.ccache.outcome }}
+        CCACHE_HIT: ${{ steps.ccache.outputs.cache-hit }}
+        CCACHE_KEY: ${{ steps.ccache.outputs.key }}
+        CCACHE_MATCHED: ${{ steps.ccache.outputs.matched-key }}
+        GRADLE_OUTCOME: ${{ steps.gradle.outcome }}
+        GRADLE_HIT: ${{ steps.gradle.outputs.hit }}
+        GRADLE_MB: ${{ steps.gradle.outputs.mb }}
+      run: |
+        bash scripts/cache-summary.sh "$WRITES" \
+          native-apk "$NATIVE_OUTCOME" "$NATIVE_HIT" "$NATIVE_KEY" "" \
+          ccache "$CCACHE_OUTCOME" "$CCACHE_HIT" "$CCACHE_KEY" "$CCACHE_MATCHED" \
+          Gradle "$GRADLE_OUTCOME" "$GRADLE_HIT" "~/.gradle/caches/modules-2: ${GRADLE_MB:-0} MB after restore" ""
     - name: Verify signing certificate
       shell: bash
       run: |

@@ -35,7 +35,7 @@ inputs:
     description: true boots from a cached AVD snapshot; false boots a fresh, wiped emulator without snapshots.
     default: 'true'
   save-snapshot:
-    description: true creates and writes the AVD snapshot cache when it is missing; false boots without a snapshot on a cache miss.
+    description: true creates and writes the AVD snapshot cache when it is missing; false boots without a snapshot on a cache miss. Pass true only on refs/heads/main.
     default: 'false'
   retention-days:
     default: '30'
@@ -88,6 +88,14 @@ runs:
         else
           echo "snapshot=false" >> "$GITHUB_OUTPUT"
         fi
+    - name: Cache summary
+      shell: bash
+      env:
+        WRITES: ${{ inputs.save-snapshot }}
+        AVD_OUTCOME: ${{ steps.avd.outcome }}
+        AVD_HIT: ${{ steps.avd.outputs.cache-hit }}
+        AVD_KEY: ${{ steps.avd.outputs.cache-primary-key }}
+      run: bash scripts/cache-summary.sh "$WRITES" "AVD snapshot" "$AVD_OUTCOME" "$AVD_HIT" "$AVD_KEY" ""
     - name: Create a settled AVD snapshot
       if: steps.boot.outputs.snapshot == 'true' && steps.avd.outputs.cache-hit != 'true'
       uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
