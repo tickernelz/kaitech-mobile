@@ -359,12 +359,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        size: [phone, tablet]
-        locale: [en-US, id-ID]
         include:
-          - size: phone
-            locale: en-US
-            variant: hide-direct
+          - { size: phone, locale: en-US, variant: hide-direct }
+          - { size: phone, locale: id-ID }
+          - { size: tablet, locale: en-US }
+          - { size: tablet, locale: id-ID }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
