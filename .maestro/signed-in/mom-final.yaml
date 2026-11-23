@@ -1,0 +1,195 @@
+appId: io.kaitech.mobile
+name: Final MoM options - content, narrative, header, recipients, email, before the meeting and PDF, read only on the seeded meeting
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/pick-test-programme.yaml
+- runFlow: ../shared/open-seeded-meeting.yaml
+- extendedWaitUntil:
+    visible:
+      id: meeting-tab-final
+    timeout: 30000
+- tapOn:
+    id: meeting-tab-final
+- scrollUntilVisible:
+    element:
+      id: final-options
+- tapOn:
+    id: final-options
+- extendedWaitUntil:
+    visible:
+      id: final-options-sheet
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g1-final-options
+- back
+- tapOn:
+    id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-content
+- tapOn:
+    id: mom-more-content
+- extendedWaitUntil:
+    visible:
+      id: final-content
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g2-content
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
+- tapOn:
+    id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-narrative
+- tapOn:
+    id: mom-more-narrative
+- extendedWaitUntil:
+    visible:
+      id: final-narrative
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g3-narrative
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
+- tapOn:
+    id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-header
+- tapOn:
+    id: mom-more-header
+- extendedWaitUntil:
+    visible:
+      id: final-header
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g4-header
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
+- tapOn:
+    id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-recipients
+- tapOn:
+    id: mom-more-recipients
+- extendedWaitUntil:
+    visible:
+      id: final-recipients
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g5-recipients
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
+- tapOn:
+    id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-email
+- tapOn:
+    id: mom-more-email
+- extendedWaitUntil:
+    visible:
+      id: final-email
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g6-email
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
+- tapOn:
+    id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-context
+- tapOn:
+    id: mom-more-context
+- extendedWaitUntil:
+    visible:
+      id: final-context
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g7-context
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      notVisible:
+        id: final-options
+    commands:
+      - tapOn:
+          id: header-back
+- tapOn:
+    id: final-options
+- scrollUntilVisible:
+    element:
+      id: mom-more-pdf
+- tapOn:
+    id: mom-more-pdf
+- extendedWaitUntil:
+    notVisible:
+      id: final-options-sheet
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: g8-pdf

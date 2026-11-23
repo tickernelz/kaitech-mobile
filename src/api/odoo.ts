@@ -21,6 +21,10 @@ const renewBeforeMs = 60_000;
 const sessions = new Map<string, Promise<Session>>();
 const serverLanguages = { en: 'en_US', id: 'id_ID' } as const;
 
+export function serverLanguage(): string {
+  return serverLanguages[i18n.language === 'id' ? 'id' : 'en'];
+}
+
 function ended(account: Account): never {
   markExpired(account.id);
   throw new AppError('sessionEnded');
@@ -184,7 +188,7 @@ export async function rpc<T>(
   args: unknown[] = [],
   kwargs: Record<string, unknown> = {},
 ): Promise<T> {
-  const lang = serverLanguages[i18n.language === 'id' ? 'id' : 'en'];
+  const lang = serverLanguage();
   for (let attempt = 0; ; attempt += 1) {
     const session = await sessionFor(account, attempt > 0);
     const { status, body } = await call(`${account.origin}/web/dataset/call_kw/${model}/${method}`, {

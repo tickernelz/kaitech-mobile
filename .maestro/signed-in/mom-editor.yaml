@@ -1,0 +1,84 @@
+appId: io.kaitech.mobile
+name: Transcript editor - filters, line actions, speakers and doubtful words on the seeded meeting, read only
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/pick-test-programme.yaml
+- runFlow: ../shared/open-seeded-meeting.yaml
+- extendedWaitUntil:
+    visible:
+      id: meeting-tab-transcript
+    timeout: 30000
+- tapOn:
+    id: meeting-tab-transcript
+- extendedWaitUntil:
+    visible:
+      id: transcript-edit
+    timeout: 30000
+- tapOn:
+    id: transcript-edit
+- extendedWaitUntil:
+    visible:
+      id: editor-segment-[0-9]+
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: e1-editor
+- tapOn:
+    id: editor-segment-[0-9]+
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: segment-sheet
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: e2-line
+- back
+- tapOn:
+    id: editor-filter-changed
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: e3-changed
+- tapOn:
+    id: editor-filter-all
+- tapOn:
+    id: editor-more
+- tapOn:
+    id: mom-more-speakers
+- extendedWaitUntil:
+    visible:
+      id: editor-speakers
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: e4-speakers
+- tapOn:
+    id: header-back
+- tapOn:
+    id: editor-more
+- tapOn:
+    id: mom-more-doubts
+- extendedWaitUntil:
+    visible:
+      id: editor-doubts
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: e5-doubts
+- tapOn:
+    id: header-back

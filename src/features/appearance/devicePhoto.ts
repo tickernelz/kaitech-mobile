@@ -65,7 +65,7 @@ export async function pickDevicePhoto(accountId: string, scope: Scope): Promise<
   const directory = new Directory(Paths.document, folder);
   if (!directory.exists) directory.create({ intermediates: true });
   const name = `${accountId}-${String(scope)}-${Date.now()}.jpg`;
-  shrunk.move(fileOf(name));
+  await shrunk.move(fileOf(name));
   const current = names(accountId);
   const previous = current[String(scope)];
   Storage.setItemSync(photosKey(accountId), JSON.stringify({ ...current, [String(scope)]: name }));

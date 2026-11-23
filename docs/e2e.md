@@ -37,16 +37,16 @@ The superapp must be responsive on phones and tablets, Android and iOS, portrait
 |---|---|---|---|---|---|---|
 | Android 15 (API 35) | `phone` | emulator profile `pixel_6` | 411 dp (compact) / 914 dp | portrait, landscape | `en-US`, `id-ID` | must be green |
 | Android 15 (API 35) | `tablet` | emulator profile `pixel_tablet` (10 inch) | 800 dp (medium) / 1280 dp (expanded) | portrait, landscape | `en-US`, `id-ID` | must be green |
-| iPadOS (latest simulator runtime on the `macos-26` runner) | `tablet` | iPad Pro 13-inch simulator (or another iPad when it is missing) | see `simulator.txt` | portrait, landscape | `en-US` | job `ipad simulator en-US` in the full `E2E` run (nightly, manual), not a merge gate; the Maestro XCTest driver gets a 10-minute start timeout (`MAESTRO_DRIVER_STARTUP_TIMEOUT=600000`) and the cell is retried once only when it fails with `IOSDriverTimeoutException` |
+| iOS (latest simulator runtime on the `macos-26` runner) | `phone` | newest available iPhone simulator (iPhone 17 Pro, then iPhone 17, 16 Pro, 16) | see `simulator.txt` | portrait, landscape | `en-US` | job `ios simulator en-US` in the full `E2E` run (nightly, manual), not a merge gate; the Maestro XCTest driver gets a 10-minute start timeout (`MAESTRO_DRIVER_STARTUP_TIMEOUT=600000`) and the cell is retried once only when it fails with `IOSDriverTimeoutException` |
 
-Android orientation is set through `user_rotation`, taking the panel's natural orientation into account (tablets are naturally landscape); the iPad uses Maestro's `setOrientation` in the `onFlowStart` hook (`.maestro/shared/orientation.yaml`), because the Maestro XCTest runner returns the simulator to portrait on every new session. Every new flow must include that hook:
+Android orientation is set through `user_rotation`, taking the panel's natural orientation into account (tablets are naturally landscape); the iPhone simulator uses Maestro's `setOrientation` in the `onFlowStart` hook (`.maestro/shared/orientation.yaml`), because the Maestro XCTest runner returns the simulator to portrait on every new session. Every new flow must include that hook:
 
 ```yaml
 onFlowStart:
   - runFlow: shared/orientation.yaml
 ```
 
-On Android the hook does nothing. The panel size, density, and rotation of each cell are recorded in `display.txt`. The iPad simulator needs no signature or Apple account; a real iPad has not been tested.
+On Android the hook does nothing. The panel size, density, and rotation of each cell are recorded in `display.txt`. The iPhone simulator needs no signature or Apple account. The iPad simulator is not tested since ZHA-7503 (its job took 32 to 71 minutes and held every run behind it); a real iPad or iPhone has not been tested.
 
 Screenshots are named `<screen>-<size>-<orientation>-<language>.png`, for example `launch-tablet-landscape-id.png`, through a shared subflow:
 
@@ -66,5 +66,9 @@ Every cell screenshot is copied to `screenshots/`. `scripts/check-screenshots.mj
 The sign-in to sign-out flows live in `.maestro/signed-in/` and are not part of `maestro test .maestro` in CI, because they need a test account and a build with `KAITECH_LINK_HOST` and `KAITECH_DEFAULT_DB`; these flows sign in to the default server. Run them with `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATION=portrait -e LOGIN=<account> -e PASSWORD=<password> .maestro/signed-in`; never write those values to the repo, logs, or public artifacts.
 
 The `signed-in/discovery.yaml` flow signs in when needed, then opens the Programme home, findings and their evidence, asks the Coworker (on an Android phone the screen is rotated in the middle of typing to prove the draft survives), decision cards when one is waiting, combined search, and Activities. Extra variables: `-e QUESTION=<question> -e SEARCH=<word>`. Run it only with a test account that is a member of test Programmes only; the recording shows the Programme contents.
+
+The `signed-in/discovery-sections.yaml` flow signs in only when the app is signed out, opens All sections from the Programme home, the Programme detail and its More sheet, Knowledge, one section from every web menu group (list, first record, More sheet), then creates a new Glossary term and taps Accept. Extra variables: `-e TERM=<unique term>` and `-e PROGRAMME=<test Programme name>` (picked in the Programme picker first); the flow creates data in the open Programme.
+
+The `signed-in/discovery-all-sections-1.yaml` to `-3.yaml` flows open every web Discovery menu the test account can see (64 menus, split in three so one emulator crash does not lose the whole run), wait for the list, and open the first record; no step changes data. `signed-in/discovery-actions.yaml` taps Pause, Resume and Snooze Proactive on the Programme, checks that accepting a RAID without evidence is refused by the server with its reason, rejects one RAID, and posts a note on a Department; variables `-e NOTE=<text> -e RAID_ACCEPT=<RAID name> -e RAID_REJECT=<RAID name>`. `signed-in/discovery-decisions.yaml` accepts and rejects a Department and rejects a Glossary term; variables `-e DEPT_ACCEPT= -e DEPT_REJECT= -e TERM_REJECT=` hold names of test records still in Draft. Every record these flows use must be test data you created in a test Programme.
 
 The Chat flows (`signed-in/chat.yaml`, `signed-in/message-actions.yaml`) are described in [Architecture: Chat](architecture.md#chat-srcfeatureschat), the row action flows in [Architecture: Row actions](architecture.md#row-actions-srcuirowactionstsx), and the call check in [Calls](calls.md#trying-a-call-from-this-machine).

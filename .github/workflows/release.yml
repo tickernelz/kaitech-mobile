@@ -10,7 +10,6 @@ permissions:
 
 env:
   SOURCE_SHA: ${{ github.sha }}
-  SAVE_CACHES: ${{ github.ref == 'refs/heads/main' }}
   KAITECH_LINK_HOST: ${{ vars.KAITECH_LINK_HOST }}
   KAITECH_DEFAULT_DB: ${{ vars.KAITECH_DEFAULT_DB }}
 
@@ -64,7 +63,6 @@ jobs:
           abis: ${{ matrix.variant == 'universal' && 'armeabi-v7a,arm64-v8a,x86,x86_64' || matrix.variant }}
           variant: ${{ matrix.variant }}
           artifact: kaitech-android-apk${{ matrix.variant != 'universal' && format('-{0}', matrix.variant) || '' }}
-          save-cache: ${{ env.SAVE_CACHES }}
           google-services-json: ${{ secrets.GOOGLE_SERVICES_JSON }}
           keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -90,32 +88,10 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - id: pods
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/Library/Caches/CocoaPods
-            ~/Library/Caches/ReactNative
-          key: ios-downloads-${{ hashFiles('package-lock.json', 'app.json', 'app.config.ts') }}
-          restore-keys: ios-downloads-
       - run: npm ci
       - name: Build number
         run: echo "APP_BUILD_NUMBER=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
       - run: npx expo prebuild --platform ios
-      - if: steps.pods.outputs.cache-hit != 'true' && env.SAVE_CACHES == 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/Library/Caches/CocoaPods
-            ~/Library/Caches/ReactNative
-          key: ${{ steps.pods.outputs.cache-primary-key }}
-      - name: Cache summary
-        env:
-          PODS_OUTCOME: ${{ steps.pods.outcome }}
-          PODS_HIT: ${{ steps.pods.outputs.cache-hit }}
-          PODS_KEY: ${{ steps.pods.outputs.cache-primary-key }}
-          PODS_MATCHED: ${{ steps.pods.outputs.cache-matched-key }}
-        run: bash scripts/cache-summary.sh "$SAVE_CACHES" ios-downloads "$PODS_OUTCOME" "$PODS_HIT" "$PODS_KEY" "$PODS_MATCHED"
       - name: xcodebuild (no code signing)
         run: |
           mkdir -p build
@@ -338,7 +314,6 @@ jobs:
           locale: ${{ matrix.locale }}
           orientations: ${{ matrix.orientation }}
           runner: ${{ vars.E2E_RUNNER || 'auto' }}
-          snapshot: 'false'
           retention-days: '90'
 
   rows-from-release:
@@ -349,7 +324,7 @@ jobs:
     permissions:
       contents: read
     concurrency:
-      group: kaitech-e2e-account
+      group: kaitech-e2e-account-${{ matrix.size }}-${{ matrix.locale }}
       cancel-in-progress: false
       queue: max
     env:
@@ -398,7 +373,6 @@ jobs:
           flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
           audio: 'true'
-          snapshot: 'false'
           retention-days: '90'
 
   publish:
