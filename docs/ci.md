@@ -71,7 +71,7 @@ maestro-runner telemetry and update checks are off in every job (`MAESTRO_RUNNER
 
 ### Output
 
-Every artifact is scanned by gitleaks before upload; nothing is uploaded when the scan fails. Smoke, android and full Android jobs upload `e2e-android-<mode>-<size>-<locale>` (one folder per orientation: video, `screenshots/`, `display.txt`, JUnit, logcat, `cold-start.txt`). Rows and MoM jobs upload `e2e-android-rows-*` and `e2e-android-mom-*` without recordings, logs, or account values. The iOS job uploads `e2e-ios-en-US`.
+Every artifact is scanned by gitleaks before upload; nothing is uploaded when the scan fails. Smoke, android and full Android jobs upload `e2e-android-<mode>-<size>-<locale>` (one folder per orientation: video, `screenshots/`, `display.txt`, JUnit, logcat, `cold-start.txt`). Rows and MoM jobs upload `e2e-android-rows-*` and `e2e-android-mom-*` without recordings, app logs, or account values; their `audio.txt` keeps only the audio, media-recorder and recording-error lines of logcat, streamed for the whole run. The iOS job uploads `e2e-ios-en-US`.
 
 ## Release
 
