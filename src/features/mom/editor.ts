@@ -64,6 +64,12 @@ export function visibleSegments(segments: EditorSegment[], filter: SegmentFilter
   );
 }
 
+export function segmentCounts(segments: EditorSegment[]): Record<SegmentFilter, number> {
+  const counts: Record<SegmentFilter, number> = { all: 0, flagged: 0, doubts: 0, different: 0, changed: 0 };
+  for (const segment of segments) for (const one of segmentFilters) if (matchesFilter(segment, one)) counts[one] += 1;
+  return counts;
+}
+
 export function editor(account: Account, recording: number): Promise<EditorView> {
   return rpc(account, RECORDING, 'editor', [[recording]]);
 }

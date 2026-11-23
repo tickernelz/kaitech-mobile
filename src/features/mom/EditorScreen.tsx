@@ -1,6 +1,6 @@
 import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
@@ -23,6 +23,7 @@ import {
   openTranscriptFile,
   relabel,
   restore,
+  segmentCounts,
   segmentFilters,
   setFlag,
   takeElevenLabs,
@@ -90,6 +91,11 @@ export function EditorScreen({ recording }: { recording: number }) {
     return () => clearTimeout(timer);
   }, [typed]);
   const data = view.data;
+  const segments = data?.segments;
+  const shown = useMemo(() => (segments ? visibleSegments(segments, filter, speaker, search) : []), [segments, filter, speaker, search]);
+  const counts = useMemo(() => segmentCounts(segments ?? []), [segments]);
+  const page = useMemo(() => shown.slice(0, limit), [shown, limit]);
+  const renderItem = useCallback(({ item }: { item: EditorSegment }) => <SegmentRow segment={item} onChoose={setChosen} />, []);
   if (!data) {
     return (
       <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="mom-editor">
@@ -99,8 +105,6 @@ export function EditorScreen({ recording }: { recording: number }) {
     );
   }
   const editable = data.canChange && !data.settled;
-  const shown = visibleSegments(data.segments, filter, speaker, search);
-  const counts = Object.fromEntries(segmentFilters.map((one) => [one, visibleSegments(data.segments, one, '', '').length]));
   const open = (path: 'speakers' | 'doubts') => router.push({ pathname: `/mom/transcript/${path}`, params: { recording: String(recording) } });
   const download = (kind: 'txt' | 'docx', version: 'corrected' | 'elevenlabs') => () =>
     void action.run(`download-${kind}-${version}`, async (account) => {
@@ -137,7 +141,7 @@ export function EditorScreen({ recording }: { recording: number }) {
         actions={<IconButton icon="more" label={t('mom.menu.title')} onPress={() => setMoreOpen(true)} testID="editor-more" />}
       />
       <FlatList
-        data={shown.slice(0, limit)}
+        data={page}
         keyExtractor={(segment) => String(segment.id)}
         contentContainerStyle={styles.content}
         initialNumToRender={20}
@@ -178,7 +182,7 @@ export function EditorScreen({ recording }: { recording: number }) {
         }
         ListEmptyComponent={<Text tone="inkSoft">{t('mom.editor.none')}</Text>}
         ListFooterComponent={shown.length > limit ? <SmallButton label={t('mom.more')} onPress={() => setLimit((count) => count + pageSize)} testID="editor-page" /> : undefined}
-        renderItem={({ item }) => <SegmentRow segment={item} onPress={() => setChosen(item)} />}
+        renderItem={renderItem}
         testID="editor-list"
       />
       {active ? <PlayerBar playback={playback} skip /> : null}
@@ -206,7 +210,7 @@ export function EditorScreen({ recording }: { recording: number }) {
   );
 }
 
-function SegmentRow({ segment, onPress }: { segment: EditorSegment; onPress: () => void }) {
+const SegmentRow = memo(function SegmentRow({ segment, onChoose }: { segment: EditorSegment; onChoose: (segment: EditorSegment) => void }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const marks = [
@@ -220,7 +224,7 @@ function SegmentRow({ segment, onPress }: { segment: EditorSegment; onPress: () 
     <Pressable
       accessibilityRole="button"
       accessibilityHint={t('mom.editor.rowHint')}
-      onPress={onPress}
+      onPress={() => onChoose(segment)}
       style={({ pressed }) => [styles.segment, pressed && { backgroundColor: colors.surface2 }]}
       testID={`editor-segment-${segment.id}`}>
       <Text variant="footnote" tone="inkSoft" style={styles.mono}>
@@ -239,7 +243,7 @@ function SegmentRow({ segment, onPress }: { segment: EditorSegment; onPress: () 
       </View>
     </Pressable>
   );
-}
+});
 
 type Page = 'menu' | 'text' | 'speaker';
 
