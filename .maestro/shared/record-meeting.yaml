@@ -22,26 +22,4 @@ name: Start recording a new meeting from the MoM tab, answering the first-use pe
       id: setup-consent
 - tapOn:
     id: setup-consent
-- scrollUntilVisible:
-    element:
-      id: setup-start
-- tapOn:
-    id: setup-start
-- runFlow:
-    when:
-      visible:
-        text: (While using the app|Saat aplikasi digunakan)
-    commands:
-      - tapOn:
-          text: (While using the app|Saat aplikasi digunakan)
-- runFlow:
-    when:
-      visible:
-        text: (Allow|Izinkan)
-    commands:
-      - tapOn:
-          text: (Allow|Izinkan)
-- extendedWaitUntil:
-    visible:
-      id: recorder-time
-    timeout: 30000
+- runFlow: start-recording.yaml

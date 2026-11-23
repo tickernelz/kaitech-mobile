@@ -133,6 +133,7 @@ if [ -n "${E2E_LOGIN:-}" ]; then
     -e CHANNEL_ID="$E2E_CHANNEL_ID" -e PEER="$E2E_PEER"
     -e PROGRAMME="$E2E_PROGRAMME" -e SEARCH="$E2E_SEARCH"
     -e HIDE_DIRECT="${E2E_HIDE_DIRECT:-false}" -e RUN="E2E$(date +%s)${RANDOM}"
+    -e MINUTES_NAME="${E2E_MINUTES_NAME:-}" -e FOLLOWUP_OWNER="${E2E_FOLLOWUP_OWNER:-}"
   )
 fi
 
@@ -190,9 +191,11 @@ fi
 node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
 
 if [ -n "${E2E_LOGIN:-}" ]; then
+  app_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
+  adb logcat -d -b main,crash --uid="$app_uid" 'ReactNativeJS:E' 'AudioRecord:E' 'MediaRecorder:E' 'AudioFlinger:E' '*:S' | grep -E 'recording could not start|AudioRecord|MediaRecorder|AudioFlinger|prepare' > "$out/recorder-errors.txt" || true
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name recorder-errors.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2

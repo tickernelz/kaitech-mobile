@@ -1,0 +1,27 @@
+appId: io.kaitech.mobile
+name: Go back until the MoM home with its menu shows
+---
+- repeat:
+    while:
+      notVisible:
+        id: mom-menu
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: header-back
+          commands:
+            - tapOn:
+                id: header-back
+      - runFlow:
+          when:
+            notVisible:
+              id: header-back
+          commands:
+            - tapOn:
+                id: tab-button-mom
+            - swipe:
+                start: 22%, 30%
+                end: 22%, 80%
+                duration: 400

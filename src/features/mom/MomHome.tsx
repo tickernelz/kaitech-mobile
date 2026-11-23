@@ -1,6 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconButton } from '../../ui/IconButton';
+import { seesClientOrg, useMomAccess } from './access';
+import { MoreSheet } from './MoreSheet';
+import { StatusRow } from './StatusRow';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
@@ -39,6 +43,8 @@ export function MomHome() {
   const expanded = windowClass === 'expanded';
   const [limit, setLimit] = useState(pageSize);
   const [selection, setSelection] = useState<{ account: string; meeting: number } | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const access = useMomAccess();
   const [removing, setRemoving] = useState<{ meeting: number; title: string } | null>(null);
   const selected = selection && selection.account === active?.id ? selection.meeting : null;
   const meetings = useResource(`mom.board.${limit}`, (account) => board(account, limit));
@@ -77,8 +83,10 @@ export function MomHome() {
         <Text variant="display" accessibilityRole="header" style={styles.fill}>
           {t('tabs.mom')}
         </Text>
+        <IconButton icon="more" label={t('mom.menu.title')} onPress={() => setMoreOpen(true)} testID="mom-menu" />
         <HeaderActions />
       </View>
+      <StatusRow onOpenMeeting={open} />
       {ownRecording ? (
         <RecordingCard recording={ownRecording} onOpen={() => router.push('/mom/record')} />
       ) : (
@@ -161,6 +169,47 @@ export function MomHome() {
   return (
     <SafeAreaView edges={expanded ? ['top', 'right', 'bottom'] : ['top', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-mom">
       <Panes list={list} detail={detail} />
+      {moreOpen ? (
+        <MoreSheet
+          title={t('mom.menu.title')}
+          groups={[
+            {
+              key: 'work',
+              actions: [
+                { key: 'followups', icon: 'steps', label: t('mom.followups.title'), detail: t('mom.followups.menuDetail'), onPress: () => router.push('/mom/followups') },
+                ...(seesClientOrg(access)
+                  ? [{ key: 'clientOrg', icon: 'people' as const, label: t('mom.clientOrg.title'), detail: t('mom.clientOrg.menuDetail'), onPress: () => router.push('/mom/client-org') }]
+                  : []),
+              ],
+            },
+            {
+              key: 'lists',
+              title: t('mom.menu.lists'),
+              actions: [
+                { key: 'recordings', icon: 'wave', label: t('mom.records.recordings'), onPress: () => router.push({ pathname: '/mom/list/[kind]', params: { kind: 'recordings' } }) },
+                { key: 'minutes', icon: 'minutes', label: t('mom.records.minutes'), onPress: () => router.push({ pathname: '/mom/list/[kind]', params: { kind: 'minutes' } }) },
+                { key: 'removals', icon: 'trash', label: t('mom.records.removals'), onPress: () => router.push({ pathname: '/mom/list/[kind]', params: { kind: 'removals' } }) },
+              ],
+            },
+            {
+              key: 'admin',
+              title: t('mom.admin.group'),
+              actions: [
+                ...(access?.manager || access?.system
+                  ? [{ key: 'keys', icon: 'lock' as const, label: t('mom.admin.keys.title'), onPress: () => router.push({ pathname: '/mom/admin/[part]', params: { part: 'keys' } }) }]
+                  : []),
+                ...(access?.system
+                  ? [
+                      { key: 'import', icon: 'cloudUpload' as const, label: t('mom.admin.import.title'), onPress: () => router.push({ pathname: '/mom/admin/[part]', params: { part: 'import' } }) },
+                      { key: 'settings', icon: 'steps' as const, label: t('mom.admin.settings.title'), onPress: () => router.push({ pathname: '/mom/admin/[part]', params: { part: 'settings' } }) },
+                    ]
+                  : []),
+              ],
+            },
+          ]}
+          onClose={() => setMoreOpen(false)}
+        />
+      ) : null}
       {removing && active ? (
         <RemoveRecording
           account={active}
