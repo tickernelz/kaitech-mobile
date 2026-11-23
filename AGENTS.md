@@ -31,11 +31,11 @@ Run lint and typecheck before declaring any task done.
 
 ## Building
 
-APK and IPA are built only in GitHub Actions (`.github/workflows/e2e.yml` for the E2E APK and iPad simulator app, `.github/workflows/release.yml` for release artifacts). Do not use EAS Build, EAS Submit, or EAS Update. There are no store accounts yet: the APK is signed with a non-store keystore from GitHub Secrets, the IPA is unsigned.
+APK and IPA are built only in GitHub Actions (`.github/workflows/e2e.yml` for the E2E APK and iOS simulator app, `.github/workflows/release.yml` for release artifacts). Do not use EAS Build, EAS Submit, or EAS Update. There are no store accounts yet: the APK is signed with a non-store keystore from GitHub Secrets, the IPA is unsigned.
 
 Never commit secrets, server addresses, client data, or credential files. Sign-in defaults to the link host server and the `KAITECH_DEFAULT_DB` database, both read from repo variables at build time; users who need another server enter its address and database.
 
-E2E flows live in `.maestro/` and run on an Android emulator and an iPad simulator in GitHub Actions (`docs/ci.md`).
+E2E flows live in `.maestro/` and run on an Android emulator and an iPhone simulator in GitHub Actions (`docs/ci.md`).
 
 ## CI/CD & Testing Rules
 
@@ -47,7 +47,7 @@ These rules bind every agent and contributor on every change. `docs/ci.md` descr
 - **Workflow hygiene.** Keep exactly three workflow files: `ci.yml`, `e2e.yml`, `release.yml`; shared steps go into composite actions under `.github/actions/`. Use GitHub-hosted standard runners only (`ubuntu-latest`, and a pinned macOS version, now `macos-26`; never `macos-latest`). Move the macOS pin only when the Expo SDK needs a newer Xcode, with the failing build as evidence. Every workflow has `concurrency` that cancels superseded pull request runs, every job has `timeout-minutes`, docs-only changes skip CI (`paths-ignore` on push; on pull requests the required jobs report skipped so branch protection still passes), and third-party actions are pinned to a commit SHA.
 - **Job names.** A job with `if:` or `needs:` never uses `matrix.*` in `name:`: GitHub shows a skipped job's name template unevaluated (`android rows ${{ matrix.size }}`). Give it a constant name and let GitHub append the matrix values (`android rows (phone, en-US, hide-direct)`); GitHub omits a key that `include` merges into an existing combination, so list such cells in `include`. Keep matrix values to what identifies the cell; derive profiles, ABIs and artifact names from them.
 - **Caches.** Caches are written only from `refs/heads/main` (push, schedule, dispatch on `main`); pull requests, other branches and tags only read them, so a new save step is guarded by `env.SAVE_CACHES` and every job reports hit or miss in its run summary (`scripts/cache-summary.sh`).
-- **E2E triggers.** E2E runs on merges to `main` (smoke), on pull requests labelled `run-e2e` (smoke), nightly (full), and on manual dispatch. Add the `run-e2e` label when a change touches a critical journey or native code; heavy tests, E2E, videos and screenshots run in GitHub Actions, not on a local machine.
+- **E2E triggers.** E2E runs on merges to `main` (smoke), on pull requests labelled `run-e2e` (smoke), nightly (full), and on manual dispatch. A feature branch proves itself with a dispatch in `android` mode (Android matrix and signed-in rows, no iOS); the iOS proof comes from `full` on `main` (nightly or dispatched). Add the `run-e2e` label when a change touches a critical journey or native code; heavy tests, E2E, videos and screenshots run in GitHub Actions, not on a local machine.
 - **Pre-PR verification.** Before opening or updating a pull request run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run i18n:check` locally; for changed workflows also `actionlint`, for changed flows `maestro check-syntax`.
 - **E2E roadmap.** Use `.maestro/` flows with `maestro-runner` (Maestro CLI where `docs/ci.md` names it). When a scenario needs more than Maestro can drive, such as multi-device WebRTC calls or full control over OS permission dialogs, write it with Appium and WebdriverIO in TypeScript instead of stretching Maestro.
 
