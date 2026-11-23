@@ -143,6 +143,13 @@ if [ -z "${E2E_LOGIN:-}" ]; then
   sleep 1
 fi
 
+audio_log=""
+if [ -n "${E2E_LOGIN:-}" ]; then
+  audio_log="$(mktemp)"
+  adb logcat -v threadtime -b main,system,crash > "$audio_log" 2> /dev/null &
+  audio_logger=$!
+fi
+
 if [ "$runner" = maestro ]; then
   adb shell am force-stop dev.devicelab.driver.android.test
   adb shell am force-stop dev.devicelab.driver.android
@@ -167,6 +174,16 @@ fi
 rm -f "$console"
 
 sleep 2
+if [ -n "$audio_log" ]; then
+  kill "$audio_logger" 2> /dev/null || true
+  wait "$audio_logger" 2> /dev/null || true
+  grep -aE \
+    -e ' [VDIWEF] [^ :]*([Aa]udio|AUDIO|AHAL|MediaRecorder|StagefrightRecorder|MPEG4Writer|CCodec|MediaCodec|AndroidRuntime)[^ :]* *: ' \
+    -e ' [VDIWEF] ReactNativeJS *: .*[Rr]ecord' \
+    -e ' [VDIWEF] ActivityManager *: .*(AudioRecordingService|ANR in io\.kaitech\.mobile|Process io\.kaitech\.mobile )' \
+    "$audio_log" > "$out/audio.txt" || true
+  rm -f "$audio_log"
+fi
 if [ -z "${E2E_LOGIN:-}" ]; then
   adb shell pkill -INT screenrecord || true
   wait "$recorder" || true
@@ -192,7 +209,7 @@ node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$l
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2
