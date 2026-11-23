@@ -1,0 +1,23 @@
+appId: io.kaitech.mobile
+name: Move from the server field to the database field on Android, by touch when Enter moved nothing
+---
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      id: sign-in-database
+      focused: true
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: sign-in-server
+        focused: true
+    commands:
+      - tapOn:
+          id: sign-in-database
+- extendedWaitUntil:
+    visible:
+      id: sign-in-database
+      focused: true
+    timeout: 10000
