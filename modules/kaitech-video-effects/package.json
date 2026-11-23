@@ -1,0 +1,13 @@
+{
+  "name": "kaitech-video-effects",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Background blur for the local camera in Kaitech calls",
+  "main": "src/index.ts",
+  "files": [
+    "android",
+    "ios",
+    "src",
+    "expo-module.config.json"
+  ]
+}

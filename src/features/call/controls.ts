@@ -10,6 +10,7 @@ export type CallAction =
   | 'hand'
   | 'spotlight'
   | 'videoOnly'
+  | 'blur'
   | 'invite'
   | 'people'
   | 'pip'
@@ -27,6 +28,7 @@ const groupOf: Partial<Record<CallAction, MoreGroup>> = {
   record: 'video',
   spotlight: 'video',
   videoOnly: 'video',
+  blur: 'video',
   pip: 'video',
   hand: 'people',
   invite: 'people',
@@ -50,6 +52,7 @@ export type ControlInput = {
   wide: boolean;
   invite: boolean;
   crowd: boolean;
+  blur?: boolean;
 };
 
 export const pillLimit = { phone: 5, wide: 6 } as const;
@@ -58,6 +61,7 @@ export function controlsFor(input: ControlInput): { pill: CallAction[]; more: Ca
   if (input.phase === 'ended') return { pill: ['close'], more: [] };
   const extras: CallAction[] = [];
   const live = input.phase === 'active';
+  if (input.blur && input.video) extras.push('blur');
   if (input.share && !input.sharing) extras.push('share');
   if (input.record) extras.push('record');
   if (live && input.crowd) extras.push('spotlight', 'videoOnly');
