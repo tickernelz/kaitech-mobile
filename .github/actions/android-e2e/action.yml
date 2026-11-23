@@ -91,7 +91,7 @@ runs:
     - name: Cache summary
       shell: bash
       env:
-        WRITES: ${{ inputs.save-snapshot }}
+        WRITES: ${{ inputs.snapshot == 'true' && inputs.save-snapshot || 'false' }}
         AVD_OUTCOME: ${{ steps.avd.outcome }}
         AVD_HIT: ${{ steps.avd.outputs.cache-hit }}
         AVD_KEY: ${{ steps.avd.outputs.cache-primary-key }}
