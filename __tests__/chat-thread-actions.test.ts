@@ -2,7 +2,7 @@ import { cannedQuery, gifBody, quickTimes } from '../src/features/chat/composerE
 import { createCardStore, isShownWork, linksIn, linksOfMessage, workFrom } from '../src/features/chat/coworker';
 import { channelOf } from '../src/features/chat/newConversation';
 import { listFilters, matches } from '../src/features/chat/listFilters';
-import { channelInfoFromStore, conversationFrom } from '../src/features/chat/odoo';
+import { channelInfoFromStore, conversationFrom, subChannelsFromStore } from '../src/features/chat/odoo';
 import { scheduledFrom } from '../src/features/chat/threadActions';
 
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
@@ -180,3 +180,23 @@ describe('card store', () => {
   });
 });
 
+
+describe('sub-threads of a conversation', () => {
+  const answer = {
+    store_data: {
+      'discuss.channel': [
+        { id: 398, parent_channel_id: { id: 397, model: 'discuss.channel' }, from_message_id: 15708, name: 'probe induk' },
+        { id: 397, parent_channel_id: false, from_message_id: false, name: 'Grup' },
+      ],
+    },
+    sub_channel_ids: [398],
+  };
+
+  it('reads the sub-threads the server wraps in store_data, not the parent', () => {
+    expect(subChannelsFromStore(answer)).toEqual([{ id: 398, name: 'probe induk', fromMessageId: 15708 }]);
+  });
+
+  it('still reads a bare store', () => {
+    expect(subChannelsFromStore(answer.store_data).map((sub) => sub.id)).toEqual([398]);
+  });
+});

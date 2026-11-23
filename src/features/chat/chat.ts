@@ -81,6 +81,7 @@ export type ChatState = {
   archivedCursor: string | null;
   archivedLoading: boolean;
   features: ChatFeatures;
+  starred: number;
 };
 
 const emptyThread: Thread = { messages: [], loading: false, loaded: false, hasOlder: true, loadingOlder: false, error: null, members: [], typing: [], hasNewer: false, info: null, subChannels: {}, works: [] };
@@ -109,6 +110,7 @@ let state: ChatState = {
   archivedCursor: null,
   archivedLoading: false,
   features: noFeatures,
+  starred: 0,
 };
 
 const listeners = new Set<() => void>();
@@ -292,6 +294,16 @@ export function invitedChannels(): number[] {
   return state.invited;
 }
 
+export function setStarredCount(accountId: string, next: number) {
+  if (state.accountId !== accountId) return;
+  const starred = Math.max(0, next);
+  if (starred !== state.starred) set({ starred });
+}
+
+export function noteStarToggled(accountId: string, starred: boolean) {
+  setStarredCount(accountId, state.starred + (starred ? 1 : -1));
+}
+
 function onNotifications(notifications: Notification[]) {
   for (const notification of notifications) {
     notePeople(notification.payload);
@@ -429,6 +441,7 @@ export function startChat(account: Account) {
     archivedCursor: null,
     archivedLoading: false,
     features: noFeatures,
+    starred: 0,
   };
   leaving = new Set();
   refreshAsked = false;
@@ -510,7 +523,7 @@ export function stopChat() {
   stop();
   leaving = new Set();
   refreshAsked = false;
-  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [], archivedSummary: null, archived: null, archivedCursor: null, features: noFeatures });
+  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [], archivedSummary: null, archived: null, archivedCursor: null, features: noFeatures, starred: 0 });
 }
 
 onAccountForgotten((id) => {
