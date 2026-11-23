@@ -349,7 +349,7 @@ jobs:
     permissions:
       contents: read
     concurrency:
-      group: kaitech-e2e-account
+      group: kaitech-e2e-account-${{ matrix.size }}-${{ matrix.locale }}
       cancel-in-progress: false
       queue: max
     env:

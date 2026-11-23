@@ -36,11 +36,15 @@ The `plan` job picks a mode:
 | push to `main` (a merge) | smoke |
 | pull request with the `run-e2e` label (labelling it, or pushing while it is labelled) | smoke |
 | schedule, 19:00 UTC daily | full |
-| manual (`workflow_dispatch`) | `mode` input, smoke by default |
+| manual (`workflow_dispatch`) | `mode` input (`smoke`, `android`, `full`), smoke by default |
 
 Smoke: one Android emulator (`pixel_6`, portrait, `en-US`) runs `.maestro/welcome.yaml` and `.maestro/sign-in-form.yaml` with a screen recording, and measures cold start (perf gate `android.cold_start_ms`). It never uses the test account.
 
-Full: four Android jobs (`pixel_6` and `pixel_tablet`, `en-US` and `id-ID`), each running portrait then landscape on the same emulator; four signed-in rows jobs (`.maestro/signed-in/rows-*.yaml`, phone and tablet, both locales; phone `en-US` runs with direct chats hidden); and the iPad simulator on `macos-26`. Full runs share the concurrency group `kaitech-e2e-account` with `queue: max` because the rows jobs sign in with the one test account: full runs never overlap, and a new one waits behind every pending one instead of replacing it. Pull request runs use `queue: single`, since GitHub rejects `queue: max` with `cancel-in-progress: true`.
+Full: four Android jobs (`pixel_6` and `pixel_tablet`, `en-US` and `id-ID`), each running portrait then landscape on the same emulator; four signed-in rows jobs (`.maestro/signed-in/rows-*.yaml`, phone and tablet, both locales; phone `en-US` runs with direct chats hidden); and the iPad simulator on `macos-26`.
+
+Android: the full run without the iPad simulator. It is the proof for a feature branch before review (about 26 minutes, run 45095995935: APK 14 minutes, then the eight Android cells in 12). The iPad job alone took 32 to 71 minutes on a cold simulator build (runs 45069794592, 45070632107), so branch proof no longer waits for it; the nightly schedule and dispatches on `main` run `full` and carry the iPad proof.
+
+The lock sits on the jobs that need it, not on the run. Each rows job takes the group `kaitech-e2e-account-<size>-<locale>` with `queue: max`: the four rows cells of one run still run side by side, as they always did, while the same cell never runs twice at once across runs, so the test account never carries more than the four distinct cells one full run already puts on it. `rows from release` takes the same groups. The Android matrix and the iPad job never sign in (the iPad runs only `.maestro/welcome.yaml` and `.maestro/sign-in-form.yaml`, without account values), so they hold no account group: the iPad job queues on its own group `kaitech-e2e-ipad`, and a run's Android jobs never wait for another run's iPad. A job that adds `E2E_LOGIN` must take a `kaitech-e2e-account-*` group. Android and full runs get a group of their own per run at workflow level. Pull request runs use `queue: single`, since GitHub rejects `queue: max` with `cancel-in-progress: true`.
 
 Pull request runs of the same pull request cancel each other; labelling a pull request with another label does not cancel a running E2E run.
 
@@ -67,13 +71,13 @@ maestro-runner telemetry and update checks are off in every job (`MAESTRO_RUNNER
 
 ### Output
 
-Every artifact is scanned by gitleaks before upload; nothing is uploaded when the scan fails. Smoke and full Android jobs upload `e2e-android-<mode>-<size>-<locale>` (one folder per orientation: video, `screenshots/`, `display.txt`, JUnit, logcat, `cold-start.txt`). Rows jobs upload `e2e-android-rows-*` without recordings, logs, or account values. The iPad job uploads `e2e-ipad-en-US`.
+Every artifact is scanned by gitleaks before upload; nothing is uploaded when the scan fails. Smoke, android and full Android jobs upload `e2e-android-<mode>-<size>-<locale>` (one folder per orientation: video, `screenshots/`, `display.txt`, JUnit, logcat, `cold-start.txt`). Rows jobs upload `e2e-android-rows-*` without recordings, logs, or account values. The iPad job uploads `e2e-ipad-en-US`.
 
 ## Release
 
 1. `gitleaks`: the ref must be a commit on `main`; gitleaks over the full git history and the working tree.
 2. `android apk (universal)` (four ABIs) and `android apk (arm64-v8a)`, signed with the release keystore and checked against `.github/android-release-cert.sha256`, ABIs, bundled JS secrets, perf gate; `ios ipa (unsigned)` and `ios bundle secret scan`.
-3. Tags only: draft GitHub Release with the APKs, IPA and `SHA256SUMS.txt`; the draft is downloaded again for checksums, rotation, multi-window and iPad config inside the files (`scripts/check-release-artifacts.py`), and gitleaks over the unpacked APK and IPA; the universal APK is installed on a fresh emulator in eight cells (phone and tablet, portrait and landscape, `en-US` and `id-ID`), and the four signed-in rows cells run on it too (`rows from release`, fresh emulator, one at a time in `kaitech-e2e-account`); the release is published only when both pass.
+3. Tags only: draft GitHub Release with the APKs, IPA and `SHA256SUMS.txt`; the draft is downloaded again for checksums, rotation, multi-window and iPad config inside the files (`scripts/check-release-artifacts.py`), and gitleaks over the unpacked APK and IPA; the universal APK is installed on a fresh emulator in eight cells (phone and tablet, portrait and landscape, `en-US` and `id-ID`), and the four signed-in rows cells run on it too (`rows from release`, fresh emulator, each cell in its `kaitech-e2e-account-<size>-<locale>` group); the release is published only when both pass.
 
 A manual run from `main` stops after step 2: it builds the release APKs and IPA as run artifacts (`kaitech-android-apk`, `kaitech-android-apk-arm64-v8a`, `kaitech-ios-ipa`) without creating a release. Use it for a build of `main` between releases.
 
@@ -112,7 +116,7 @@ Every job that touches a cache writes a table to its run summary: each cache wit
 |---|---|---|
 | `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | for releases | non-store APK signing key |
 | `GOOGLE_SERVICES_JSON` | no | FCM; without it the build stays green and Android push is off |
-| `KAITECH_E2E_LOGIN`, `KAITECH_E2E_PASSWORD`, `KAITECH_E2E_WEB_LOGIN`, `KAITECH_E2E_WEB_PASSWORD` | for rows | test account, full E2E only |
+| `KAITECH_E2E_LOGIN`, `KAITECH_E2E_PASSWORD`, `KAITECH_E2E_WEB_LOGIN`, `KAITECH_E2E_WEB_PASSWORD` | for rows | test account, rows jobs of `android` and `full` E2E only |
 
 Variables: `KAITECH_LINK_HOST`, `KAITECH_DEFAULT_DB` (build time), `KAITECH_E2E_CHANNEL_ID`, `KAITECH_E2E_PEER`, `KAITECH_E2E_PROGRAMME`, `KAITECH_E2E_SEARCH`, `E2E_RUNNER`, `E2E_RUNNER_ROWS`.
 
