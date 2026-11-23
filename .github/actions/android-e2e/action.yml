@@ -60,6 +60,26 @@ runs:
           tablet) echo "profile=pixel_tablet" >> "$GITHUB_OUTPUT" ;;
           *) echo "::error::size must be phone or tablet, got '$SIZE'"; exit 1 ;;
         esac
+    - name: Install the emulator system image, retried until it unpacks
+      shell: bash
+      env:
+        SYSTEM_IMAGE: system-images;android-35;google_apis;x86_64
+      run: |
+        set +e -u
+        dir="$ANDROID_HOME/$(tr ';' '/' <<< "$SYSTEM_IMAGE")"
+        for attempt in 1 2 3; do
+          log="$RUNNER_TEMP/system-image-$attempt.log"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "$SYSTEM_IMAGE" --channel=0 > "$log" 2>&1
+          if [ -f "$dir/package.xml" ] && [ -f "$dir/system.img" ]; then
+            echo "$SYSTEM_IMAGE installed on attempt $attempt"
+            exit 0
+          fi
+          tr '\r' '\n' < "$log" | grep -E 'Warning|Error' | tail -5
+          echo "::warning::$SYSTEM_IMAGE not installed on attempt $attempt"
+          [ "$attempt" = 3 ] || sleep $((attempt * 15))
+        done
+        echo "::error::$SYSTEM_IMAGE not installed after 3 attempts"
+        exit 1
     - name: Run Maestro flows, one orientation after another
       uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
       env:

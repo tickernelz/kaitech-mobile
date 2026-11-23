@@ -1,10 +1,11 @@
-import { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { radius, space, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
 import { Text } from '../../../../ui/Text';
 import { DecisionCard } from '../../../discovery/DecisionCard';
+import { Markdown } from '../../../discovery/Markdown';
 import { agentCardsFor, createCardStore, decideWardmote, recordCards, type AgentCard, type CardStore, type RecordCard, type Wardmote } from '../../coworker';
 import { faceSize } from '../MessageBubble';
 import { failureText } from '../actions/failure';
@@ -38,6 +39,18 @@ export function useRecordCards() {
   }, []);
   return useCardStore<string, RecordCard | null>(load);
 }
+
+export const AgentSaid = memo(function AgentSaid({ store, messageId, children }: { store: CardStore<number, AgentCard>; messageId: number; children: ReactNode }) {
+  const ids = useMemo(() => [messageId], [messageId]);
+  useCardVersion(store, ids);
+  const said = store.get(messageId)?.said;
+  if (!said) return <>{children}</>;
+  return (
+    <View testID={`agent-said-${messageId}`}>
+      <Markdown text={said} />
+    </View>
+  );
+});
 
 export const MessageCards = memo(function MessageCards({
   messageId,
