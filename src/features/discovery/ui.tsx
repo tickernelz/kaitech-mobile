@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { ApiError } from '../../api/odoo';
 import { AppError } from '../../auth/errors';
 import { radius, space, useTheme, type Colors } from '../../theme';

@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { useResource } from '../../api/resource';
 import { useFormatters } from '../../i18n';
 import { readableWidth } from '../../layout/windowClass';

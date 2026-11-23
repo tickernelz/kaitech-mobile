@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, SectionList, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, SectionList, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';

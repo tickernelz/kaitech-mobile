@@ -43,6 +43,7 @@ require('../src/i18n');
 const { Button } = require('../src/ui/Button.android') as typeof import('../src/ui/Button.android');
 const { TextField } = require('../src/ui/TextField.android') as typeof import('../src/ui/TextField.android');
 const { Fab } = require('../src/ui/Fab.android') as typeof import('../src/ui/Fab.android');
+const { Pressable: RipplePressable } = require('../src/ui/Pressable.android') as typeof import('../src/ui/Pressable.android');
 const { TopAppBar, useCollapsingTitle } = require('../src/ui/AppBar.android') as typeof import('../src/ui/AppBar.android');
 
 function labelLift(text: string): number {
@@ -124,6 +125,25 @@ describe('Android Material 3 top app bar', () => {
     expect(title().props.importantForAccessibility).toBe('auto');
     await act(async () => scrollTo(0));
     expect(StyleSheet.flatten(title().props.style).opacity).toBe(0);
+  });
+});
+
+describe('Android pressables', () => {
+  test('every pressable gets the M3 ripple unless it chose its own', async () => {
+    const drawn: Record<string, { props: { android_ripple?: unknown } }> = {};
+    function Probe(props: Parameters<typeof RipplePressable>[0] & { name: string }) {
+      const { name, ...rest } = props;
+      drawn[name] = RipplePressable(rest) as { props: { android_ripple?: unknown } };
+      return null;
+    }
+    await render(
+      <>
+        <Probe name="plain" onPress={() => undefined} />
+        <Probe name="own" android_ripple={{ color: '#FF0000' }} onPress={() => undefined} />
+      </>,
+    );
+    expect(drawn.plain.props.android_ripple).toEqual({ color: '#1514181A' });
+    expect(drawn.own.props.android_ripple).toEqual({ color: '#FF0000' });
   });
 });
 

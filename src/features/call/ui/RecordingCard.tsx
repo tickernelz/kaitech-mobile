@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { chatClient } from '../../chat/chat';

@@ -1,6 +1,7 @@
 import { lazy, memo, Suspense, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Linking, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';
 import { Icon } from '../../../ui/icons';

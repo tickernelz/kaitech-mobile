@@ -1,7 +1,8 @@
 import { FlashList } from '@shopify/flash-list';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { radius, space, useTheme } from '../../../theme';
 import { TopAppBar, largeTitleOwnsActions, useCollapsingTitle } from '../../../ui/AppBar';

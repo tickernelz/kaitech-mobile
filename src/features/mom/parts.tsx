@@ -1,6 +1,7 @@
 import { useCallback, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { useLanguage } from '../../i18n';
 import { intlLocale } from '../../i18n/language';
 import { radius, space, useTheme, type Colors } from '../../theme';

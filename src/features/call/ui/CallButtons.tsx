@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { space, useTheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { useRouter } from 'expo-router';

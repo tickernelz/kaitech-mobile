@@ -1,7 +1,8 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { radius, space, useTheme } from '../../theme';

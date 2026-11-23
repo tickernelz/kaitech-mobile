@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
 import { personColors, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Text } from '../../../ui/Text';

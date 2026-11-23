@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from '../ui/Pressable';
 import { useSession } from '../auth/session';
 import { radius, space, useTheme } from '../theme';
 import { IconButton } from '../ui/IconButton';
