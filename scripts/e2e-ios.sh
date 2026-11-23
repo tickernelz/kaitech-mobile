@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-usage="usage: e2e-ipad.sh <Kaitech.app built for the simulator> <output-dir> <locale: en-US|id-ID>"
+usage="usage: e2e-ios.sh <Kaitech.app built for the simulator> <output-dir> <locale: en-US|id-ID>"
 app="${1:?$usage}"
 out="${2:?$usage}"
 locale="${3:?$usage}"
@@ -14,26 +14,26 @@ IFS=$'\t' read -r udid device_name runtime_name < <(
     const ios = runtimes
       .filter((r) => r.platform === "iOS" && r.isAvailable)
       .sort((a, b) => b.version.localeCompare(a.version, undefined, { numeric: true }));
-    const preference = ["iPad Pro 13", "iPad Pro 11", "iPad Air", "iPad"];
+    const preference = ["iPhone 17 Pro", "iPhone 17", "iPhone 16 Pro", "iPhone 16", "iPhone"];
     const byPreference = (list) => preference.map((p) => list.find((d) => d.name.startsWith(p))).find(Boolean);
     console.error(`iOS runtimes: ${ios.map((r) => r.name).join(", ") || "none"}`);
     for (const runtime of ios) {
-      const existing = (devices[runtime.identifier] ?? []).filter((d) => d.isAvailable && d.name.startsWith("iPad"));
-      console.error(`${runtime.name} iPads: ${existing.map((d) => d.name).join(", ") || "none"}`);
+      const existing = (devices[runtime.identifier] ?? []).filter((d) => d.isAvailable && d.name.startsWith("iPhone"));
+      console.error(`${runtime.name} iPhones: ${existing.map((d) => d.name).join(", ") || "none"}`);
       const device = byPreference(existing);
       if (device) {
         console.log([device.udid, device.name, runtime.name].join("\t"));
         process.exit(0);
       }
     }
-    const type = byPreference(devicetypes.filter((d) => d.name.startsWith("iPad")));
-    if (!type || ios.length === 0) throw new Error("no iPad simulator device type or iOS runtime on this runner");
+    const type = byPreference(devicetypes.filter((d) => d.name.startsWith("iPhone")));
+    if (!type || ios.length === 0) throw new Error("no iPhone simulator device type or iOS runtime on this runner");
     console.log(["create:" + type.identifier + ":" + ios[0].identifier, type.name, ios[0].name].join("\t"));
   '
 )
 if [[ "$udid" == create:* ]]; then
   IFS=: read -r _ device_type runtime <<< "$udid"
-  udid="$(xcrun simctl create kaitech-ipad "$device_type" "$runtime")"
+  udid="$(xcrun simctl create kaitech-iphone "$device_type" "$runtime")"
   created=1
 fi
 xcrun simctl shutdown "$udid" 2> /dev/null || true
@@ -47,7 +47,7 @@ run_flows() {
   rm -rf "$dir/maestro" "$dir/junit.xml"
   maestro --device "$udid" test .maestro \
     -e APP_LANGUAGE="$language" \
-    -e DEVICE_SIZE=tablet \
+    -e DEVICE_SIZE=phone \
     -e ORIENTATION="$orientation" \
     --format junit \
     --output "$dir/junit.xml" \
@@ -76,11 +76,11 @@ xcrun simctl install "$udid" "$app"
 log "installed"
 
 for orientation in portrait landscape; do
-  cell="tablet-$orientation-$locale"
+  cell="phone-$orientation-$locale"
   dir="$out/$cell"
   mkdir -p "$dir/screenshots"
   log "$cell: start"
-  xcrun simctl io "$udid" recordVideo --codec=h264 --force "$dir/e2e-ipad-$cell.mp4" > /dev/null 2>&1 &
+  xcrun simctl io "$udid" recordVideo --codec=h264 --force "$dir/e2e-ios-$cell.mp4" > /dev/null 2>&1 &
   recorder=$!
   sleep 2
 
@@ -100,7 +100,7 @@ for orientation in portrait landscape; do
   find "$dir/maestro" -path '*/takeScreenshot/*.png' -exec cp {} "$dir/screenshots/" \;
   find "$dir/maestro" -name device-simulator.log -delete
   log "$cell: done"
-  node scripts/check-screenshots.mjs "$dir/screenshots" tablet "$orientation" "$language" || status=1
+  node scripts/check-screenshots.mjs "$dir/screenshots" phone "$orientation" "$language" || status=1
 done
 xcrun simctl shutdown "$udid"
 log "shut down"
