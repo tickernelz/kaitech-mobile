@@ -22,10 +22,11 @@ onFlowStart:
           commands:
             - runFlow:
                 when:
-                  notVisible:
-                    id: welcome-sign-in
+                  visible:
+                    id: com.android.chrome:id/close_button
                 commands:
-                  - back
+                  - tapOn:
+                      id: com.android.chrome:id/close_button
             - tapOn:
                 id: welcome-sign-in
             - extendedWaitUntil:
@@ -38,7 +39,8 @@ onFlowStart:
           file: shared/screenshot.yaml
           env:
             SCREEN: sign-in-default-browser
-      - back
+      - tapOn:
+          id: com.android.chrome:id/close_button
       - extendedWaitUntil:
           visible:
             id: welcome-error
