@@ -1,5 +1,5 @@
 appId: io.kaitech.mobile
-name: Press Start on the recording setup, answer the first-use permission prompts, and press Start again when the first press lost the race with them
+name: Press Start on the recording setup and answer the first-use permission prompts; press Start once more when the emulator recorder failed to start (one press is enough on a device, .maestro/local/mom-first-record.yaml)
 ---
 - scrollUntilVisible:
     element:
