@@ -31,12 +31,6 @@ inputs:
   audio:
     description: true starts the emulator with audio; recording flows need it.
     default: 'false'
-  snapshot:
-    description: true boots from a cached AVD snapshot; false boots a fresh, wiped emulator without snapshots.
-    default: 'true'
-  save-snapshot:
-    description: true creates and writes the AVD snapshot cache when it is missing; false boots without a snapshot on a cache miss. Pass true only on refs/heads/main.
-    default: 'false'
   retention-days:
     default: '30'
 runs:
@@ -66,55 +60,6 @@ runs:
           tablet) echo "profile=pixel_tablet" >> "$GITHUB_OUTPUT" ;;
           *) echo "::error::size must be phone or tablet, got '$SIZE'"; exit 1 ;;
         esac
-    - name: Restore the AVD snapshot
-      id: avd
-      if: inputs.snapshot == 'true'
-      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: |
-          ~/.android/avd/*
-          ~/.android/adb*
-        key: avd-api35-x86_64-google_apis-${{ steps.device.outputs.profile }}-v1
-    - name: Boot from a snapshot only when one is restored or will be saved
-      id: boot
-      shell: bash
-      env:
-        SNAPSHOT: ${{ inputs.snapshot }}
-        HIT: ${{ steps.avd.outputs.cache-hit }}
-        SAVE: ${{ inputs.save-snapshot }}
-      run: |
-        if [ "$SNAPSHOT" = true ] && { [ "$HIT" = true ] || [ "$SAVE" = true ]; }; then
-          echo "snapshot=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "snapshot=false" >> "$GITHUB_OUTPUT"
-        fi
-    - name: Cache summary
-      shell: bash
-      env:
-        WRITES: ${{ inputs.snapshot == 'true' && inputs.save-snapshot || 'false' }}
-        AVD_OUTCOME: ${{ steps.avd.outcome }}
-        AVD_HIT: ${{ steps.avd.outputs.cache-hit }}
-        AVD_KEY: ${{ steps.avd.outputs.cache-primary-key }}
-      run: bash scripts/cache-summary.sh "$WRITES" "AVD snapshot" "$AVD_OUTCOME" "$AVD_HIT" "$AVD_KEY" ""
-    - name: Create a settled AVD snapshot
-      if: steps.boot.outputs.snapshot == 'true' && steps.avd.outputs.cache-hit != 'true'
-      uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
-      with:
-        api-level: 35
-        arch: x86_64
-        target: google_apis
-        profile: ${{ steps.device.outputs.profile }}
-        force-avd-creation: false
-        disable-animations: false
-        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-        script: timeout 600 adb shell cmd package bg-dexopt-job || true
-    - if: steps.boot.outputs.snapshot == 'true' && steps.avd.outputs.cache-hit != 'true'
-      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: |
-          ~/.android/avd/*
-          ~/.android/adb*
-        key: avd-api35-x86_64-google_apis-${{ steps.device.outputs.profile }}-v1
     - name: Run Maestro flows, one orientation after another
       uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
       env:
@@ -127,8 +72,8 @@ runs:
         target: google_apis
         profile: ${{ steps.device.outputs.profile }}
         disable-animations: true
-        force-avd-creation: ${{ steps.boot.outputs.snapshot != 'true' }}
-        emulator-options: -no-window ${{ steps.boot.outputs.snapshot == 'true' && '-no-snapshot-save' || '-no-snapshot -wipe-data' }} -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '' }} -no-boot-anim -camera-back none
+        force-avd-creation: true
+        emulator-options: -no-window -no-snapshot -wipe-data -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '' }} -no-boot-anim -camera-back none
         script: for o in ${{ inputs.orientations }}; do runs=0; [ "$o" = portrait ] && runs="$PORTRAIT_COLD_START_RUNS"; COLD_START_RUNS="$runs" bash scripts/e2e-android.sh "${{ inputs.apk-dir }}" "e2e-output/${{ inputs.output-prefix }}${{ inputs.size }}-$o-${{ inputs.locale }}" ${{ inputs.locale }} ${{ inputs.size }} "$o" || status=1; done; exit "${status:-0}"
     - name: Scan E2E output for secrets
       id: scan-e2e
