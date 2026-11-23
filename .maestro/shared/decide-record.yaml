@@ -1,0 +1,56 @@
+appId: io.kaitech.mobile
+name: Open the section named SECTION or SECTION_ID, open the record named RECORD, press BUTTON and wait until the server's new state hides it
+---
+- runFlow:
+    when:
+      visible:
+        id: sections-search-clear
+    commands:
+      - tapOn:
+          id: sections-search-clear
+- tapOn:
+    id: sections-search
+- inputText: "${APP_LANGUAGE === 'id' ? SECTION_ID : SECTION}"
+- pressKey: Enter
+- tapOn:
+    id: section-[0-9]+
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: list-search
+    timeout: 30000
+- tapOn:
+    id: list-search
+- inputText: ${RECORD}
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      id: list-row-[0-9]+
+    timeout: 30000
+- tapOn:
+    id: list-row-[0-9]+
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: button-${BUTTON}
+    timeout: 30000
+- tapOn:
+    id: button-${BUTTON}
+- extendedWaitUntil:
+    notVisible:
+      id: button-${BUTTON}
+    timeout: 30000
+- assertVisible:
+    text: ${STATE}
+- runFlow:
+    file: screenshot.yaml
+    env:
+      SCREEN: ${SHOT}
+- tapOn:
+    id: header-back
+- tapOn:
+    id: header-back
+- extendedWaitUntil:
+    visible:
+      id: sections-screen
+    timeout: 15000

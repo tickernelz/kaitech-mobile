@@ -279,6 +279,13 @@ export function DiscoveryHome() {
               onPress={() => router.push(`/program/${programme}/conversations`)}
               testID="open-conversations"
             />
+            <Line
+              icon="steps"
+              title={t('records.sections')}
+              detail={t('records.sectionsDetail')}
+              onPress={() => router.push(`/program/${programme}/sections`)}
+              testID="open-sections"
+            />
           </Section>
           {latest.data?.length ? (
             <Section title={t('discovery.home.recent')}>
