@@ -28,13 +28,8 @@ name: Press Start on the recording setup and answer the first-use permission pro
           commands:
             - tapOn:
                 text: (Allow|Izinkan)
-- runFlow:
-    when:
-      visible:
-        id: setup-outcome
-    commands:
-      - tapOn:
-          id: setup-start
+- assertNotVisible:
+    id: setup-outcome
 - extendedWaitUntil:
     visible:
       id: recorder-time
