@@ -13,9 +13,6 @@ inputs:
   size:
     description: phone or tablet.
     required: true
-  profile:
-    description: Emulator hardware profile, e.g. pixel_6 or pixel_tablet.
-    required: true
   locale:
     description: en-US or id-ID.
     required: true
@@ -38,7 +35,7 @@ inputs:
     description: true boots from a cached AVD snapshot; false boots a fresh, wiped emulator without snapshots.
     default: 'true'
   save-snapshot:
-    description: true creates and writes the AVD snapshot cache when it is missing; false boots without a snapshot on a cache miss.
+    description: true creates and writes the AVD snapshot cache when it is missing; false boots without a snapshot on a cache miss. Pass true only on refs/heads/main.
     default: 'false'
   retention-days:
     default: '30'
@@ -58,6 +55,17 @@ runs:
     - uses: ./.github/actions/setup-maestro
     - uses: ./.github/actions/setup-maestro-runner
     - uses: ./.github/actions/setup-gitleaks
+    - name: Emulator hardware profile for the size
+      id: device
+      shell: bash
+      env:
+        SIZE: ${{ inputs.size }}
+      run: |
+        case "$SIZE" in
+          phone) echo "profile=pixel_6" >> "$GITHUB_OUTPUT" ;;
+          tablet) echo "profile=pixel_tablet" >> "$GITHUB_OUTPUT" ;;
+          *) echo "::error::size must be phone or tablet, got '$SIZE'"; exit 1 ;;
+        esac
     - name: Restore the AVD snapshot
       id: avd
       if: inputs.snapshot == 'true'
@@ -66,7 +74,7 @@ runs:
         path: |
           ~/.android/avd/*
           ~/.android/adb*
-        key: avd-api35-x86_64-google_apis-${{ inputs.profile }}-v1
+        key: avd-api35-x86_64-google_apis-${{ steps.device.outputs.profile }}-v1
     - name: Boot from a snapshot only when one is restored or will be saved
       id: boot
       shell: bash
@@ -80,6 +88,14 @@ runs:
         else
           echo "snapshot=false" >> "$GITHUB_OUTPUT"
         fi
+    - name: Cache summary
+      shell: bash
+      env:
+        WRITES: ${{ inputs.save-snapshot }}
+        AVD_OUTCOME: ${{ steps.avd.outcome }}
+        AVD_HIT: ${{ steps.avd.outputs.cache-hit }}
+        AVD_KEY: ${{ steps.avd.outputs.cache-primary-key }}
+      run: bash scripts/cache-summary.sh "$WRITES" "AVD snapshot" "$AVD_OUTCOME" "$AVD_HIT" "$AVD_KEY" ""
     - name: Create a settled AVD snapshot
       if: steps.boot.outputs.snapshot == 'true' && steps.avd.outputs.cache-hit != 'true'
       uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
@@ -87,7 +103,7 @@ runs:
         api-level: 35
         arch: x86_64
         target: google_apis
-        profile: ${{ inputs.profile }}
+        profile: ${{ steps.device.outputs.profile }}
         force-avd-creation: false
         disable-animations: false
         emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
@@ -98,7 +114,7 @@ runs:
         path: |
           ~/.android/avd/*
           ~/.android/adb*
-        key: avd-api35-x86_64-google_apis-${{ inputs.profile }}-v1
+        key: avd-api35-x86_64-google_apis-${{ steps.device.outputs.profile }}-v1
     - name: Run Maestro flows, one orientation after another
       uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
       env:
@@ -109,7 +125,7 @@ runs:
         api-level: 35
         arch: x86_64
         target: google_apis
-        profile: ${{ inputs.profile }}
+        profile: ${{ steps.device.outputs.profile }}
         disable-animations: true
         force-avd-creation: ${{ steps.boot.outputs.snapshot != 'true' }}
         emulator-options: -no-window ${{ steps.boot.outputs.snapshot == 'true' && '-no-snapshot-save' || '-no-snapshot -wipe-data' }} -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '' }} -no-boot-anim -camera-back none

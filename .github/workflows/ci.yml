@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths-ignore: ['docs/**', '**/*.md']
   pull_request:
+    types: [opened, synchronize, reopened, closed]
   workflow_dispatch:
 
 permissions:
@@ -17,6 +18,7 @@ concurrency:
 jobs:
   changes:
     name: changes
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -45,6 +47,7 @@ jobs:
 
   gitleaks:
     name: gitleaks diff
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -71,7 +74,7 @@ jobs:
   lint:
     name: lint
     needs: changes
-    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    if: ${{ !cancelled() && github.event.action != 'closed' && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -90,7 +93,7 @@ jobs:
   typecheck:
     name: typecheck
     needs: changes
-    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    if: ${{ !cancelled() && github.event.action != 'closed' && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -110,7 +113,7 @@ jobs:
   unit:
     name: unit
     needs: changes
-    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    if: ${{ !cancelled() && github.event.action != 'closed' && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -125,3 +128,24 @@ jobs:
       - name: i18n key parity (en = id)
         run: npm run i18n:check
       - run: npm test -- --ci
+
+  cache-cleanup:
+    name: cache cleanup
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Delete the caches of the closed pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF: refs/pull/${{ github.event.pull_request.number }}/merge
+        run: |
+          set -euo pipefail
+          ids="$(gh cache list --ref "$REF" --limit 100 --json id --jq '.[].id')"
+          for id in $ids; do
+            gh cache delete "$id"
+          done
+          echo "Deleted $(wc -w <<< "$ids") caches of $REF." | tee -a "$GITHUB_STEP_SUMMARY"
