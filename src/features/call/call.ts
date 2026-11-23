@@ -109,6 +109,7 @@ let sessionPartners = new Map<number, number>();
 let pingTimer: ReturnType<typeof setInterval> | null = null;
 let endTimer: ReturnType<typeof setTimeout> | null = null;
 let generation = 0;
+let outputChosen = false;
 let callAccount: Account | null = null;
 let sharingBusy = false;
 let shareStarting = false;
@@ -370,6 +371,7 @@ async function connect(api: CallClient, channelId: number, started: number) {
       return;
     }
     await instance.localParticipant.setMicrophoneEnabled(true);
+    outputChosen = false;
     await routeAudio(false);
     if (stale(started)) {
       await teardown();
@@ -569,7 +571,16 @@ export async function toggleCamera(): Promise<CameraResult> {
   collect();
   void send({ is_camera_on: next });
   presence();
+  if (next) await speakerForCamera(instance);
   return next ? 'on' : 'off';
+}
+
+async function speakerForCamera(instance: unknown) {
+  if (outputChosen || state.speaker) return;
+  const outputs = await audioOutputs();
+  if (room !== instance || outputChosen || outputs.some((output) => output === 'headset' || output === 'bluetooth')) return;
+  await routeAudio(true);
+  if (room === instance && !outputChosen) publish({ speaker: true });
 }
 
 export async function flipCamera() {
@@ -583,6 +594,7 @@ export async function flipCamera() {
 }
 
 export async function toggleSpeaker() {
+  outputChosen = true;
   const next = !state.speaker;
   await routeAudio(next);
   publish({ speaker: next });
@@ -715,6 +727,7 @@ export async function audioOutputs(): Promise<string[]> {
 }
 
 export async function chooseAudioOutput(output: string) {
+  outputChosen = true;
   try {
     await (await loadLiveKit()).AudioSession.selectAudioOutput(output);
     publish({ output, speaker: output === 'speaker' || output === 'force_speaker' });

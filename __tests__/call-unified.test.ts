@@ -6,6 +6,7 @@ const mockRooms: MockRoom[] = [];
 const mockPip: { enabled: boolean; camera: boolean }[] = [];
 const mockNative: { startCall: unknown[][]; ring: unknown[][] } = { startCall: [], ring: [] };
 const mockCamera = { grant: true };
+const mockAudio: { outputs: string[]; selected: string[] } = { outputs: [], selected: [] };
 let mockStore: unknown = {};
 
 type Handler = () => void;
@@ -200,8 +201,11 @@ jest.mock('../src/features/call/livekit', () => ({
       AudioSession: {
         startAudioSession: () => Promise.resolve(),
         stopAudioSession: () => Promise.resolve(),
-        getAudioOutputs: () => Promise.resolve([]),
-        selectAudioOutput: () => Promise.resolve(),
+        getAudioOutputs: () => Promise.resolve(mockAudio.outputs),
+        selectAudioOutput: (output: string) => {
+          mockAudio.selected.push(output);
+          return Promise.resolve();
+        },
       },
     }),
 }));
@@ -255,6 +259,8 @@ beforeEach(() => {
   jest.useFakeTimers();
   for (const list of [mockUpdates, mockJoins, mockAsked, mockListeners, mockRooms, mockPip, mockNative.startCall, mockNative.ring]) list.length = 0;
   mockCamera.grant = true;
+  mockAudio.outputs = [];
+  mockAudio.selected = [];
   mockStore = {};
   jest.resetModules();
 });
@@ -290,6 +296,34 @@ describe('turning the camera on during a call', () => {
     expect(await call.toggleCamera()).toBe('off');
     expect(call.callState().cameraOn).toBe(false);
     expect(mockUpdates).toEqual([{ is_camera_on: true }, { is_camera_on: false }]);
+  });
+
+  it('moves the call to the loudspeaker when the camera turns on, unless the user picked an output or wears a headset', async () => {
+    mockAudio.outputs = ['earpiece', 'speaker'];
+    const first = await placed();
+    expect(first.call.callState().speaker).toBe(false);
+    expect(await first.call.toggleCamera()).toBe('on');
+    expect(first.call.callState().speaker).toBe(true);
+    expect(mockAudio.selected).toEqual(['earpiece', 'speaker']);
+    await first.call.hangUp('left');
+    jest.runOnlyPendingTimers();
+
+    mockAudio.selected = [];
+    const picked = await placed();
+    await picked.call.toggleSpeaker();
+    await picked.call.toggleSpeaker();
+    expect(await picked.call.toggleCamera()).toBe('on');
+    expect(picked.call.callState().speaker).toBe(false);
+    expect(mockAudio.selected).toEqual(['earpiece', 'speaker', 'earpiece']);
+    await picked.call.hangUp('left');
+    jest.runOnlyPendingTimers();
+
+    mockAudio.outputs = ['earpiece', 'speaker', 'bluetooth'];
+    mockAudio.selected = [];
+    const headset = await placed();
+    expect(await headset.call.toggleCamera()).toBe('on');
+    expect(headset.call.callState().speaker).toBe(false);
+    expect(mockAudio.selected).toEqual(['earpiece']);
   });
 
   it('keeps the call going when the camera is refused and lets a later press try again', async () => {
