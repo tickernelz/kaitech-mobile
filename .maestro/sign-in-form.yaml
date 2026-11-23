@@ -63,7 +63,29 @@ onFlowStart:
 - tapOn:
     id: sign-in-server
 - inputText: http://erp.example.com
-- runFlow: shared/dismiss-keyboard.yaml
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Enter
+      - extendedWaitUntil:
+          visible:
+            id: sign-in-database
+            focused: true
+          timeout: 10000
+      - pressKey: Enter
+      - extendedWaitUntil:
+          visible:
+            id: sign-in-server-error
+            text: "${APP_LANGUAGE === 'id' ? 'Server harus memakai koneksi aman .https..' : 'The server must use a secure connection .https..'}"
+          timeout: 10000
+      - assertNotVisible:
+          id: sign-in-database
+          focused: true
+- runFlow:
+    when:
+      platform: iOS
+    file: shared/dismiss-keyboard.yaml
 - runFlow:
     when:
       true: ${ORIENTATION === 'portrait' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
@@ -101,11 +123,34 @@ onFlowStart:
     id: sign-in-server
 - eraseText: 40
 - inputText: erp.example.com
-- runFlow: shared/dismiss-keyboard.yaml
-- tapOn:
-    id: sign-in-database
-- inputText: erp main
-- runFlow: shared/dismiss-keyboard.yaml
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Enter
+      - extendedWaitUntil:
+          visible:
+            id: sign-in-database
+            focused: true
+          timeout: 10000
+      - inputText: erp main
+      - pressKey: Enter
+      - extendedWaitUntil:
+          visible:
+            id: sign-in-database-error
+          timeout: 10000
+      - assertNotVisible:
+          id: sign-in-database
+          focused: true
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runFlow: shared/dismiss-keyboard.yaml
+      - tapOn:
+          id: sign-in-database
+      - inputText: erp main
+      - runFlow: shared/dismiss-keyboard.yaml
 - scrollUntilVisible:
     element:
       id: sign-in-continue

@@ -1,89 +1,26 @@
-import { useAudioPlayer, useAudioPlayerStatus, type AudioPlayer } from 'expo-audio';
-import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useResource } from '../../api/resource';
-import { useSession } from '../../auth/session';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
-import { Icon } from '../../ui/icons';
 import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
 import { Header } from '../discovery/Header';
 import { Card, Chip, Segmented, StateView } from '../discovery/ui';
-import { minutesDetail, playbackUrl, secondsOf, transcript, type Detail, type Item } from './api';
+import { minutesDetail, secondsOf, transcript, type Detail, type Item } from './api';
 import { FinalPanel } from './FinalPanel';
-import { MeetingChip, useMomFormat } from './parts';
-import { clock, useRecording } from './recorder';
+import { MeetingMenu } from './MeetingMenu';
+import { filterItems, type ItemFilter } from './minutes';
+import { ItemExtra, ItemFilters, MinutesBar, MinutesLinks } from './MinutesExtras';
+import { MeetingChip, SmallButton, useMomFormat } from './parts';
+import { PlayerBar, usePlayback } from './playback';
+import { useRecording } from './recorder';
 
 type Tab = 'notes' | 'items' | 'transcript' | 'final';
 
 const shortWindow = 520;
-
-async function loaded(player: AudioPlayer): Promise<boolean> {
-  for (let tries = 0; tries < 100; tries++) {
-    if (player.isLoaded) return true;
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  return false;
-}
-
-function usePlayback(recording: number | null) {
-  const { active } = useSession();
-  const player = useAudioPlayer(null);
-  const status = useAudioPlayerStatus(player);
-  const source = useRef<number | null>(null);
-  const [busy, setBusy] = useState(false);
-  const play = useCallback(
-    async (seconds?: number) => {
-      if (!active || !recording) return;
-      setBusy(true);
-      try {
-        if (source.current !== recording) {
-          player.replace({ uri: await playbackUrl(active, recording) });
-          source.current = recording;
-          if (!(await loaded(player))) return;
-        }
-        if (seconds !== undefined) await player.seekTo(seconds);
-        player.play();
-      } catch {
-        source.current = null;
-      } finally {
-        setBusy(false);
-      }
-    },
-    [active, recording, player],
-  );
-  return { status, play, pause: () => player.pause(), busy };
-}
-
-function PlayerBar({ playback }: { playback: ReturnType<typeof usePlayback> }) {
-  const { t } = useTranslation();
-  const { colors } = useTheme();
-  const { status } = playback;
-  const share = status.duration ? Math.min(1, status.currentTime / status.duration) : 0;
-  return (
-    <View style={styles.playerWrap}>
-    <View style={[styles.player, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="mom-player">
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={status.playing ? t('mom.detail.pause') : t('mom.detail.play')}
-        onPress={() => (status.playing ? playback.pause() : void playback.play())}
-        disabled={playback.busy}
-        style={[styles.playButton, { backgroundColor: colors.primary, opacity: playback.busy ? 0.6 : 1 }]}
-        testID="player-toggle">
-        <Icon name={status.playing ? 'pause' : 'play'} color={colors.onPrimary} />
-      </Pressable>
-      <View style={[styles.track, { backgroundColor: colors.line }]}>
-        <View style={[styles.trackFill, { backgroundColor: colors.primary, width: `${Math.round(share * 100)}%` }]} />
-      </View>
-      <Text variant="footnote" style={styles.mono}>
-        {clock(status.currentTime * 1000)}
-      </Text>
-    </View>
-    </View>
-  );
-}
 
 function Banner({ text }: { text: string }) {
   const { colors } = useTheme();
@@ -162,14 +99,19 @@ function Notes({ detail }: { detail: Detail }) {
   );
 }
 
-function Items({ items, onPlay }: { items: Item[]; onPlay?: (seconds: number) => void }) {
+function Items({ items: all, team, onPlay }: { items: Item[]; team: boolean; onPlay?: (seconds: number) => void }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  if (!items.length) return <Text tone="inkSoft">{t('mom.detail.noItems')}</Text>;
+  const [filter, setFilter] = useState<ItemFilter>('all');
+  const [type, setType] = useState('');
+  if (!all.length) return <Text tone="inkSoft">{t('mom.detail.noItems')}</Text>;
+  const items = filterItems(all, filter, type);
   const hearable = !!onPlay && items.some((item) => secondsOf(item.at ?? '') !== null);
   return (
     <>
       <Banner text={hearable ? `${t('mom.detail.unverified')} ${t('mom.detail.tapToHear')}` : t('mom.detail.unverified')} />
+      <ItemFilters items={all} filter={filter} type={type} onFilter={setFilter} onType={setType} />
+      {items.length ? null : <Text tone="inkSoft">{t('mom.itemFilters.none')}</Text>}
       {items.map((item) => {
         const seconds = secondsOf(item.at ?? '');
         const playable = onPlay && seconds !== null;
@@ -193,6 +135,7 @@ function Items({ items, onPlay }: { items: Item[]; onPlay?: (seconds: number) =>
             <Text variant="footnote" tone="inkSoft">
               {[item.speaker, item.at].filter(Boolean).join(' · ')}
             </Text>
+            <ItemExtra item={item} team={team} />
           </Pressable>
         );
       })}
@@ -203,6 +146,7 @@ function Items({ items, onPlay }: { items: Item[]; onPlay?: (seconds: number) =>
 function Transcript({ recording, onPlay, header }: { recording: number; onPlay: (seconds: number) => void; header?: ReactNode }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const router = useRouter();
   const segments = useResource(`mom.transcript.${recording}`, (account) => transcript(account, recording), 300_000);
   if (!segments.data) {
     return (
@@ -219,7 +163,16 @@ function Transcript({ recording, onPlay, header }: { recording: number; onPlay: 
       contentContainerStyle={styles.content}
       initialNumToRender={20}
       windowSize={7}
-      ListHeaderComponent={header ? <>{header}</> : undefined}
+      ListHeaderComponent={
+        <>
+          {header}
+          <SmallButton
+            label={t('mom.recordingMenu.editor')}
+            onPress={() => router.push({ pathname: '/mom/transcript/[recording]', params: { recording: String(recording) } })}
+            testID="transcript-edit"
+          />
+        </>
+      }
       ListEmptyComponent={<Text tone="inkSoft">{t('mom.detail.noTranscript')}</Text>}
       renderItem={({ item }) => (
         <Pressable
@@ -280,7 +233,12 @@ export function MeetingView({ meeting, back }: { meeting: number; back: boolean 
   ];
   const top = (
     <>
-      <Header title={data.meeting} subtitle={t('mom.meetingLine', { day: format.day(data.day), programme: data.programme })} back={back} />
+      <Header
+        title={data.meeting}
+        subtitle={t('mom.meetingLine', { day: format.day(data.day), programme: data.programme })}
+        back={back}
+        actions={<MeetingMenu meeting={meeting} />}
+      />
       <View style={styles.tabs}>
         <Segmented options={tabs} value={tab} onChange={setTab} testID="meeting-tab" />
         {recordings.length > 1 && (tab === 'transcript' || tab === 'notes') ? (
@@ -314,8 +272,16 @@ export function MeetingView({ meeting, back }: { meeting: number; back: boolean 
     <View style={styles.fill} testID="mom-meeting">
       {short ? null : top}
       <View style={styles.fill}>
-        {tab === 'notes' ? scrolled(data.generated ? <Notes detail={data} /> : notReady) : null}
-        {tab === 'items' ? scrolled(<Items items={data.items} onPlay={recordings.length === 1 ? play : undefined} />) : null}
+        {tab === 'notes'
+          ? scrolled(
+              <>
+                <MinutesBar detail={data} />
+                {data.generated ? <Notes detail={data} /> : notReady}
+                <MinutesLinks detail={data} />
+              </>,
+            )
+          : null}
+        {tab === 'items' ? scrolled(<Items items={data.items} team={!data.isClient} onPlay={recordings.length === 1 ? play : undefined} />) : null}
         {tab === 'transcript' ? (
           recording ? (
             <Transcript key={recording} recording={recording} onPlay={(seconds) => play?.(seconds)} header={inner} />
@@ -346,19 +312,4 @@ const styles = StyleSheet.create({
   item: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.xs },
   rowWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   segment: { flexDirection: 'row', gap: space.md, paddingVertical: space.sm, borderRadius: radius.md },
-  player: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    padding: space.sm,
-    paddingRight: space.lg,
-    borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    width: '100%',
-    maxWidth: readableWidth,
-  },
-  playerWrap: { paddingHorizontal: space.md, paddingVertical: space.sm, alignItems: 'center' },
-  playButton: { width: 48, height: 48, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
-  track: { flex: 1, height: 6, borderRadius: radius.pill, overflow: 'hidden' },
-  trackFill: { height: 6 },
 });
