@@ -148,7 +148,7 @@ export function RecordScreen({ programme, model, rid, stashKey }: { programme: n
   const specsByName = useMemo(() => {
     const map = new Map<string, FieldSpec[]>();
     if (!loaded) return map;
-    for (const spec of [...loaded.form.title, ...loaded.form.blocks.flatMap((block) => block.items.filter((item): item is FieldSpec => item.kind === 'field'))]) {
+    for (const spec of [...loaded.form.title, ...loaded.form.hiddenFields, ...loaded.form.blocks.flatMap((block) => block.items.filter((item): item is FieldSpec => item.kind === 'field'))]) {
       map.set(spec.name, [...(map.get(spec.name) ?? []), spec]);
     }
     return map;

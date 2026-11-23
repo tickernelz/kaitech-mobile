@@ -44,6 +44,7 @@ export type FormSpec = {
   statusbar?: { name: string; visible: string[] };
   smart: ButtonSpec[];
   title: FieldSpec[];
+  hiddenFields: FieldSpec[];
   blocks: Block[];
   chatter: boolean;
   widgets: string[];
@@ -135,6 +136,7 @@ export function compileForm(arch: string, fields: Fields): FormSpec {
     header: [],
     smart: [],
     title: [],
+    hiddenFields: [],
     blocks: [],
     chatter: false,
     widgets: [],
@@ -166,7 +168,7 @@ export function compileForm(arch: string, fields: Fields): FormSpec {
         continue;
       }
       if (shown === null) {
-        for (const nested of elements(child)) collectAll(nested);
+        collectAll(child);
         continue;
       }
       if (child.tag === 'header' || child.tag === 'footer') {
@@ -175,6 +177,7 @@ export function compileForm(arch: string, fields: Fields): FormSpec {
           const own = conditions([], item);
           if (item.tag === 'field' && item.attrs.name) {
             names.add(item.attrs.name);
+            spec.hiddenFields.push(fieldOf(item, []));
             if (item.attrs.widget === 'statusbar') spec.statusbar = { name: item.attrs.name, visible: (item.attrs.statusbar_visible ?? '').split(',').map((value) => value.trim()).filter(Boolean) };
           }
           if (item.tag === 'button' && own) {
@@ -211,6 +214,7 @@ export function compileForm(arch: string, fields: Fields): FormSpec {
           names.add(field.attrs.name);
           const own = conditions(shown, field);
           if (own) spec.title.push(fieldOf(field, own));
+          else spec.hiddenFields.push(fieldOf(field, []));
         }
         continue;
       }
@@ -266,7 +270,10 @@ export function compileForm(arch: string, fields: Fields): FormSpec {
 
   const collectAll = (node: XmlNode) => {
     collect(node);
-    if (node.tag === 'field' && node.attrs.name) names.add(node.attrs.name);
+    if (node.tag === 'field' && node.attrs.name) {
+      names.add(node.attrs.name);
+      spec.hiddenFields.push(fieldOf(node, []));
+    }
     if (node.tag === 'field') return;
     for (const child of elements(node)) collectAll(child);
   };

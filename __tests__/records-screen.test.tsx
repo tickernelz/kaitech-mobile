@@ -132,12 +132,12 @@ it('hides a button and locks a field whose condition the app cannot read, so a n
   expect(view.getByText('Locked text')).toBeTruthy();
 });
 
-it('saves only what the web would send: editable fields and force_save, never a readonly field an onchange filled', async () => {
-  const saveFields: api.Fields = { ...fields, code: { type: 'char', string: 'Code' }, ref: { type: 'char', string: 'Ref' } };
-  const saveArch = '<form><sheet><group><field name="name" on_change="1"/><field name="code" readonly="1"/><field name="ref" readonly="1" force_save="1"/><field name="note"/></group></sheet></form>';
+it('saves only what the web would send: editable fields, hidden ones included, and force_save, never a readonly field an onchange filled', async () => {
+  const saveFields: api.Fields = { ...fields, code: { type: 'char', string: 'Code' }, ref: { type: 'char', string: 'Ref' }, hint: { type: 'char', string: 'Hint' }, lock: { type: 'char', string: 'Lock' }, kind: { type: 'char', string: 'Kind' } };
+  const saveArch = '<form><sheet><group><field name="name" on_change="1"/><field name="code" readonly="1"/><field name="ref" readonly="1" force_save="1"/><field name="note"/><field name="hint" invisible="1"/><field name="lock" invisible="1" readonly="1"/></group><div invisible="1"><field name="kind"/></div></sheet></form>';
   mocked.getViews.mockResolvedValue({ views: { form: { arch: saveArch, id: 1 } }, models: { 'ck.x': { fields: saveFields } } });
   mocked.readRecord.mockResolvedValue({ id: 7, name: 'Plan', code: 'C1', ref: 'R1', note: 'n', display_name: 'Plan' });
-  mocked.onchange.mockResolvedValue({ value: { code: 'C2', ref: 'R2' } });
+  mocked.onchange.mockResolvedValue({ value: { code: 'C2', ref: 'R2', hint: 'H2', lock: 'L2', kind: 'K2' } });
   mocked.saveRecord.mockResolvedValue({ id: 7, name: 'Plan B', code: 'C2', ref: 'R2', note: 'n', display_name: 'Plan B' });
   const view = await render(<RecordScreen programme={1} model="ck.x" rid={7} />);
   await fireEvent.press(await view.findByTestId('record-edit'));
@@ -145,5 +145,5 @@ it('saves only what the web would send: editable fields and force_save, never a 
   await waitFor(() => expect(mocked.onchange).toHaveBeenCalled());
   await fireEvent.press(view.getByTestId('record-save'));
   await waitFor(() => expect(mocked.saveRecord).toHaveBeenCalled());
-  expect(mocked.saveRecord.mock.calls[0][3]).toEqual({ name: 'Plan B', ref: 'R2' });
+  expect(mocked.saveRecord.mock.calls[0][3]).toEqual({ name: 'Plan B', ref: 'R2', hint: 'H2', kind: 'K2' });
 });
