@@ -184,7 +184,6 @@ jobs:
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
           audio: 'true'
 
-
   android-mom:
     name: android mom
     needs: [plan, android-apk, android-rows]
@@ -232,7 +231,6 @@ jobs:
           flows: .maestro/signed-in/mom-more.yaml .maestro/signed-in/mom-followups.yaml .maestro/signed-in/mom-final.yaml .maestro/signed-in/mom-minutes.yaml .maestro/signed-in/mom-editor.yaml .maestro/signed-in/mom-workspace.yaml
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
           audio: 'true'
-          snapshot: 'false'
 
   ipad:
     name: ipad simulator en-US
