@@ -160,6 +160,13 @@ if [ -z "${E2E_LOGIN:-}" ]; then
   sleep 1
 fi
 
+audio_log=""
+if [ -n "${E2E_LOGIN:-}" ]; then
+  audio_log="$(mktemp)"
+  adb logcat -v threadtime -b main,system,crash > "$audio_log" 2> /dev/null &
+  audio_logger=$!
+fi
+
 if [ "$runner" = maestro ]; then
   adb shell am force-stop dev.devicelab.driver.android.test
   adb shell am force-stop dev.devicelab.driver.android
@@ -190,6 +197,17 @@ if [ "${E2E_CALL_PEER:-}" = 1 ]; then
 fi
 
 sleep 2
+if [ -n "$audio_log" ]; then
+  kill "$audio_logger" 2> /dev/null || true
+  wait "$audio_logger" 2> /dev/null || true
+  head='^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [VDIWEF] '
+  grep -aE \
+    -e "${head}[^ :]*([Aa]udio|AUDIO|AHAL|MediaRecorder|StagefrightRecorder|MPEG4Writer|CCodec|MediaCodec|AndroidRuntime)[^ :]* *: " \
+    -e "${head}ReactNativeJS *: .*[Rr]ecord" \
+    -e "${head}ActivityManager *: .*(AudioRecordingService|ANR in io\.kaitech\.mobile|Process io\.kaitech\.mobile )" \
+    "$audio_log" > "$out/audio.txt" || true
+  rm -f "$audio_log"
+fi
 if [ -z "${E2E_LOGIN:-}" ]; then
   adb shell pkill -INT screenrecord || true
   wait "$recorder" || true
@@ -213,11 +231,9 @@ fi
 node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
 
 if [ -n "${E2E_LOGIN:-}" ]; then
-  app_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
-  adb logcat -d -b main,crash --uid="$app_uid" 'ReactNativeJS:E' 'AudioRecord:E' 'MediaRecorder:E' 'AudioFlinger:E' '*:S' | grep -E 'recording could not start|AudioRecord|MediaRecorder|AudioFlinger|prepare' > "$out/recorder-errors.txt" || true
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name recorder-errors.txt ! -name call-peer.json ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name call-peer.json ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2
