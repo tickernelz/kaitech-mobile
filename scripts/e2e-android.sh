@@ -184,6 +184,13 @@ if [ -n "${E2E_THEMED_FLOWS:-}" ]; then
   adb shell cmd uimode night no
 fi
 
+if [ -n "${E2E_SCROLL_FLOW:-}" ]; then
+  "${run[@]}" test "${E2E_SCROLL_FLOW%.yaml}-ready.yaml" "${signed_in[@]}" --format junit --output "$out/junit-scroll-ready.xml" --test-output-dir "$out/maestro/scroll-ready" || status=$?
+  adb shell dumpsys gfxinfo io.kaitech.mobile reset > /dev/null
+  "${run[@]}" test "$E2E_SCROLL_FLOW" "${signed_in[@]}" --format junit --output "$out/junit-scroll.xml" --test-output-dir "$out/maestro/scroll" || status=$?
+  adb shell dumpsys gfxinfo io.kaitech.mobile | tr -d '\r' | sed -n '/^Total frames rendered/,/^99th percentile/p' > "$out/scroll-gfxinfo.txt"
+fi
+
 sleep 2
 if [ -z "${E2E_LOGIN:-}" ]; then
   adb shell pkill -INT screenrecord || true
@@ -212,7 +219,7 @@ if [ -n "${E2E_LOGIN:-}" ]; then
   adb logcat -d -b main,crash --uid="$app_uid" 'ReactNativeJS:E' 'AudioRecord:E' 'MediaRecorder:E' 'AudioFlinger:E' '*:S' | grep -E 'recording could not start|AudioRecord|MediaRecorder|AudioFlinger|prepare' > "$out/recorder-errors.txt" || true
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name recorder-errors.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name recorder-errors.txt ! -name scroll-gfxinfo.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2
