@@ -41,6 +41,7 @@ jobs:
     outputs:
       mode: ${{ steps.mode.outputs.mode }}
       cells: ${{ steps.mode.outputs.cells }}
+      flows: ${{ steps.mode.outputs.flows }}
     steps:
       - id: mode
         env:
@@ -61,16 +62,21 @@ jobs:
             *) mode=none ;;
           esac
           if [ "$mode" = full ]; then
-            cells='[{"size":"phone","profile":"pixel_6","locale":"en-US","orientations":"portrait landscape","cold_start":5},
-              {"size":"phone","profile":"pixel_6","locale":"id-ID","orientations":"portrait landscape","cold_start":0},
-              {"size":"tablet","profile":"pixel_tablet","locale":"en-US","orientations":"portrait landscape","cold_start":0},
-              {"size":"tablet","profile":"pixel_tablet","locale":"id-ID","orientations":"portrait landscape","cold_start":0}]'
+            cells='[{"size":"phone","orientations":"portrait landscape","locale":"en-US"},
+              {"size":"phone","orientations":"portrait landscape","locale":"id-ID"},
+              {"size":"tablet","orientations":"portrait landscape","locale":"en-US"},
+              {"size":"tablet","orientations":"portrait landscape","locale":"id-ID"}]'
+            flows=''
           else
-            cells='[{"size":"phone","profile":"pixel_6","locale":"en-US","orientations":"portrait","cold_start":5,"flows":".maestro/welcome.yaml .maestro/sign-in-form.yaml"}]'
+            cells='[{"size":"phone","orientations":"portrait","locale":"en-US"}]'
+            flows='.maestro/welcome.yaml .maestro/sign-in-form.yaml'
           fi
           echo "E2E mode: $mode"
-          echo "mode=$mode" >> "$GITHUB_OUTPUT"
-          echo "cells=$(jq -c . <<< "$cells")" >> "$GITHUB_OUTPUT"
+          {
+            echo "mode=$mode"
+            echo "cells=$(jq -c --arg mode "$mode" 'map({mode: $mode} + .)' <<< "$cells")"
+            echo "flows=$flows"
+          } >> "$GITHUB_OUTPUT"
 
   android-apk:
     name: android apk x86_64
@@ -102,7 +108,7 @@ jobs:
           key-password: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
   android:
-    name: android ${{ needs.plan.outputs.mode }} ${{ matrix.size }} ${{ matrix.orientations }} ${{ matrix.locale }}
+    name: android
     needs: [plan, android-apk]
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -124,16 +130,15 @@ jobs:
           apk-dir: dist
           artifact: e2e-android-${{ needs.plan.outputs.mode }}-${{ matrix.size }}-${{ matrix.locale }}
           size: ${{ matrix.size }}
-          profile: ${{ matrix.profile }}
           locale: ${{ matrix.locale }}
           orientations: ${{ matrix.orientations }}
-          flows: ${{ matrix.flows }}
+          flows: ${{ needs.plan.outputs.flows }}
           runner: ${{ vars.E2E_RUNNER || 'auto' }}
-          cold-start: ${{ matrix.cold_start }}
+          cold-start: ${{ matrix.size == 'phone' && matrix.locale == 'en-US' && '5' || '0' }}
           save-snapshot: ${{ github.event_name != 'pull_request' }}
 
   android-rows:
-    name: android rows ${{ matrix.size }} ${{ matrix.locale }}${{ matrix.hide_direct == 'true' && ' hide-direct' || '' }}
+    name: android rows
     needs: [plan, android-apk]
     if: needs.plan.outputs.mode == 'full'
     runs-on: ubuntu-latest
@@ -149,7 +154,7 @@ jobs:
       E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
       E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
       E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
-      E2E_HIDE_DIRECT: ${{ matrix.hide_direct || 'false' }}
+      E2E_HIDE_DIRECT: ${{ matrix.variant == 'hide-direct' }}
     strategy:
       fail-fast: false
       matrix:
@@ -157,12 +162,8 @@ jobs:
         locale: [en-US, id-ID]
         include:
           - size: phone
-            profile: pixel_6
-          - size: tablet
-            profile: pixel_tablet
-          - size: phone
             locale: en-US
-            hide_direct: 'true'
+            variant: hide-direct
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -175,10 +176,9 @@ jobs:
       - uses: ./.github/actions/android-e2e
         with:
           apk-dir: dist
-          artifact: e2e-android-rows-${{ matrix.size }}-${{ matrix.locale }}${{ matrix.hide_direct == 'true' && '-hide-direct' || '' }}
+          artifact: e2e-android-rows-${{ matrix.size }}-${{ matrix.locale }}${{ matrix.variant && format('-{0}', matrix.variant) || '' }}
           output-prefix: rows-
           size: ${{ matrix.size }}
-          profile: ${{ matrix.profile }}
           locale: ${{ matrix.locale }}
           orientations: portrait
           flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml

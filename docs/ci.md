@@ -70,7 +70,7 @@ Every artifact is scanned by gitleaks before upload; nothing is uploaded when th
 ## Release
 
 1. `gitleaks`: the ref must be a commit on `main`; gitleaks over the full git history and the working tree.
-2. `android apk universal` (four ABIs) and `android apk arm64-v8a`, signed with the release keystore and checked against `.github/android-release-cert.sha256`, ABIs, bundled JS secrets, perf gate; `ios ipa (unsigned)` and `ios bundle secret scan`.
+2. `android apk (universal)` (four ABIs) and `android apk (arm64-v8a)`, signed with the release keystore and checked against `.github/android-release-cert.sha256`, ABIs, bundled JS secrets, perf gate; `ios ipa (unsigned)` and `ios bundle secret scan`.
 3. Tags only: draft GitHub Release with the APKs, IPA and `SHA256SUMS.txt`; the draft is downloaded again for checksums, rotation, multi-window and iPad config inside the files (`scripts/check-release-artifacts.py`), and gitleaks over the unpacked APK and IPA; the universal APK is installed on a fresh emulator in eight cells (phone and tablet, portrait and landscape, `en-US` and `id-ID`), and the four signed-in rows cells run on it too (`rows from release`, fresh emulator, one at a time in `kaitech-e2e-account`); the release is published only when both pass.
 
 A manual run from `main` stops after step 2: it builds the release APKs and IPA as run artifacts (`kaitech-android-apk`, `kaitech-android-apk-arm64-v8a`, `kaitech-ios-ipa`) without creating a release. Use it for a build of `main` between releases.

@@ -41,20 +41,14 @@ jobs:
         run: gitleaks dir --redact --verbose --exit-code 1 .
 
   android:
-    name: android apk ${{ matrix.variant }}
+    name: android apk
     needs: gitleaks
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - variant: universal
-            abis: armeabi-v7a,arm64-v8a,x86,x86_64
-            artifact: kaitech-android-apk
-          - variant: arm64-v8a
-            abis: arm64-v8a
-            artifact: kaitech-android-apk-arm64-v8a
+        variant: [universal, arm64-v8a]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -66,9 +60,9 @@ jobs:
           cache: npm
       - uses: ./.github/actions/build-android-apk
         with:
-          abis: ${{ matrix.abis }}
+          abis: ${{ matrix.variant == 'universal' && 'armeabi-v7a,arm64-v8a,x86,x86_64' || matrix.variant }}
           variant: ${{ matrix.variant }}
-          artifact: ${{ matrix.artifact }}
+          artifact: kaitech-android-apk${{ matrix.variant != 'universal' && format('-{0}', matrix.variant) || '' }}
           save-cache: 'true'
           google-services-json: ${{ secrets.GOOGLE_SERVICES_JSON }}
           keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -300,7 +294,7 @@ jobs:
           retention-days: 1
 
   install-from-release:
-    name: install from release ${{ matrix.size }} ${{ matrix.orientation }} ${{ matrix.locale }}
+    name: install from release
     needs: release-assets
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -312,11 +306,6 @@ jobs:
         size: [phone, tablet]
         orientation: [portrait, landscape]
         locale: [en-US, id-ID]
-        include:
-          - size: phone
-            profile: pixel_6
-          - size: tablet
-            profile: pixel_tablet
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -338,7 +327,6 @@ jobs:
           artifact: e2e-android-release-${{ matrix.size }}-${{ matrix.orientation }}-${{ matrix.locale }}
           output-prefix: release-
           size: ${{ matrix.size }}
-          profile: ${{ matrix.profile }}
           locale: ${{ matrix.locale }}
           orientations: ${{ matrix.orientation }}
           runner: ${{ vars.E2E_RUNNER || 'auto' }}
@@ -346,7 +334,7 @@ jobs:
           retention-days: '90'
 
   rows-from-release:
-    name: rows from release ${{ matrix.size }} ${{ matrix.locale }}${{ matrix.hide_direct == 'true' && ' hide-direct' || '' }}
+    name: rows from release
     needs: release-assets
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -367,7 +355,7 @@ jobs:
       E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
       E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
       E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
-      E2E_HIDE_DIRECT: ${{ matrix.hide_direct || 'false' }}
+      E2E_HIDE_DIRECT: ${{ matrix.variant == 'hide-direct' }}
     strategy:
       fail-fast: false
       matrix:
@@ -375,12 +363,8 @@ jobs:
         locale: [en-US, id-ID]
         include:
           - size: phone
-            profile: pixel_6
-          - size: tablet
-            profile: pixel_tablet
-          - size: phone
             locale: en-US
-            hide_direct: 'true'
+            variant: hide-direct
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -399,10 +383,9 @@ jobs:
         uses: ./.github/actions/android-e2e
         with:
           apk-dir: release
-          artifact: e2e-android-release-rows-${{ matrix.size }}-${{ matrix.locale }}${{ matrix.hide_direct == 'true' && '-hide-direct' || '' }}
+          artifact: e2e-android-release-rows-${{ matrix.size }}-${{ matrix.locale }}${{ matrix.variant && format('-{0}', matrix.variant) || '' }}
           output-prefix: release-rows-
           size: ${{ matrix.size }}
-          profile: ${{ matrix.profile }}
           locale: ${{ matrix.locale }}
           orientations: portrait
           flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
