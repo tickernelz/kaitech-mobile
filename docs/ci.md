@@ -51,7 +51,7 @@ Pull request runs of the same pull request cancel each other; labelling a pull r
 - Android: the `android apk x86_64` job restores the x86_64 release APK cached under `native-apk-x86_64-<signing>-<fingerprint>`. On a hit, `@expo/repack-app` (`--js-bundle-only`) puts this commit's Hermes bundle into it and signs it with the same key, skipping prebuild and Gradle. On a miss, the APK is built (Gradle cache, ccache) and saved under that key when the run is on `main`.
 - iOS: the iPad job restores the simulator `Kaitech.app` cached under `ios-simulator-app-<fingerprint>` and repacks only the JS bundle on a hit. On a miss it runs `pod install` and `xcodebuild` and saves the app when the run is on `main`. Pods are not cached: the entry took 2,102 MB of the quota and only saves `pod install` (130-221 s) on a fingerprint change, next to 19-32 minutes of `xcodebuild`.
 
-Release builds never use these caches: every release artifact is compiled from source. `release.yml` writes no cache at all: a release on a tag cannot read entries another tag wrote, and a release dispatched on `main` (run 45104485957) wrote 2,861 MB of Gradle, ccache and CocoaPods entries for its own jobs that nothing else restores.
+Release builds never use these caches: every release artifact is compiled from source. `release.yml` writes no cache at all: a release on a tag cannot read entries another tag wrote, and a release dispatched on `main` (run 45104485957) wrote 2,861 MB of Gradle, ccache and CocoaPods entries that only a later release would restore, and releases are too rare to justify pushing the E2E set out of the 10 GB quota.
 
 ### Emulator
 
