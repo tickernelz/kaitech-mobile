@@ -53,7 +53,7 @@ Pull request runs of the same pull request cancel each other; labelling a pull r
 `@expo/fingerprint` hashes everything that decides the native build: native dependencies and autolinking, config plugins, the resolved Expo config (so every value `app.config.ts` and `app.json` produce), `patches/`, and through `fingerprint.config.js` the whole of `modules/kaitech-call/` and `plugins/`. Code under `src/` is not part of it.
 
 - Android: the `android apk x86_64` job restores the x86_64 release APK cached under `native-apk-x86_64-<signing>-<fingerprint>`. On a hit, `@expo/repack-app` (`--js-bundle-only`) puts this commit's Hermes bundle into it and signs it with the same key, skipping prebuild and Gradle. On a miss, the APK is built (Gradle cache, ccache) and saved under that key when the run is on `main`.
-- iOS: the iOS job restores the simulator `Kaitech.app` cached under `ios-simulator-app-arm64-<fingerprint>` (built with `ARCHS=arm64 ONLY_ACTIVE_ARCH=YES`: the `macos-26` runners are arm64, so the simulator slice for x86_64 is never needed) and repacks only the JS bundle on a hit. On a miss it restores `ios/Pods`, `Podfile.lock` and the CocoaPods and React Native download caches under `ios-pods-<fingerprint>`, runs `pod install` and `xcodebuild`, and saves both when the run is on `main`.
+- iOS: the iOS job restores the simulator `Kaitech.app` cached under `ios-simulator-app-arm64-<fingerprint>` (built with `ARCHS=arm64 ONLY_ACTIVE_ARCH=YES`: the `macos-26` runners are arm64, so the simulator slice for x86_64 is never needed) and repacks only the JS bundle on a hit. On a miss it runs `pod install` and `xcodebuild` with Xcode compilation caching (`COMPILATION_CACHE_ENABLE_CACHING=YES`, CAS in `build/cas`, restored from the newest `ios-cas-<fingerprint>`, emptied when it passes 3072 MB), and saves the app and the CAS when the run is on `main`. Measured on `macos-26` (ZHA-7503): xcodebuild universal 1663 s (run 45104149712), arm64 1063 s (run 45105105535); with compilation caching a build from an empty CAS took 663 s and a clean rebuild against that CAS 259 s, CAS 2062 MB (run 45107772111). The CAS replaced the former `ios-pods-<fingerprint>` cache: that one took 2102 MB of the 10 GB quota (main held 9564 MB) and saved about 50 s of `pod install` (49 s plus a 68 s restore against 166 s cold).
 
 Release builds never use these caches: every release artifact is compiled from source.
 
@@ -93,7 +93,7 @@ Every job that touches a cache writes a table to its run summary: each cache wit
 |---|---|---|
 | `native-apk-<variant>-<signing>-<fingerprint>` | x86_64 E2E APK | native fingerprint |
 | `ios-simulator-app-arm64-<fingerprint>` | iPhone simulator app (arm64) | native fingerprint |
-| `ios-pods-<fingerprint>` | `ios/Pods`, `Podfile.lock`, CocoaPods and React Native downloads | native fingerprint |
+| `ios-cas-<fingerprint>` | Xcode compilation cache (LLVM CAS) for the simulator build | native fingerprint, restored from the newest |
 | `avd-api35-x86_64-google_apis-pixel_6-v1` | phone AVD with a booted snapshot | profile |
 | Gradle (`setup-gradle`) | dependencies, wrapper, Gradle build cache | managed by the action |
 | `ccache-android-<variant>-…` | NDK C/C++ objects | `package-lock.json`, `app.json`, `app.config.ts` |

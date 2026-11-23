@@ -236,34 +236,25 @@ jobs:
           key: ios-simulator-app-arm64-${{ steps.fingerprint.outputs.hash }}
       - if: steps.app.outputs.cache-hit != 'true'
         run: npx expo prebuild --platform ios --no-install
-      - name: Restore Pods with this fingerprint
-        id: pods
+      - name: Restore the Xcode compilation cache
+        id: cas
         if: steps.app.outputs.cache-hit != 'true'
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: |
-            ios/Pods
-            ios/Podfile.lock
-            ~/Library/Caches/CocoaPods
-            ~/Library/Caches/ReactNative
-          key: ios-pods-${{ steps.fingerprint.outputs.hash }}
-          restore-keys: ios-pods-
+          path: build/cas
+          key: ios-cas-${{ steps.fingerprint.outputs.hash }}
+          restore-keys: ios-cas-
       - if: steps.app.outputs.cache-hit != 'true'
         working-directory: ios
         run: pod install
-      - if: steps.app.outputs.cache-hit != 'true' && steps.pods.outputs.cache-hit != 'true' && env.SAVE_CACHES == 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ios/Pods
-            ios/Podfile.lock
-            ~/Library/Caches/CocoaPods
-            ~/Library/Caches/ReactNative
-          key: ios-pods-${{ steps.fingerprint.outputs.hash }}
       - name: xcodebuild for the simulator (no code signing)
         if: steps.app.outputs.cache-hit != 'true'
         run: |
           mkdir -p build
+          if [ -d build/cas ] && [ "$(du -sm build/cas | cut -f1)" -gt 3072 ]; then
+            echo "compilation cache over 3072 MB, starting empty"
+            rm -rf build/cas
+          fi
           if ! xcodebuild \
             -workspace ios/Kaitech.xcworkspace \
             -scheme Kaitech \
@@ -273,6 +264,8 @@ jobs:
             -derivedDataPath build/ios \
             ARCHS=arm64 \
             ONLY_ACTIVE_ARCH=YES \
+            COMPILATION_CACHE_ENABLE_CACHING=YES \
+            COMPILATION_CACHE_CAS_PATH="$PWD/build/cas" \
             CODE_SIGNING_ALLOWED=NO \
             build > build/xcodebuild.log 2>&1; then
             grep -E 'error:' build/xcodebuild.log | head -50 || true
@@ -280,6 +273,7 @@ jobs:
             exit 1
           fi
           grep -E '^\*\* BUILD' build/xcodebuild.log
+          echo "compilation cache: $(du -sm build/cas | cut -f1) MB"
           mkdir -p build/native-app
           cp -R build/ios/Build/Products/Release-iphonesimulator/Kaitech.app build/native-app/
       - if: steps.app.outputs.cache-hit != 'true' && env.SAVE_CACHES == 'true'
@@ -287,6 +281,11 @@ jobs:
         with:
           path: build/native-app
           key: ios-simulator-app-arm64-${{ steps.fingerprint.outputs.hash }}
+      - if: steps.app.outputs.cache-hit != 'true' && steps.cas.outputs.cache-hit != 'true' && env.SAVE_CACHES == 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: build/cas
+          key: ios-cas-${{ steps.fingerprint.outputs.hash }}
       - name: Repack the cached simulator build with this commit's JS bundle
         if: steps.app.outputs.cache-hit == 'true'
         run: |
@@ -305,14 +304,14 @@ jobs:
           APP_OUTCOME: ${{ steps.app.outcome }}
           APP_HIT: ${{ steps.app.outputs.cache-hit }}
           APP_KEY: ${{ steps.app.outputs.cache-primary-key }}
-          PODS_OUTCOME: ${{ steps.pods.outcome }}
-          PODS_HIT: ${{ steps.pods.outputs.cache-hit }}
-          PODS_KEY: ${{ steps.pods.outputs.cache-primary-key }}
-          PODS_MATCHED: ${{ steps.pods.outputs.cache-matched-key }}
+          CAS_OUTCOME: ${{ steps.cas.outcome }}
+          CAS_HIT: ${{ steps.cas.outputs.cache-hit }}
+          CAS_KEY: ${{ steps.cas.outputs.cache-primary-key }}
+          CAS_MATCHED: ${{ steps.cas.outputs.cache-matched-key }}
         run: |
           bash scripts/cache-summary.sh "$SAVE_CACHES" \
             ios-simulator-app "$APP_OUTCOME" "$APP_HIT" "$APP_KEY" "" \
-            ios-pods "$PODS_OUTCOME" "$PODS_HIT" "$PODS_KEY" "$PODS_MATCHED"
+            ios-cas "$CAS_OUTCOME" "$CAS_HIT" "$CAS_KEY" "$CAS_MATCHED"
       - name: Run Maestro flows on an iPhone simulator
         run: bash scripts/e2e-ios.sh build/native-app/Kaitech.app e2e-output en-US
       - name: Scan E2E output for secrets
