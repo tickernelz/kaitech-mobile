@@ -116,10 +116,16 @@ onFlowStart:
     file: shared/screenshot.yaml
     env:
       SCREEN: sign-in-error
-- tapOn:
-    id: sign-in-server
-- eraseText: 40
-- inputText: erp.example.com
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn:
+          id: sign-in-server
+      - eraseText: 40
+      - inputText: erp.example.com
+      - assertVisible:
+          id: sign-in-server
+          text: ^erp\.example\.com$
 - runFlow:
     when:
       platform: Android
