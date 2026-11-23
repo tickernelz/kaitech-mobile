@@ -60,22 +60,6 @@ runs:
           tablet) echo "profile=pixel_tablet" >> "$GITHUB_OUTPUT" ;;
           *) echo "::error::size must be phone or tablet, got '$SIZE'"; exit 1 ;;
         esac
-    - name: Host audio for the emulator microphone
-      if: inputs.audio == 'true'
-      shell: bash
-      run: |
-        set -euo pipefail
-        if ! command -v pulseaudio > /dev/null; then
-          sudo apt-get install -y --no-install-recommends pulseaudio pulseaudio-utils > /dev/null || {
-            sudo apt-get update > /dev/null
-            sudo apt-get install -y --no-install-recommends pulseaudio pulseaudio-utils > /dev/null
-          }
-        fi
-        pulseaudio --start --exit-idle-time=-1
-        pactl load-module module-null-sink sink_name=emulator > /dev/null
-        pactl set-default-sink emulator
-        pactl set-default-source emulator.monitor
-        pactl info | grep -E '^(Server Name|Default Sink|Default Source):'
     - name: Run Maestro flows, one orientation after another
       uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
       env:
