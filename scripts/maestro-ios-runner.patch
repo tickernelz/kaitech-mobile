@@ -1,0 +1,15 @@
+diff --git a/maestro-ios-xctest-runner/maestro-driver-iosUITests/maestro_driver_iosUITests.swift b/maestro-ios-xctest-runner/maestro-driver-iosUITests/maestro_driver_iosUITests.swift
+index e41c4ec..a8c712f 100644
+--- a/maestro-ios-xctest-runner/maestro-driver-iosUITests/maestro_driver_iosUITests.swift
++++ b/maestro-ios-xctest-runner/maestro-driver-iosUITests/maestro_driver_iosUITests.swift
+@@ -19,6 +19,10 @@ final class maestro_driver_iosUITests: XCTestCase {
+         continueAfterFailure = true
+     }
+ 
++    override func record(_ issue: XCTIssue) {
++        NSLog("XCTest issue kept out of the test run so the HTTP server keeps serving: \(issue.detailedDescription ?? issue.compactDescription)")
++    }
++
+     override class func setUp() {
+         logger.trace("setUp")
+     }

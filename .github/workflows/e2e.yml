@@ -317,6 +317,19 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: ./.github/actions/setup-maestro
+      - name: Restore the patched Maestro iOS runner
+        id: maestro-runner
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: build/maestro-ios-runner
+          key: maestro-ios-runner-${{ hashFiles('.github/actions/setup-maestro/action.yml', 'scripts/maestro-ios-runner.sh', 'scripts/maestro-ios-runner.patch') }}
+      - name: Install the patched Maestro iOS runner
+        run: bash scripts/maestro-ios-runner.sh build/maestro-ios-runner
+      - if: steps.maestro-runner.outputs.cache-hit != 'true' && env.SAVE_CACHES == 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: build/maestro-ios-runner
+          key: ${{ steps.maestro-runner.outputs.cache-primary-key }}
       - uses: ./.github/actions/setup-gitleaks
       - run: npm ci
       - name: Native fingerprint
