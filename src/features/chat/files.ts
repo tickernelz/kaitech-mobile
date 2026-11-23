@@ -75,10 +75,11 @@ export async function downloadForOpening(
   url: string,
   name: string,
   headers: Record<string, string>,
+  fresh = false,
 ): Promise<File> {
   const directory = new Directory(Paths.cache, openedFolder, openedFolderName(key.accountId, key.attachmentId, key.checksum));
   const target = new File(directory, safeName(name));
-  if (target.exists && (target.size ?? 0) > 0) return target;
+  if (!fresh && target.exists && (target.size ?? 0) > 0) return target;
   directory.create({ intermediates: true, idempotent: true });
   const partialUri = new File(directory, `${newKey()}.part`).uri;
   try {
