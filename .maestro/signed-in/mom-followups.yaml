@@ -162,6 +162,11 @@ onFlowStart:
       id: followup-save-progress
 - tapOn:
     id: followup-save-progress
+- extendedWaitUntil:
+    notVisible:
+      id: followup-note
+      text: .*E2E progress.*
+    timeout: 30000
 - scrollUntilVisible:
     element:
       text: .*E2E progress.*

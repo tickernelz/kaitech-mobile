@@ -120,6 +120,10 @@ onFlowStart:
     id: composer-save-edit
 - runFlow: ../shared/dismiss-keyboard.yaml
 - extendedWaitUntil:
+    notVisible:
+      id: composer-editing
+    timeout: 15000
+- extendedWaitUntil:
     visible:
       text: ${RUN + ' a1 edited.*'}
     timeout: 15000
