@@ -136,8 +136,6 @@ jobs:
           flows: ${{ needs.plan.outputs.flows }}
           runner: ${{ vars.E2E_RUNNER || 'auto' }}
           cold-start: ${{ matrix.size == 'phone' && matrix.locale == 'en-US' && '5' || '0' }}
-          snapshot: ${{ matrix.size == 'phone' }}
-          save-snapshot: ${{ env.SAVE_CACHES }}
 
   android-rows:
     name: android rows
@@ -185,7 +183,6 @@ jobs:
           flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
           audio: 'true'
-          snapshot: 'false'
 
 
   android-mom:
@@ -278,30 +275,9 @@ jobs:
           key: ios-simulator-app-${{ steps.fingerprint.outputs.hash }}
       - if: steps.app.outputs.cache-hit != 'true'
         run: npx expo prebuild --platform ios --no-install
-      - name: Restore Pods with this fingerprint
-        id: pods
-        if: steps.app.outputs.cache-hit != 'true'
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ios/Pods
-            ios/Podfile.lock
-            ~/Library/Caches/CocoaPods
-            ~/Library/Caches/ReactNative
-          key: ios-pods-${{ steps.fingerprint.outputs.hash }}
-          restore-keys: ios-pods-
       - if: steps.app.outputs.cache-hit != 'true'
         working-directory: ios
         run: pod install
-      - if: steps.app.outputs.cache-hit != 'true' && steps.pods.outputs.cache-hit != 'true' && env.SAVE_CACHES == 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ios/Pods
-            ios/Podfile.lock
-            ~/Library/Caches/CocoaPods
-            ~/Library/Caches/ReactNative
-          key: ios-pods-${{ steps.fingerprint.outputs.hash }}
       - name: xcodebuild for the simulator (no code signing)
         if: steps.app.outputs.cache-hit != 'true'
         run: |
@@ -345,14 +321,7 @@ jobs:
           APP_OUTCOME: ${{ steps.app.outcome }}
           APP_HIT: ${{ steps.app.outputs.cache-hit }}
           APP_KEY: ${{ steps.app.outputs.cache-primary-key }}
-          PODS_OUTCOME: ${{ steps.pods.outcome }}
-          PODS_HIT: ${{ steps.pods.outputs.cache-hit }}
-          PODS_KEY: ${{ steps.pods.outputs.cache-primary-key }}
-          PODS_MATCHED: ${{ steps.pods.outputs.cache-matched-key }}
-        run: |
-          bash scripts/cache-summary.sh "$SAVE_CACHES" \
-            ios-simulator-app "$APP_OUTCOME" "$APP_HIT" "$APP_KEY" "" \
-            ios-pods "$PODS_OUTCOME" "$PODS_HIT" "$PODS_KEY" "$PODS_MATCHED"
+        run: bash scripts/cache-summary.sh "$SAVE_CACHES" ios-simulator-app "$APP_OUTCOME" "$APP_HIT" "$APP_KEY" ""
       - name: Run Maestro flows on an iPad simulator
         run: bash scripts/e2e-ipad.sh build/native-app/Kaitech.app e2e-output en-US
       - name: Scan E2E output for secrets
