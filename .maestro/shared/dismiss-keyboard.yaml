@@ -10,5 +10,14 @@ name: Dismiss the keyboard without the iOS back swipe
     when:
       platform: iOS
     commands:
+      - repeat:
+          while:
+            notVisible:
+              id: sign-in-title
+          times: 6
+          commands:
+            - swipe:
+                start: 50%, 10%
+                end: 50%, 45%
       - tapOn:
           id: sign-in-title
