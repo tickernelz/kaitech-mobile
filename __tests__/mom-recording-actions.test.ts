@@ -29,14 +29,25 @@ const card = (change: Partial<RecordingCard> = {}, progress: Partial<RecordingCa
 const team = { canChange: true, isClient: false };
 
 jest.mock('../src/api/odoo', () => ({ rpc: jest.fn() }));
+jest.mock('../src/auth/session', () => {
+  const forgotten: ((id: string) => void)[] = [];
+  return { forgotten, onAccountForgotten: (listener: (id: string) => void) => forgotten.push(listener) };
+});
+jest.mock('../src/i18n', () => ({ __esModule: true, default: { language: 'en' } }));
+
+const mockForgotten: ((id: string) => void)[] = jest.requireMock('../src/auth/session').forgotten;
+const mockI18n: { language: string } = jest.requireMock('../src/i18n').default;
+
+const recordsAnswer = (labelOf: () => string) => async (_account: unknown, _model: string, method: string) =>
+  method === 'fields_get'
+    ? { state: { selection: [['transcribed', labelOf()]] } }
+    : { length: 1, records: [{ id: 3, name: 'Kickoff', state: 'transcribed', engagement_id: false, meeting_id: false, department_id: false, size_label: '1 MB', uploaded_by_id: false }] };
 
 describe('record search', () => {
   it('asks for the state labels once per account and model, while every page is read again', async () => {
     const mocked = jest.mocked(rpc);
     mocked.mockReset();
-    mocked.mockImplementation(async (_account, _model, method) =>
-      method === 'fields_get' ? { state: { selection: [['transcribed', 'Transcribed']] } } : { length: 1, records: [{ id: 3, name: 'Kickoff', state: 'transcribed', engagement_id: false, meeting_id: false, department_id: false, size_label: '1 MB', uploaded_by_id: false }] },
-    );
+    mocked.mockImplementation(recordsAnswer(() => 'Transcribed') as never);
     const account = { id: 'a1' } as Parameters<typeof recordPage>[0];
     const first = await recordPage(account, 'recordings', '', 40);
     await recordPage(account, 'recordings', 'kick', 80);
@@ -45,6 +56,23 @@ describe('record search', () => {
     const methods = mocked.mock.calls.map((call) => call[2]);
     expect(methods.filter((one) => one === 'fields_get')).toHaveLength(2);
     expect(methods.filter((one) => one === 'web_search_read')).toHaveLength(3);
+  });
+
+  it('reads the labels again in the new language and after the account signs out', async () => {
+    const mocked = jest.mocked(rpc);
+    mocked.mockReset();
+    mocked.mockImplementation(recordsAnswer(() => (mockI18n.language === 'id' ? 'Ditranskripsi' : 'Transcribed')) as never);
+    const account = { id: 'a3' } as Parameters<typeof recordPage>[0];
+    expect((await recordPage(account, 'recordings', '', 40)).lines[0].state).toBe('Transcribed');
+    mockI18n.language = 'id';
+    try {
+      expect((await recordPage(account, 'recordings', '', 40)).lines[0].state).toBe('Ditranskripsi');
+    } finally {
+      mockI18n.language = 'en';
+    }
+    mockForgotten.forEach((listener) => listener('a3'));
+    await recordPage(account, 'recordings', '', 40);
+    expect(mocked.mock.calls.filter((call) => call[2] === 'fields_get')).toHaveLength(3);
   });
 
   it('looks in every field the web board searches, joined by or', () => {

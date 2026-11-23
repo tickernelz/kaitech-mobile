@@ -1,5 +1,7 @@
 import { rpc } from '../../api/odoo';
 import type { Account } from '../../auth/oauth';
+import { onAccountForgotten } from '../../auth/session';
+import i18n from '../../i18n';
 
 type Named = { id: number; name: string };
 
@@ -187,8 +189,12 @@ type Fields = Record<string, { selection?: [string, string][] }>;
 
 const labelCache = new Map<string, Promise<Map<string, string>>>();
 
+onAccountForgotten((account) => {
+  for (const key of labelCache.keys()) if (key.startsWith(`${account}:`)) labelCache.delete(key);
+});
+
 function stateLabels(account: Account, model: string, field: string): Promise<Map<string, string>> {
-  const key = `${account.id}:${model}:${field}`;
+  const key = `${account.id}:${i18n.language}:${model}:${field}`;
   const known = labelCache.get(key);
   if (known) return known;
   const loading = rpc<Fields>(account, model, 'fields_get', [[field]], { attributes: ['selection'] }).then((fields) => new Map(fields[field]?.selection ?? []));
