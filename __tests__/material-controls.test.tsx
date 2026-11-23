@@ -43,7 +43,7 @@ require('../src/i18n');
 const { Button } = require('../src/ui/Button.android') as typeof import('../src/ui/Button.android');
 const { TextField } = require('../src/ui/TextField.android') as typeof import('../src/ui/TextField.android');
 const { Fab } = require('../src/ui/Fab.android') as typeof import('../src/ui/Fab.android');
-const { Pressable: RipplePressable } = require('../src/ui/Pressable.android') as typeof import('../src/ui/Pressable.android');
+const { Pressable: RipplePressable, stateLayerInk } = require('../src/ui/Pressable.android') as typeof import('../src/ui/Pressable.android');
 const { TopAppBar, useCollapsingTitle } = require('../src/ui/AppBar.android') as typeof import('../src/ui/AppBar.android');
 
 function labelLift(text: string): number {
@@ -162,6 +162,38 @@ describe('Android pressables', () => {
     );
     expect(drawn.plain.props.style({ pressed: true, hovered: false })).toEqual({ backgroundColor: 'white' });
     expect(drawn.own.props.style({ pressed: true, hovered: false })).toEqual({ backgroundColor: 'grey' });
+  });
+});
+
+describe('Android state layer colour', () => {
+  test('the pressed layer takes the content colour of its container, as M3 asks', () => {
+    expect(stateLayerInk('#441D65', '#151418')).toBe('#F1F0F3');
+    expect(stateLayerInk('#B91C1E', '#151418')).toBe('#F1F0F3');
+    expect(stateLayerInk('#FFFFFF', '#F1F0F3')).toBe('#151418');
+    expect(stateLayerInk('#EDE7F5', '#F1F0F3')).toBe('#151418');
+  });
+
+  test('no container, a see-through one or a named colour keeps the theme colour', () => {
+    expect(stateLayerInk(undefined, '#151418')).toBe('#151418');
+    expect(stateLayerInk('transparent', '#151418')).toBe('#151418');
+    expect(stateLayerInk('#00000040', '#151418')).toBe('#151418');
+  });
+
+  test('a filled button gets a light ripple on its resting colour', async () => {
+    const drawn: Record<string, { props: { android_ripple?: { color: string } } }> = {};
+    function Probe(props: Parameters<typeof RipplePressable>[0] & { name: string }) {
+      const { name, ...rest } = props;
+      drawn[name] = RipplePressable(rest) as (typeof drawn)[string];
+      return null;
+    }
+    await render(
+      <>
+        <Probe name="filled" style={({ pressed }) => ({ backgroundColor: pressed ? '#2F1447' : '#441D65' })} onPress={() => undefined} />
+        <Probe name="plain" style={{ padding: 4 }} onPress={() => undefined} />
+      </>,
+    );
+    expect(drawn.filled.props.android_ripple).toEqual({ color: '#F1F0F31A' });
+    expect(drawn.plain.props.android_ripple).toEqual({ color: '#1514181A' });
   });
 });
 
