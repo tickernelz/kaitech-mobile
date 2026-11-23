@@ -1,3 +1,5 @@
+import { act, renderHook } from '@testing-library/react-native';
+
 const undo = require('../src/ui/undo') as typeof import('../src/ui/undo');
 
 async function settle() {
@@ -32,5 +34,26 @@ describe('undo window', () => {
     jest.advanceTimersByTime(undo.undoWindowMs * 2);
     await settle();
     expect(second.commit).not.toHaveBeenCalled();
+  });
+
+  it('stops offering Undo as soon as the window closes, while the action is still on its way to the server', async () => {
+    let finish: (ok: boolean) => void = () => undefined;
+    const item = { apply: jest.fn(), revert: jest.fn(), commit: jest.fn(() => new Promise<boolean>((resolve) => (finish = resolve))) };
+    const bar = await renderHook(() => undo.useUndo());
+    await act(async () => {
+      undo.deferUndoable({ label: 'gone', ...item });
+    });
+    expect(bar.result.current?.label).toBe('gone');
+    await act(async () => {
+      jest.advanceTimersByTime(undo.undoWindowMs);
+      await settle();
+    });
+    expect(item.commit).toHaveBeenCalledTimes(1);
+    expect(bar.result.current).toBeNull();
+    await act(async () => {
+      finish(true);
+      await settle();
+    });
+    expect(item.revert).not.toHaveBeenCalled();
   });
 });

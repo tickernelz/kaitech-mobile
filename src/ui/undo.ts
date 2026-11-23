@@ -33,16 +33,14 @@ function show(next: UndoState) {
 
 async function settle(item: Pending) {
   if (pending === item) pending = null;
+  if (shown?.id === item.id) show(null);
   let ok = false;
   try {
     ok = await item.commit();
   } catch {
     ok = false;
   }
-  if (ok) {
-    if (shown?.id === item.id) show(null);
-    return;
-  }
+  if (ok) return;
   item.revert();
   showFailure('', item.id);
 }
