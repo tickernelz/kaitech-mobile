@@ -189,7 +189,7 @@ jobs:
 
 
   android-mom:
-    name: android mom ${{ matrix.size }} ${{ matrix.locale }}
+    name: android mom
     needs: [plan, android-apk, android-rows]
     if: always() && needs.plan.outputs.mode == 'full' && needs.android-apk.result == 'success'
     runs-on: ubuntu-latest
@@ -210,13 +210,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        size: [phone, tablet]
-        locale: [en-US, id-ID]
         include:
-          - size: phone
-            profile: pixel_6
-          - size: tablet
-            profile: pixel_tablet
+          - { size: phone, locale: en-US }
+          - { size: phone, locale: id-ID }
+          - { size: tablet, locale: en-US }
+          - { size: tablet, locale: id-ID }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -232,7 +230,6 @@ jobs:
           artifact: e2e-android-mom-${{ matrix.size }}-${{ matrix.locale }}
           output-prefix: mom-
           size: ${{ matrix.size }}
-          profile: ${{ matrix.profile }}
           locale: ${{ matrix.locale }}
           orientations: portrait
           flows: .maestro/signed-in/mom-more.yaml .maestro/signed-in/mom-followups.yaml .maestro/signed-in/mom-final.yaml .maestro/signed-in/mom-minutes.yaml .maestro/signed-in/mom-editor.yaml .maestro/signed-in/mom-workspace.yaml
