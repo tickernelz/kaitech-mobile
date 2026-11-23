@@ -71,7 +71,7 @@ const idle: CallState = {
   muted: false,
   cameraOn: false,
   cameraBlocked: false,
-  speaker: true,
+  speaker: false,
   facing: 'user',
   callerName: '',
   callerPartnerId: null,
@@ -289,7 +289,7 @@ export async function toggleRecording() {
 }
 
 export async function startCall(input: { channelId: number; channelName: string }) {
-  if (state.phase === 'incoming' && state.channelId === input.channelId) return answer();
+  if (state.phase === 'incoming' && state.channelId === input.channelId && callAccount?.id === activeAccount()?.id) return answer();
   if (state.phase !== 'idle' && state.phase !== 'ended') return;
   const api = callClient();
   if (!api) return;
@@ -308,7 +308,6 @@ export async function startCall(input: { channelId: number; channelName: string 
     phase: 'outgoing',
     channelId: input.channelId,
     channelName: input.channelName,
-    speaker: true,
     version: state.version + 1,
   });
   await connect(api, input.channelId, started);
@@ -366,14 +365,14 @@ async function connect(api: CallClient, channelId: number, started: number) {
       return;
     }
     await instance.localParticipant.setMicrophoneEnabled(true);
-    await routeAudio(true);
+    await routeAudio(false);
     if (stale(started)) {
       await teardown();
       await api.leave(session.channelId, session.sessionId).catch(() => undefined);
       return;
     }
     collect();
-    publish({ phase: 'active', startedAt: Date.now(), muted: false, cameraOn: false, speaker: true, recording: instance.isRecording });
+    publish({ phase: 'active', startedAt: Date.now(), muted: false, cameraOn: false, speaker: false, recording: instance.isRecording });
     if (instance.isRecording) void lookUpRecorder();
     void callNative()?.setInCall(true);
     void callNative()?.startCall(state.channelName || state.callerName, i18n.t('call:inCall'), channelId);

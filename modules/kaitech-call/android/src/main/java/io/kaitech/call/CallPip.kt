@@ -1,5 +1,6 @@
 package io.kaitech.call
 
+import android.Manifest
 import android.app.Activity
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
@@ -125,7 +126,7 @@ object CallPip {
     )
     if (current.sharing) {
       out += action(context, R.drawable.kaitech_call_stop_share, R.string.kaitech_call_stop_sharing, CallNotifications.ACTION_STOP_SHARING, 2)
-    } else {
+    } else if (current.camera || context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
       out += if (current.camera) {
         action(context, R.drawable.kaitech_call_videocam, R.string.kaitech_call_camera_off, ACTION_TOGGLE_CAMERA, 2)
       } else {

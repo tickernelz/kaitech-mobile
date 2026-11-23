@@ -105,7 +105,13 @@ jest.mock('../src/i18n', () => ({
 }));
 
 jest.mock('../src/auth/session', () => ({
-  getSession: () => ({ accounts: [{ id: 'A', origin: 'https://a.test', db: 'dbA', userId: 1, partnerId: 11 }], activeId: 'A' }),
+  getSession: () => ({
+    accounts: [
+      { id: 'A', origin: 'https://a.test', db: 'dbA', userId: 1, partnerId: 11 },
+      { id: 'B', origin: 'https://b.test', db: 'dbB', userId: 2, partnerId: 11 },
+    ],
+    activeId: 'A',
+  }),
   onAccountForgotten: () => undefined,
 }));
 
@@ -264,7 +270,7 @@ describe('one call that starts as voice', () => {
     expect(mockAsked).toEqual(['microphone']);
     expect(mockJoins).toEqual([{ channelId: 5, args: 0 }]);
     expect(room.localParticipant.cameraCalls).toEqual([]);
-    expect(call.callState()).toMatchObject({ cameraOn: false, cameraBlocked: false });
+    expect(call.callState()).toMatchObject({ cameraOn: false, cameraBlocked: false, speaker: false });
     expect(mockNative.startCall[0]).toEqual(['Team', 'call:inCall', 5]);
     expect(lastPip().enabled).toBe(false);
   });
@@ -398,6 +404,18 @@ describe('an incoming call from the web or an older app', () => {
     await flush();
     expect(call.callState()).toMatchObject({ phase: 'active', channelId: 7, cameraOn: false });
     expect(mockJoins).toEqual([{ channelId: 7, args: 0 }]);
+  });
+
+  it('leaves a call ringing on another account alone when Call is pressed in a channel with the same id', async () => {
+    mockStore = ringing;
+    const call = load();
+    mockListeners[mockListeners.length - 1]({ type: 'incoming', channelId: 7, callId: 30, title: 'Web Caller', db: 'dbB', uid: 2 });
+    await flush();
+    expect(call.callState()).toMatchObject({ phase: 'incoming', channelId: 7 });
+    await call.startCall({ channelId: 7, channelName: 'Web, HP' });
+    await flush();
+    expect(call.callState()).toMatchObject({ phase: 'incoming', channelId: 7 });
+    expect(mockJoins).toEqual([]);
   });
 
   it('stays idle when the invitation is already gone', async () => {
