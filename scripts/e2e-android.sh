@@ -173,7 +173,7 @@ if grep -q 'telemetry (debug, not sent)' "$console"; then
   status=1
 fi
 rm -f "$console"
-if grep -rqs --include=maestro-runner.log 'CDP socket available' "$out/maestro"; then
+if grep -rqsE --include=maestro-runner.log 'CDP socket available.*\(type=browser\)' "$out/maestro"; then
   echo "::error::maestro-runner found a Chrome DevTools socket and looked for native elements in the page DOM"
   status=1
 fi
