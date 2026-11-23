@@ -10,7 +10,7 @@ jar="$(cd "$(dirname "$(command -v maestro)")/.." && pwd)/lib/maestro-ios-driver
 products=driver-iPhoneSimulator
 
 if [ ! -f "$out/$products/maestro-driver-ios-config.xctestrun" ]; then
-  src="$(mktemp -d)"
+  src="$(mktemp -d)/Maestro"
   git clone -q --depth 1 --filter=blob:none --sparse --branch "$MAESTRO_VERSION" https://github.com/mobile-dev-inc/Maestro.git "$src"
   [ "$(git -C "$src" rev-parse HEAD)" = "$MAESTRO_SOURCE_COMMIT" ] || { echo "$MAESTRO_VERSION is not $MAESTRO_SOURCE_COMMIT" >&2; exit 1; }
   git -C "$src" sparse-checkout set maestro-ios-xctest-runner
@@ -20,7 +20,7 @@ if [ ! -f "$out/$products/maestro-driver-ios-config.xctestrun" ]; then
   rm -rf "${out:?}/$products"
   mkdir -p "$out"
   cp -R "$src/maestro-ios-driver/src/main/resources/$products" "$out/"
-  rm -rf "$src"
+  rm -rf "$(dirname "$src")"
 fi
 
 (cd "$out" && zip -qr "$jar" "$products")
