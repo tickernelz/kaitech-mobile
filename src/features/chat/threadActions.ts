@@ -1,5 +1,5 @@
 import { route, rpc } from '../../api/odoo';
-import { forgetConversation, getChat, patchInfo, refreshConversations, setFeatures } from './chat';
+import { forgetConversation, getChat, patchInfo, refreshConversations, setFeatures, threadOf } from './chat';
 import { run, type Person } from './messageActions';
 import { attachmentFromStore, messagesFromStore, type Notifications } from './odoo';
 import type { Attachment, Message } from './types';
@@ -47,6 +47,8 @@ export function invitable(channelId: number, query: string) {
 export function invite(channelId: number, partnerIds: number[]) {
   return run(async (account) => {
     await rpc(account, 'discuss.channel', 'add_members', [[channelId]], { partner_ids: partnerIds });
+    const info = threadOf(getChat(), channelId).info;
+    if (info) patchInfo(channelId, { memberCount: info.memberCount + partnerIds.length });
   });
 }
 

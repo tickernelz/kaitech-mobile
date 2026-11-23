@@ -99,8 +99,8 @@ onFlowComplete:
     visible:
       id: upload-done
     timeout: 180000
-- scrollUntilVisible:
-    element:
+- extendedWaitUntil:
+    visible:
       text: ${output.meeting}
     timeout: 60000
 - longPressOn:
