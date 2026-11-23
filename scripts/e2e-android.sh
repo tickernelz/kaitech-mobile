@@ -177,10 +177,11 @@ sleep 2
 if [ -n "$audio_log" ]; then
   kill "$audio_logger" 2> /dev/null || true
   wait "$audio_logger" 2> /dev/null || true
+  head='^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [VDIWEF] '
   grep -aE \
-    -e ' [VDIWEF] [^ :]*([Aa]udio|AUDIO|AHAL|MediaRecorder|StagefrightRecorder|MPEG4Writer|CCodec|MediaCodec|AndroidRuntime)[^ :]* *: ' \
-    -e ' [VDIWEF] ReactNativeJS *: .*[Rr]ecord' \
-    -e ' [VDIWEF] ActivityManager *: .*(AudioRecordingService|ANR in io\.kaitech\.mobile|Process io\.kaitech\.mobile )' \
+    -e "${head}[^ :]*([Aa]udio|AUDIO|AHAL|MediaRecorder|StagefrightRecorder|MPEG4Writer|CCodec|MediaCodec|AndroidRuntime)[^ :]* *: " \
+    -e "${head}ReactNativeJS *: .*[Rr]ecord" \
+    -e "${head}ActivityManager *: .*(AudioRecordingService|ANR in io\.kaitech\.mobile|Process io\.kaitech\.mobile )" \
     "$audio_log" > "$out/audio.txt" || true
   rm -f "$audio_log"
 fi
