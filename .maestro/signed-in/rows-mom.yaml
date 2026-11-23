@@ -80,13 +80,8 @@ onFlowComplete:
           commands:
             - tapOn:
                 text: (Allow|Izinkan)
-- runFlow:
-    when:
-      visible:
-        id: setup-outcome
-    commands:
-      - tapOn:
-          id: setup-start
+- assertNotVisible:
+    id: setup-outcome
 - extendedWaitUntil:
     visible:
       id: recorder-time
