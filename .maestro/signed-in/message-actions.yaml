@@ -5,6 +5,11 @@ tags:
   - chat-actions
 onFlowStart:
   - runFlow: ../shared/orientation.yaml
+onFlowComplete:
+  - runScript:
+      file: ../scripts/web-peer.js
+      env:
+        ACTION: tidy
 ---
 - launchApp
 - extendedWaitUntil:
@@ -19,6 +24,11 @@ onFlowStart:
       - runFlow: ../shared/sign-in.yaml
 - tapOn:
     id: tab-button-chat
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: group
+      GROUP: ${'Uji teruskan ' + RUN}
 - extendedWaitUntil:
     visible:
       text: ${PEER}
@@ -65,10 +75,25 @@ onFlowStart:
     visible:
       text: .*(Pinned|Disematkan).*
     timeout: 20000
-- longPressOn:
-    text: ${RUN + ' a1'}
-- tapOn:
-    id: action-more
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1'}
+          direction: UP
+          timeout: 10000
+          optional: true
+      - longPressOn:
+          text: ${RUN + ' a1'}
+      - tapOn:
+          id: action-more
 - scrollUntilVisible:
     element:
       id: action-star
@@ -79,10 +104,25 @@ onFlowStart:
     visible:
       text: .*(Starred|Berbintang).*
     timeout: 20000
-- longPressOn:
-    text: ${RUN + ' a1'}
-- tapOn:
-    id: action-emoji
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1'}
+          direction: UP
+          timeout: 10000
+          optional: true
+      - longPressOn:
+          text: ${RUN + ' a1'}
+      - tapOn:
+          id: action-emoji
 - extendedWaitUntil:
     visible:
       id: emoji-picker
@@ -100,10 +140,64 @@ onFlowStart:
     visible:
       text: "\U0001F680 1"
     timeout: 15000
-- longPressOn:
-    text: ${RUN + ' a1'}
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: read
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1'}
+          direction: UP
+          timeout: 10000
+          optional: true
+      - longPressOn:
+          text: ${RUN + ' a1'}
+      - tapOn:
+          id: action-more
+- scrollUntilVisible:
+    element:
+      id: action-reactions
+    direction: DOWN
 - tapOn:
-    id: action-edit
+    id: action-reactions
+- extendedWaitUntil:
+    visible:
+      id: reactions-sheet
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a3b-reactions
+- tapOn:
+    id: reactions-sheet-close
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1'}
+          direction: UP
+          timeout: 10000
+          optional: true
+      - longPressOn:
+          text: ${RUN + ' a1'}
+      - tapOn:
+          id: action-edit
 - extendedWaitUntil:
     visible:
       id: composer-editing
@@ -120,6 +214,10 @@ onFlowStart:
     id: composer-save-edit
 - runFlow: ../shared/dismiss-keyboard.yaml
 - extendedWaitUntil:
+    notVisible:
+      id: composer-editing
+    timeout: 15000
+- extendedWaitUntil:
     visible:
       text: ${RUN + ' a1 edited.*'}
     timeout: 15000
@@ -131,17 +229,32 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: a5-edited
-- longPressOn:
-    text: ${RUN + ' a1 edited.*'}
-- tapOn:
-    id: action-forward
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1 edited.*'}
+          direction: UP
+          timeout: 10000
+          optional: true
+      - longPressOn:
+          text: ${RUN + ' a1 edited.*'}
+      - tapOn:
+          id: action-forward
 - extendedWaitUntil:
     visible:
       id: forward-sheet
     timeout: 15000
 - tapOn:
     id: forward-search
-- inputText: ${FORWARD_TO}
+- inputText: ${'Uji teruskan ' + RUN}
 - tapOn:
     id: forward-target-.*
     index: 0
@@ -160,10 +273,19 @@ onFlowStart:
     when:
       true: ${MAKE_TASK == 'yes'}
     commands:
-      - longPressOn:
-          text: ${RUN + ' a1 edited.*'}
-      - tapOn:
-          id: action-more
+      - retry:
+          maxRetries: 2
+          commands:
+            - runFlow:
+                when:
+                  visible:
+                    id: message-actions
+                commands:
+                  - back
+            - longPressOn:
+                text: ${RUN + ' a1 edited.*'}
+            - tapOn:
+                id: action-more
       - scrollUntilVisible:
           element:
             id: action-task
@@ -185,10 +307,25 @@ onFlowStart:
             id: thread-notice
           timeout: 4000
           optional: true
-- longPressOn:
-    text: ${RUN + ' a1 edited.*'}
-- tapOn:
-    id: action-more
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1 edited.*'}
+          direction: UP
+          timeout: 10000
+          optional: true
+      - longPressOn:
+          text: ${RUN + ' a1 edited.*'}
+      - tapOn:
+          id: action-more
 - scrollUntilVisible:
     element:
       id: action-activity
@@ -214,10 +351,19 @@ onFlowStart:
     when:
       true: ${MEETING == 'yes'}
     commands:
-      - longPressOn:
-          text: ${RUN + ' a1 edited.*'}
-      - tapOn:
-          id: action-more
+      - retry:
+          maxRetries: 2
+          commands:
+            - runFlow:
+                when:
+                  visible:
+                    id: message-actions
+                commands:
+                  - back
+            - longPressOn:
+                text: ${RUN + ' a1 edited.*'}
+            - tapOn:
+                id: action-more
       - scrollUntilVisible:
           element:
             id: action-meeting
@@ -243,10 +389,25 @@ onFlowStart:
             id: thread-notice
           timeout: 4000
           optional: true
-- longPressOn:
-    text: ${RUN + ' a1 edited.*'}
-- tapOn:
-    id: action-more
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1 edited.*'}
+          direction: UP
+          timeout: 10000
+          optional: true
+      - longPressOn:
+          text: ${RUN + ' a1 edited.*'}
+      - tapOn:
+          id: action-more
 - scrollUntilVisible:
     element:
       id: action-link
@@ -268,10 +429,19 @@ onFlowStart:
     notVisible:
       id: (pending-queued|pending-sending)
     timeout: 30000
-- longPressOn:
-    text: ${RUN + ' a2'}
-- tapOn:
-    id: action-delete
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - longPressOn:
+          text: ${RUN + ' a2'}
+      - tapOn:
+          id: action-delete
 - tapOn:
     text: (DELETE|Delete|HAPUS|Hapus)
 - extendedWaitUntil:
@@ -285,10 +455,25 @@ onFlowStart:
 - runScript:
     file: ../scripts/actions-peer.js
 - assertTrue: ${output.actions.edited == 1 && output.actions.removed == 1 && output.actions.pinned == 1 && output.actions.reacted == 1 && output.actions.forwarded == 1 && output.actions.activity == 1}
-- longPressOn:
-    text: ${RUN + ' a1 edited.*'}
-- tapOn:
-    id: action-more
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1 edited.*'}
+          direction: UP
+          timeout: 10000
+          optional: true
+      - longPressOn:
+          text: ${RUN + ' a1 edited.*'}
+      - tapOn:
+          id: action-more
 - scrollUntilVisible:
     element:
       id: action-unread
@@ -306,6 +491,36 @@ onFlowStart:
 - runFlow:
     when:
       visible:
+        id: thread-back
+      notVisible:
+        id: chat-list
+    commands:
+      - tapOn:
+          id: thread-back
+- extendedWaitUntil:
+    visible:
+      id: chat-starred-open
+    timeout: 30000
+- tapOn:
+    id: chat-starred-open
+- extendedWaitUntil:
+    visible:
+      id: found-.*
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: a14-starred
+- tapOn:
+    id: found-.*
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
         id: chat-list
     commands:
       - tapOn:
@@ -315,10 +530,25 @@ onFlowStart:
             id: composer-input
           timeout: 30000
 - setAirplaneMode: enabled
-- longPressOn:
-    text: ${RUN + ' a1 edited.*'}
-- tapOn:
-    id: action-more
+- retry:
+    maxRetries: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: message-actions
+          commands:
+            - back
+      - scrollUntilVisible:
+          element:
+            text: ${RUN + ' a1 edited.*'}
+          direction: UP
+          timeout: 10000
+          optional: true
+      - longPressOn:
+          text: ${RUN + ' a1 edited.*'}
+      - tapOn:
+          id: action-more
 - scrollUntilVisible:
     element:
       id: action-star
