@@ -22,10 +22,11 @@ onFlowStart:
           commands:
             - runFlow:
                 when:
-                  notVisible:
-                    id: welcome-sign-in
+                  visible:
+                    id: com.android.chrome:id/close_button
                 commands:
-                  - back
+                  - tapOn:
+                      id: com.android.chrome:id/close_button
             - tapOn:
                 id: welcome-sign-in
             - extendedWaitUntil:
@@ -38,7 +39,8 @@ onFlowStart:
           file: shared/screenshot.yaml
           env:
             SCREEN: sign-in-default-browser
-      - back
+      - tapOn:
+          id: com.android.chrome:id/close_button
       - extendedWaitUntil:
           visible:
             id: welcome-error
@@ -67,12 +69,7 @@ onFlowStart:
     when:
       platform: Android
     commands:
-      - pressKey: Enter
-      - extendedWaitUntil:
-          visible:
-            id: sign-in-database
-            focused: true
-          timeout: 10000
+      - runFlow: shared/next-field.yaml
       - pressKey: Enter
       - extendedWaitUntil:
           visible:
@@ -127,12 +124,7 @@ onFlowStart:
     when:
       platform: Android
     commands:
-      - pressKey: Enter
-      - extendedWaitUntil:
-          visible:
-            id: sign-in-database
-            focused: true
-          timeout: 10000
+      - runFlow: shared/next-field.yaml
       - inputText: erp main
       - pressKey: Enter
       - extendedWaitUntil:

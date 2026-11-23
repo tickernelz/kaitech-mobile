@@ -95,7 +95,8 @@
     "starred": "Berbintang",
     "translatedFrom": "Diterjemahkan dari {{lang}}",
     "translated": "Diterjemahkan",
-    "urgent": "Mendesak"
+    "urgent": "Mendesak",
+    "agentTag": "Agent"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",
@@ -479,5 +480,13 @@
     "startChat": "Mulai chat",
     "createGroup": "Buat grup",
     "createChannel": "Buat channel"
+  },
+  "starredList": {
+    "title": "Berbintang",
+    "empty": "Belum ada pesan berbintang.",
+    "clear": "Hapus semua bintang",
+    "clearTitle": "Hapus semua bintang?",
+    "clearBody": "Semua pesan berbintang kehilangan bintangnya. Pesannya tetap ada.",
+    "confirm": "Hapus bintang"
   }
 }

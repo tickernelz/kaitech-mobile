@@ -49,3 +49,48 @@ index 2c92303..c0c1488 100644
          stopPendingIntent
        )
        .setCategory(NotificationCompat.CATEGORY_SERVICE)
+diff --git a/node_modules/expo-audio/android/src/main/java/expo/modules/audio/service/AudioRecordingServiceConnection.kt b/node_modules/expo-audio/android/src/main/java/expo/modules/audio/service/AudioRecordingServiceConnection.kt
+index d42138d..694029f 100644
+--- a/node_modules/expo-audio/android/src/main/java/expo/modules/audio/service/AudioRecordingServiceConnection.kt
++++ b/node_modules/expo-audio/android/src/main/java/expo/modules/audio/service/AudioRecordingServiceConnection.kt
+@@ -85,17 +85,20 @@ class AudioRecordingServiceConnection(
+           continuation.resumeWithException(AudioRecordingServiceException(message))
+           return@suspendCoroutine
+         }
++        synchronized(this) {
++          transitionToState(ServiceBindingState.BINDING)
++          bindingContinuation = continuation
++        }
++        // Without a timeout, the promise would never settle if the system never calls back.
++        startBindingTimeout()
+         val serviceRunning = startServiceAndBind(appContext, reactContext, this, AudioRecordingService::class.java, AudioRecordingService.ACTION_START_RECORDING)
+ 
+         if (!serviceRunning) {
+-          continuation.resumeWithException(AudioRecordingServiceException("Failed to start the recording service"))
++          cancelBindingTimeout()
++          transitionToState(ServiceBindingState.FAILED)
++          takeBindingContinuation()?.resumeWithException(AudioRecordingServiceException("Failed to start the recording service"))
+           return@suspendCoroutine
+         }
+-
+-        transitionToState(ServiceBindingState.BINDING)
+-        bindingContinuation = continuation
+-        // Without a timeout, the promise would never settle if the system never calls back.
+-        startBindingTimeout()
+       }
+     }
+   }
+@@ -115,11 +118,11 @@ class AudioRecordingServiceConnection(
+       transitionToState(ServiceBindingState.FAILED)
+       return
+     }
++    recordingServiceBinder = serviceBinder
++    serviceBinder.service.appContext = appContext
+     transitionToState(ServiceBindingState.BOUND)
+ 
+     takeBindingContinuation()?.resume(Unit)
+-    recordingServiceBinder = serviceBinder
+-    serviceBinder.service.appContext = appContext
+   }
+ 
+   override fun onServiceDisconnected(componentName: ComponentName) {

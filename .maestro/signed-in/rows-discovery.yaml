@@ -92,6 +92,10 @@ onFlowComplete:
 - tapOn:
     id: conversation-rename-submit
 - extendedWaitUntil:
+    notVisible:
+      id: conversation-rename
+    timeout: 15000
+- extendedWaitUntil:
     visible:
       text: ${output.renamed}
     timeout: 15000
@@ -206,6 +210,10 @@ onFlowComplete:
       id: activity-schedule-save
 - tapOn:
     id: activity-schedule-save
+- extendedWaitUntil:
+    notVisible:
+      id: activity-schedule
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: ${output.todo}
