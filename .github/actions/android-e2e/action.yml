@@ -65,7 +65,7 @@ runs:
       env:
         SYSTEM_IMAGE: system-images;android-35;google_apis;x86_64
       run: |
-        set -uo pipefail
+        set +e -u
         dir="$ANDROID_HOME/$(tr ';' '/' <<< "$SYSTEM_IMAGE")"
         for attempt in 1 2 3; do
           log="$RUNNER_TEMP/system-image-$attempt.log"
