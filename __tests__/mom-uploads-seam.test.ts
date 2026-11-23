@@ -2,6 +2,8 @@ const mockForgotten: ((id: string) => void)[] = [];
 const mockStore = new Map<string, string>();
 const mockFiles = new Set<string>();
 const mockDeleted: string[] = [];
+const mockSizes = new Map<string, number>();
+let mockMoveFails = false;
 const mockAccounts: { id: string; origin: string; db: string }[] = [];
 const mockTokens = new Map<string, string>();
 const mockCalls: { path: string; body: any }[] = [];
@@ -34,14 +36,34 @@ jest.mock('expo-sqlite/kv-store', () => ({
 jest.mock('expo-file-system', () => {
   class File {
     path: string;
-    constructor(_root: unknown, path: string) {
-      this.path = path;
+    constructor(root: unknown, path?: string) {
+      if (path === undefined) this.path = String(root).replace('file:///doc/', '');
+      else this.path = root instanceof Directory ? `${root.folder}/${path}` : path;
+    }
+    get uri() {
+      return `file:///doc/${this.path}`;
     }
     get name() {
       return this.path.split('/').pop() ?? '';
     }
     get exists() {
       return mockFiles.has(this.path);
+    }
+    get size() {
+      return mockSizes.get(this.path) ?? null;
+    }
+    async move(target: File) {
+      await Promise.resolve();
+      if (mockMoveFails) throw new Error('ENOSPC');
+      mockFiles.add(target.path);
+      mockSizes.set(target.path, mockSizes.get(this.path) ?? 0);
+      mockFiles.delete(this.path);
+    }
+    async copy(target: File) {
+      await Promise.resolve();
+      if (mockMoveFails) throw new Error('ENOSPC');
+      mockFiles.add(target.path);
+      mockSizes.set(target.path, mockSizes.get(this.path) ?? 0);
     }
     delete() {
       mockFiles.delete(this.path);
@@ -55,6 +77,9 @@ jest.mock('expo-file-system', () => {
     folder: string;
     constructor(_root: unknown, folder: string) {
       this.folder = folder;
+    }
+    create() {
+      return undefined;
     }
     get exists() {
       return [...mockFiles].some((path) => path.startsWith(`${this.folder}/`));
@@ -74,7 +99,7 @@ jest.mock('expo-background-task', () => ({
   unregisterTaskAsync: jest.fn(async () => undefined),
   BackgroundTaskResult: { Success: 1, Failed: 2 },
 }));
-jest.mock('expo-crypto', () => ({ digest: async () => new ArrayBuffer(16), CryptoDigestAlgorithm: { MD5: 'MD5' } }));
+jest.mock('expo-crypto', () => ({ digest: async () => new ArrayBuffer(16), CryptoDigestAlgorithm: { MD5: 'MD5' }, randomUUID: () => 'u1' }));
 
 type Uploads = typeof import('../src/features/mom/uploads');
 
@@ -228,4 +253,25 @@ it('ends the background run at its budget even when a foreground drain is still 
   await jest.advanceTimersByTimeAsync(1_000);
   await background;
   expect(ended).toBe(true);
+});
+
+it('hands a picked file to the queue only after it sits in the recordings folder, with its real size', async () => {
+  const uploads = load([]);
+  mockFiles.add('cache/picked.m4a');
+  mockSizes.set('cache/picked.m4a', 4096);
+  const kept = await uploads.adoptPicked({ uri: 'file:///doc/cache/picked.m4a', name: 'Rapat.M4A' });
+  expect(kept).toEqual({ file: 'Audio/mom-u1.m4a', size: 4096 });
+  expect(mockFiles.has('Audio/mom-u1.m4a')).toBe(true);
+  expect(mockFiles.has('cache/picked.m4a')).toBe(false);
+});
+
+it('rejects when the picked file cannot be kept, so the setup screen can say so', async () => {
+  const uploads = load([]);
+  mockFiles.add('cache/picked.m4a');
+  mockMoveFails = true;
+  try {
+    await expect(uploads.adoptPicked({ uri: 'file:///doc/cache/picked.m4a', name: 'Rapat.m4a', size: 4096 })).rejects.toThrow('ENOSPC');
+  } finally {
+    mockMoveFails = false;
+  }
 });

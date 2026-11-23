@@ -91,7 +91,7 @@ export function SetupScreen() {
     if (!file) return;
     setBusy(true);
     try {
-      const kept = adoptPicked({ uri: file.uri, name: file.name, mimeType: file.mimeType, size: file.size });
+      const kept = await adoptPicked({ uri: file.uri, name: file.name, mimeType: file.mimeType, size: file.size });
       const now = new Date();
       enqueue({
         key: randomUUID(),
