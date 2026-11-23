@@ -20,6 +20,7 @@ export type ControlState = {
   hand?: boolean;
   spotlight?: boolean;
   videoOnly?: boolean;
+  blur?: boolean;
 };
 
 type Look = { icon: IconName; label: string; active?: boolean; danger?: boolean; busy?: boolean };
@@ -50,6 +51,8 @@ function useLook() {
         return { icon: 'zoomIn', label: t('spotlight'), active: state.spotlight };
       case 'videoOnly':
         return { icon: 'video', label: t('videoOnly'), active: state.videoOnly };
+      case 'blur':
+        return { icon: 'filter', label: t('backgroundBlur'), active: state.blur };
       case 'invite':
         return { icon: 'people', label: t('invite') };
       case 'people':

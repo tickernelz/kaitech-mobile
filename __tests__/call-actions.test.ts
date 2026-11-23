@@ -2,6 +2,8 @@ const mockUpdates: Record<string, boolean>[] = [];
 const mockRooms: MockRoom[] = [];
 const mockSaved: [number, number][] = [];
 const mockOutputs: string[] = [];
+const mockEffects = { blurName: () => 'kaitechBackgroundBlur', clearBlur: jest.fn(), blurAvailable: jest.fn(() => true), prepareBlur: jest.fn(() => Promise.resolve(true)) };
+const mockStored = new Map<string, string>();
 
 type Handler = () => void;
 
@@ -85,7 +87,15 @@ class MockRoom {
   }
 }
 
-jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
+jest.mock('expo-sqlite/kv-store', () => ({
+  getItemSync: (key: string) => mockStored.get(key) ?? null,
+  setItemSync: (key: string, value: string) => mockStored.set(key, value),
+  removeItemSync: () => undefined,
+}));
+jest.mock('expo', () => ({
+  ...jest.requireActual('expo'),
+  requireOptionalNativeModule: (name: string) => (name === 'KaitechVideoEffects' ? mockEffects : null),
+}));
 jest.mock('../src/i18n', () => ({ __esModule: true, default: { t: (key: string) => key, language: 'en' } }));
 jest.mock('../src/auth/session', () => ({
   getSession: () => ({ accounts: [{ id: 'A', origin: 'https://a.test', db: 'dbA', userId: 1, partnerId: 11 }], activeId: 'A' }),
@@ -208,6 +218,9 @@ describe('call actions from More', () => {
     mockRooms.length = 0;
     mockSaved.length = 0;
     mockOutputs.length = 0;
+    mockStored.clear();
+    mockEffects.clearBlur.mockClear();
+    mockEffects.prepareBlur.mockClear();
   });
 
   afterEach(async () => {
@@ -288,6 +301,82 @@ describe('call actions from More', () => {
     await call.chooseAudioOutput('earpiece');
     expect(mockOutputs[mockOutputs.length - 1]).toBe('earpiece');
     expect(call.callState()).toMatchObject({ output: 'earpiece', speaker: false });
+  });
+
+  it('blurs the local camera, keeps it through a camera restart, remembers the choice, and clears it', async () => {
+    const { call, room } = await activeCall();
+    const camera = {
+      mediaStreamTrack: { effects: [] as string[], _setVideoEffects(names: string[]) { this.effects = names; } },
+      listeners: new Map<string, () => void>(),
+      on(name: string, listener: () => void) { this.listeners.set(name, listener); },
+    };
+    room.localParticipant.trackPublications.set('cam', { source: 'camera', videoTrack: camera });
+    room.emit('localTrackPublished');
+    expect(camera.mediaStreamTrack.effects).toEqual([]);
+    call.toggleBlur();
+    expect(camera.mediaStreamTrack.effects).toEqual(['kaitechBackgroundBlur']);
+    expect(call.callState().blur).toBe(true);
+    expect(mockStored.get('call.backgroundBlur')).toBe('1');
+    camera.mediaStreamTrack = { effects: [], _setVideoEffects(names: string[]) { this.effects = names; } };
+    camera.listeners.get('restarted')?.();
+    expect(camera.mediaStreamTrack.effects).toEqual(['kaitechBackgroundBlur']);
+    call.toggleBlur();
+    expect(camera.mediaStreamTrack.effects).toEqual([]);
+    expect(mockEffects.clearBlur).toHaveBeenCalled();
+    expect(mockStored.get('call.backgroundBlur')).toBe('0');
+  });
+
+  it('loads the segmentation model only when the user turns blur on', async () => {
+    const { call, room } = await activeCall();
+    expect(mockEffects.prepareBlur).not.toHaveBeenCalled();
+    room.localParticipant.trackPublications.set('cam', { source: 'camera', videoTrack: { mediaStreamTrack: { _setVideoEffects: () => undefined } } });
+    call.toggleBlur();
+    expect(mockEffects.prepareBlur).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not claim blur when the camera track cannot take the effect', async () => {
+    const { call, room } = await activeCall();
+    room.localParticipant.trackPublications.set('cam', { source: 'camera', videoTrack: { mediaStreamTrack: {} } });
+    room.emit('localTrackPublished');
+    call.toggleBlur();
+    expect(call.callState().blur).toBe(false);
+    expect(mockStored.get('call.backgroundBlur')).toBeUndefined();
+  });
+
+  it('turns the blur state off when a restarted camera track no longer takes the effect', async () => {
+    const { call, room } = await activeCall();
+    const camera = {
+      mediaStreamTrack: { _setVideoEffects: (_names: string[]) => undefined } as { _setVideoEffects?: (names: string[]) => void },
+      listeners: new Map<string, () => void>(),
+      on(name: string, listener: () => void) { this.listeners.set(name, listener); },
+    };
+    room.localParticipant.trackPublications.set('cam', { source: 'camera', videoTrack: camera });
+    room.emit('localTrackPublished');
+    call.toggleBlur();
+    expect(call.callState().blur).toBe(true);
+    camera.mediaStreamTrack = {};
+    camera.listeners.get('restarted')?.();
+    expect(call.callState().blur).toBe(false);
+  });
+
+  it('leaves the camera untouched when the phone cannot segment a person', async () => {
+    mockEffects.blurAvailable.mockReturnValue(false);
+    mockStored.set('call.backgroundBlur', '1');
+    const { call, room } = await activeCall();
+    expect(call.callState().blur).toBe(false);
+    const camera = { mediaStreamTrack: { effects: [] as string[], _setVideoEffects(names: string[]) { this.effects = names; } } };
+    room.localParticipant.trackPublications.set('cam', { source: 'camera', videoTrack: camera });
+    room.emit('localTrackPublished');
+    call.toggleBlur();
+    expect(camera.mediaStreamTrack.effects).toEqual([]);
+    expect(call.callState().blur).toBe(false);
+    mockEffects.blurAvailable.mockReturnValue(true);
+  });
+
+  it('starts the next call with the blur the user chose last time', async () => {
+    mockStored.set('call.backgroundBlur', '1');
+    const { call } = await activeCall();
+    expect(call.callState().blur).toBe(true);
   });
 
   it('does nothing before the call connects', async () => {
