@@ -1,0 +1,199 @@
+appId: io.kaitech.mobile
+name: Web Discovery menus part 1 of 3 open their list and first record without an error
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat|tab-discovery)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-discovery
+- extendedWaitUntil:
+    visible:
+      id: programme-summary
+    timeout: 60000
+- runFlow:
+    when:
+      true: ${typeof PROGRAMME !== 'undefined' && PROGRAMME !== ''}
+    commands:
+      - tapOn:
+          id: programme-switch
+      - tapOn:
+          text: ${PROGRAMME}
+      - extendedWaitUntil:
+          visible:
+            id: programme-summary
+          timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: open-sections
+- tapOn:
+    id: open-sections
+- extendedWaitUntil:
+    visible:
+      id: sections-group-[0-9]+
+    timeout: 30000
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Programs"
+    env:
+      MENU: 411
+      NAME: "Programs"
+      NAME_ID: "Program"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Interviews"
+    env:
+      MENU: 413
+      NAME: "Interviews"
+      NAME_ID: "Wawancara"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "People"
+    env:
+      MENU: 418
+      NAME: "People"
+      NAME_ID: "Orang"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Source Documents"
+    env:
+      MENU: 423
+      NAME: "Source Documents"
+      NAME_ID: "Dokumen Sumber"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Process Chains"
+    env:
+      MENU: 428
+      NAME: "Process Chains"
+      NAME_ID: "Rantai Proses"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Requirements"
+    env:
+      MENU: 436
+      NAME: "Requirements"
+      NAME_ID: "Requirement"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Stages & Gates"
+    env:
+      MENU: 447
+      NAME: "Stages & Gates"
+      NAME_ID: "Tahap & Gerbang"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Answer Summaries"
+    env:
+      MENU: 453
+      NAME: "Answer Summaries"
+      NAME_ID: "Ringkasan Jawaban"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Question Bank"
+    env:
+      MENU: 462
+      NAME: "Question Bank"
+      NAME_ID: "Bank Pertanyaan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Approval Packets"
+    env:
+      MENU: 483
+      NAME: "Approval Packets"
+      NAME_ID: "Paket Persetujuan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Questions"
+    env:
+      MENU: 414
+      NAME: "Questions"
+      NAME_ID: "Pertanyaan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Departments"
+    env:
+      MENU: 419
+      NAME: "Departments"
+      NAME_ID: "Department"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Evidence"
+    env:
+      MENU: 424
+      NAME: "Evidence"
+      NAME_ID: "Bukti"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Diagrams"
+    env:
+      MENU: 429
+      NAME: "Diagrams"
+      NAME_ID: "Diagram"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Fit-Gap & RICEFW"
+    env:
+      MENU: 437
+      NAME: "Fit-Gap & RICEFW"
+      NAME_ID: "Analisis Fit-Gap & RICEFW"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Approvals"
+    env:
+      MENU: 443
+      NAME: "Approvals"
+      NAME_ID: "Persetujuan"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Artifacts"
+    env:
+      MENU: 448
+      NAME: "Artifacts"
+      NAME_ID: "Artefak"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Name Mentions"
+    env:
+      MENU: 454
+      NAME: "Name Mentions"
+      NAME_ID: "Penyebutan Nama"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Chase Policies"
+    env:
+      MENU: 463
+      NAME: "Chase Policies"
+      NAME_ID: "Kebijakan Pengejaran"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Architecture Maps"
+    env:
+      MENU: 430
+      NAME: "Architecture Maps"
+      NAME_ID: "Peta Arsitektur"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Portal Invites"
+    env:
+      MENU: 415
+      NAME: "Portal Invites"
+      NAME_ID: "Undangan Portal"
+- runFlow:
+    file: ../shared/open-section-by-id.yaml
+    label: "Role Map"
+    env:
+      MENU: 420
+      NAME: "Role Map"
+      NAME_ID: "Peta Peran"

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { Buffer } from 'node:buffer';
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readFileSync as read, rmSync, writeFileSync } from 'node:fs';
@@ -81,6 +82,7 @@ const out = document.getElementById('log');
 const state = { connected: false, participants: [], speakers: [], remoteAudio: 0, audioPlays: 0, recording: false, screens: [], sharing: false, error: null };
 const screens = new Map();
 let shared = null;
+const played = new Map();
 function frames() {
   for (const [identity, element] of screens) {
     if (!element.videoWidth) continue;
@@ -90,7 +92,13 @@ function frames() {
     canvas.getContext('2d').drawImage(element, 0, 0);
     fetch('/frame?from=' + encodeURIComponent(identity), { method: 'POST', body: canvas.toDataURL('image/png') }).catch(() => undefined);
   }
-  state.screens = [...screens].map(([identity, element]) => ({ identity, width: element.videoWidth, height: element.videoHeight }));
+  state.screens = [...screens].map(([identity, element]) => {
+    const total = element.getVideoPlaybackQuality ? element.getVideoPlaybackQuality().totalVideoFrames : 0;
+    const fps = total - (played.get(identity) ?? total);
+    played.set(identity, total);
+    if (identity.endsWith('|camera') && element.videoWidth) log('fps ' + identity + ' ' + fps + ' ' + element.videoWidth + 'x' + element.videoHeight);
+    return { identity, width: element.videoWidth, height: element.videoHeight, fps };
+  });
 }
 async function share(on) {
   const room = globalThis.room;
@@ -146,25 +154,30 @@ function refresh() {
     name: p.name,
     mic: p.isMicrophoneEnabled,
     camera: p.isCameraEnabled,
+    attributes: { ...(p.attributes || {}) },
     tracks: [...p.trackPublications.values()].map((t) => t.kind + ':' + (t.source || '')),
   }));
   send();
 }
 async function start(call) {
   try {
-    const room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
+    const room = new LivekitClient.Room({ adaptiveStream: false, dynacast: true });
     globalThis.room = room;
     room.on(LivekitClient.RoomEvent.ParticipantConnected, () => { log('participant connected'); refresh(); });
     room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => { log('participant left'); refresh(); });
+    room.on(LivekitClient.RoomEvent.TrackMuted, (publication, participant) => { log('muted ' + publication.kind + ' from ' + (participant && participant.identity)); refresh(); });
+    room.on(LivekitClient.RoomEvent.TrackUnmuted, (publication, participant) => { log('unmuted ' + publication.kind + ' from ' + (participant && participant.identity)); refresh(); });
+    room.on(LivekitClient.RoomEvent.ParticipantAttributesChanged, (changed, participant) => { log('attributes from ' + (participant && participant.identity) + ' ' + JSON.stringify(changed)); refresh(); });
     room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
       log('subscribed ' + track.kind + ' from ' + (track.participant && track.participant.identity));
-      if (track.kind === 'video' && track.source === 'screen_share') {
+      if (track.kind === 'video') {
         const element = track.attach();
         element.muted = true;
         element.style.width = '640px';
         document.body.appendChild(element);
-        screens.set(track.participant ? track.participant.identity : 'unknown', element);
-        log('screen from ' + (track.participant && track.participant.identity));
+        const camera = track.source !== 'screen_share';
+        screens.set((track.participant ? track.participant.identity : 'unknown') + (camera ? '|camera' : ''), element);
+        log((camera ? 'camera from ' : 'screen from ') + (track.participant && track.participant.identity));
       }
       if (track.kind === 'audio') {
         const element = track.attach();
@@ -251,6 +264,11 @@ function serve() {
     if (path === '/state') {
       response.setHeader('content-type', 'application/json');
       response.end(JSON.stringify(sessions.state));
+      return;
+    }
+    if (path === '/logs') {
+      response.setHeader('content-type', 'application/json');
+      response.end(JSON.stringify(sessions.logs));
       return;
     }
     if (path === '/command') {
@@ -412,7 +430,14 @@ async function live() {
   console.log(JSON.stringify(await answer.json(), null, 2));
 }
 
-const actions = { serve, start, state, leave, stop, screen, live };
+async function logs() {
+  const current = readState();
+  if (!current?.port) throw new Error('the peer is not running');
+  const answer = await fetch('http://127.0.0.1:' + current.port + '/logs');
+  console.log(JSON.stringify(await answer.json(), null, 2));
+}
+
+const actions = { serve, start, state, leave, stop, screen, live, logs };
 const run = actions[action];
 if (!run) {
   process.stderr.write('usage: call-peer.mjs ' + Object.keys(actions).join('|') + '\n');

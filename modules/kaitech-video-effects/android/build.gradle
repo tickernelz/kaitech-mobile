@@ -1,0 +1,22 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'io.kaitech.videoeffects'
+version = '0.1.0'
+
+android {
+  namespace "io.kaitech.videoeffects"
+  defaultConfig {
+    versionCode 1
+    versionName '0.1.0'
+    consumerProguardFiles 'consumer-rules.pro'
+  }
+}
+
+dependencies {
+  implementation project(':livekit_react-native-webrtc')
+  implementation 'com.google.android.gms:play-services-tflite-java:16.4.0'
+  implementation project(':expo-modules-core')
+}

@@ -1,0 +1,32 @@
+appId: io.kaitech.mobile
+name: Make the seeded test programme the current one, from the MoM record setup
+---
+- tapOn:
+    id: tab-button-mom
+- extendedWaitUntil:
+    visible:
+      id: mom-record
+    timeout: 60000
+- tapOn:
+    id: mom-record
+- extendedWaitUntil:
+    visible:
+      id: setup-programme
+    timeout: 30000
+- tapOn:
+    id: setup-programme
+- extendedWaitUntil:
+    visible:
+      id: programme-pick
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: programme-${PROGRAMME}
+- tapOn:
+    id: programme-${PROGRAMME}
+- extendedWaitUntil:
+    visible:
+      id: setup-programme
+    timeout: 30000
+- tapOn:
+    id: header-back

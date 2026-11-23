@@ -1,9 +1,11 @@
+import * as Device from 'expo-device';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, View } from 'react-native';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { deletePasskey, passkeys, renamePasskey, type Passkey } from '../../features/account/security';
+import { canCreatePasskey, createCredential, creationOptions, PasskeyError, savePasskey, startPasskey } from '../../features/account/passkey';
 import { useIdentity } from '../../features/account/useIdentity';
 import { StateView, useErrorText } from '../../features/discovery/ui';
 import { useFormatters } from '../../i18n';
@@ -27,6 +29,7 @@ export default function PasskeySettings() {
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
+  const [adding, setAdding] = useState<string | null>(null);
   if (!active) return null;
 
   const guard = async (work: () => Promise<unknown>) => {
@@ -37,7 +40,7 @@ export default function PasskeySettings() {
       setOpen(null);
       await list.refresh();
     } catch (error) {
-      setFailed(errorText(error));
+      setFailed(error instanceof PasskeyError ? (error.reason === 'cancelled' ? null : t(`security.passkeys.${error.reason}`)) : errorText(error));
     } finally {
       setBusy(false);
     }
@@ -48,6 +51,16 @@ export default function PasskeySettings() {
       { text: t('settings.cancel'), style: 'cancel' },
       { text: t('security.passkeys.delete'), style: 'destructive', onPress: () => void guard(() => identity.run(() => deletePasskey(active, key.id), () => true)) },
     ]);
+
+  const add = (label: string) => {
+    setAdding(null);
+    void guard(async () => {
+      const options = await identity.run(() => startPasskey(active), creationOptions);
+      if (!options) return;
+      const credential = await createCredential(options);
+      await identity.run(() => savePasskey(active, label, credential), () => true);
+    });
+  };
 
   return (
     <SettingsPage title={t('security.passkeys.title')} testID="settings-passkeys-screen">
@@ -75,9 +88,13 @@ export default function PasskeySettings() {
       ) : (
         <StateView loading={list.loading} error={list.error} empty={{ title: t('security.passkeys.none'), icon: 'sign' }} onRetry={() => void list.refresh()} testID="passkeys" />
       )}
-      <Text variant="footnote" tone="inkSoft" testID="passkeys-add-hint">
-        {t('security.passkeys.addLater')}
-      </Text>
+      {canCreatePasskey() ? (
+        <Button label={t('security.passkeys.add')} kind="secondary" busy={busy && !open} onPress={() => setAdding(Device.deviceName ?? Device.modelName ?? 'Kaitech')} testID="passkeys-add" />
+      ) : (
+        <Text variant="footnote" tone="inkSoft" testID="passkeys-add-hint">
+          {t('security.passkeys.addOnWeb')}
+        </Text>
+      )}
       {failed ? (
         <Text variant="footnote" tone="dangerInk" accessibilityLiveRegion="polite" testID="passkeys-error">
           {failed}
@@ -90,6 +107,14 @@ export default function PasskeySettings() {
             <Button label={t('security.passkeys.rename')} busy={busy} disabled={!name.trim() || name.trim() === open.name} onPress={() => void guard(() => renamePasskey(active, open.id, name))} testID="passkey-rename" />
           </View>
           <SheetItem icon="trash" label={t('security.passkeys.delete')} onPress={() => remove(open)} danger disabled={busy} testID="passkey-delete" />
+        </Sheet>
+      ) : null}
+      {adding !== null ? (
+        <Sheet title={t('security.passkeys.add')} detail={t('security.passkeys.addBody')} onClose={() => setAdding(null)} testID="passkey-add-sheet">
+          <View style={styles.body}>
+            <TextField label={t('security.passkeys.name')} value={adding} onChangeText={setAdding} maxLength={64} testID="passkey-add-name" />
+            <Button label={t('security.passkeys.addContinue')} disabled={!adding.trim()} onPress={() => add(adding)} testID="passkey-add-continue" />
+          </View>
         </Sheet>
       ) : null}
       {identity.sheet}

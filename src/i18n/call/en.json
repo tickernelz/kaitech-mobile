@@ -85,5 +85,34 @@
     "title": "Allow full-screen notifications",
     "body": "So calls ring on the lock screen",
     "action": "Open Settings"
-  }
+  },
+  "audioOutput": "Audio output",
+  "deafen": "Mute incoming sound",
+  "undeafen": "Turn incoming sound back on",
+  "raiseHand": "Raise hand",
+  "lowerHand": "Lower hand",
+  "spotlight": "Spotlight the speaker",
+  "videoOnly": "Only people with video",
+  "backgroundBlur": "Blur background",
+  "invite": "Invite people",
+  "inviteHint": "They join the conversation and get a call invitation.",
+  "inviteSearch": "Search people",
+  "inviteFailed": "Could not invite. Try again.",
+  "inviteSend": "Invite ({{count}})",
+  "volumeOf": "Volume of {{name}}",
+  "group": {
+    "sound": "Sound",
+    "video": "Video and screen",
+    "people": "People"
+  },
+  "output": {
+    "speaker": "Speaker",
+    "earpiece": "Phone",
+    "bluetooth": "Bluetooth",
+    "headset": "Headset",
+    "other": "{{name}}"
+  },
+  "outputNone": "No other audio output is connected.",
+  "answerVideo": "Answer with video",
+  "answerVoice": "Answer with voice only"
 }

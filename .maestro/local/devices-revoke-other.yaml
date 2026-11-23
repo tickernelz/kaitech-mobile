@@ -16,8 +16,29 @@ name: Sign another Kaitech app device of this account out from Devices
     id: security-devices
 - extendedWaitUntil:
     visible:
-      id: app-device-${TARGET}
+      id: app-device-[0-9]+
     timeout: 30000
+- repeat:
+    times: 30
+    while:
+      notVisible:
+        id: app-device-${TARGET}
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: (app-device-${TARGET}|app-devices-more)
+          timeout: 20000
+      - runFlow:
+          when:
+            notVisible:
+              id: app-device-${TARGET}
+          commands:
+            - tapOn:
+                id: app-devices-more
+- scrollUntilVisible:
+    element:
+      id: app-device-${TARGET}
+    timeout: 60000
 - runFlow:
     file: ../shared/screenshot.yaml
     env:

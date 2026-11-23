@@ -2,7 +2,7 @@ import { pipEligible, pipFocus, pipSpec } from '../src/features/call/pip';
 import type { CallPerson } from '../src/features/call/call';
 
 function person(sid: string, extra: Partial<CallPerson> = {}): CallPerson {
-  return { sid, name: sid, partnerId: null, local: false, speaking: false, cameraOn: false, micOn: true, screenOn: false, ...extra };
+  return { sid, name: sid, partnerId: null, local: false, speaking: false, cameraOn: false, micOn: true, screenOn: false, hand: false, deaf: false, ...extra };
 }
 
 const me = person('me', { local: true, cameraOn: true });

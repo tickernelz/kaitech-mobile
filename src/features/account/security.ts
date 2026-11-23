@@ -10,7 +10,7 @@ export function identityOf(result: unknown): number | null {
   return action && action.res_model === 'res.users.identitycheck' && typeof action.res_id === 'number' ? action.res_id : null;
 }
 
-async function guarded<T>(call: () => Promise<unknown>, then: (result: unknown) => Promise<T> | T): Promise<Step<T>> {
+export async function guarded<T>(call: () => Promise<unknown>, then: (result: unknown) => Promise<T> | T): Promise<Step<T>> {
   const result = await call();
   const checkId = identityOf(result);
   if (checkId !== null) return { kind: 'identity', checkId };
