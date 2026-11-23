@@ -1,5 +1,6 @@
 import { recordingVerbs } from '../src/features/mom/recordingActions';
-import { searchDomain } from '../src/features/mom/records';
+import { rpc } from '../src/api/odoo';
+import { recordPage, searchDomain } from '../src/features/mom/records';
 import type { RecordingCard } from '../src/features/mom/records';
 
 const card = (change: Partial<RecordingCard> = {}, progress: Partial<RecordingCard['transcription']> = {}): RecordingCard => ({
@@ -30,6 +31,22 @@ const team = { canChange: true, isClient: false };
 jest.mock('../src/api/odoo', () => ({ rpc: jest.fn() }));
 
 describe('record search', () => {
+  it('asks for the state labels once per account and model, while every page is read again', async () => {
+    const mocked = jest.mocked(rpc);
+    mocked.mockReset();
+    mocked.mockImplementation(async (_account, _model, method) =>
+      method === 'fields_get' ? { state: { selection: [['transcribed', 'Transcribed']] } } : { length: 1, records: [{ id: 3, name: 'Kickoff', state: 'transcribed', engagement_id: false, meeting_id: false, department_id: false, size_label: '1 MB', uploaded_by_id: false }] },
+    );
+    const account = { id: 'a1' } as Parameters<typeof recordPage>[0];
+    const first = await recordPage(account, 'recordings', '', 40);
+    await recordPage(account, 'recordings', 'kick', 80);
+    await recordPage({ id: 'a2' } as Parameters<typeof recordPage>[0], 'recordings', '', 40);
+    expect(first.lines[0].state).toBe('Transcribed');
+    const methods = mocked.mock.calls.map((call) => call[2]);
+    expect(methods.filter((one) => one === 'fields_get')).toHaveLength(2);
+    expect(methods.filter((one) => one === 'web_search_read')).toHaveLength(3);
+  });
+
   it('looks in every field the web board searches, joined by or', () => {
     expect(searchDomain(['name', 'meeting_id.name', 'department_id.name'], 'hr')).toEqual([
       '|',

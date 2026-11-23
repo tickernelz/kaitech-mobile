@@ -183,11 +183,18 @@ export function searchDomain(fields: string[], said: string): unknown[] {
   return [...fields.slice(1).map(() => '|'), ...fields.map((field) => [field, 'ilike', said])];
 }
 
-type Views = { models: Record<string, { fields: Record<string, { selection?: [string, string][] }> }> };
+type Fields = Record<string, { selection?: [string, string][] }>;
 
-async function stateLabels(account: Account, model: string, field: string): Promise<Map<string, string>> {
-  const views = await rpc<Views>(account, model, 'get_views', [[[false, 'list']]], {});
-  return new Map(views.models[model]?.fields[field]?.selection ?? []);
+const labelCache = new Map<string, Promise<Map<string, string>>>();
+
+function stateLabels(account: Account, model: string, field: string): Promise<Map<string, string>> {
+  const key = `${account.id}:${model}:${field}`;
+  const known = labelCache.get(key);
+  if (known) return known;
+  const loading = rpc<Fields>(account, model, 'fields_get', [[field]], { attributes: ['selection'] }).then((fields) => new Map(fields[field]?.selection ?? []));
+  loading.catch(() => labelCache.delete(key));
+  labelCache.set(key, loading);
+  return loading;
 }
 
 export async function recordPage(account: Account, kind: RecordKind, search: string, limit: number, state = ''): Promise<RecordPage> {
