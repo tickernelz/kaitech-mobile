@@ -56,4 +56,27 @@ describe('undo window', () => {
     });
     expect(item.revert).not.toHaveBeenCalled();
   });
+
+  it('keeps the newer action\'s Undo when an earlier action fails on the server', async () => {
+    let failFirst: (ok: boolean) => void = () => undefined;
+    const first = { apply: jest.fn(), revert: jest.fn(), commit: jest.fn(() => new Promise<boolean>((resolve) => (failFirst = resolve))) };
+    const second = { apply: jest.fn(), revert: jest.fn(), commit: jest.fn(async () => true) };
+    const bar = await renderHook(() => undo.useUndo());
+    await act(async () => {
+      undo.deferUndoable({ label: 'first', ...first });
+      undo.deferUndoable({ label: 'second', ...second });
+    });
+    expect(bar.result.current?.label).toBe('second');
+    await act(async () => {
+      failFirst(false);
+      await settle();
+    });
+    expect(first.revert).toHaveBeenCalledTimes(1);
+    expect(bar.result.current).toEqual(expect.objectContaining({ label: 'second', failed: false }));
+    await act(async () => {
+      undo.undoLast();
+    });
+    expect(second.revert).toHaveBeenCalledTimes(1);
+    expect(second.commit).not.toHaveBeenCalled();
+  });
 });
