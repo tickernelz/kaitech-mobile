@@ -247,18 +247,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     concurrency:
-      group: kaitech-e2e-account-${{ matrix.size }}-${{ matrix.locale }}
+      group: kaitech-e2e-call
       cancel-in-progress: false
       queue: max
     env:
-      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
-      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
-      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
-      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
+      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
+      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
       E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
       E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
       E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
-      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
+      E2E_PEER: ${{ vars.KAITECH_E2E_CALL_PEER }}
       E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
       E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
     strategy:
