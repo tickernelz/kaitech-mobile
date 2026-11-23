@@ -60,7 +60,7 @@ export function controlsFor(input: ControlInput): { pill: CallAction[]; more: Ca
   if (input.phase === 'ended') return { pill: ['close'], more: [] };
   const extras: CallAction[] = [];
   const live = input.phase === 'active';
-  if (input.blur && input.video) extras.push('blur');
+  if (input.blur && input.cameraOn) extras.push('blur');
   if (input.share && !input.sharing) extras.push('share');
   if (input.record) extras.push('record');
   if (live && input.crowd) extras.push('spotlight', 'videoOnly');
