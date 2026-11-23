@@ -108,3 +108,24 @@ test('a message for a hidden chat that arrives while the list is loading still b
   await settle();
   expect(chat.getChat().conversations.map((item) => item.id)).toEqual([7, 4]);
 });
+
+it('keeps the starred count of the account that asked for it', () => {
+  const other = { id: 'u2_b', partnerId: 8, origin: 'https://b.test', db: 'b', userId: 2 };
+  chat.startChat(account as never);
+  chat.setStarredCount(account.id, 3);
+  chat.noteStarToggled(account.id, false);
+  expect(chat.getChat().starred).toBe(2);
+
+  chat.startChat(other as never);
+  expect(chat.getChat().starred).toBe(0);
+  chat.setStarredCount(account.id, 5);
+  chat.noteStarToggled(account.id, true);
+  expect(chat.getChat().starred).toBe(0);
+
+  chat.noteStarToggled(other.id, false);
+  expect(chat.getChat().starred).toBe(0);
+  chat.setStarredCount(other.id, 1);
+  expect(chat.getChat().starred).toBe(1);
+  chat.stopChat();
+  expect(chat.getChat().starred).toBe(0);
+});

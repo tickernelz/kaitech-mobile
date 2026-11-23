@@ -1,10 +1,9 @@
 import { ApiError, route, rpc } from '../../api/odoo';
 import { AppError } from '../../auth/errors';
 import type { Account } from '../../auth/oauth';
-import { chatClient, patchMessages, refreshConversations } from './chat';
+import { chatClient, noteStarToggled, patchMessages, refreshConversations } from './chat';
 import { composeBody, mentionsInText, type ComposedMention } from './html';
 import { messagePatches } from './odoo';
-import { noteStarToggled } from './starredCount';
 import type { Message } from './types';
 
 export type Failure = { code: string; detail: string | null };
@@ -100,7 +99,7 @@ export function toggleStar(message: Message) {
     const data = await rpc<unknown>(account, 'mail.message', 'toggle_message_starred', [[message.id]]);
     const patches = messagePatches(data);
     patchMessages(patches.size ? patches : new Map([[message.id, { starred: !message.starred }]]));
-    noteStarToggled(!message.starred);
+    noteStarToggled(account.id, !message.starred);
   });
 }
 

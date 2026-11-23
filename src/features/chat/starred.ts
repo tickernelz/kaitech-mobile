@@ -1,8 +1,7 @@
 import { route, rpc } from '../../api/odoo';
-import { getChat } from './chat';
+import { getChat, setStarredCount } from './chat';
 import { run } from './messageActions';
 import { messagesFromStore } from './odoo';
-import { setStarredCount } from './starredCount';
 import type { Message } from './types';
 
 const LIMIT = 100;
@@ -16,7 +15,7 @@ export function refreshStarred() {
   return run(async (account) => {
     const found = await rpc<unknown>(account, 'mail.message', 'search_count', [[['starred_partner_ids', 'in', [getChat().partnerId]], ['model', '=', 'discuss.channel']]]);
     const next = typeof found === 'number' ? found : 0;
-    setStarredCount(next);
+    setStarredCount(account.id, next);
     return next;
   });
 }
@@ -25,7 +24,7 @@ export function starredMessages() {
   return run(async (account) => {
     const page = await route<unknown>(account, '/mail/starred/messages', { fetch_params: { limit: LIMIT } });
     const messages = starredFrom(page, getChat().partnerId);
-    if (messages.length < LIMIT) setStarredCount(messages.length);
+    if (messages.length < LIMIT) setStarredCount(account.id, messages.length);
     return messages;
   });
 }
@@ -33,6 +32,6 @@ export function starredMessages() {
 export function unstarAll() {
   return run(async (account) => {
     await rpc<unknown>(account, 'mail.message', 'unstar_all', []);
-    setStarredCount(0);
+    setStarredCount(account.id, 0);
   });
 }

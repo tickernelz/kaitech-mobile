@@ -1,10 +1,10 @@
 import { rpc, route } from '../src/api/odoo';
 import { refreshStarred, starredFrom, starredMessages, unstarAll } from '../src/features/chat/starred';
-import { noteStarToggled, setStarredCount, starredCount } from '../src/features/chat/starredCount';
+import { setStarredCount } from '../src/features/chat/chat';
 
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 jest.mock('../src/api/odoo', () => ({ route: jest.fn(), rpc: jest.fn(), bearer: jest.fn(), sessionCookie: jest.fn(), ApiError: class extends Error {} }));
-jest.mock('../src/features/chat/chat', () => ({ chatClient: () => ({ account: { origin: 'https://lab0.kaitech.io' } }), getChat: () => ({ partnerId: 3 }), patchMessages: jest.fn(), refreshConversations: jest.fn() }));
+jest.mock('../src/features/chat/chat', () => ({ chatClient: () => ({ account: { id: 'u1_a', origin: 'https://lab0.kaitech.io' } }), getChat: () => ({ partnerId: 3 }), patchMessages: jest.fn(), refreshConversations: jest.fn(), setStarredCount: jest.fn(), noteStarToggled: jest.fn() }));
 
 const page = {
   data: {
@@ -21,7 +21,7 @@ const page = {
 beforeEach(() => {
   jest.mocked(rpc).mockReset();
   jest.mocked(route).mockReset();
-  setStarredCount(0);
+  jest.mocked(setStarredCount).mockReset();
 });
 
 describe('starred messages', () => {
@@ -41,32 +41,22 @@ describe('starred messages', () => {
     jest.mocked(rpc).mockResolvedValue(4);
     await refreshStarred();
     expect(jest.mocked(rpc).mock.calls[0].slice(1)).toEqual(['mail.message', 'search_count', [[['starred_partner_ids', 'in', [3]], ['model', '=', 'discuss.channel']]]]);
-    expect(starredCount()).toBe(4);
+    expect(setStarredCount).toHaveBeenCalledWith('u1_a', 4);
   });
 
   it('takes the count from the opened list when the list is complete', async () => {
-    setStarredCount(9);
     jest.mocked(route).mockResolvedValue(page);
     const result = await starredMessages();
     expect(result.ok && result.value.length).toBe(2);
-    expect(starredCount()).toBe(2);
+    expect(setStarredCount).toHaveBeenCalledWith('u1_a', 2);
   });
 
   it('clears the count only after the server removed every star', async () => {
-    setStarredCount(3);
     jest.mocked(rpc).mockRejectedValue(new Error('down'));
     expect((await unstarAll()).ok).toBe(false);
-    expect(starredCount()).toBe(3);
+    expect(setStarredCount).not.toHaveBeenCalled();
     jest.mocked(rpc).mockResolvedValue(true);
     expect((await unstarAll()).ok).toBe(true);
-    expect(starredCount()).toBe(0);
-  });
-
-  it('follows a star toggled in a thread and never goes below zero', () => {
-    noteStarToggled(true);
-    expect(starredCount()).toBe(1);
-    noteStarToggled(false);
-    noteStarToggled(false);
-    expect(starredCount()).toBe(0);
+    expect(setStarredCount).toHaveBeenCalledWith('u1_a', 0);
   });
 });

@@ -17,7 +17,6 @@ import { Icon } from '../../../ui/icons';
 import { RowActions } from '../../../ui/RowActions';
 import { conversationActions } from './conversationActions';
 import { refreshStarred } from '../starred';
-import { useStarredCount } from '../starredCount';
 import { StarredSheet } from './thread/ListSheets';
 
 function usePreview() {
@@ -149,10 +148,11 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
   const filter = filters.includes(chosen) ? chosen : 'all';
   const [inArchive, setInArchive] = useState(false);
   const [inStarred, setInStarred] = useState(false);
-  const starred = useStarredCount();
+  const starred = useChat((state) => state.starred);
+  const accountId = useChat((state) => state.accountId);
   useEffect(() => {
-    void refreshStarred();
-  }, []);
+    if (accountId) void refreshStarred();
+  }, [accountId]);
   const [pulled, setPulled] = useState(false);
   const waiting = useMemo(() => {
     const counts = new Map<number, number>();
