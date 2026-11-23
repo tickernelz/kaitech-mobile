@@ -62,6 +62,11 @@ onFlowStart:
     visible:
       id: call-controls
     timeout: 60000
+- extendedWaitUntil:
+    visible:
+      id: call-status
+      text: '\d\d:\d\d'
+    timeout: 30000
 - assertNotVisible:
     id: com.android.permissioncontroller:id/permission_allow_foreground_only_button
 - assertVisible:
