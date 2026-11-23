@@ -66,6 +66,27 @@ onFlowStart:
 - runFlow:
     when:
       platform: Android
+      true: ${ORIENTATION === 'portrait' || DEVICE_SIZE === 'tablet'}
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: '(com\.google\.android|com\.android)\.inputmethod\.latin:id/.+'
+          timeout: 10000
+          optional: true
+      - runFlow:
+          file: shared/screenshot.yaml
+          env:
+            SCREEN: sign-in-keyboard
+      - tapOn:
+          id: sign-in-continue
+      - extendedWaitUntil:
+          visible:
+            id: sign-in-server-error
+            text: "${APP_LANGUAGE === 'id' ? 'Server harus memakai koneksi aman .https..' : 'The server must use a secure connection .https..'}"
+          timeout: 10000
+- runFlow:
+    when:
+      platform: Android
     commands:
       - pressKey: Enter
       - extendedWaitUntil:
@@ -73,21 +94,6 @@ onFlowStart:
             id: sign-in-database
             focused: true
           timeout: 10000
-      - runFlow:
-          when:
-            true: ${ORIENTATION === 'portrait' || DEVICE_SIZE === 'tablet'}
-          commands:
-            - runFlow:
-                file: shared/screenshot.yaml
-                env:
-                  SCREEN: sign-in-keyboard
-            - tapOn:
-                id: sign-in-continue
-            - extendedWaitUntil:
-                visible:
-                  id: sign-in-server-error
-                  text: "${APP_LANGUAGE === 'id' ? 'Server harus memakai koneksi aman .https..' : 'The server must use a secure connection .https..'}"
-                timeout: 10000
       - pressKey: Enter
       - extendedWaitUntil:
           visible:
