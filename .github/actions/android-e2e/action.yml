@@ -71,14 +71,11 @@ runs:
             sudo apt-get install -y --no-install-recommends pulseaudio pulseaudio-utils > /dev/null
           }
         fi
-        socket="$RUNNER_TEMP/pulse-emulator"
         pulseaudio --start --exit-idle-time=-1
-        pactl load-module module-native-protocol-unix socket="$socket" auth-anonymous=1 > /dev/null
         pactl load-module module-null-sink sink_name=emulator > /dev/null
         pactl set-default-sink emulator
         pactl set-default-source emulator.monitor
-        echo "PULSE_SERVER=unix:$socket" >> "$GITHUB_ENV"
-        PULSE_SERVER="unix:$socket" pactl info | grep -E '^(Server String|Default Sink|Default Source):'
+        pactl info | grep -E '^(Server Name|Default Sink|Default Source):'
     - name: Run Maestro flows, one orientation after another
       uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
       env:
