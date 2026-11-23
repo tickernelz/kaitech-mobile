@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: smoke runs one Android cell; android runs the Android matrix and the signed-in rows; full adds the iPad simulator.
+        description: smoke runs one Android cell; android runs the Android matrix and the signed-in rows; full adds the iPhone simulator.
         type: choice
         options: [smoke, android, full]
         default: smoke
@@ -191,14 +191,14 @@ jobs:
           audio: 'true'
           snapshot: 'false'
 
-  ipad:
-    name: ipad simulator en-US
+  ios:
+    name: ios simulator en-US
     needs: plan
     if: needs.plan.outputs.mode == 'full'
     runs-on: macos-26
     timeout-minutes: 75
     concurrency:
-      group: kaitech-e2e-ipad
+      group: kaitech-e2e-ios
       cancel-in-progress: false
       queue: max
     steps:
@@ -233,7 +233,7 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build/native-app
-          key: ios-simulator-app-${{ steps.fingerprint.outputs.hash }}
+          key: ios-simulator-app-arm64-${{ steps.fingerprint.outputs.hash }}
       - if: steps.app.outputs.cache-hit != 'true'
         run: npx expo prebuild --platform ios --no-install
       - name: Restore Pods with this fingerprint
@@ -271,6 +271,8 @@ jobs:
             -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build/ios \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=YES \
             CODE_SIGNING_ALLOWED=NO \
             build > build/xcodebuild.log 2>&1; then
             grep -E 'error:' build/xcodebuild.log | head -50 || true
@@ -284,7 +286,7 @@ jobs:
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build/native-app
-          key: ios-simulator-app-${{ steps.fingerprint.outputs.hash }}
+          key: ios-simulator-app-arm64-${{ steps.fingerprint.outputs.hash }}
       - name: Repack the cached simulator build with this commit's JS bundle
         if: steps.app.outputs.cache-hit == 'true'
         run: |
@@ -311,8 +313,8 @@ jobs:
           bash scripts/cache-summary.sh "$SAVE_CACHES" \
             ios-simulator-app "$APP_OUTCOME" "$APP_HIT" "$APP_KEY" "" \
             ios-pods "$PODS_OUTCOME" "$PODS_HIT" "$PODS_KEY" "$PODS_MATCHED"
-      - name: Run Maestro flows on an iPad simulator
-        run: bash scripts/e2e-ipad.sh build/native-app/Kaitech.app e2e-output en-US
+      - name: Run Maestro flows on an iPhone simulator
+        run: bash scripts/e2e-ios.sh build/native-app/Kaitech.app e2e-output en-US
       - name: Scan E2E output for secrets
         id: scan-e2e
         if: always()
@@ -325,14 +327,14 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && steps.scan-e2e.outcome == 'success'
         with:
-          name: e2e-ipad-en-US
+          name: e2e-ios-en-US
           path: e2e-output/
           if-no-files-found: warn
           retention-days: 30
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
-          name: ipad-build-log
+          name: ios-build-log
           path: build/xcodebuild.log
           if-no-files-found: ignore
           retention-days: 7
