@@ -66,5 +66,5 @@ onFlowStart:
       SCREEN: m1-home-uploaded
 - runFlow:
     when:
-      true: ${MINUTES_MEETING !== undefined && MINUTES_MEETING !== ''}
+      true: ${MINUTES_NAME !== undefined && MINUTES_NAME !== ''}
     file: ../shared/read-minutes.yaml

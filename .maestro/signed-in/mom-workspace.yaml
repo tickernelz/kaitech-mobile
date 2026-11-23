@@ -1,0 +1,137 @@
+appId: io.kaitech.mobile
+name: My notes, solutions and tasks of the seeded meeting, client organisation, and administration when the account may see it, read only
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/pick-test-programme.yaml
+- runFlow: ../shared/open-seeded-meeting.yaml
+- extendedWaitUntil:
+    visible:
+      id: meeting-more
+    timeout: 30000
+- tapOn:
+    id: meeting-more
+- tapOn:
+    id: mom-more-assist-notes
+- extendedWaitUntil:
+    visible:
+      id: assist-note-body
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: w1-notes
+- tapOn:
+    id: header-back
+- tapOn:
+    id: meeting-more
+- tapOn:
+    id: mom-more-assist-solusi
+- extendedWaitUntil:
+    visible:
+      id: assist-solusi
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: w2-solusi
+- tapOn:
+    id: header-back
+- tapOn:
+    id: meeting-more
+- tapOn:
+    id: mom-more-assist-tasks
+- extendedWaitUntil:
+    visible:
+      id: assist-tasks
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: w3-tasks
+- runFlow: ../shared/back-to-mom-home.yaml
+- tapOn:
+    id: mom-menu
+- runFlow:
+    when:
+      visible:
+        id: mom-more-clientOrg
+    commands:
+      - tapOn:
+          id: mom-more-clientOrg
+      - extendedWaitUntil:
+          visible:
+            id: mom-client-org
+          timeout: 30000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: w4-client-org
+      - tapOn:
+          id: header-back
+      - tapOn:
+          id: mom-menu
+- runFlow:
+    when:
+      visible:
+        id: mom-more-keys
+    commands:
+      - tapOn:
+          id: mom-more-keys
+      - extendedWaitUntil:
+          visible:
+            id: mcp-new
+          timeout: 30000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: w5-mcp-keys
+      - tapOn:
+          id: header-back
+      - tapOn:
+          id: mom-menu
+- runFlow:
+    when:
+      visible:
+        id: mom-more-settings
+    commands:
+      - tapOn:
+          id: mom-more-settings
+      - extendedWaitUntil:
+          visible:
+            id: settings-lark
+          timeout: 30000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: w6-settings
+      - tapOn:
+          id: header-back
+      - tapOn:
+          id: mom-menu
+- runFlow:
+    when:
+      visible:
+        id: mom-more-import
+    commands:
+      - tapOn:
+          id: mom-more-import
+      - extendedWaitUntil:
+          visible:
+            id: admin-import
+          timeout: 30000
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: w7-import
+      - tapOn:
+          id: header-back

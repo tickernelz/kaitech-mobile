@@ -1,18 +1,7 @@
 appId: io.kaitech.mobile
 name: Read the seeded test meeting minutes, items, transcript and Final MoM, then open the sign-off sheet
 ---
-- repeat:
-    while:
-      notVisible:
-        id: meeting-${MINUTES_MEETING}
-    times: 40
-    commands:
-      - swipe:
-          start: 22%, 75%
-          end: 22%, 35%
-          duration: 500
-- tapOn:
-    id: meeting-${MINUTES_MEETING}
+- runFlow: open-seeded-meeting.yaml
 - extendedWaitUntil:
     visible:
       id: (decision-0|meeting-tab-notes)

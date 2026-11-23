@@ -1,15 +1,23 @@
+import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { useResource } from '../../api/resource';
+import { Alert, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { sessionCookie } from '../../api/odoo';
+import { invalidate, useResource } from '../../api/resource';
+import type { Account } from '../../auth/oauth';
+import { useSession } from '../../auth/session';
+import { downloadForOpening } from '../chat/files';
+import { distribute, exportMinutes, finalize, nextStep, stepBlocker, type FinalTool } from './final';
+import { MoreSheet, type MoreAction, type MoreGroup } from './MoreSheet';
+import { SmallButton } from './parts';
 import { readableWidth } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Icon } from '../../ui/icons';
 import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
-import { Card, Chip, StateView } from '../discovery/ui';
+import { Card, Chip, StateView, useErrorText } from '../discovery/ui';
 import { finalMinutes, type FinalView } from './api';
 
 export function finalKey(meeting: number) {
@@ -102,6 +110,123 @@ function Paper({ view }: { view: FinalView }) {
   );
 }
 
+async function openExport(account: Account, meeting: number, format: 'docx' | 'pdf', complete: boolean) {
+  const file = await exportMinutes(account, meeting, format, complete);
+  const url = file.url.startsWith('http') ? file.url : `${account.origin}${file.url}`;
+  const local = await downloadForOpening(
+    { accountId: account.id, attachmentId: file.attachmentId, checksum: String(Date.now()) },
+    url,
+    file.name,
+    { Cookie: await sessionCookie(account) },
+  );
+  const mimeType = format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  if (await local.canPreview({ mimeType })) await local.preview({ mimeType, title: file.name });
+  else if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(local.uri, { mimeType, dialogTitle: file.name });
+}
+
+function useFinalActions(programme: number, view: FinalView) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const errorText = useErrorText();
+  const { active } = useSession();
+  const [busy, setBusy] = useState('');
+  const run = async (name: string, work: (account: Account) => Promise<unknown>) => {
+    if (!active || busy) return;
+    setBusy(name);
+    try {
+      await work(active);
+      invalidate(`${active.id}:${finalKey(view.meetingId)}`);
+      invalidate(`${active.id}:mom.board`);
+    } catch (error) {
+      Alert.alert('', errorText(error));
+    } finally {
+      setBusy('');
+    }
+  };
+  const tool = (name: FinalTool) => () =>
+    router.push({ pathname: '/mom/final/[tool]', params: { tool: name, programme: String(programme), meeting: String(view.meetingId) } });
+  const download = (format: 'docx' | 'pdf', complete: boolean) => () =>
+    void run(`export-${format}-${complete}`, (account) => openExport(account, view.meetingId, format, complete));
+  const team = !view.isClient;
+  type Key = 'content' | 'narrative' | 'header' | 'recipients' | 'email' | 'docx' | 'pdf' | 'complete' | 'context' | 'revoke';
+  const action = (key: Key, icon: MoreAction['icon'], onPress: () => void, extra: Partial<MoreAction> = {}): MoreAction => ({
+    key,
+    icon,
+    label: t(`mom.finalTools.menu.${key}`),
+    onPress,
+    ...extra,
+  });
+  const groups: MoreGroup[] = [
+    {
+      key: 'content',
+      title: t('mom.finalTools.menu.contentGroup'),
+      actions: team ? [action('content', 'doc', tool('content')), action('narrative', 'minutes', tool('narrative')), action('header', 'meeting', tool('header'))] : [],
+    },
+    {
+      key: 'send',
+      title: t('mom.finalTools.menu.sendGroup'),
+      actions: team ? [action('recipients', 'people', tool('recipients')), action('email', 'send', tool('email'))] : [],
+    },
+    {
+      key: 'files',
+      title: t('mom.finalTools.menu.filesGroup'),
+      actions: [
+        action('docx', 'download', download('docx', false)),
+        action('pdf', 'download', download('pdf', false)),
+        ...(team ? [action('complete', 'download', download('docx', true), { detail: t('mom.finalTools.menu.completeDetail') })] : []),
+      ],
+    },
+    {
+      key: 'more',
+      title: t('mom.finalTools.menu.moreGroup'),
+      actions: [
+        ...(team ? [action('context', 'history', tool('context'))] : []),
+        ...(view.canChange && view.state !== 'draft' ? [action('revoke', 'retry', tool('revoke'), { tone: 'danger' })] : []),
+      ],
+    },
+  ];
+  const step = nextStep(view);
+  const confirm = (key: 'finalize' | 'distribute' | 'distributeRest', work: (account: Account) => Promise<unknown>) =>
+    Alert.alert(t(`mom.finalTools.step.${key}Title`), t(`mom.finalTools.step.${key}Body`), [
+      { text: t('mom.recorder.cancel'), style: 'cancel' },
+      { text: t(`mom.finalTools.step.${key}`), onPress: () => void run(key, work) },
+    ]);
+  const stepPress =
+    step === 'finalize'
+      ? () => confirm('finalize', (account) => finalize(account, view.documentId))
+      : step === 'distribute' || step === 'distributeRest'
+        ? () => confirm(step, (account) => distribute(account, view.documentId))
+        : undefined;
+  return { groups, busy, step, stepPress };
+}
+
+function NextStepButton({ view, programme }: { view: FinalView; programme: number }) {
+  const { t } = useTranslation();
+  const actions = useFinalActions(programme, view);
+  const [open, setOpen] = useState(false);
+  const step = actions.step;
+  const blocker = step && step !== 'sign' ? stepBlocker(view, step) : null;
+  return (
+    <View style={styles.list}>
+      {step && step !== 'sign' && actions.stepPress ? (
+        <Button label={t(`mom.finalTools.step.${step}`)} disabled={!!blocker} busy={actions.busy === step} onPress={actions.stepPress} testID={`final-step-${step}`} />
+      ) : null}
+      {blocker ? (
+        <Text variant="footnote" tone="inkSoft">
+          {t(`mom.finalTools.blocker.${blocker}`)}
+        </Text>
+      ) : null}
+      {actions.busy.startsWith('export') ? (
+        <Text variant="footnote" tone="inkSoft" accessibilityRole="alert">
+          {t('mom.finalTools.exporting')}
+        </Text>
+      ) : null}
+      <SmallButton label={t('mom.finalTools.menu.title')} onPress={() => setOpen(true)} testID="final-options" />
+      {open ? <MoreSheet title={t('mom.finalTools.menu.title')} groups={actions.groups} onClose={() => setOpen(false)} testID="final-options-sheet" /> : null}
+    </View>
+  );
+}
+
 export function FinalPanel({ programme, meeting, header }: { programme: number; meeting: number; header?: ReactNode }) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -160,6 +285,7 @@ export function FinalPanel({ programme, meeting, header }: { programme: number; 
           testID="final-sign"
         />
       ) : null}
+      <NextStepButton view={view} programme={programme} />
       </View>
     </ScrollView>
   );

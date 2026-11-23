@@ -1,0 +1,83 @@
+appId: io.kaitech.mobile
+name: A new user presses Start once, answers the microphone and notification prompts, and the recorder starts without a second press; the recording is discarded
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: unset
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/pick-test-programme.yaml
+- tapOn:
+    id: tab-button-mom
+- extendedWaitUntil:
+    visible:
+      id: mom-record
+    timeout: 60000
+- tapOn:
+    id: mom-record
+- extendedWaitUntil:
+    visible:
+      id: setup-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: setup-consent
+- tapOn:
+    id: setup-consent
+- scrollUntilVisible:
+    element:
+      id: setup-start
+- tapOn:
+    id: setup-start
+- extendedWaitUntil:
+    visible:
+      text: (While using the app|Saat aplikasi digunakan)
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: p1-mic-prompt
+- tapOn:
+    text: (While using the app|Saat aplikasi digunakan)
+- repeat:
+    times: 3
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: (recorder-time|com.android.permissioncontroller:id/.*)
+          timeout: 10000
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              text: (Allow|Izinkan)
+          commands:
+            - tapOn:
+                text: (Allow|Izinkan)
+- assertNotVisible:
+    id: setup-outcome
+- extendedWaitUntil:
+    visible:
+      id: recorder-time
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: p2-recording-after-prompts
+- tapOn:
+    id: recorder-discard
+- tapOn:
+    text: (?i)(discard|buang).*
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: mom-record
+    timeout: 30000

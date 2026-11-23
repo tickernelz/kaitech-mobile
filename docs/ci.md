@@ -40,11 +40,11 @@ The `plan` job picks a mode:
 
 Smoke: one Android emulator (`pixel_6`, portrait, `en-US`) runs `.maestro/welcome.yaml` and `.maestro/sign-in-form.yaml` with a screen recording, and measures cold start (perf gate `android.cold_start_ms`). It never uses the test account.
 
-Full: four Android jobs (`pixel_6` and `pixel_tablet`, `en-US` and `id-ID`), each running portrait then landscape on the same emulator; four signed-in rows jobs (`.maestro/signed-in/rows-*.yaml`, phone and tablet, both locales; phone `en-US` runs with direct chats hidden); and the iPhone simulator on `macos-26` (newest available iPhone, portrait then landscape, `DEVICE_SIZE=phone`). Tablet layouts are tested on the Android tablet cells; iPad layouts are not tested in CI since ZHA-7503 (the iPad simulator job took 32 to 71 minutes and held every run behind it), only the iPad configuration inside the IPA (`scripts/check-release-artifacts.py`) and the tablet config gate.
+Full: four Android jobs (`pixel_6` and `pixel_tablet`, `en-US` and `id-ID`), each running portrait then landscape on the same emulator; four signed-in rows jobs (`.maestro/signed-in/rows-*.yaml`, phone and tablet, both locales; phone `en-US` runs with direct chats hidden); four signed-in MoM jobs (`.maestro/signed-in/mom-*.yaml`, phone and tablet, both locales) that start after the rows jobs of the run and take the same `kaitech-e2e-account-<size>-<locale>` group; and the iPhone simulator on `macos-26` (newest available iPhone, portrait then landscape, `DEVICE_SIZE=phone`). Tablet layouts are tested on the Android tablet cells; iPad layouts are not tested in CI since ZHA-7503 (the iPad simulator job took 32 to 71 minutes and held every run behind it), only the iPad configuration inside the IPA (`scripts/check-release-artifacts.py`) and the tablet config gate.
 
 Android: the full run without the iOS simulator. It is the proof for a feature branch before review (about 26 minutes, run 45095995935: APK 14 minutes, then the eight Android cells in 12). The iPad job alone took 32 to 71 minutes on a cold simulator build (runs 45069794592, 45070632107), so branch proof no longer waits for it; the nightly schedule and dispatches on `main` run `full` and carry the iOS proof.
 
-The lock sits on the jobs that need it, not on the run. Each rows job takes the group `kaitech-e2e-account-<size>-<locale>` with `queue: max`: the four rows cells of one run still run side by side, as they always did, while the same cell never runs twice at once across runs, so the test account never carries more than the four distinct cells one full run already puts on it. `rows from release` takes the same groups. The Android matrix and the iOS job never sign in (`scripts/e2e-ios.sh` runs only `.maestro/welcome.yaml` and `.maestro/sign-in-form.yaml`, without account values), so they hold no account group: the iOS job queues on its own group `kaitech-e2e-ios`, and a run's Android jobs never wait for another run's iOS job. A job that adds `E2E_LOGIN` must take a `kaitech-e2e-account-*` group. Android and full runs get a group of their own per run at workflow level. Pull request runs use `queue: single`, since GitHub rejects `queue: max` with `cancel-in-progress: true`.
+The lock sits on the jobs that need it, not on the run. Each rows and MoM job takes the group `kaitech-e2e-account-<size>-<locale>` with `queue: max`: the four rows cells of one run still run side by side, as they always did, while the same cell never runs twice at once across runs, so the test account never carries more than the four distinct cells one full run already puts on it. `rows from release` takes the same groups. The Android matrix and the iOS job never sign in (`scripts/e2e-ios.sh` runs only `.maestro/welcome.yaml` and `.maestro/sign-in-form.yaml`, without account values), so they hold no account group: the iOS job queues on its own group `kaitech-e2e-ios`, and a run's Android jobs never wait for another run's iOS job. A job that adds `E2E_LOGIN` must take a `kaitech-e2e-account-*` group. Android and full runs get a group of their own per run at workflow level. Pull request runs use `queue: single`, since GitHub rejects `queue: max` with `cancel-in-progress: true`.
 
 Pull request runs of the same pull request cancel each other; labelling a pull request with another label does not cancel a running E2E run.
 
@@ -71,7 +71,7 @@ maestro-runner telemetry and update checks are off in every job (`MAESTRO_RUNNER
 
 ### Output
 
-Every artifact is scanned by gitleaks before upload; nothing is uploaded when the scan fails. Smoke, android and full Android jobs upload `e2e-android-<mode>-<size>-<locale>` (one folder per orientation: video, `screenshots/`, `display.txt`, JUnit, logcat, `cold-start.txt`). Rows jobs upload `e2e-android-rows-*` without recordings, logs, or account values. The iOS job uploads `e2e-ios-en-US`.
+Every artifact is scanned by gitleaks before upload; nothing is uploaded when the scan fails. Smoke, android and full Android jobs upload `e2e-android-<mode>-<size>-<locale>` (one folder per orientation: video, `screenshots/`, `display.txt`, JUnit, logcat, `cold-start.txt`). Rows and MoM jobs upload `e2e-android-rows-*` and `e2e-android-mom-*` without recordings, logs, or account values. The iOS job uploads `e2e-ios-en-US`.
 
 ## Release
 
@@ -114,7 +114,7 @@ Every job that touches a cache writes a table to its run summary: each cache wit
 |---|---|---|
 | `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | for releases | non-store APK signing key |
 | `GOOGLE_SERVICES_JSON` | no | FCM; without it the build stays green and Android push is off |
-| `KAITECH_E2E_LOGIN`, `KAITECH_E2E_PASSWORD`, `KAITECH_E2E_WEB_LOGIN`, `KAITECH_E2E_WEB_PASSWORD` | for rows | test account, rows jobs of `android` and `full` E2E only |
+| `KAITECH_E2E_LOGIN`, `KAITECH_E2E_PASSWORD`, `KAITECH_E2E_WEB_LOGIN`, `KAITECH_E2E_WEB_PASSWORD` | for rows and MoM | test account, rows and MoM jobs of `android` and `full` E2E only |
 
 Variables: `KAITECH_LINK_HOST`, `KAITECH_DEFAULT_DB` (build time), `KAITECH_E2E_CHANNEL_ID`, `KAITECH_E2E_PEER`, `KAITECH_E2E_PROGRAMME`, `KAITECH_E2E_SEARCH`, `E2E_RUNNER`, `E2E_RUNNER_ROWS`.
 
