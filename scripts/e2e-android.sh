@@ -23,20 +23,24 @@ apk="$(find "$apk_dir" -maxdepth 1 -name '*.apk' | head -1)"
 region="${locale#*-}"
 
 framework_config() { adb shell am get-config 2>/dev/null | tr -d '\r' | grep -m1 '^config:' || true; }
+is_root() { [ "$(adb shell id -u 2>/dev/null | tr -d '\r')" = 0 ]; }
+become_root() {
+  for _ in $(seq 1 10); do
+    adb root >/dev/null 2>&1 || true
+    adb wait-for-device
+    is_root && return 0
+    sleep 3
+  done
+  echo "adb root unavailable on the emulator" >&2
+  exit 1
+}
 
 adb wait-for-device
 config="$(framework_config)"
 locale_reboot=no
 if [[ "$config" != *"-$language-r$region-"* ]]; then
   locale_reboot="yes, from ${config:-none}"
-  is_root() { [ "$(adb shell id -u 2>/dev/null | tr -d '\r')" = 0 ]; }
-  for _ in $(seq 1 10); do
-    adb root >/dev/null 2>&1 || true
-    adb wait-for-device
-    is_root && break
-    sleep 3
-  done
-  is_root || { echo "adb root unavailable on the emulator" >&2; exit 1; }
+  become_root
   adb shell setprop persist.sys.locale "$locale"
   adb reboot
   adb wait-for-disconnect
@@ -91,6 +95,26 @@ sleep 3
   echo "user rotation: $rotation"
   echo "before maestro: $(rotation_state)"
 } | tee "$out/display.txt"
+
+gboard=com.google.android.inputmethod.latin
+if adb shell pm path "$gboard" 2>/dev/null | grep -q '^package:'; then
+  become_root
+  gboard_dir="/data/user_de/0/$gboard/shared_prefs"
+  gboard_prefs="$gboard_dir/${gboard}_preferences.xml"
+  gboard_owner="$(adb shell stat -c %u:%g "/data/user_de/0/$gboard" | tr -d '\r')"
+  verbatim_keys="auto_cap pref_key_auto_correction pref_key_latin_auto_correction pref_key_pk_auto_correction latin_pk_auto_capitalize"
+  adb shell am force-stop "$gboard"
+  current="$(adb shell "cat $gboard_prefs 2>/dev/null" | tr -d '\r' | grep '<' || true)"
+  [ -n "$current" ] || current="<?xml version='1.0' encoding='utf-8' standalone='yes' ?>"$'\n'"<map>"$'\n'"</map>"
+  for key in $verbatim_keys; do
+    current="$(grep -v "name=\"$key\"" <<< "$current" | sed "s#</map>#    <boolean name=\"$key\" value=\"false\" />\n</map>#")"
+  done
+  adb shell "mkdir -p $gboard_dir && cat > $gboard_prefs" <<< "$current"
+  adb shell chown "$gboard_owner" "$gboard_dir" "$gboard_prefs"
+  adb shell chmod 660 "$gboard_prefs"
+  adb shell restorecon -R "$gboard_dir"
+  echo "gboard typing: $(adb shell cat "$gboard_prefs" | tr -d '\r' | grep -cE "value=\"false\"") verbatim keys off, $(adb shell ls -Z "$gboard_prefs" | tr -d '\r')" | tee -a "$out/display.txt"
+fi
 
 adb shell settings put global hide_error_dialogs 1
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null
