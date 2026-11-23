@@ -1,0 +1,9 @@
+{
+  "platforms": ["android", "apple"],
+  "android": {
+    "modules": ["io.kaitech.videoeffects.KaitechVideoEffectsModule"]
+  },
+  "apple": {
+    "modules": ["KaitechVideoEffectsModule"]
+  }
+}

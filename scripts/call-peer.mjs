@@ -82,6 +82,7 @@ const out = document.getElementById('log');
 const state = { connected: false, participants: [], speakers: [], remoteAudio: 0, audioPlays: 0, recording: false, screens: [], sharing: false, error: null };
 const screens = new Map();
 let shared = null;
+const played = new Map();
 function frames() {
   for (const [identity, element] of screens) {
     if (!element.videoWidth) continue;
@@ -91,7 +92,13 @@ function frames() {
     canvas.getContext('2d').drawImage(element, 0, 0);
     fetch('/frame?from=' + encodeURIComponent(identity), { method: 'POST', body: canvas.toDataURL('image/png') }).catch(() => undefined);
   }
-  state.screens = [...screens].map(([identity, element]) => ({ identity, width: element.videoWidth, height: element.videoHeight }));
+  state.screens = [...screens].map(([identity, element]) => {
+    const total = element.getVideoPlaybackQuality ? element.getVideoPlaybackQuality().totalVideoFrames : 0;
+    const fps = total - (played.get(identity) ?? total);
+    played.set(identity, total);
+    if (identity.endsWith('|camera') && element.videoWidth) log('fps ' + identity + ' ' + fps + ' ' + element.videoWidth + 'x' + element.videoHeight);
+    return { identity, width: element.videoWidth, height: element.videoHeight, fps };
+  });
 }
 async function camera(on) {
   const room = globalThis.room;
@@ -162,7 +169,7 @@ function refresh() {
 }
 async function start(call) {
   try {
-    const room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
+    const room = new LivekitClient.Room({ adaptiveStream: false, dynacast: true });
     globalThis.room = room;
     room.on(LivekitClient.RoomEvent.ParticipantConnected, () => { log('participant connected'); refresh(); });
     room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => { log('participant left'); refresh(); });
@@ -171,13 +178,14 @@ async function start(call) {
     room.on(LivekitClient.RoomEvent.ParticipantAttributesChanged, (changed, participant) => { log('attributes from ' + (participant && participant.identity) + ' ' + JSON.stringify(changed)); refresh(); });
     room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
       log('subscribed ' + track.kind + ' from ' + (track.participant && track.participant.identity));
-      if (track.kind === 'video' && track.source === 'screen_share') {
+      if (track.kind === 'video') {
         const element = track.attach();
         element.muted = true;
         element.style.width = '640px';
         document.body.appendChild(element);
-        screens.set(track.participant ? track.participant.identity : 'unknown', element);
-        log('screen from ' + (track.participant && track.participant.identity));
+        const camera = track.source !== 'screen_share';
+        screens.set((track.participant ? track.participant.identity : 'unknown') + (camera ? '|camera' : ''), element);
+        log((camera ? 'camera from ' : 'screen from ') + (track.participant && track.participant.identity));
       }
       if (track.kind === 'audio') {
         const element = track.attach();

@@ -50,6 +50,12 @@ describe('call controls', () => {
     ]);
   });
 
+  it('offers background blur in the video group of More only for a video call on a phone that has the effect', () => {
+    expect(groupedMore(controlsFor({ ...base, blur: true }).more).find((entry) => entry.group === 'video')?.actions[0]).toBe('blur');
+    expect(controlsFor({ ...base, blur: true, video: false }).more).not.toContain('blur');
+    expect(controlsFor(base).more).not.toContain('blur');
+  });
+
   it('keeps invite out of a direct chat and the crowd views out of a two-person call', () => {
     const { more } = controlsFor({ ...base, invite: false, crowd: false });
     expect(more).not.toContain('invite');

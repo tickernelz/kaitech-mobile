@@ -23,6 +23,8 @@ Jobs run in parallel and are the only required checks for merging into `main`:
 
 A new push to a pull request cancels its run in progress. Target: under 3 minutes wall time.
 
+When a pull request closes, the `cache cleanup` job deletes the caches stored under its `refs/pull/<n>/merge` ref (pull requests from forks are skipped: their token cannot delete caches).
+
 Docs-only changes (`docs/**`, `*.md`): pushes to `main` are skipped through `paths-ignore`. Pull requests are not filtered at the trigger, because a required check of a workflow that never starts stays "Expected" and blocks the merge. Instead the `changes` job lists the pull request files, and on a docs-only pull request `lint`, `typecheck` and `unit` report skipped, which branch protection accepts. `gitleaks diff` always runs, docs-only or not. The three gated jobs run unless `changes` explicitly answered docs-only (`!cancelled() && needs.changes.outputs.code != 'false'`): a failed `changes` job must not turn them into skipped checks, which branch protection would count as passed.
 
 ## E2E
@@ -46,14 +48,14 @@ Pull request runs of the same pull request cancel each other; labelling a pull r
 
 `@expo/fingerprint` hashes everything that decides the native build: native dependencies and autolinking, config plugins, the resolved Expo config (so every value `app.config.ts` and `app.json` produce), `patches/`, and through `fingerprint.config.js` the whole of `modules/kaitech-call/` and `plugins/`. Code under `src/` is not part of it.
 
-- Android: the `android apk x86_64` job restores the x86_64 release APK cached under `native-apk-x86_64-<signing>-<fingerprint>`. On a hit, `@expo/repack-app` (`--js-bundle-only`) puts this commit's Hermes bundle into it and signs it with the same key, skipping prebuild and Gradle. On a miss, the APK is built (Gradle cache, ccache) and saved under that key.
-- iOS: the iPad job restores the simulator `Kaitech.app` cached under `ios-simulator-app-<fingerprint>` and repacks only the JS bundle on a hit. On a miss it restores `ios/Pods`, `Podfile.lock` and the CocoaPods and React Native download caches under `ios-pods-<fingerprint>`, runs `pod install` and `xcodebuild`, and saves both.
+- Android: the `android apk x86_64` job restores the x86_64 release APK cached under `native-apk-x86_64-<signing>-<fingerprint>`. On a hit, `@expo/repack-app` (`--js-bundle-only`) puts this commit's Hermes bundle into it and signs it with the same key, skipping prebuild and Gradle. On a miss, the APK is built (Gradle cache, ccache) and saved under that key when the run is on `main`.
+- iOS: the iPad job restores the simulator `Kaitech.app` cached under `ios-simulator-app-<fingerprint>` and repacks only the JS bundle on a hit. On a miss it restores `ios/Pods`, `Podfile.lock` and the CocoaPods and React Native download caches under `ios-pods-<fingerprint>`, runs `pod install` and `xcodebuild`, and saves both when the run is on `main`.
 
 Release builds never use these caches: every release artifact is compiled from source.
 
 ### Emulator
 
-`reactivecircus/android-emulator-runner`, API 35, `x86_64`, `google_apis`. Account-free E2E jobs (smoke and full cells) boot from an AVD snapshot cached per profile (`avd-api35-x86_64-google_apis-<profile>-v1`) and never save it back (`-no-snapshot-save`). Only runs outside pull requests create it, after `cmd package bg-dexopt-job`, so a restored emulator does not resume post-boot work; a pull request that finds no snapshot cold-boots instead of creating one it cannot save (run 45056878705 attempt 1 restored a just-created snapshot at load average 8.9). `scripts/e2e-android.sh` also sets `hide_error_dialogs` and closes system dialogs before installing the app: on a busy fresh emulator "Pixel Launcher isn't responding" covered the app and both smoke flows timed out (run 45058782312 attempt 3, `cmd-001-hierarchy.xml`). Signed-in rows jobs and release install checks boot a fresh, wiped emulator without snapshots: rows need emulator audio for recording, and a snapshot taken without audio is not the device they were proven on (probe run 45043443333, rows phone en-US hide-direct, failed the first check of all three flows on a snapshot boot while the other three rows cells passed).
+`reactivecircus/android-emulator-runner`, API 35, `x86_64`, `google_apis`. Account-free phone jobs (smoke and the full phone cells) boot from an AVD snapshot cached as `avd-api35-x86_64-google_apis-pixel_6-v1` and never save it back (`-no-snapshot-save`). Full tablet cells boot a fresh, wiped emulator: the tablet snapshot took 3,545 MB of the 10 GB cache quota and saved no time (run 45069794592: restoring the phone snapshot took 52 s plus 12 s to boot, a cold tablet boot 39 s), and the signed-in rows tablet cells already pass on fresh boots. Only runs on `main` create the phone snapshot, after `cmd package bg-dexopt-job`, so a restored emulator does not resume post-boot work; a pull request that finds no snapshot cold-boots instead of creating one it cannot save (run 45056878705 attempt 1 restored a just-created snapshot at load average 8.9). `scripts/e2e-android.sh` also sets `hide_error_dialogs` and closes system dialogs before installing the app: on a busy fresh emulator "Pixel Launcher isn't responding" covered the app and both smoke flows timed out (run 45058782312 attempt 3, `cmd-001-hierarchy.xml`). Signed-in rows jobs and release install checks boot a fresh, wiped emulator without snapshots: rows need emulator audio for recording, and a snapshot taken without audio is not the device they were proven on (probe run 45043443333, rows phone en-US hide-direct, failed the first check of all three flows on a snapshot boot while the other three rows cells passed).
 
 ### Flow runner
 
@@ -70,7 +72,7 @@ Every artifact is scanned by gitleaks before upload; nothing is uploaded when th
 ## Release
 
 1. `gitleaks`: the ref must be a commit on `main`; gitleaks over the full git history and the working tree.
-2. `android apk universal` (four ABIs) and `android apk arm64-v8a`, signed with the release keystore and checked against `.github/android-release-cert.sha256`, ABIs, bundled JS secrets, perf gate; `ios ipa (unsigned)` and `ios bundle secret scan`.
+2. `android apk (universal)` (four ABIs) and `android apk (arm64-v8a)`, signed with the release keystore and checked against `.github/android-release-cert.sha256`, ABIs, bundled JS secrets, perf gate; `ios ipa (unsigned)` and `ios bundle secret scan`.
 3. Tags only: draft GitHub Release with the APKs, IPA and `SHA256SUMS.txt`; the draft is downloaded again for checksums, rotation, multi-window and iPad config inside the files (`scripts/check-release-artifacts.py`), and gitleaks over the unpacked APK and IPA; the universal APK is installed on a fresh emulator in eight cells (phone and tablet, portrait and landscape, `en-US` and `id-ID`), and the four signed-in rows cells run on it too (`rows from release`, fresh emulator, one at a time in `kaitech-e2e-account`); the release is published only when both pass.
 
 A manual run from `main` stops after step 2: it builds the release APKs and IPA as run artifacts (`kaitech-android-apk`, `kaitech-android-apk-arm64-v8a`, `kaitech-ios-ipa`) without creating a release. Use it for a build of `main` between releases.
@@ -79,14 +81,16 @@ To release: raise `version` in `app.json` through a pull request, then after the
 
 ## Caches
 
-Written outside pull requests and read by them.
+Written only from `refs/heads/main` (push, nightly schedule, dispatch on `main`) and read by every pull request, branch and tag. GitHub lets a run read caches of its own ref and of `main`, never of another branch, and evicts the least recently used entries once the repository passes its 10 GB quota; caches written by branches were never read by anyone else and pushed the `main` set out (ZHA-7494: 12,440 MB in 16 entries, none on `main`). Gradle runs with `cache-read-only` outside `main`. The one exception is `setup-node`'s npm cache, which saves on a `package-lock.json` it has not seen; the `cache cleanup` job removes it when the pull request closes.
+
+Every job that touches a cache writes a table to its run summary: each cache with `hit`, `partial` (an older entry through a restore prefix), `miss` or `not used`, its key, and whether the ref writes.
 
 | Cache | Content | Key |
 |---|---|---|
 | `native-apk-<variant>-<signing>-<fingerprint>` | x86_64 E2E APK | native fingerprint |
 | `ios-simulator-app-<fingerprint>` | iPad simulator app | native fingerprint |
 | `ios-pods-<fingerprint>` | `ios/Pods`, `Podfile.lock`, CocoaPods and React Native downloads | native fingerprint |
-| `avd-api35-x86_64-google_apis-<profile>-v1` | AVD with a booted snapshot | profile |
+| `avd-api35-x86_64-google_apis-pixel_6-v1` | phone AVD with a booted snapshot | profile |
 | Gradle (`setup-gradle`) | dependencies, wrapper, Gradle build cache | managed by the action |
 | `ccache-android-<variant>-…` | NDK C/C++ objects | `package-lock.json`, `app.json`, `app.config.ts` |
 | `ios-downloads-…` | CocoaPods and React Native downloads (release IPA) | same files |
