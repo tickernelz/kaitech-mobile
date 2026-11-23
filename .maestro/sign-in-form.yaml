@@ -67,12 +67,7 @@ onFlowStart:
     when:
       platform: Android
     commands:
-      - pressKey: Enter
-      - extendedWaitUntil:
-          visible:
-            id: sign-in-database
-            focused: true
-          timeout: 10000
+      - runFlow: shared/next-field.yaml
       - pressKey: Enter
       - extendedWaitUntil:
           visible:
@@ -127,12 +122,7 @@ onFlowStart:
     when:
       platform: Android
     commands:
-      - pressKey: Enter
-      - extendedWaitUntil:
-          visible:
-            id: sign-in-database
-            focused: true
-          timeout: 10000
+      - runFlow: shared/next-field.yaml
       - inputText: erp main
       - pressKey: Enter
       - extendedWaitUntil:
