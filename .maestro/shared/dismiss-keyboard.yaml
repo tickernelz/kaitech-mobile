@@ -9,6 +9,7 @@ name: Dismiss the keyboard once it is up, without the iOS back swipe
           visible:
             id: '(com\.google\.android|com\.android)\.inputmethod\.latin:id/.+'
           timeout: 10000
+          optional: true
       - hideKeyboard
 - runFlow:
     when:

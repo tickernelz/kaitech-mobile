@@ -84,6 +84,8 @@ onFlowStart:
             id: sign-in-server-error
             text: "${APP_LANGUAGE === 'id' ? 'Server harus memakai koneksi aman .https..' : 'The server must use a secure connection .https..'}"
           timeout: 10000
+      - tapOn:
+          id: sign-in-server
 - runFlow:
     when:
       platform: Android
