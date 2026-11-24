@@ -2,6 +2,19 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.5.2 - 2026-11-24
+
+### Changed
+
+- iOS: the Android-only `@expo/ui` is no longer linked into the iOS app, and the iOS JS bundle no longer carries its Compose views; the IPA is 1,705,526 bytes smaller than 0.5.0 (24623415 bytes), and the size baselines follow the trimmed build (#98, ZHA-7773).
+- CI: the E2E `ios ipa size` job builds the release IPA and checks its size on pull requests that change native or bundler inputs or carry `measure-ios`, nightly and on full runs, so size growth shows in the pull request that caused it (#98, ZHA-7773).
+- E2E: signed-in cells hold lab0 against a deploy while their flows run (#94, ZHA-7767).
+
+### Fixed
+
+- Chat: Mark as urgent is disabled once today's urgent quota is spent, as on the web, instead of leaving the message unsent (#93, ZHA-7439).
+- E2E: the iOS simulator job runs again on macOS's bash 3.2; the lab0 hold from #94 stopped it before the first flow (#98, ZHA-7773).
+
 ## 0.5.1 - 2026-11-24
 
 First published release with the changes of 0.5.0, which was tagged but never published: its Release run stopped at the iOS size gate.

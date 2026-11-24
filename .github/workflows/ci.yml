@@ -37,7 +37,8 @@ jobs:
             echo "code=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          other="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename' | grep -vE '^docs/|\.md$' || true)"
+          files="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename')"
+          other="$(grep -vE '^docs/|\.md$' <<< "$files" || true)"
           if [ -n "$other" ]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
           else

@@ -27,7 +27,7 @@ permissions:
 concurrency:
   group: >-
     ${{ (github.event_name == 'schedule' || inputs.mode == 'full' || inputs.mode == 'android') && format('e2e-{0}-{1}', inputs.mode || 'full', github.run_id)
-    || github.event.action == 'labeled' && github.event.label.name != 'run-e2e' && format('e2e-ignored-{0}', github.run_id)
+    || github.event.action == 'labeled' && github.event.label.name != 'run-e2e' && github.event.label.name != 'measure-ios' && format('e2e-ignored-{0}', github.run_id)
     || format('e2e-{0}-{1}', github.event_name, github.event.pull_request.number || github.ref) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
   queue: ${{ github.event_name == 'pull_request' && 'single' || 'max' }}
@@ -43,8 +43,12 @@ jobs:
     name: plan
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       mode: ${{ steps.mode.outputs.mode }}
+      measure: ${{ steps.size.outputs.measure }}
       cells: ${{ steps.mode.outputs.cells }}
       flows: ${{ steps.mode.outputs.flows }}
       account: ${{ steps.account.outputs.account }}
@@ -65,7 +69,7 @@ jobs:
             schedule) mode=full ;;
             workflow_dispatch) mode="$DISPATCH_MODE" ;;
             pull_request)
-              if [ "$HAS_LABEL" = true ] && { [ "$ACTION" != labeled ] || [ "$LABEL" = run-e2e ]; }; then mode=smoke; else mode=none; fi
+              if [ "$HAS_LABEL" = true ] && { [ "$ACTION" != labeled ] || [ "$LABEL" = run-e2e ] || [ "$LABEL" = measure-ios ]; }; then mode=smoke; else mode=none; fi
               ;;
             *) mode=none ;;
           esac
@@ -85,6 +89,37 @@ jobs:
             echo "cells=$(jq -c --arg mode "$mode" 'map({mode: $mode} + .)' <<< "$cells")"
             echo "flows=$flows"
           } >> "$GITHUB_OUTPUT"
+      - id: size
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          LABEL: ${{ github.event.label.name }}
+          HAS_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'measure-ios') }}
+          PR: ${{ github.event.pull_request.number }}
+          MODE: ${{ steps.mode.outputs.mode }}
+        run: |
+          set -euo pipefail
+          measure=false
+          case "$EVENT" in
+            schedule) measure=true ;;
+            workflow_dispatch) if [ "$MODE" = full ]; then measure=true; fi ;;
+            pull_request)
+              if [ "$ACTION" = labeled ] && [ "$LABEL" != run-e2e ] && [ "$LABEL" != measure-ios ]; then
+                measure=false
+              elif [ "$HAS_LABEL" = true ]; then
+                measure=true
+              else
+                files="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --paginate --jq '.[].filename')"
+                native="$(grep -E '^(package(-lock)?\.json|app\.json|app\.config\.ts|fingerprint\.config\.js|metro\.config\.js|babel\.config\.js|assets/|plugins/|modules/|patches/|perf/|scripts/perf-gate\.mjs|\.github/actions/build-ios-ipa/|\.github/workflows/e2e\.yml)' <<< "$files" || true)"
+                if [ -n "$native" ]; then
+                  measure=true
+                  printf 'Size inputs changed:\n%s\n' "$native"
+                fi
+              fi
+              ;;
+          esac
+          echo "measure=$measure" | tee -a "$GITHUB_OUTPUT"
       - if: steps.mode.outputs.mode == 'full' || steps.mode.outputs.mode == 'android'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -537,3 +572,21 @@ jobs:
           path: build/xcodebuild.log
           if-no-files-found: ignore
           retention-days: 7
+
+  ios-size:
+    name: ios ipa size
+    needs: plan
+    if: needs.plan.outputs.measure == 'true'
+    runs-on: macos-26
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: ./.github/actions/build-ios-ipa
