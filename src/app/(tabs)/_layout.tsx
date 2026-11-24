@@ -1,3 +1,3 @@
-import { JsTabs } from '../../layout/JsTabs';
+import { AppTabs } from '../../layout/AppTabs';
 
-export default JsTabs;
+export default AppTabs;
