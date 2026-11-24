@@ -2,7 +2,7 @@ import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { sessionCookie } from '../../api/odoo';
 import { invalidate, useResource } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
@@ -19,6 +19,7 @@ import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
 import { Card, Chip, StateView, useErrorText } from '../discovery/ui';
 import { finalMinutes, type FinalView } from './api';
+import { Refresh } from '../../ui/Refresh';
 
 export function finalKey(meeting: number) {
   return `mom.final.${meeting}`;
@@ -245,7 +246,7 @@ export function FinalPanel({ programme, meeting, header }: { programme: number; 
   return (
     <ScrollView
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={final.loading} onRefresh={() => void final.refresh()} />}
+      refreshControl={<Refresh refreshing={final.loading} onRefresh={() => void final.refresh()} />}
       testID="final-panel">
       {header}
       <View style={styles.body}>

@@ -22,6 +22,28 @@ module.exports = defineConfig([
           selector: "CallExpression[callee.name='require'][arguments.0.value='livekit-client']",
           message: "require('livekit-client') bundles a second (UMD) copy of livekit-client; import it from src/features/call/liveKitClient instead.",
         },
+        {
+          selector: "JSXOpeningElement[name.name=/^(FlatList|SectionList|FlashList|ScrollView)$/] > JSXAttribute[name.name='onRefresh']",
+          message: 'Pass refreshControl={<Refresh />} from src/ui/Refresh: its offset keeps the Android pull indicator whole inside the list.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/ui/Refresh.tsx'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'react-native',
+              importNames: ['RefreshControl'],
+              message: 'Use Refresh from src/ui/Refresh: its offset keeps the Android pull indicator whole inside the list.',
+            },
+          ],
+        },
       ],
     },
   },

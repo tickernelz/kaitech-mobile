@@ -9,6 +9,7 @@ import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
+import { Refresh } from '../../ui/Refresh';
 import { RowActions } from '../../ui/RowActions';
 import { textActions } from '../../ui/textActions';
 import { Text } from '../../ui/Text';
@@ -76,8 +77,7 @@ export function OdooActivities({
         stickySectionHeadersEnabled={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        onRefresh={() => void items.refresh()}
-        refreshing={items.loading && !!items.data}
+        refreshControl={<Refresh refreshing={items.loading && !!items.data} onRefresh={() => void items.refresh()} />}
         ListHeaderComponent={
           <View style={styles.head}>
             {header}
@@ -219,7 +219,7 @@ export function OdooActivities({
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  list: { padding: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
+  list: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   head: { gap: space.md, paddingBottom: space.sm },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
   chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },

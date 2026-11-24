@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
@@ -10,7 +10,7 @@ import { useFormatters } from '../../i18n';
 import { Panes } from '../../layout/Panes';
 import { useWindowClass } from '../../layout/windowClass';
 import { HeaderActions } from '../../screens/HeaderActions';
-import { TopAppBar, largeTitleOwnsActions, useCollapsingTitle } from '../../ui/AppBar';
+import { TopAppBar, useScrolledUnder } from '../../ui/AppBar';
 import { radius, space, useTheme } from '../../theme';
 import { Section } from '../../ui/List';
 import { RowActions, type RowBind } from '../../ui/RowActions';
@@ -24,6 +24,7 @@ import { Icon, type IconName } from '../../ui/icons';
 import { IconButton } from '../../ui/IconButton';
 import { Card, Chip, StateView } from './ui';
 import { useLatestConversation } from './useLatestConversation';
+import { Refresh } from '../../ui/Refresh';
 
 export function useCurrentProgramme(): { list: ReturnType<typeof useResource<Programme[]>>; current: Programme | null } {
   const { active } = useSession();
@@ -165,7 +166,7 @@ export function DiscoveryHome() {
   const conversation = useOpenConversation(account, programme);
   const [focusCard, setFocusCard] = useState<number>();
   const [focusInput, setFocusInput] = useState(0);
-  const bar = useCollapsingTitle();
+  const bar = useScrolledUnder();
   const threadActive = useRef(false);
   const shownClass = useRef(windowClass);
 
@@ -217,19 +218,13 @@ export function DiscoveryHome() {
 
   const home = (
     <View style={styles.fill}>
-      <TopAppBar title={t('tabs.discovery')} collapsed={bar.collapsed} actions={<HeaderActions />} />
+      <TopAppBar title={t('tabs.discovery')} scrolled={bar.scrolled} actions={<HeaderActions />} />
       <ScrollView
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing && !!programmePanel.data} onRefresh={refresh} />}
+        refreshControl={<Refresh refreshing={refreshing && !!programmePanel.data} onRefresh={refresh} />}
         testID="discovery-home">
-        <View style={styles.top}>
-          <Text variant="display" accessibilityRole="header" style={styles.fill}>
-            {t('tabs.discovery')}
-          </Text>
-          {largeTitleOwnsActions ? <HeaderActions /> : null}
-        </View>
         {current ? (
           <Pressable
             accessibilityRole="button"
@@ -355,8 +350,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   shrink: { flexShrink: 1 },
   strong: { fontWeight: '600' },
-  content: { paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.xxl, gap: space.lg, width: '100%', maxWidth: 720, alignSelf: 'center' },
-  top: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.sm },
+  content: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xxl, gap: space.lg, width: '100%', maxWidth: 720, alignSelf: 'center' },
   switch: {
     flexDirection: 'row',
     alignItems: 'center',
