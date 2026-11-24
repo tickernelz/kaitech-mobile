@@ -284,13 +284,13 @@ function serve() {
       request.on('data', (chunk) => { body += chunk; });
       request.on('end', () => {
         if (path === '/join' || path === '/leave') {
-          response.setHeader('content-type', 'application/json');
+          const note = (line) => sessions.logs.push(new Date().toISOString() + ' ' + line);
+          note(path.slice(1) + ' asked');
           (path === '/join' ? join() : leaveCall())
-            .then(() => response.end(JSON.stringify({ sessionId: sessions.sessionId })))
-            .catch((error) => {
-              response.statusCode = 500;
-              response.end(JSON.stringify({ error: String(error) }));
-            });
+            .then(() => note(path.slice(1) + ' done, session ' + sessions.sessionId))
+            .catch((error) => note(path.slice(1) + ' failed: ' + error));
+          response.statusCode = 202;
+          response.end('accepted');
           return;
         }
         if (path === '/state') {

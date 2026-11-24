@@ -344,7 +344,7 @@ jobs:
       max-parallel: 1
       matrix:
         include:
-          - { size: phone, locale: en-US, many: true }
+          - { size: phone, locale: en-US, many: group-channel }
           - { size: phone, locale: id-ID }
           - { size: tablet, locale: en-US }
           - { size: tablet, locale: id-ID }
