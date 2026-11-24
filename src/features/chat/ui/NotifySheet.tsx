@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Modal, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSession } from '../../../auth/session';
 import { radius, space, useTheme } from '../../../theme';

@@ -1,7 +1,8 @@
 import * as Clipboard from 'expo-clipboard';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';

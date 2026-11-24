@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, Switch, View } from 'react-native';
+import { Pressable } from './Pressable';
 import { radius, space, useTheme } from '../theme';
 import type { RowBind } from './RowActions';
 import { Text } from './Text';

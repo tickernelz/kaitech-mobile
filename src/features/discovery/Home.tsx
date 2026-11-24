@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
@@ -9,6 +10,7 @@ import { useFormatters } from '../../i18n';
 import { Panes } from '../../layout/Panes';
 import { useWindowClass } from '../../layout/windowClass';
 import { HeaderActions } from '../../screens/HeaderActions';
+import { TopAppBar, largeTitleOwnsActions, useCollapsingTitle } from '../../ui/AppBar';
 import { radius, space, useTheme } from '../../theme';
 import { Section } from '../../ui/List';
 import { RowActions, type RowBind } from '../../ui/RowActions';
@@ -163,6 +165,7 @@ export function DiscoveryHome() {
   const conversation = useOpenConversation(account, programme);
   const [focusCard, setFocusCard] = useState<number>();
   const [focusInput, setFocusInput] = useState(0);
+  const bar = useCollapsingTitle();
   const threadActive = useRef(false);
   const shownClass = useRef(windowClass);
 
@@ -213,108 +216,113 @@ export function DiscoveryHome() {
   };
 
   const home = (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing && !!programmePanel.data} onRefresh={refresh} />}
-      testID="discovery-home">
-      <View style={styles.top}>
-        <Text variant="display" accessibilityRole="header" style={styles.fill}>
-          {t('tabs.discovery')}
-        </Text>
-        <HeaderActions />
-      </View>
-      {current ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('discovery.home.switch', { name: current.name })}
-          onPress={() => router.push('/program/pick')}
-          testID="programme-switch"
-          style={({ pressed }) => [styles.switch, { backgroundColor: pressed ? colors.select : colors.surface, borderColor: colors.line }]}>
-          <Text variant="callout" tone="selectInk" numberOfLines={1} style={styles.shrink}>
-            {current.name}
+    <View style={styles.fill}>
+      <TopAppBar title={t('tabs.discovery')} collapsed={bar.collapsed} actions={<HeaderActions />} />
+      <ScrollView
+        onScroll={bar.onScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing && !!programmePanel.data} onRefresh={refresh} />}
+        testID="discovery-home">
+        <View style={styles.top}>
+          <Text variant="display" accessibilityRole="header" style={styles.fill}>
+            {t('tabs.discovery')}
           </Text>
-          <Icon name="chevronDown" size={20} color={colors.selectInk} />
-        </Pressable>
-      ) : null}
-      {!current ? (
-        <StateView
-          loading={list.loading && !list.data}
-          error={list.data ? undefined : list.error}
-          empty={{ title: t('discovery.home.noneTitle'), icon: 'compass' }}
-          onRetry={() => void list.refresh()}
-          testID="discovery-programmes"
-        />
-      ) : programmePanel.data ? (
-        <>
-          <Summary data={programmePanel.data} programme={programme} />
-          <AskBar name={current.name} onPress={() => openCoworker(true)} />
-          {programmePanel.data.packets.length || programmePanel.data.needs_you.length ? (
-            <Section title={t('discovery.home.waiting')}>
-              {programmePanel.data.packets.map((packet) => (
-                <RowActions
-                  key={`packet-${packet.id}`}
-                  title={packet.name}
-                  actions={[{ key: 'open', icon: 'forward', label: t('row.open'), onPress: () => openCard(packet) }, ...textActions(t, packet.name)]}
-                  start={['copy']}
-                  end={['share', 'more']}
-                  testID={`waiting-card-${packet.id}`}>
-                  {(bind) => <Line bind={bind} icon="decision" title={packet.name} onPress={() => openCard(packet)} testID={`waiting-card-${packet.id}`} />}
-                </RowActions>
-              ))}
-              {programmePanel.data.needs_you.map((line) => (
-                <Line key={`agenda-${line.kind}`} icon="bulb" title={line.headline} />
-              ))}
-            </Section>
-          ) : null}
-          <Section>
-            <Line
-              icon="doc"
-              title={t('discovery.home.evidenceAndFindings')}
-              onPress={() => router.push(`/program/${programme}/evidence`)}
-              testID="open-evidence"
-            />
-            <Line
-              icon="history"
-              title={t('discovery.home.conversations')}
-              onPress={() => router.push(`/program/${programme}/conversations`)}
-              testID="open-conversations"
-            />
-            <Line
-              icon="steps"
-              title={t('records.sections')}
-              detail={t('records.sectionsDetail')}
-              onPress={() => router.push(`/program/${programme}/sections`)}
-              testID="open-sections"
-            />
-          </Section>
-          {latest.data?.length ? (
-            <Section title={t('discovery.home.recent')}>
-              {latest.data.slice(0, 3).map((row) => {
-                const openFinding = () => showFinding(row.id);
-                return (
+          {largeTitleOwnsActions ? <HeaderActions /> : null}
+        </View>
+        {current ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('discovery.home.switch', { name: current.name })}
+            onPress={() => router.push('/program/pick')}
+            testID="programme-switch"
+            style={({ pressed }) => [styles.switch, { backgroundColor: pressed ? colors.select : colors.surface, borderColor: colors.line }]}>
+            <Text variant="callout" tone="selectInk" numberOfLines={1} style={styles.shrink}>
+              {current.name}
+            </Text>
+            <Icon name="chevronDown" size={20} color={colors.selectInk} />
+          </Pressable>
+        ) : null}
+        {!current ? (
+          <StateView
+            loading={list.loading && !list.data}
+            error={list.data ? undefined : list.error}
+            empty={{ title: t('discovery.home.noneTitle'), icon: 'compass' }}
+            onRetry={() => void list.refresh()}
+            testID="discovery-programmes"
+          />
+        ) : programmePanel.data ? (
+          <>
+            <Summary data={programmePanel.data} programme={programme} />
+            <AskBar name={current.name} onPress={() => openCoworker(true)} />
+            {programmePanel.data.packets.length || programmePanel.data.needs_you.length ? (
+              <Section title={t('discovery.home.waiting')}>
+                {programmePanel.data.packets.map((packet) => (
                   <RowActions
-                    key={row.id}
-                    title={row.name}
-                    actions={[{ key: 'open', icon: 'forward', label: t('row.open'), onPress: openFinding }, ...textActions(t, row.name)]}
+                    key={`packet-${packet.id}`}
+                    title={packet.name}
+                    actions={[{ key: 'open', icon: 'forward', label: t('row.open'), onPress: () => openCard(packet) }, ...textActions(t, packet.name)]}
                     start={['copy']}
                     end={['share', 'more']}
-                    testID={`recent-finding-${row.id}`}>
-                    {(bind) => <Line bind={bind} icon="bulb" title={row.name} onPress={openFinding} testID={`recent-finding-${row.id}`} />}
+                    testID={`waiting-card-${packet.id}`}>
+                    {(bind) => <Line bind={bind} icon="decision" title={packet.name} onPress={() => openCard(packet)} testID={`waiting-card-${packet.id}`} />}
                   </RowActions>
-                );
-              })}
+                ))}
+                {programmePanel.data.needs_you.map((line) => (
+                  <Line key={`agenda-${line.kind}`} icon="bulb" title={line.headline} />
+                ))}
+              </Section>
+            ) : null}
+            <Section>
+              <Line
+                icon="doc"
+                title={t('discovery.home.evidenceAndFindings')}
+                onPress={() => router.push(`/program/${programme}/evidence`)}
+                testID="open-evidence"
+              />
+              <Line
+                icon="history"
+                title={t('discovery.home.conversations')}
+                onPress={() => router.push(`/program/${programme}/conversations`)}
+                testID="open-conversations"
+              />
+              <Line
+                icon="steps"
+                title={t('records.sections')}
+                detail={t('records.sectionsDetail')}
+                onPress={() => router.push(`/program/${programme}/sections`)}
+                testID="open-sections"
+              />
             </Section>
-          ) : null}
-        </>
-      ) : (
-        <StateView
-          loading={programmePanel.loading || !programmePanel.error}
-          error={programmePanel.error}
-          onRetry={() => void programmePanel.refresh()}
-          testID="discovery-panel"
-        />
-      )}
-    </ScrollView>
+            {latest.data?.length ? (
+              <Section title={t('discovery.home.recent')}>
+                {latest.data.slice(0, 3).map((row) => {
+                  const openFinding = () => showFinding(row.id);
+                  return (
+                    <RowActions
+                      key={row.id}
+                      title={row.name}
+                      actions={[{ key: 'open', icon: 'forward', label: t('row.open'), onPress: openFinding }, ...textActions(t, row.name)]}
+                      start={['copy']}
+                      end={['share', 'more']}
+                      testID={`recent-finding-${row.id}`}>
+                      {(bind) => <Line bind={bind} icon="bulb" title={row.name} onPress={openFinding} testID={`recent-finding-${row.id}`} />}
+                    </RowActions>
+                  );
+                })}
+              </Section>
+            ) : null}
+          </>
+        ) : (
+          <StateView
+            loading={programmePanel.loading || !programmePanel.error}
+            error={programmePanel.error}
+            onRetry={() => void programmePanel.refresh()}
+            testID="discovery-panel"
+          />
+        )}
+      </ScrollView>
+    </View>
   );
 
   const detail = current ? (

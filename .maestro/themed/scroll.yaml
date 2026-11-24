@@ -1,0 +1,21 @@
+appId: io.kaitech.mobile
+name: Scroll the chat list down and up for frame statistics
+tags:
+  - signed-in
+---
+- assertVisible:
+    id: chat-list
+- repeat:
+    times: 6
+    commands:
+      - swipe:
+          start: 50%, 80%
+          end: 50%, 20%
+          duration: 300
+- repeat:
+    times: 6
+    commands:
+      - swipe:
+          start: 50%, 20%
+          end: 50%, 80%
+          duration: 300
