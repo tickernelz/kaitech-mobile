@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Linking, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { attachmentUrl } from '../../chat/odoo';
 import type { Attachment } from '../../chat/types';
 import { useCookie } from '../../chat/ui/useCookie';

@@ -5,6 +5,15 @@ tags:
   - rows
 onFlowStart:
   - runFlow: ../shared/orientation.yaml
+  - runScript:
+      file: ../scripts/web-peer.js
+      env:
+        ACTION: tidy
+onFlowComplete:
+  - runScript:
+      file: ../scripts/web-peer.js
+      env:
+        ACTION: tidy
 ---
 - launchApp
 - extendedWaitUntil:
@@ -29,6 +38,10 @@ onFlowStart:
       ACTION: group
       GROUP: ${'Uji baris ' + RUN}
 - evalScript: ${output.row = 'conversation-' + output.peer.group}
+- scrollUntilVisible:
+    element:
+      id: chat-filter-all
+    direction: UP
 - swipe:
     from:
       id: chat-filter-all

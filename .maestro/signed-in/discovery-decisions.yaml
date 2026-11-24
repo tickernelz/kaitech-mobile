@@ -1,0 +1,75 @@
+appId: io.kaitech.mobile
+name: Accept and reject reach the server for departments and glossary terms, as on the web
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat|tab-discovery)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-discovery
+- extendedWaitUntil:
+    visible:
+      id: programme-summary
+    timeout: 60000
+- runFlow:
+    when:
+      true: ${typeof PROGRAMME !== 'undefined' && PROGRAMME !== ''}
+    commands:
+      - tapOn:
+          id: programme-switch
+      - scrollUntilVisible:
+          element:
+            id: programme-${PROGRAMME}
+      - tapOn:
+          id: programme-${PROGRAMME}
+      - extendedWaitUntil:
+          visible:
+            id: programme-summary
+          timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: open-sections
+- tapOn:
+    id: open-sections
+- extendedWaitUntil:
+    visible:
+      id: sections-screen
+    timeout: 30000
+- runFlow:
+    file: ../shared/decide-record.yaml
+    env:
+      SECTION: Departments
+      SECTION_ID: Department
+      RECORD: ${DEPT_ACCEPT}
+      BUTTON: action_accept
+      STATE: (Accepted|Diterima)
+      SHOT: d1-department-accepted
+- runFlow:
+    file: ../shared/decide-record.yaml
+    env:
+      SECTION: Departments
+      SECTION_ID: Department
+      RECORD: ${DEPT_REJECT}
+      BUTTON: action_reject
+      STATE: (Rejected|Ditolak)
+      SHOT: d2-department-rejected
+- runFlow:
+    file: ../shared/decide-record.yaml
+    env:
+      SECTION: Glossary
+      SECTION_ID: Glosarium
+      RECORD: ${TERM_REJECT}
+      BUTTON: action_reject
+      STATE: (Rejected|Ditolak)
+      SHOT: d3-term-rejected

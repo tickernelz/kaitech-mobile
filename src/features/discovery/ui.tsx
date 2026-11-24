@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { ApiError } from '../../api/odoo';
 import { AppError } from '../../auth/errors';
 import { radius, space, useTheme, type Colors } from '../../theme';
@@ -85,7 +86,10 @@ export function errorKey(error: unknown): string {
 
 export function useErrorText() {
   const { t } = useTranslation();
-  return (error: unknown) => t(errorKey(error) as never, { defaultValue: t('errors.unknown') }) as string;
+  return (error: unknown) => {
+    if (error instanceof ApiError && error.detail?.trim()) return error.detail.trim();
+    return t(errorKey(error) as never, { defaultValue: t('errors.unknown') }) as string;
+  };
 }
 
 export function StateView({

@@ -1,7 +1,8 @@
 import Storage from 'expo-sqlite/kv-store';
 import { useCallback, useEffect, useRef, useState, type ComponentRef, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, Pressable, ScrollView, StyleSheet, View, type TextInput, type TextInputSelectionChangeEvent, type TextStyle } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View, type TextInput, type TextInputSelectionChangeEvent, type TextStyle } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { useKeyboardState } from 'react-native-keyboard-controller';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';

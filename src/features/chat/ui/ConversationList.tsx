@@ -1,9 +1,11 @@
 import { FlashList } from '@shopify/flash-list';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { radius, space, useTheme } from '../../../theme';
+import { TopAppBar, largeTitleOwnsActions, useCollapsingTitle } from '../../../ui/AppBar';
 import { Text } from '../../../ui/Text';
 import { loadArchived, loadMoreConversations, refreshConversations, useChat } from '../chat';
 import { IconButton } from '../../../ui/IconButton';
@@ -16,6 +18,8 @@ import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { RowActions } from '../../../ui/RowActions';
 import { conversationActions } from './conversationActions';
+import { refreshStarred } from '../starred';
+import { StarredSheet } from './thread/ListSheets';
 
 function usePreview() {
   const { t } = useTranslation('chat');
@@ -129,7 +133,7 @@ const Row = memo(function Row({
   );
 });
 
-export function ConversationList({ selectedId, onOpen }: { selectedId: number | null; onOpen: (id: number) => void }) {
+export function ConversationList({ selectedId, onOpen }: { selectedId: number | null; onOpen: (id: number, message?: number | null) => void }) {
   const { t } = useTranslation(['chat', 'translation']);
   const { colors } = useTheme();
   const conversations = useChat((state) => state.conversations);
@@ -145,6 +149,12 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
   const filters = useMemo(() => listFilters(hasFeature(features, 'chat_filters'), hasFeature(features, 'agents')), [features]);
   const filter = filters.includes(chosen) ? chosen : 'all';
   const [inArchive, setInArchive] = useState(false);
+  const [inStarred, setInStarred] = useState(false);
+  const starred = useChat((state) => state.starred);
+  const accountId = useChat((state) => state.accountId);
+  useEffect(() => {
+    if (accountId) void refreshStarred();
+  }, [accountId]);
   const [pulled, setPulled] = useState(false);
   const waiting = useMemo(() => {
     const counts = new Map<number, number>();
@@ -160,17 +170,37 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
     void loadArchived();
   };
   const unreadTotal = useMemo(() => conversations.filter((conversation) => conversation.unread > 0).length, [conversations]);
+  const bar = useCollapsingTitle();
 
+  const archiveBack = <IconButton icon="back" label={t('translation:row.back')} onPress={() => setInArchive(false)} testID="chat-archive-back" />;
   const archiveHeader = (
     <View style={styles.header}>
       <View style={styles.titleRow}>
-        <IconButton icon="back" label={t('translation:row.back')} onPress={() => setInArchive(false)} testID="chat-archive-back" />
+        {largeTitleOwnsActions ? archiveBack : null}
         <Text variant="display" accessibilityRole="header" style={styles.flex}>
           {t('rowActions.archivedTitle')}
         </Text>
       </View>
     </View>
   );
+
+  const starredEntry =
+    filter === 'all' && starred > 0 ? (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${t('starredList.title')}, ${starred}`}
+        onPress={() => setInStarred(true)}
+        testID="chat-starred-open"
+        style={({ pressed }) => [styles.archiveEntry, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
+        <Icon name="star" size={20} color={colors.inkSoft} />
+        <Text variant="callout" style={styles.flex}>
+          {t('starredList.title')}
+        </Text>
+        <Text variant="footnote" tone="inkFaint">
+          {starred}
+        </Text>
+      </Pressable>
+    ) : null;
 
   const archiveEntry =
     filter === 'all' && archivedSummary && archivedSummary.count > 0 ? (
@@ -196,7 +226,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
         <Text variant="display" accessibilityRole="header" style={styles.flex}>
           {t('translation:tabs.chat')}
         </Text>
-        <HeaderActions />
+        {largeTitleOwnsActions ? <HeaderActions /> : null}
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityRole="tablist">
         {filters.map((name) => {
@@ -241,6 +271,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
         </View>
       ) : null}
       {archiveEntry}
+      {starredEntry}
     </View>
   );
 
@@ -262,7 +293,15 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
 
   return (
     <View style={styles.flex} testID="chat-list">
+      <TopAppBar
+        title={inArchive ? t('rowActions.archivedTitle') : t('translation:tabs.chat')}
+        collapsed={bar.collapsed}
+        navigation={inArchive ? archiveBack : null}
+        actions={inArchive ? null : <HeaderActions />}
+      />
       <FlashList
+        onScroll={bar.onScroll}
+        scrollEventThrottle={16}
         data={shown}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <Row conversation={item} selected={item.id === selectedId} pending={waiting.get(item.id) ?? 0} onOpen={onOpen} inArchive={inArchive} />}
@@ -276,6 +315,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
             refreshing={pulled && loading}
             onRefresh={() => {
               setPulled(true);
+              if (!inArchive) void refreshStarred();
               void (inArchive ? loadArchived() : refreshConversations()).finally(() => setPulled(false));
             }}
             tintColor={colors.primary}
@@ -283,6 +323,15 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
           />
         }
       />
+      {inStarred ? (
+        <StarredSheet
+          onClose={() => setInStarred(false)}
+          onOpen={(message) => {
+            setInStarred(false);
+            onOpen(message.channelId, message.id);
+          }}
+        />
+      ) : null}
     </View>
   );
 }

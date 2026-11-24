@@ -3,7 +3,7 @@ const mockNotices: boolean[] = [];
 const mockTitles: string[] = [];
 const mockListeners: ((action: unknown) => void)[] = [];
 const mockRooms: MockRoom[] = [];
-const mockPip: { enabled: boolean; width: number; height: number; muted: boolean; camera: boolean; video: boolean; sharing: boolean }[] = [];
+const mockPip: { enabled: boolean; width: number; height: number; muted: boolean; camera: boolean; sharing: boolean }[] = [];
 let mockLeftPip = 0;
 
 type Handler = () => void;
@@ -114,12 +114,12 @@ jest.mock('../src/features/call/native', () => ({
     startCall: () => Promise.resolve(true),
     stopCall: () => Promise.resolve(true),
     updateCall: (...args: unknown[]) => {
-      mockNotices.push(args[6] as boolean);
-      mockTitles.push(args[1] as string);
+      mockNotices.push(args[5] as boolean);
+      mockTitles.push(args[0] as string);
       return Promise.resolve(true);
     },
-    setPictureInPicture: (enabled: boolean, width: number, height: number, muted: boolean, camera: boolean, video: boolean, sharing: boolean) => {
-      mockPip.push({ enabled, width, height, muted, camera, video, sharing });
+    setPictureInPicture: (enabled: boolean, width: number, height: number, muted: boolean, camera: boolean, sharing: boolean) => {
+      mockPip.push({ enabled, width, height, muted, camera, sharing });
       return Promise.resolve(true);
     },
     leavePictureInPicture: () => {
@@ -199,11 +199,15 @@ async function flush() {
   for (let turn = 0; turn < 20; turn += 1) await Promise.resolve();
 }
 
-async function activeCall(video = false) {
+async function activeCall(camera = false) {
   const call = require('../src/features/call/call');
-  await call.startCall({ channelId: 5, channelName: 'Team', video });
+  await call.startCall({ channelId: 5, channelName: 'Team' });
   await flush();
   expect(call.callState().phase).toBe('active');
+  if (camera) {
+    await call.toggleCamera();
+    await flush();
+  }
   mockUpdates.length = 0;
   mockNotices.length = 0;
   return { call, room: mockRooms[mockRooms.length - 1] };
@@ -309,17 +313,17 @@ describe('picture-in-picture during a call', () => {
 
   const lastPip = () => mockPip[mockPip.length - 1];
 
-  it('arms automatic picture-in-picture for a video call', async () => {
+  it('arms automatic picture-in-picture once the camera is on', async () => {
     await activeCall(true);
-    expect(lastPip()).toMatchObject({ enabled: true, video: true, camera: true, muted: false });
+    expect(lastPip()).toMatchObject({ enabled: true, camera: true, muted: false });
   });
 
-  it('keeps a voice call out of picture-in-picture', async () => {
+  it('keeps a call without any video out of picture-in-picture', async () => {
     await activeCall(false);
     expect(lastPip().enabled).toBe(false);
   });
 
-  it('mutes and turns the camera off from the window actions', async () => {
+  it('mutes and turns the camera off from the window actions, then stops arming the window once no video is left', async () => {
     const { call } = await activeCall(true);
     mockListeners[mockListeners.length - 1]({ type: 'mute' });
     await flush();
@@ -328,7 +332,7 @@ describe('picture-in-picture during a call', () => {
     expect(call.callState().muted).toBe(true);
     expect(call.callState().cameraOn).toBe(false);
     expect(mockUpdates).toEqual([{ is_muted: true }, { is_camera_on: false }]);
-    expect(lastPip()).toMatchObject({ enabled: true, muted: true, camera: false });
+    expect(lastPip()).toMatchObject({ enabled: false, muted: true, camera: false });
   });
 
   it('offers stop sharing in the window while the screen is shared', async () => {

@@ -9,7 +9,6 @@ object CallIntents {
   const val EXTRA_ANSWER = "kaitech.call.answer"
   const val EXTRA_CHANNEL_ID = "kaitech.call.channelId"
   const val EXTRA_CALL_ID = "kaitech.call.callId"
-  const val EXTRA_VIDEO = "kaitech.call.video"
   const val EXTRA_TITLE = "kaitech.call.title"
   const val EXTRA_DB = "kaitech.call.db"
   const val EXTRA_UID = "kaitech.call.uid"
@@ -17,7 +16,6 @@ object CallIntents {
   fun fill(intent: Intent, ring: CallService.Ring): Intent = intent.apply {
     putExtra(EXTRA_CHANNEL_ID, ring.channelId)
     putExtra(EXTRA_CALL_ID, ring.callId)
-    putExtra(EXTRA_VIDEO, ring.video)
     putExtra(EXTRA_TITLE, ring.title)
     putExtra(EXTRA_DB, ring.db)
     putExtra(EXTRA_UID, ring.uid)
@@ -43,7 +41,6 @@ object CallIntents {
       "type" to if (answer) "answer" else "open",
       "channelId" to intent.getIntExtra(EXTRA_CHANNEL_ID, 0),
       "callId" to intent.getIntExtra(EXTRA_CALL_ID, 0),
-      "video" to intent.getBooleanExtra(EXTRA_VIDEO, false),
       "title" to intent.getStringExtra(EXTRA_TITLE),
       "db" to intent.getStringExtra(EXTRA_DB),
       "uid" to intent.getIntExtra(EXTRA_UID, 0),

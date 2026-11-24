@@ -84,13 +84,19 @@
     "shareInstead": "Share",
     "table": "Table, {{columns}} columns and {{rows}} rows. Scroll sideways to see all of it.",
     "background": "Chat background",
+    "openPerson": "Open {{name}}",
+    "callOngoing": "Call in progress",
+    "callJoin": "Join",
+    "callMinutes_one": "{{count}} min",
+    "callMinutes_other": "{{count}} min",
     "removed": "This message was deleted",
     "edited": "edited",
     "pinned": "Pinned",
     "starred": "Starred",
     "translatedFrom": "Translated from {{lang}}",
     "translated": "Translated",
-    "urgent": "Urgent"
+    "urgent": "Urgent",
+    "agentTag": "Agent"
   },
   "composer": {
     "voiceLength": "Voice message · {{length}}",
@@ -474,5 +480,13 @@
     "startChat": "Start chat",
     "createGroup": "Create group",
     "createChannel": "Create channel"
+  },
+  "starredList": {
+    "title": "Starred",
+    "empty": "No starred messages.",
+    "clear": "Remove all stars",
+    "clearTitle": "Remove all stars?",
+    "clearBody": "Every starred message loses its star. The messages stay.",
+    "confirm": "Remove stars"
   }
 }

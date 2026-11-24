@@ -106,7 +106,7 @@ describe('icon-only controls', () => {
   }
 
   it('labels every call control and shows the icon of its action', async () => {
-    const { pill, more } = controlsFor({ phase: 'active', video: true, cameraOn: true, sharing: false, share: true, record: true, pip: true, wide: true });
+    const { pill, more } = controlsFor({ phase: 'active', cameraOn: true, sharing: false, share: true, record: true, pip: true, wide: true, invite: true, crowd: true });
     await render(
       createElement(CallPill, {
         actions: [...pill, ...more],

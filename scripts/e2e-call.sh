@@ -17,6 +17,7 @@ done
 mkdir -p "$out"
 export CALL_PEER_STATE="$out/call-peer.json"
 export CALL_PEER_PORT="${CALL_PEER_PORT:-8765}"
+export CALL_PEER_HOLD_MS="${CALL_PEER_HOLD_MS:-1}"
 
 cleanup() {
   node scripts/call-peer.mjs stop >/dev/null 2>&1 || true
@@ -25,6 +26,8 @@ trap cleanup EXIT
 
 if [ "$orientation" = landscape ]; then rotation=1; else rotation=0; fi
 adb -s "$serial" shell cmd window user-rotation lock "$rotation" >/dev/null
+adb -s "$serial" shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
+adb -s "$serial" shell am set-debug-app --persistent com.android.chrome
 adb -s "$serial" install -r "$apk" | tail -1
 
 activity="$(adb -s "$serial" shell cmd package resolve-activity --brief io.kaitech.mobile | tr -d '\r' | tail -1)"
@@ -41,6 +44,7 @@ maestro --device "$serial" test .maestro/signed-in/call.yaml \
   -e APP_LANGUAGE="$language" -e DEVICE_SIZE="$size" -e ORIENTATION="$orientation" \
   --format junit --output "$out/junit.xml" --test-output-dir "$out/maestro" || status=$?
 
+node scripts/call-peer.mjs logs > "$out/peer-logs.json" || true
 node scripts/call-peer.mjs leave > "$out/peer-leave.json" || true
 sleep 2
 adb -s "$serial" shell pkill -INT screenrecord >/dev/null 2>&1 || true

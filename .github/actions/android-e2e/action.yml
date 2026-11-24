@@ -1,0 +1,127 @@
+name: Android E2E
+description: Runs Maestro flows on an Android emulator for one size and locale, one orientation after another on the same emulator, scans the output for secrets and uploads it. Expects the APK in apk-dir; account values come from the job's E2E_* environment.
+inputs:
+  apk-dir:
+    description: Directory holding the APK to install.
+    required: true
+  artifact:
+    description: Name of the uploaded E2E output artifact.
+    required: true
+  output-prefix:
+    description: Prefix of each orientation's output folder under e2e-output/.
+    default: ''
+  size:
+    description: phone or tablet.
+    required: true
+  locale:
+    description: en-US or id-ID.
+    required: true
+  orientations:
+    description: Space-separated orientations run in turn, e.g. "portrait landscape".
+    required: true
+  flows:
+    description: Space-separated Maestro flows or folders; empty runs the top-level .maestro flows.
+    default: ''
+  themed-flows:
+    description: Space-separated Maestro flows run once in the light and once in the dark system theme after the flows; empty skips them.
+    default: ''
+  scroll-flow:
+    description: A Maestro flow whose frame statistics (gfxinfo) are saved as scroll-gfxinfo.txt; its <name>-ready.yaml runs first to reach the starting screen. Empty skips it.
+    default: ''
+  runner:
+    description: auto (maestro-runner in the natural orientation, Maestro CLI when rotated), maestro, or maestro-runner.
+    default: auto
+  cold-start:
+    description: Cold starts measured after the portrait orientation; 0 skips the measurement.
+    default: '0'
+  audio:
+    description: true starts the emulator with audio; recording flows need it.
+    default: 'false'
+  call-peer:
+    description: true joins a headless web peer to the test call with its camera on and gives the emulator a front camera; call flows need it.
+    default: 'false'
+  retention-days:
+    default: '30'
+runs:
+  using: composite
+  steps:
+    - name: Enable KVM
+      shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+    - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+      with:
+        distribution: temurin
+        java-version: '17'
+    - uses: ./.github/actions/setup-maestro
+    - uses: ./.github/actions/setup-maestro-runner
+    - uses: ./.github/actions/setup-gitleaks
+    - name: Emulator hardware profile for the size
+      id: device
+      shell: bash
+      env:
+        SIZE: ${{ inputs.size }}
+      run: |
+        case "$SIZE" in
+          phone) echo "profile=pixel_6" >> "$GITHUB_OUTPUT" ;;
+          tablet) echo "profile=pixel_tablet" >> "$GITHUB_OUTPUT" ;;
+          *) echo "::error::size must be phone or tablet, got '$SIZE'"; exit 1 ;;
+        esac
+    - name: Install the emulator and its system image, retried until both unpack
+      shell: bash
+      env:
+        SYSTEM_IMAGE: system-images;android-35;google_apis;x86_64
+      run: |
+        set +e -u
+        image="$ANDROID_HOME/$(tr ';' '/' <<< "$SYSTEM_IMAGE")"
+        emulator="$ANDROID_HOME/emulator"
+        for attempt in 1 2 3; do
+          log="$RUNNER_TEMP/system-image-$attempt.log"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install emulator "$SYSTEM_IMAGE" --channel=0 > "$log" 2>&1
+          if [ -f "$emulator/package.xml" ] && [ -x "$emulator/emulator" ] && [ -f "$image/package.xml" ] && [ -f "$image/system.img" ]; then
+            echo "emulator and $SYSTEM_IMAGE installed on attempt $attempt"
+            exit 0
+          fi
+          tr '\r' '\n' < "$log" | grep -E 'Warning|Error' | tail -5
+          echo "::warning::emulator or $SYSTEM_IMAGE not installed on attempt $attempt"
+          [ "$attempt" = 3 ] || sleep $((attempt * 15))
+        done
+        echo "::error::emulator or $SYSTEM_IMAGE not installed after 3 attempts"
+        exit 1
+    - name: Run Maestro flows, one orientation after another
+      uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+      env:
+        E2E_FLOWS: ${{ inputs.flows }}
+        E2E_THEMED_FLOWS: ${{ inputs.themed-flows }}
+        E2E_SCROLL_FLOW: ${{ inputs.scroll-flow }}
+        E2E_RUNNER: ${{ inputs.runner }}
+        E2E_CALL_PEER: ${{ inputs.call-peer == 'true' && '1' || '' }}
+        PORTRAIT_COLD_START_RUNS: ${{ inputs.cold-start }}
+      with:
+        api-level: 35
+        arch: x86_64
+        target: google_apis
+        profile: ${{ steps.device.outputs.profile }}
+        disable-animations: true
+        force-avd-creation: true
+        emulator-options: -no-window -no-snapshot -wipe-data -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '' }} -no-boot-anim -camera-back none -camera-front ${{ inputs.call-peer == 'true' && 'emulated' || 'none' }}
+        script: for o in ${{ inputs.orientations }}; do runs=0; [ "$o" = portrait ] && runs="$PORTRAIT_COLD_START_RUNS"; COLD_START_RUNS="$runs" bash scripts/e2e-android.sh "${{ inputs.apk-dir }}" "e2e-output/${{ inputs.output-prefix }}${{ inputs.size }}-$o-${{ inputs.locale }}" ${{ inputs.locale }} ${{ inputs.size }} "$o" || status=1; done; exit "${status:-0}"
+    - name: Scan E2E output for secrets
+      id: scan-e2e
+      if: always()
+      shell: bash
+      run: |
+        if [ ! -d e2e-output ]; then
+          echo "no E2E output"
+          exit 0
+        fi
+        gitleaks dir --redact --verbose --exit-code 1 e2e-output
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      if: always() && steps.scan-e2e.outcome == 'success'
+      with:
+        name: ${{ inputs.artifact }}
+        path: e2e-output/
+        if-no-files-found: warn
+        retention-days: ${{ inputs.retention-days }}

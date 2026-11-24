@@ -1,19 +1,28 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Icon, type IconName } from '../../../ui/icons';
+import { Slider } from '../../../ui/Slider';
 import type { CallPerson } from '../call';
-import type { CallAction } from '../controls';
+import { groupedMore, type CallAction } from '../controls';
 
 export type ControlState = {
   muted: boolean;
   cameraOn: boolean;
+  cameraBlocked?: boolean;
   speaker: boolean;
   sharing: boolean;
   recording: { on: boolean; busy: boolean } | null;
+  deaf?: boolean;
+  hand?: boolean;
+  spotlight?: boolean;
+  videoOnly?: boolean;
+  blur?: boolean;
 };
 
 type Look = { icon: IconName; label: string; active?: boolean; danger?: boolean; busy?: boolean };
@@ -25,6 +34,7 @@ function useLook() {
       case 'mute':
         return { icon: state.muted ? 'micOff' : 'mic', label: state.muted ? t('unmute') : t('mute'), active: state.muted };
       case 'camera':
+        if (state.cameraBlocked && !state.cameraOn) return { icon: 'videoOff', label: t('cameraBlocked.action'), active: true };
         return { icon: state.cameraOn ? 'video' : 'videoOff', label: state.cameraOn ? t('cameraTurnOff') : t('cameraOn'), active: !state.cameraOn };
       case 'flip':
         return { icon: 'cameraFlip', label: t('flip') };
@@ -34,6 +44,20 @@ function useLook() {
         return { icon: 'screenShare', label: state.sharing ? t('stopSharing') : t('shareScreen'), danger: state.sharing };
       case 'record':
         return { icon: 'record', label: state.recording?.on ? t('stopRecording') : t('startRecording'), active: state.recording?.on, busy: state.recording?.busy };
+      case 'output':
+        return { icon: 'speaker', label: t('audioOutput') };
+      case 'deafen':
+        return { icon: 'bellOff', label: state.deaf ? t('undeafen') : t('deafen'), active: state.deaf };
+      case 'hand':
+        return { icon: 'wave', label: state.hand ? t('lowerHand') : t('raiseHand'), active: state.hand };
+      case 'spotlight':
+        return { icon: 'zoomIn', label: t('spotlight'), active: state.spotlight };
+      case 'videoOnly':
+        return { icon: 'video', label: t('videoOnly'), active: state.videoOnly };
+      case 'blur':
+        return { icon: 'filter', label: t('backgroundBlur'), active: state.blur };
+      case 'invite':
+        return { icon: 'people', label: t('invite') };
       case 'people':
         return { icon: 'people', label: t('people') };
       case 'pip':
@@ -125,6 +149,8 @@ export function MoreSheet({
   people,
   onAction,
   onClose,
+  onVolume,
+  volumeOf,
 }: {
   view: 'more' | 'people' | null;
   actions: CallAction[];
@@ -132,7 +158,10 @@ export function MoreSheet({
   people: CallPerson[];
   onAction: (action: CallAction) => void;
   onClose: () => void;
+  onVolume?: (person: CallPerson, volume: number) => void;
+  volumeOf?: (person: CallPerson) => number;
 }) {
+  const [tuning, setTuning] = useState<string | null>(null);
   const { t } = useTranslation('call');
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -148,34 +177,58 @@ export function MoreSheet({
               {t('people')}
             </Text>
             {people.map((person) => (
-              <View key={person.sid} style={styles.sheetRow}>
-                <Icon name={person.micOn ? 'mic' : 'micOff'} size={20} color={person.speaking ? colors.primary : colors.inkSoft} />
-                <Text variant="body" numberOfLines={1} style={styles.flex}>
-                  {person.local ? t('you') : person.name}
-                </Text>
+              <View key={person.sid}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: tuning === person.sid }}
+                  disabled={person.local || !onVolume}
+                  onPress={() => setTuning(tuning === person.sid ? null : person.sid)}
+                  style={styles.sheetRow}
+                  testID={`call-person-${person.sid}`}>
+                  <Icon name={person.micOn ? 'mic' : 'micOff'} size={20} color={person.speaking ? colors.primary : colors.inkSoft} />
+                  <Text variant="body" numberOfLines={1} style={styles.flex}>
+                    {person.local ? t('you') : person.name}
+                  </Text>
+                  {person.hand ? <Icon name="wave" size={20} color={colors.warnInk} /> : null}
+                  {person.deaf ? <Icon name="bellOff" size={20} color={colors.inkSoft} /> : null}
+                </Pressable>
+                {tuning === person.sid && onVolume ? (
+                  <View style={styles.volume}>
+                    <Slider value={volumeOf?.(person) ?? 1} label={t('volumeOf', { name: person.name })} onChange={(next) => onVolume(person, next)} testID={`call-volume-${person.sid}`} />
+                  </View>
+                ) : null}
               </View>
             ))}
           </ScrollView>
         ) : (
-          actions.map((action) => {
-            const item = look(action, state);
-            return (
-              <Pressable
-                key={action}
-                accessibilityRole="button"
-                accessibilityState={{ busy: Boolean(item.busy), selected: item.active }}
-                disabled={item.busy}
-                onPress={() => onAction(action)}
-                testID={`call-sheet-${action}`}
-                style={({ pressed }) => [styles.sheetRow, pressed && { backgroundColor: colors.surface2 }]}>
-                <Icon name={item.icon} size={24} color={item.active ? colors.primary : colors.ink} variant={item.active ? 'fill' : 'line'} />
-                <Text variant="body" style={styles.flex}>
-                  {item.label}
+          <ScrollView style={styles.peopleList}>
+            {groupedMore(actions).map(({ group, actions: items }) => (
+              <View key={group}>
+                <Text variant="footnote" tone="inkSoft" accessibilityRole="header" style={styles.groupTitle}>
+                  {t(`group.${group}`)}
                 </Text>
-                {item.busy ? <ActivityIndicator color={colors.inkSoft} /> : null}
-              </Pressable>
-            );
-          })
+                {items.map((action) => {
+                  const item = look(action, state);
+                  return (
+                    <Pressable
+                      key={action}
+                      accessibilityRole="button"
+                      accessibilityState={{ busy: Boolean(item.busy), selected: item.active }}
+                      disabled={item.busy}
+                      onPress={() => onAction(action)}
+                      testID={`call-sheet-${action}`}
+                      style={({ pressed }) => [styles.sheetRow, pressed && { backgroundColor: colors.surface2 }]}>
+                      <Icon name={item.icon} size={24} color={item.active ? colors.primary : colors.ink} variant={item.active ? 'fill' : 'line'} />
+                      <Text variant="body" style={styles.flex}>
+                        {item.label}
+                      </Text>
+                      {item.busy ? <ActivityIndicator color={colors.inkSoft} /> : null}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
+          </ScrollView>
         )}
       </View>
     </Modal>
@@ -196,4 +249,6 @@ const styles = StyleSheet.create({
   sheetTitle: { paddingHorizontal: space.xl, paddingVertical: space.sm },
   sheetRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg, minHeight: 52, paddingHorizontal: space.xl },
   peopleList: { flexGrow: 0 },
+  groupTitle: { paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.xs },
+  volume: { paddingHorizontal: space.xl, paddingBottom: space.md },
 });

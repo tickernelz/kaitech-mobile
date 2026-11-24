@@ -1,0 +1,66 @@
+appId: io.kaitech.mobile
+name: Minutes - progress and write button, full minutes, dynamics and knowledge filters on the seeded meeting, read only
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/pick-test-programme.yaml
+- runFlow: ../shared/open-seeded-meeting.yaml
+- extendedWaitUntil:
+    visible:
+      id: minutes-bar
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: h1-minutes-bar
+- scrollUntilVisible:
+    element:
+      id: minutes-link-document
+- tapOn:
+    id: minutes-link-document
+- extendedWaitUntil:
+    visible:
+      id: minutes-document
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: h2-full-minutes
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      visible:
+        id: minutes-link-dynamics
+    commands:
+      - tapOn:
+          id: minutes-link-dynamics
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: h3-dynamics
+      - tapOn:
+          id: header-back
+- scrollUntilVisible:
+    element:
+      id: meeting-tab-items
+    direction: UP
+- tapOn:
+    id: meeting-tab-items
+- tapOn:
+    id: items-filter-awaiting
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: h4-items-awaiting
+- tapOn:
+    id: items-filter-all

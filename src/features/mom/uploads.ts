@@ -237,6 +237,17 @@ export function enqueue(upload: Upload) {
   void drain();
 }
 
+export type Picked = { uri: string; name: string; mimeType?: string; size?: number };
+
+export async function adoptPicked(picked: Picked): Promise<{ file: string; size: number }> {
+  const folder = new Directory(Paths.document, 'Audio');
+  folder.create({ intermediates: true, idempotent: true });
+  const extension = /\.[a-z0-9]{1,5}$/i.exec(picked.name)?.[0] ?? '';
+  const target = new File(folder, `${recordingPrefix}${Crypto.randomUUID()}${extension.toLowerCase()}`);
+  await new File(picked.uri).move(target);
+  return { file: `Audio/${target.name}`, size: new File(target.uri).size ?? picked.size ?? 0 };
+}
+
 export function retry(key: string) {
   const row = rows.find((candidate) => candidate.key === key);
   if (!row || row.state === 'done' || row.state === 'sending') return;

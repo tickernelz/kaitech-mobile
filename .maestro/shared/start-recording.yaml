@@ -1,0 +1,36 @@
+appId: io.kaitech.mobile
+name: Press Start once on the recording setup, answer the first-use permission prompts, and fail when the setup shows that recording could not start
+---
+- scrollUntilVisible:
+    element:
+      id: setup-start
+- tapOn:
+    id: setup-start
+- repeat:
+    times: 4
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: (recorder-time|com.android.permissioncontroller:id/.*)
+          timeout: 10000
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              text: (While using the app|Saat aplikasi digunakan)
+          commands:
+            - tapOn:
+                text: (While using the app|Saat aplikasi digunakan)
+      - runFlow:
+          when:
+            visible:
+              text: (Allow|Izinkan)
+          commands:
+            - tapOn:
+                text: (Allow|Izinkan)
+- assertNotVisible:
+    id: setup-outcome
+- extendedWaitUntil:
+    visible:
+      id: recorder-time
+    timeout: 30000

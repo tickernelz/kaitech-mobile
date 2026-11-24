@@ -1,7 +1,8 @@
 import { FlashList } from '@shopify/flash-list';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../theme';
 import { Sheet } from '../../../ui/Sheet';
 import { Text } from '../../../ui/Text';

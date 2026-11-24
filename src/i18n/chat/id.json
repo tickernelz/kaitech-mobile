@@ -84,13 +84,19 @@
     "shareInstead": "Bagikan",
     "table": "Tabel, {{columns}} kolom dan {{rows}} baris. Geser ke samping untuk melihat semuanya.",
     "background": "Latar chat",
+    "openPerson": "Buka {{name}}",
+    "callOngoing": "Panggilan berlangsung",
+    "callJoin": "Gabung",
+    "callMinutes_one": "{{count}} mnt",
+    "callMinutes_other": "{{count}} mnt",
     "removed": "Pesan ini sudah dihapus",
     "edited": "diedit",
     "pinned": "Disematkan",
     "starred": "Berbintang",
     "translatedFrom": "Diterjemahkan dari {{lang}}",
     "translated": "Diterjemahkan",
-    "urgent": "Mendesak"
+    "urgent": "Mendesak",
+    "agentTag": "Agent"
   },
   "composer": {
     "voiceLength": "Pesan suara · {{length}}",
@@ -474,5 +480,13 @@
     "startChat": "Mulai chat",
     "createGroup": "Buat grup",
     "createChannel": "Buat channel"
+  },
+  "starredList": {
+    "title": "Berbintang",
+    "empty": "Belum ada pesan berbintang.",
+    "clear": "Hapus semua bintang",
+    "clearTitle": "Hapus semua bintang?",
+    "clearBody": "Semua pesan berbintang kehilangan bintangnya. Pesannya tetap ada.",
+    "confirm": "Hapus bintang"
   }
 }

@@ -23,6 +23,10 @@ onFlowStart:
     visible:
       id: chat-new
     timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: chat-filter-mention
+    direction: UP
 - tapOn:
     id: chat-filter-mention
 - extendedWaitUntil:
@@ -33,12 +37,17 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: d0-mentions
-- tapOn:
-    id: chat-filter-agent
-- extendedWaitUntil:
-    visible:
-      text: (No conversation with the Coworker yet\.|Belum ada percakapan dengan Coworker\.|.+)
-    timeout: 10000
+- runFlow:
+    when:
+      visible:
+        id: chat-filter-agent
+    commands:
+      - tapOn:
+          id: chat-filter-agent
+      - extendedWaitUntil:
+          visible:
+            text: (No conversation with the Coworker yet\.|Belum ada percakapan dengan Coworker\.|.+)
+          timeout: 10000
 - tapOn:
     id: chat-filter-all
 - tapOn:
@@ -49,7 +58,7 @@ onFlowStart:
     timeout: 10000
 - tapOn:
     id: new-search
-- inputText: ${PEER_SEARCH}
+- inputText: ${PEER.split(' (')[0]}
 - tapOn:
     id: new-search-.*
     index: 0
@@ -71,3 +80,76 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: d2-opened
+- runFlow:
+    when:
+      visible:
+        id: thread-back
+    commands:
+      - tapOn:
+          id: thread-back
+- extendedWaitUntil:
+    visible:
+      id: chat-new
+    timeout: 15000
+- tapOn:
+    id: chat-new
+- extendedWaitUntil:
+    visible:
+      id: new-sheet
+    timeout: 10000
+- tapOn:
+    id: new-search
+- inputText: ZHA-7
+- tapOn:
+    id: new-search-.*
+    index: 0
+- tapOn:
+    id: new-search
+- eraseText: 20
+- inputText: ZHA-7
+- tapOn:
+    id: new-search-.*
+    index: 0
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: d3-group
+- tapOn:
+    id: new-create
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-members
+    direction: DOWN
+- tapOn:
+    id: thread-action-members
+- extendedWaitUntil:
+    visible:
+      id: member-.*
+      index: 2
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: d4-group-members
+- tapOn:
+    id: members-sheet-close
+- tapOn:
+    id: thread-more
+- scrollUntilVisible:
+    element:
+      id: thread-action-leave
+    direction: DOWN
+- tapOn:
+    id: thread-action-leave
+- tapOn:
+    text: (?i)(leave|keluar)
+- extendedWaitUntil:
+    visible:
+      id: chat-list
+    timeout: 20000

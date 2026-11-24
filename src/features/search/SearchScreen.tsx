@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, SectionList, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, SectionList, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';
@@ -13,10 +14,13 @@ import { search, type SearchHits } from '../discovery/api';
 import { openConversation, rememberProgramme, useLastProgramme } from '../discovery/store';
 import { Icon, type IconName } from '../../ui/icons';
 import { IconButton } from '../../ui/IconButton';
-import { Segmented, StateView } from '../discovery/ui';
+import { StateView } from '../discovery/ui';
+import { joinChannel, preview, searchDirectory, type DirectoryHits } from './people';
 
-type Filter = 'all' | 'chat' | 'discovery' | 'mom';
-type Hit = { key: string; icon: IconName; title: string; detail: string; open: () => void };
+type Filter = 'all' | 'chat' | 'discovery' | 'mom' | 'people';
+type Hit = { key: string; icon: IconName; title: string; detail: string; open: () => void; more?: boolean };
+
+const filters: Filter[] = ['all', 'people', 'chat', 'discovery', 'mom'];
 
 const debounceMs = 300;
 const maxLength = 64;
@@ -30,6 +34,7 @@ export function SearchScreen() {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [hits, setHits] = useState<SearchHits | null>(null);
+  const [directory, setDirectory] = useState<DirectoryHits | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState(false);
   const words = q.trim();
@@ -40,9 +45,10 @@ export function SearchScreen() {
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const found = await search(active, words);
+        const [found, people] = await Promise.all([search(active, words), searchDirectory(active, words).catch(() => ({ people: [], channels: [] }))]);
         if (current) {
           setHits(found);
+          setDirectory(people);
           setError(null);
         }
       } catch (failure) {
@@ -62,8 +68,34 @@ export function SearchScreen() {
   };
 
   const shownHits = words ? hits : null;
+  const shownPeople = words ? directory : null;
+  const openChannel = async (channel: DirectoryHits['channels'][number]) => {
+    if (!active) return;
+    if (!channel.member && channel.type === 'channel') await joinChannel(active, channel.id).catch(() => undefined);
+    router.navigate({ pathname: '/', params: { channel: String(channel.id) } });
+  };
   const sections = shownHits
     ? [
+        {
+          key: 'people' as const,
+          title: t('search.groups.people'),
+          data: [
+            ...(shownPeople?.people ?? []).map<Hit>((person) => ({
+              key: `person-${person.partnerId}`,
+              icon: 'people',
+              title: person.name,
+              detail: person.email || t('search.kind.person'),
+              open: () => router.push({ pathname: '/person/[id]', params: { id: String(person.partnerId), name: person.name } }),
+            })),
+            ...(shownPeople?.channels ?? []).map<Hit>((channel) => ({
+              key: `channel-${channel.id}`,
+              icon: channel.type === 'group' ? 'people' : 'hash',
+              title: channel.name,
+              detail: channel.member ? t('search.kind.channel') : t('search.kind.channelJoin'),
+              open: () => void openChannel(channel),
+            })),
+          ],
+        },
         {
           key: 'chat' as const,
           title: t('search.groups.chat'),
@@ -107,10 +139,22 @@ export function SearchScreen() {
             open: () => router.navigate({ pathname: '/mom', params: { [hit.kind]: String(hit.id), meeting: String(hit.meeting_id) } }),
           })),
         },
-      ].filter((section) => section.data.length && (filter === 'all' || filter === section.key))
+      ]
+        .filter((section) => section.data.length && (filter === 'all' || filter === section.key))
+        .map((section) => {
+          const { shown, more } = preview(section.data, filter !== 'all');
+          return more
+            ? { ...section, data: [...shown, { key: `more-${section.key}`, icon: 'forward' as IconName, title: t('search.seeAll', { count: section.data.length }), detail: '', more: true, open: () => setFilter(section.key) }] }
+            : section;
+        })
     : [];
 
-  const counts = { chat: shownHits?.chat.length ?? 0, discovery: shownHits?.discovery.length ?? 0, mom: shownHits?.mom.length ?? 0 };
+  const counts: Record<Exclude<Filter, 'all'>, number> = {
+    people: (shownPeople?.people.length ?? 0) + (shownPeople?.channels.length ?? 0),
+    chat: shownHits?.chat.length ?? 0,
+    discovery: shownHits?.discovery.length ?? 0,
+    mom: shownHits?.mom.length ?? 0,
+  };
 
   return (
     <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="search">
@@ -135,15 +179,24 @@ export function SearchScreen() {
         <IconButton icon="close" label={t('search.close')} onPress={() => router.back()} testID="search-close" />
       </View>
       <View style={styles.filters}>
-        <Segmented
-          testID="search-filter"
-          value={filter}
-          onChange={setFilter}
-          options={(['all', 'chat', 'discovery', 'mom'] as Filter[]).map((value) => ({
-            value,
-            label: value === 'all' ? t('search.all') : t('search.filter', { name: t(`search.groups.${value}`), count: counts[value] }),
-          }))}
-        />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityRole="tablist" testID="search-filter" keyboardShouldPersistTaps="handled">
+          {filters.map((value) => {
+            const on = value === filter;
+            return (
+              <Pressable
+                key={value}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: on }}
+                onPress={() => setFilter(value)}
+                style={[styles.chip, { backgroundColor: on ? colors.select : colors.surface, borderColor: on ? colors.select : colors.line }]}
+                testID={`search-filter-${value}`}>
+                <Text variant="footnote" style={{ color: on ? colors.selectInk : colors.ink }}>
+                  {value === 'all' ? t('search.all') : t('search.filter', { name: t(`search.groups.${value}`), count: counts[value] })}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </View>
       <SectionList
         sections={sections}
@@ -170,7 +223,14 @@ export function SearchScreen() {
             {section.title}
           </Text>
         )}
-        renderItem={({ item }) => (
+        renderItem={({ item }) =>
+          item.more ? (
+            <Pressable accessibilityRole="button" onPress={item.open} testID={`search-${item.key}`} style={({ pressed }) => [styles.more, pressed && { backgroundColor: colors.surface2 }]}>
+              <Text variant="callout" tone="link">
+                {item.title}
+              </Text>
+            </Pressable>
+          ) : (
           <RowActions
             title={item.title}
             subtitle={item.detail}
@@ -199,7 +259,8 @@ export function SearchScreen() {
           </Pressable>
             )}
           </RowActions>
-        )}
+          )
+        }
         ListEmptyComponent={
           words ? (
             <StateView
@@ -222,10 +283,13 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   box: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: space.lg },
   input: { flex: 1, minHeight: 44 },
-  filters: { paddingHorizontal: space.lg, paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
+  filters: { paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
+  chips: { flexDirection: 'row', gap: space.xs, paddingHorizontal: space.lg },
+  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   list: { padding: space.lg, gap: space.xs, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   ask: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg, borderRadius: radius.pill, marginBottom: space.md },
   section: { paddingTop: space.md, paddingBottom: space.xs },
   hit: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingVertical: space.sm, borderRadius: radius.md },
+  more: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space.sm, borderRadius: radius.md },
   hitIcon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
 });

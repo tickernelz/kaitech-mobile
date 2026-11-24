@@ -2,7 +2,8 @@ import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import * as Clipboard from 'expo-clipboard';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { readableWidth } from '../../../layout/windowClass';
@@ -14,7 +15,7 @@ import { plainText } from '../html';
 import { bodyPreview, bodyShape } from '../markdown';
 import { isCallNotice, readersOf, readState } from '../odoo';
 import type { Message, Pending } from '../types';
-import { CallButtons } from '../../call/ui/CallButtons';
+import { CallButton } from '../../call/ui/CallButton';
 import { Avatar } from './Avatar';
 import { Composer, type ComposerHandle } from './Composer';
 import { useChatFormat } from './format';
@@ -118,6 +119,7 @@ export function ThreadView({
   const recordStore = useRecordCards();
   const agentsOn = hasFeature(features, 'agents');
   const cardsOn = hasFeature(features, 'cards');
+  const lookOn = hasFeature(features, 'look');
   const agentIds = useMemo(() => new Set([...features.agentPartnerIds, ...(features.coworkerPartnerId ? [features.coworkerPartnerId] : [])]), [features.agentPartnerIds, features.coworkerPartnerId]);
   const watchVisible = (messages: Message[]) => {
     seeTranslations(messages);
@@ -321,6 +323,8 @@ export function ThreadView({
             onQuotePress={jumpTo}
             onReact={(target, content) => void react(target, content)}
             onOpenThread={(target) => void openSub(target)}
+            agent={fromAgent ? agentStore : null}
+            agentTag={lookOn}
           />
           {fromAgent || urls.length ? (
             <MessageCards
@@ -336,7 +340,7 @@ export function ThreadView({
         </View>
       );
     },
-    [agentIds, agentStore, agentsOn, cardsOn, colors, dayLabel, highlight, jumpTo, online, openRecord, openSub, origin, partnerId, quoteOf, react, recordStore, startActing, thread.members, thread.subChannels, twoPeople, type],
+    [agentIds, agentStore, agentsOn, cardsOn, lookOn, colors, dayLabel, highlight, jumpTo, online, openRecord, openSub, origin, partnerId, quoteOf, react, recordStore, startActing, thread.members, thread.subChannels, twoPeople, type],
   );
 
   const typing = thread.typing;
@@ -350,21 +354,30 @@ export function ThreadView({
   const shownStatus = !typing.length && twoPeople && status ? status : null;
   const readStatus = shownStatus ? () => Alert.alert(name, shownStatus) : undefined;
 
+  const parentId = thread.info?.parentId ?? null;
+  const back = twoPane ? (parentId ? () => onOpenChannel(parentId) : undefined) : onBack;
   const header = (
     <View style={[styles.header, { borderBottomColor: colors.line }]}>
-      {twoPane || !onBack ? null : (
-        <Pressable accessibilityRole="button" accessibilityLabel={t('thread.back')} onPress={onBack} hitSlop={8} style={styles.headerButton} testID="thread-back">
+      {!back ? null : (
+        <Pressable accessibilityRole="button" accessibilityLabel={t('thread.back')} onPress={back} hitSlop={8} style={styles.headerButton} testID="thread-back">
           <Icon name="back" color={colors.ink} />
         </Pressable>
       )}
-      <Avatar
-        name={name}
-        seed={conversation?.partnerId ?? channelId}
-        size={40}
-        partnerId={type === 'chat' ? conversation?.partnerId : undefined}
-        photo={type === 'chat' ? undefined : (conversation?.photo ?? null)}
-        icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined}
-      />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('thread.openPerson', { name })}
+        disabled={type !== 'chat' || !conversation?.partnerId}
+        onPress={() => conversation?.partnerId && router.push({ pathname: '/person/[id]', params: { id: String(conversation.partnerId), name } })}
+        testID="thread-person">
+        <Avatar
+          name={name}
+          seed={conversation?.partnerId ?? channelId}
+          size={40}
+          partnerId={type === 'chat' ? conversation?.partnerId : undefined}
+          photo={type === 'chat' ? undefined : (conversation?.photo ?? null)}
+          icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined}
+        />
+      </Pressable>
       <Pressable style={styles.flex} accessible={false} disabled={!readStatus} onPress={readStatus} testID="thread-heading">
         <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
           {name}
@@ -381,7 +394,7 @@ export function ThreadView({
           {subtitle}
         </Text>
       </Pressable>
-      {!bubble && (type === 'chat' || type === 'group' || type === 'channel') ? <CallButtons channelId={channelId} channelName={name} /> : null}
+      {!bubble && (type === 'chat' || type === 'group' || type === 'channel') ? <CallButton channelId={channelId} channelName={name} /> : null}
       <Pressable accessibilityRole="button" accessibilityLabel={t('threadActions.more')} onPress={() => setThreadMenu(true)} hitSlop={8} style={styles.headerButton} testID="thread-more">
         <Icon name="more" color={colors.ink} />
       </Pressable>
@@ -508,7 +521,8 @@ export function ThreadView({
           onTakeBack={(taken) => composer.current?.restore(taken.body, taken.partnerIds)}
           onNotice={setNotice}
           onLeft={() => {
-            if (onBack && !twoPane) onBack();
+            if (twoPane && parentId) onOpenChannel(parentId);
+            else onBack?.();
           }}
         />
       ) : null}

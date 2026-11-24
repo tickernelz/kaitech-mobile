@@ -1,0 +1,2 @@
+-keep class com.google.android.gms.tflite.** { *; }
+-keep class org.tensorflow.lite.** { *; }

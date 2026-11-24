@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, Pressable, ScrollView, StyleSheet, TextInput, View, type TextInputSelectionChangeEvent } from 'react-native';
+import { Platform, ScrollView, StyleSheet, TextInput, View, type TextInputSelectionChangeEvent } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { useKeyboardState } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../../layout/windowClass';

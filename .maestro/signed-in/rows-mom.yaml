@@ -5,6 +5,11 @@ tags:
   - rows
 onFlowStart:
   - runFlow: ../shared/orientation.yaml
+onFlowComplete:
+  - runScript:
+      file: ../scripts/web-peer.js
+      env:
+        ACTION: tidy
 ---
 - evalScript: ${output.meeting = 'Uji hapus ' + RUN.slice(-6)}
 - evalScript: ${output.title = 'Rekaman ' + RUN.slice(-6)}
@@ -75,13 +80,8 @@ onFlowStart:
           commands:
             - tapOn:
                 text: (Allow|Izinkan)
-- runFlow:
-    when:
-      visible:
-        id: setup-outcome
-    commands:
-      - tapOn:
-          id: setup-start
+- assertNotVisible:
+    id: setup-outcome
 - extendedWaitUntil:
     visible:
       id: recorder-time
@@ -99,8 +99,8 @@ onFlowStart:
     visible:
       id: upload-done
     timeout: 180000
-- scrollUntilVisible:
-    element:
+- extendedWaitUntil:
+    visible:
       text: ${output.meeting}
     timeout: 60000
 - longPressOn:

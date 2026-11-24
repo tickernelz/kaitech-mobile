@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-usage="usage: e2e-ios.sh <Kaitech.app built for the simulator> <output-dir> <locale: en-US|id-ID> <family: ipad|iphone>"
+usage="usage: e2e-ios.sh <Kaitech.app built for the simulator> <output-dir> <locale: en-US|id-ID> [family: iphone|ipad]"
 app="${1:?$usage}"
 out="${2:?$usage}"
 locale="${3:?$usage}"
-family="${4:?$usage}"
+family="${4:-iphone}"
 case "$family" in
   ipad) size=tablet; preference='["iPad Pro 13", "iPad Pro 11", "iPad Air", "iPad"]'; orientations="${ORIENTATIONS:-portrait landscape}" ;;
-  iphone) size=phone; preference='["iPhone 17 Pro", "iPhone 17", "iPhone 16 Pro", "iPhone 16", "iPhone"]'; orientations="${ORIENTATIONS:-portrait}" ;;
+  iphone) size=phone; preference='["iPhone 17 Pro", "iPhone 17", "iPhone 16 Pro", "iPhone 16", "iPhone"]'; orientations="${ORIENTATIONS:-portrait landscape}" ;;
   *) echo "$usage" >&2; exit 2 ;;
 esac
 appearances="${APPEARANCES:-light}"
@@ -108,7 +108,7 @@ for appearance in $appearances; do
     dir="$out/$cell"
     mkdir -p "$dir/screenshots"
     log "$cell: start"
-    xcrun simctl io "$udid" recordVideo --codec=h264 --force "$dir/e2e-$family-$cell.mp4" > /dev/null 2>&1 &
+    xcrun simctl io "$udid" recordVideo --codec=h264 --force "$dir/e2e-ios-$cell.mp4" > /dev/null 2>&1 &
     recorder=$!
     sleep 2
 

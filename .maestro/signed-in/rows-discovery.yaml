@@ -5,6 +5,15 @@ tags:
   - rows
 onFlowStart:
   - runFlow: ../shared/orientation.yaml
+  - runScript:
+      file: ../scripts/web-peer.js
+      env:
+        ACTION: tidy
+onFlowComplete:
+  - runScript:
+      file: ../scripts/web-peer.js
+      env:
+        ACTION: tidy
 ---
 - launchApp
 - extendedWaitUntil:
@@ -82,6 +91,10 @@ onFlowStart:
 - inputText: ${output.renamed}
 - tapOn:
     id: conversation-rename-submit
+- extendedWaitUntil:
+    notVisible:
+      id: conversation-rename
+    timeout: 15000
 - extendedWaitUntil:
     visible:
       text: ${output.renamed}
@@ -197,6 +210,10 @@ onFlowStart:
       id: activity-schedule-save
 - tapOn:
     id: activity-schedule-save
+- extendedWaitUntil:
+    notVisible:
+      id: activity-schedule
+    timeout: 15000
 - scrollUntilVisible:
     element:
       text: ${output.todo}
@@ -258,6 +275,10 @@ onFlowStart:
     notVisible:
       text: ${output.todo}
     timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: activity-source-discovery
+    direction: UP
 - tapOn:
     id: activity-source-discovery
 - tapOn:

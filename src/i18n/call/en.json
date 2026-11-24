@@ -1,8 +1,5 @@
 {
-  "incoming": {
-    "voice": "Incoming voice call",
-    "video": "Incoming video call"
-  },
+  "incoming": "Incoming call",
   "calling": "Calling…",
   "connecting": "Connecting…",
   "reconnecting": "Reconnecting…",
@@ -21,6 +18,14 @@
   "unmute": "Unmute microphone",
   "cameraOn": "Turn camera on",
   "cameraTurnOff": "Turn camera off",
+  "cameraBlocked": {
+    "action": "Camera access is off",
+    "notice": "Camera access is off. The call goes on; tap here to allow the camera in Settings.",
+    "title": "Camera access is off",
+    "body": "Allow camera access for Kaitech in Settings, then tap the camera button again. Your call stays connected.",
+    "cancel": "Not now",
+    "settings": "Open Settings"
+  },
   "flip": "Switch camera",
   "speaker": "Speaker",
   "earpiece": "Earpiece",
@@ -28,8 +33,7 @@
   "pictureInPicture": "Shrink to a small window",
   "close": "Close",
   "backToCall": "Back to the call",
-  "startVoice": "Voice call",
-  "startVideo": "Video call",
+  "start": "Call",
   "shareScreen": "Share screen",
   "stopSharing": "Stop sharing",
   "sharingScreen": "Sharing your screen",
@@ -72,7 +76,6 @@
     "disconnected": "Connection lost",
     "removed": "You were removed from the call",
     "microphone": "Calls need microphone permission",
-    "camera": "Video calls need camera permission",
     "signedOut": "The call ended because you signed out",
     "call_unavailable": "Calls are not available in this conversation",
     "temporarily_unavailable": "Calls are unavailable right now. Try again later.",
@@ -85,5 +88,32 @@
     "title": "Allow full-screen notifications",
     "body": "So calls ring on the lock screen",
     "action": "Open Settings"
-  }
+  },
+  "audioOutput": "Audio output",
+  "deafen": "Mute incoming sound",
+  "undeafen": "Turn incoming sound back on",
+  "raiseHand": "Raise hand",
+  "lowerHand": "Lower hand",
+  "spotlight": "Spotlight the speaker",
+  "videoOnly": "Only people with video",
+  "backgroundBlur": "Blur background",
+  "invite": "Invite people",
+  "inviteHint": "They join the conversation and get a call invitation.",
+  "inviteSearch": "Search people",
+  "inviteFailed": "Could not invite. Try again.",
+  "inviteSend": "Invite ({{count}})",
+  "volumeOf": "Volume of {{name}}",
+  "group": {
+    "sound": "Sound",
+    "video": "Video and screen",
+    "people": "People"
+  },
+  "output": {
+    "speaker": "Speaker",
+    "earpiece": "Phone",
+    "bluetooth": "Bluetooth",
+    "headset": "Headset",
+    "other": "{{name}}"
+  },
+  "outputNone": "No other audio output is connected."
 }

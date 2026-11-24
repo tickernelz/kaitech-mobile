@@ -1,12 +1,15 @@
 appId: io.kaitech.mobile
-name: Voice call from a chat with the web peer, in-call controls, hang up
+name: One call - answer the web peer camera call as voice, follow the peer camera, camera refused then allowed, share the screen, hang up, call again without a camera prompt
 tags:
   - signed-in
   - call
 onFlowStart:
   - runFlow: ../shared/orientation.yaml
 ---
-- launchApp
+- launchApp:
+    permissions:
+      all: allow
+      camera: deny
 - extendedWaitUntil:
     visible:
       id: (welcome-sign-in|tab-chat)
@@ -17,40 +20,197 @@ onFlowStart:
         id: welcome-sign-in
     commands:
       - runFlow: ../shared/sign-in.yaml
-- tapOn:
-    id: tab-button-chat
 - extendedWaitUntil:
     visible:
-      id: chat-list
+      id: (incoming-call|tab-button-chat)
     timeout: 30000
-- tapOn:
-    text: ${PEER}
-- extendedWaitUntil:
-    visible:
-      id: call-voice
-    timeout: 30000
-- tapOn:
-    id: call-voice
-- extendedWaitUntil:
-    visible:
-      id: call-screen
-    timeout: 60000
+- runFlow:
+    when:
+      visible:
+        id: incoming-call
+    commands:
+      - assertNotVisible:
+          id: incoming-answer-other
+      - runFlow:
+          file: ../shared/screenshot.yaml
+          env:
+            SCREEN: u1-incoming
+      - tapOn:
+          id: incoming-answer
+- runFlow:
+    when:
+      notVisible:
+        id: call-screen
+    commands:
+      - tapOn:
+          id: tab-button-chat
+      - extendedWaitUntil:
+          visible:
+            id: chat-list
+          timeout: 30000
+      - tapOn:
+          text: ${PEER}
+      - extendedWaitUntil:
+          visible:
+            id: call-start
+          timeout: 30000
+      - assertNotVisible:
+          id: call-video
+      - tapOn:
+          id: call-start
 - extendedWaitUntil:
     visible:
       id: call-controls
     timeout: 60000
+- extendedWaitUntil:
+    visible:
+      id: call-status
+      text: '\d\d:\d\d'
+    timeout: 30000
+- assertNotVisible:
+    id: com.android.permissioncontroller:id/permission_allow_foreground_only_button
+- assertVisible:
+    id: call-camera
+- runScript:
+    file: ../scripts/call-peer-camera.js
+    env:
+      CAMERA: 'on'
+- extendedWaitUntil:
+    visible:
+      id: call-tile-video
+    timeout: 30000
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
-      SCREEN: k1-live
+      SCREEN: u2-peer-camera
+- runScript:
+    file: ../scripts/call-peer-camera.js
+    env:
+      CAMERA: 'off'
+- extendedWaitUntil:
+    visible:
+      id: call-stage-avatar
+    timeout: 30000
+- assertNotVisible:
+    id: call-tile-video
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: u3-peer-voice
+- tapOn:
+    id: call-camera
+- extendedWaitUntil:
+    visible:
+      id: com.android.permissioncontroller:id/permission_deny_button
+    timeout: 15000
+- tapOn:
+    id: com.android.permissioncontroller:id/permission_deny_button
+- extendedWaitUntil:
+    visible:
+      id: call-camera-blocked
+    timeout: 10000
+- assertVisible:
+    id: call-controls
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: u4-camera-refused
+- tapOn:
+    id: call-camera
+- extendedWaitUntil:
+    visible:
+      id: (com.android.permissioncontroller:id/permission_allow_foreground_only_button|call-flip)
+    timeout: 15000
+- runFlow:
+    when:
+      visible:
+        id: com.android.permissioncontroller:id/permission_allow_foreground_only_button
+    commands:
+      - tapOn:
+          id: com.android.permissioncontroller:id/permission_allow_foreground_only_button
+- extendedWaitUntil:
+    visible:
+      id: call-flip
+    timeout: 15000
+- assertNotVisible:
+    id: call-camera-blocked
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: u5-camera-on
+- tapOn:
+    id: call-camera
+- extendedWaitUntil:
+    visible:
+      id: call-speaker
+    timeout: 10000
+- tapOn:
+    id: call-more
+- tapOn:
+    id: call-sheet-share
+- runFlow: ../shared/allow-screen-capture.yaml
+- extendedWaitUntil:
+    visible:
+      id: call-screen-share-own
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: u6-sharing
+- tapOn:
+    id: call-share
+- extendedWaitUntil:
+    notVisible:
+      id: call-screen-share-own
+    timeout: 20000
 - tapOn:
     id: call-mute
 - tapOn:
-    id: call-speaker
+    id: call-more
+- extendedWaitUntil:
+    visible:
+      id: call-sheet-hand
+    timeout: 10000
+- assertVisible:
+    id: call-sheet-deafen
+- tapOn:
+    id: call-sheet-hand
+- tapOn:
+    id: call-more
+- tapOn:
+    id: call-sheet-people
+- extendedWaitUntil:
+    visible:
+      id: call-sheet-people
+    timeout: 10000
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
-      SCREEN: k2-muted
+      SCREEN: u7-people
+- tapOn:
+    id: call-sheet-backdrop
+- tapOn:
+    id: call-hangup
+- extendedWaitUntil:
+    notVisible:
+      id: call-screen
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: call-start
+    timeout: 30000
+- tapOn:
+    id: call-start
+- extendedWaitUntil:
+    visible:
+      id: call-controls
+    timeout: 60000
+- assertNotVisible:
+    id: com.android.permissioncontroller:id/permission_allow_foreground_only_button
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: u8-call-again
 - tapOn:
     id: call-hangup
 - extendedWaitUntil:

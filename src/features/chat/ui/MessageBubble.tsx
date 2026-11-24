@@ -1,6 +1,8 @@
+import { router } from 'expo-router';
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
 import { personColors, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
@@ -17,7 +19,11 @@ import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
 import { recordingIdOf } from '../../call/recording';
 import { RecordingCard } from '../../call/ui/RecordingCard';
+import { callState, startCall } from '../../call/call';
+import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
+import { AgentSaid } from './coworker/Cards';
+import type { AgentCard, CardStore } from '../coworker';
 
 export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
@@ -186,6 +192,8 @@ export const MessageBubble = memo(function MessageBubble({
   onQuotePress,
   onReact,
   onOpenThread,
+  agent = null,
+  agentTag = false,
 }: {
   message: Message;
   mine: boolean;
@@ -199,6 +207,8 @@ export const MessageBubble = memo(function MessageBubble({
   onQuotePress: (id: number) => void;
   onReact: (message: Message, content: string) => void;
   onOpenThread: (message: Message) => void;
+  agent?: CardStore<number, AgentCard> | null;
+  agentTag?: boolean;
 }) {
   const { t } = useTranslation('chat');
   const { colors, scheme } = useTheme();
@@ -210,13 +220,32 @@ export const MessageBubble = memo(function MessageBubble({
   const time = clock(message.date);
   const text = bodyPreview(message.body);
   if (isCallNotice(message)) {
+    const call = message.call;
+    const label = [t(call?.ongoing ? 'thread.callOngoing' : 'thread.call'), call && !call.ongoing ? t('thread.callMinutes', { count: Math.max(1, call.minutes) }) : null, time].filter(Boolean).join(' · ');
     return (
-      <View style={styles.notice} accessible accessibilityLabel={`${t('thread.call')}, ${time}`} testID={`call-notice-${message.id}`}>
+      <View style={styles.notice} accessible={!call?.ongoing} accessibilityLabel={label} testID={`call-notice-${message.id}`}>
         <View style={[styles.noticePill, styles.callNotice, { backgroundColor: colors.surface2 }]}>
           <Icon name="phone" size={16} color={colors.inkSoft} />
           <Text variant="footnote" tone="inkSoft">
-            {t('thread.call')} · {time}
+            {label}
           </Text>
+          {call?.ongoing ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('thread.callJoin')}
+              hitSlop={8}
+              onPress={() => {
+                const live = callState();
+                const busy = live.phase !== 'idle' && live.phase !== 'ended';
+                router.push({ pathname: '/call/[id]', params: { id: String(busy ? live.channelId : message.channelId) } });
+                if (!busy) void startCall({ channelId: message.channelId, channelName: conversationById(getChat(), message.channelId)?.name ?? '' });
+              }}
+              testID={`call-notice-${message.id}-join`}>
+              <Text variant="footnote" tone="link">
+                {t('thread.callJoin')}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
     );
@@ -247,14 +276,32 @@ export const MessageBubble = memo(function MessageBubble({
   const body = (
     <>
       <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label}>
-        {showAuthor && !mine ? (
-          <Text variant="footnote" numberOfLines={1} style={[styles.bold, { color: authorColor(message.authorId, scheme, colors) }]}>
-            {message.author}
-          </Text>
+        {(showAuthor || (agent && agentTag)) && !mine ? (
+          <View style={styles.authorRow}>
+            {showAuthor ? (
+              <Text variant="footnote" numberOfLines={1} style={[styles.bold, styles.authorName, { color: authorColor(message.authorId, scheme, colors) }]}>
+                {message.author}
+              </Text>
+            ) : null}
+            {agent && agentTag ? (
+              <View style={[styles.agentTag, { backgroundColor: colors.infoBand }]} testID={`agent-tag-${message.id}`}>
+                <Icon name="sparkle" size={12} color={colors.infoInk} />
+                <Text variant="label" tone="infoInk">
+                  {t('thread.agentTag')}
+                </Text>
+              </View>
+            ) : null}
+          </View>
         ) : null}
         <QuoteBlock quote={quote} mine={mine} onPress={message.parentId ? () => onQuotePress(message.parentId as number) : undefined} />
         <Attachments attachments={message.attachments} origin={origin} mine={mine} />
-        {blocks.length ? <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} /> : null}
+        {agent && !removed && !message.translated ? (
+          <AgentSaid store={agent} messageId={message.id}>
+            {blocks.length ? <RichText blocks={blocks} color={colors.ink} tint={colors.surface2} /> : null}
+          </AgentSaid>
+        ) : blocks.length ? (
+          <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} />
+        ) : null}
         {message.translated && message.translation ? (
           <Text variant="label" tone="inkFaint" testID={`translated-${message.id}`}>
             {message.translation.lang ? t('thread.translatedFrom', { lang: message.translation.lang }) : t('thread.translated')}
@@ -316,7 +363,18 @@ export const MessageBubble = memo(function MessageBubble({
   }
   return (
     <View style={[styles.wrap, styles.withFace]} testID={`message-${message.id}`}>
-      {face === 'show' ? <Avatar name={message.author} seed={message.authorId ?? 0} partnerId={message.authorId} size={faceSize} /> : <View style={styles.faceSpace} />}
+      {face === 'show' ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('thread.openPerson', { name: message.author })}
+          disabled={!message.authorId}
+          onPress={() => message.authorId && router.push({ pathname: '/person/[id]', params: { id: String(message.authorId), name: message.author } })}
+          testID={`message-${message.id}-author`}>
+          <Avatar name={message.author} seed={message.authorId ?? 0} partnerId={message.authorId} size={faceSize} />
+        </Pressable>
+      ) : (
+        <View style={styles.faceSpace} />
+      )}
       <View style={styles.faceColumn}>{body}</View>
     </View>
   );
@@ -398,6 +456,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
   bold: { fontWeight: '600' },
+  authorRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  authorName: { flexShrink: 1 },
+  agentTag: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: space.xs, borderRadius: radius.sm },
   wrap: { paddingHorizontal: space.lg, marginTop: 2, maxWidth: '100%' },
   wrapMine: { alignItems: 'flex-end' },
   wrapTheirs: { alignItems: 'flex-start' },

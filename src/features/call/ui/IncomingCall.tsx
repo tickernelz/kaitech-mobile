@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
@@ -22,7 +23,7 @@ export function IncomingCall() {
           {call.callerName}
         </Text>
         <Text variant="callout" tone="inkSoft" style={styles.center}>
-          {call.video ? t('incoming.video') : t('incoming.voice')}
+          {t('incoming')}
         </Text>
       </View>
       <View style={styles.actions}>
@@ -30,7 +31,7 @@ export function IncomingCall() {
           <Icon name="phoneEnd" size={32} color={colors.onPrimary} />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={t('answer')} onPress={() => void answer()} style={[styles.round, { backgroundColor: colors.ok }]} testID="incoming-answer">
-          <Icon name={call.video ? 'video' : 'phone'} size={32} color={colors.onPrimary} />
+          <Icon name="phone" size={32} color={colors.onPrimary} />
         </Pressable>
       </View>
     </View>

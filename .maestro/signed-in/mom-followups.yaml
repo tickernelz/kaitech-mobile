@@ -1,0 +1,251 @@
+appId: io.kaitech.mobile
+name: MoM follow-ups - board views, add one, record progress, mark done and archive the test follow-up
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-sign-in
+    timeout: 30000
+- runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/pick-test-programme.yaml
+- tapOn:
+    id: tab-button-mom
+- extendedWaitUntil:
+    visible:
+      id: mom-record
+    timeout: 60000
+- tapOn:
+    id: mom-record
+- extendedWaitUntil:
+    visible:
+      id: setup-name
+    timeout: 30000
+- tapOn:
+    id: setup-name
+- inputText: ${'E2E FU ' + RUN}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: setup-consent
+- tapOn:
+    id: setup-consent
+- runFlow: ../shared/start-recording.yaml
+- extendedWaitUntil:
+    visible:
+      id: recorder-stop
+    timeout: 30000
+- tapOn:
+    id: recorder-stop
+- tapOn:
+    text: (?i)(finish|selesai)
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: upload-done
+    timeout: 180000
+- scrollUntilVisible:
+    element:
+      id: mom-menu
+    direction: UP
+- tapOn:
+    id: mom-menu
+- tapOn:
+    id: mom-more-followups
+- extendedWaitUntil:
+    visible:
+      id: followups-summary
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f1-board
+- tapOn:
+    id: followups-view-team
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f2-team
+- tapOn:
+    id: followups-view-meetings
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f3-meetings
+- tapOn:
+    id: followups-view-updates
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f4-updates
+- tapOn:
+    id: followups-view-list
+- tapOn:
+    id: followups-more
+- tapOn:
+    id: mom-more-add
+- extendedWaitUntil:
+    visible:
+      id: followup-meeting
+    timeout: 30000
+- tapOn:
+    id: followup-meeting
+- runFlow:
+    when:
+      visible:
+        id: mom-more-sheet-search
+    commands:
+      - tapOn:
+          id: mom-more-sheet-search
+      - inputText: ${RUN}
+- tapOn:
+    text: ${'E2E FU ' + RUN}
+    index: 0
+- tapOn:
+    id: followup-name-field
+- inputText: ${'E2E follow-up ' + RUN}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- tapOn:
+    id: followup-owner
+- runFlow:
+    when:
+      visible:
+        id: mom-more-sheet-search
+    commands:
+      - tapOn:
+          id: mom-more-sheet-search
+      - inputText: Budi
+- tapOn:
+    id: mom-more-owner-${FOLLOWUP_OWNER}
+- scrollUntilVisible:
+    element:
+      id: followup-due
+- tapOn:
+    id: followup-due
+- inputText: 2026-02-30
+- runFlow: ../shared/dismiss-keyboard.yaml
+- assertVisible:
+    id: followup-save
+    enabled: false
+- scrollUntilVisible:
+    element:
+      id: followup-due-quick-.*
+- tapOn:
+    id: followup-due-quick-.*
+    index: 2
+- assertVisible:
+    id: followup-save
+    enabled: true
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f5-add
+- tapOn:
+    id: followup-save
+- extendedWaitUntil:
+    visible:
+      id: followup-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: followup-note
+- tapOn:
+    id: followup-note
+- inputText: E2E progress
+- runFlow: ../shared/dismiss-keyboard.yaml
+- scrollUntilVisible:
+    element:
+      id: followup-save-progress
+- tapOn:
+    id: followup-save-progress
+- extendedWaitUntil:
+    notVisible:
+      id: followup-note
+      text: .*E2E progress.*
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: .*E2E progress.*
+    direction: DOWN
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: f6-item
+- scrollUntilVisible:
+    element:
+      id: followup-done
+    direction: UP
+- tapOn:
+    id: followup-done
+- extendedWaitUntil:
+    notVisible:
+      id: followup-done
+    timeout: 30000
+- tapOn:
+    id: followup-more
+- tapOn:
+    id: mom-more-archive
+- extendedWaitUntil:
+    visible:
+      text: (?i)(archived|diarsipkan)
+    timeout: 30000
+- tapOn:
+    id: header-back
+- tapOn:
+    id: header-back
+- runFlow:
+    when:
+      visible:
+        id: header-back
+    commands:
+      - tapOn:
+          id: header-back
+- tapOn:
+    id: tab-button-mom
+- repeat:
+    while:
+      notVisible:
+        id: mom-menu
+    times: 20
+    commands:
+      - swipe:
+          start: 22%, 30%
+          end: 22%, 80%
+          duration: 400
+- repeat:
+    while:
+      visible:
+        id: upload-dismiss
+    times: 5
+    commands:
+      - tapOn:
+          id: upload-dismiss
+- tapOn:
+    text: ${'E2E FU ' + RUN}
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: meeting-more
+    timeout: 30000
+- tapOn:
+    id: meeting-more
+- tapOn:
+    id: mom-more-remove-[0-9]+
+- extendedWaitUntil:
+    visible:
+      id: mom-remove-name
+    timeout: 30000
+- copyTextFrom:
+    id: mom-remove-name
+- tapOn:
+    id: mom-remove-title
+- inputText: ${maestro.copiedText}
+- tapOn:
+    id: mom-remove-password
+- inputText: ${PASSWORD}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- runFlow: ../shared/confirm-removal.yaml

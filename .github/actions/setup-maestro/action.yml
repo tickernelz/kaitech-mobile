@@ -7,10 +7,13 @@ runs:
       env:
         MAESTRO_VERSION: cli-2.12.1
         MAESTRO_SHA256: 54dbb0716425626604973cbb374c585ca30272375d9ce15177a1152765ddd9d7
+        MAESTRO_SOURCE_COMMIT: 67d8a677029261fa424a45a10d08eacd6aa0deed
       run: |
         set -euo pipefail
-        curl -sSfL -o "$RUNNER_TEMP/maestro.zip" "https://github.com/mobile-dev-inc/maestro/releases/download/${MAESTRO_VERSION}/maestro.zip"
+        curl -sSfL --retry 5 --retry-all-errors --retry-delay 5 -o "$RUNNER_TEMP/maestro.zip" "https://github.com/mobile-dev-inc/maestro/releases/download/${MAESTRO_VERSION}/maestro.zip"
         echo "${MAESTRO_SHA256}  $RUNNER_TEMP/maestro.zip" | shasum -a 256 -c -
         unzip -q "$RUNNER_TEMP/maestro.zip" -d "$RUNNER_TEMP"
         echo "$RUNNER_TEMP/maestro/bin" >> "$GITHUB_PATH"
         echo "MAESTRO_CLI_NO_ANALYTICS=1" >> "$GITHUB_ENV"
+        echo "MAESTRO_VERSION=$MAESTRO_VERSION" >> "$GITHUB_ENV"
+        echo "MAESTRO_SOURCE_COMMIT=$MAESTRO_SOURCE_COMMIT" >> "$GITHUB_ENV"
