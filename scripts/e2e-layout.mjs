@@ -12,6 +12,8 @@ const tabs = { chat: 'chat-list', discovery: 'tab-discovery', mom: 'tab-mom', ac
 const barDp = { min: 56, max: 64 };
 const contentGapDp = 24;
 const pullDepthsDp = [16, 32, 48, 72, 96, 128];
+const indicatorFromDp = 32;
+const indicatorDepthsNeeded = 4;
 
 const adb = (...args) => execFileSync('adb', args, { encoding: 'utf8', maxBuffer: 64 << 20 });
 const sleep = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
@@ -150,7 +152,7 @@ for (const [tab, rootId] of Object.entries(tabs)) {
       lines.push(`${tab}: pull ${depth}dp, no indicator`);
       continue;
     }
-    seen++;
+    if (depth >= indicatorFromDp) seen++;
     const width = circle.right - circle.left;
     const tall = circle.bottom - circle.top;
     lines.push(`${tab}: pull ${depth}dp, indicator ${box(circle)} ${dp(width)}x${dp(tall)}dp`);
@@ -160,7 +162,8 @@ for (const [tab, rootId] of Object.entries(tabs)) {
   }
   adb('shell', 'input', 'motionevent', 'MOVE', String(x), String(y0));
   adb('shell', 'input', 'motionevent', 'CANCEL', String(x), String(y0));
-  if (seen < 2) failures.push(`${tab}: the pull indicator showed at ${seen} of ${pullDepthsDp.length} depths; is the list at its top?`);
+  const deep = pullDepthsDp.filter((depth) => depth >= indicatorFromDp).length;
+  if (seen < indicatorDepthsNeeded) failures.push(`${tab}: the pull indicator showed at ${seen} of ${deep} depths from ${indicatorFromDp}dp; is the list at its top?`);
   sleep(1500);
 }
 
