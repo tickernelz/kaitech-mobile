@@ -1,3 +1,4 @@
+import { GlassView } from 'expo-glass-effect';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -14,8 +15,9 @@ export function HeaderActions() {
   const router = useRouter();
   const { active } = useSession();
   const glass = useSurface() === 'glass';
+  const Row = glass ? GlassView : View;
   return (
-    <View style={styles.row}>
+    <Row isInteractive={glass || undefined} style={[styles.row, glass && styles.glass]} testID="header-actions">
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('search.open')}
@@ -32,7 +34,7 @@ export function HeaderActions() {
         style={({ pressed }) => [styles.round, styles.avatar, { opacity: pressed ? 0.8 : 1 }]}>
         <Avatar name={active?.name ?? ''} seed={active?.partnerId ?? 0} partnerId={active?.partnerId} size={44} />
       </Pressable>
-    </View>
+    </Row>
   );
 }
 
@@ -41,4 +43,5 @@ const styles = StyleSheet.create({
   round: { width: 44, height: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
   avatar: { borderWidth: 0 },
   bare: { borderWidth: 0 },
+  glass: { borderRadius: radius.pill, padding: 2, gap: 2 },
 });
