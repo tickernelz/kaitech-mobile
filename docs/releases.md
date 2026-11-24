@@ -10,7 +10,16 @@ Release build limits while there is no Apple Developer account:
 
 - **iOS.** See [Install the IPA](install-ios.md): sign-in through a Universal Link, APNs, VoIP push, and CallKit need an Apple Developer account.
 
-Install steps: [Android](install-android.md), [iOS](install-ios.md). How a release is cut: [CI](ci.md#performance-gate).
+Install steps: [Android](install-android.md), [iOS](install-ios.md). What changed in each release: [Changelog](changelog.md).
+
+## Cutting a release
+
+Every release ships a changelog: its section in [changelog.md](changelog.md) and the same text on its GitHub Release page.
+
+1. Branch from `main` and raise `version` in `app.json` (and `package.json` with `npm version X.Y.Z --no-git-tag-version --ignore-scripts`): minor when features landed, patch for fixes only.
+2. In the same pull request, add `## X.Y.Z - YYYY-MM-DD` (the day you will tag it, UTC) at the top of `docs/changelog.md`. List every pull request merged since the last tag (`git log --first-parent --merges v<last>..origin/main`) under Added, Changed, Fixed, and what the release does not do yet under Known gaps; every line names its pull request and ZHA task.
+3. After the merge, tag that `main` commit: `git tag vX.Y.Z <merge sha> && git push origin vX.Y.Z`. The Release workflow ([CI](ci.md#release)) stops in its first job when `docs/changelog.md` at that commit has no `## X.Y.Z` section; otherwise the release body is `.github/release-notes.md`, the build notes and the changelog section.
+4. Check the published page: `gh release view vX.Y.Z --json isDraft,body,assets`. A correction goes to `docs/changelog.md` through a pull request, then `gh release edit vX.Y.Z --notes-file <file>` copies it to the page.
 
 ## Proven
 

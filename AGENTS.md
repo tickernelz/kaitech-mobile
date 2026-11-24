@@ -37,6 +37,15 @@ Never commit secrets, server addresses, client data, or credential files. Sign-i
 
 E2E flows live in `.maestro/` and run on an Android emulator and an iPhone simulator in GitHub Actions (`docs/ci.md`).
 
+## Releases
+
+Every release ships a changelog, in two places: `docs/changelog.md` and the body of its GitHub Release page.
+
+- The pull request that raises `version` in `app.json` also adds the section `## X.Y.Z - YYYY-MM-DD` at the top of `docs/changelog.md`: the groups Added, Changed, Fixed and Known gaps, every line naming its pull request and ZHA task. A version bump without its section is not ready for review.
+- `release.yml` copies that section into the GitHub Release body (`scripts/changelog-section.sh`) and fails in its first job when the tag `vX.Y.Z` has no `## X.Y.Z` section, so a release without a changelog is never published.
+- Write only what a pull request, tag or release run shows. What cannot be traced is written as unknown, never guessed. A correction to a published section goes through a pull request to `docs/changelog.md`, then `gh release edit` copies it to the release page.
+- Steps: `docs/releases.md`.
+
 ## CI/CD & Testing Rules
 
 These rules bind every agent and contributor on every change. `docs/ci.md` describes the pipeline.

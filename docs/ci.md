@@ -101,7 +101,7 @@ Every artifact is scanned by gitleaks before upload; nothing is uploaded when th
 
 A manual run from `main` stops after step 2: it builds the release APKs and IPA as run artifacts (`kaitech-android-apk`, `kaitech-android-apk-arm64-v8a`, `kaitech-ios-ipa`) without creating a release. Use it for a build of `main` between releases.
 
-To release: raise `version` in `app.json` through a pull request, then after the merge `git tag v<version> && git push origin v<version>` on that `main` commit.
+To release: raise `version` in `app.json` and add its section to [the changelog](changelog.md) in the same pull request, then after the merge `git tag v<version> && git push origin v<version>` on that `main` commit ([Cutting a release](releases.md#cutting-a-release)). The `gitleaks` job fails a tag whose version has no section in `docs/changelog.md`, and the draft release body is `.github/release-notes.md` plus that section.
 
 ## Caches
 
