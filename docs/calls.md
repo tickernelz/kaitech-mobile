@@ -45,7 +45,7 @@ unsigned build does not have, so there the app must be open to ring (marked unve
 
 ## Calls with more people
 
-Every conversation type (direct chat, group, channel) has one LiveKit room, and the call button shows in all three (`ThreadView.tsx`). Who rings differs, and that is Odoo core, not the app: `discuss.channel._should_invite_members_to_join_call` invites the other members only when the first person joins and only when the conversation is not a channel. A group rings the other members; a channel rings nobody, so members join from the "Call in progress" notice in the thread (`MessageBubble.tsx`, `call-notice-<id>-join`) or the call button.
+Every conversation type (direct chat, group, channel) has one LiveKit room, and the call button shows in all three (`ThreadView.tsx`). Who rings differs, and that is Odoo core, not the app: `discuss.channel._should_invite_members_to_join_call` invites the other members only when the first person joins and only when the conversation is not a channel. A group rings the other members; a channel rings nobody, so members join from the "Call in progress" notice in the thread (`MessageBubble.tsx`, `call-notice-<id>-join`) or the call button. Call notices that follow each other on one day collapse into the newest (`src/features/chat/threadRows.ts`); until ZHA-7721 the oldest stayed, so a second call that day showed the first call's ended notice and no Join.
 
 Limits:
 
