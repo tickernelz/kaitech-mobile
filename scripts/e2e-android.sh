@@ -94,7 +94,7 @@ sleep 3
 
 adb shell settings put global hide_error_dialogs 1
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null
-adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
+adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run --remote-debugging-socket-name=kaitech_e2e_chrome" > /data/local/tmp/chrome-command-line'
 adb shell am set-debug-app --persistent com.android.chrome
 if adb shell pm path io.kaitech.mobile 2>/dev/null | grep -q '^package:'; then
   adb uninstall io.kaitech.mobile
@@ -173,6 +173,10 @@ if grep -q 'telemetry (debug, not sent)' "$console"; then
   status=1
 fi
 rm -f "$console"
+if grep -rqsE --include=maestro-runner.log 'CDP socket available.*\(type=browser\)' "$out/maestro"; then
+  echo "::error::maestro-runner found a Chrome DevTools socket and looked for native elements in the page DOM"
+  status=1
+fi
 
 sleep 2
 if [ -n "$audio_log" ]; then
