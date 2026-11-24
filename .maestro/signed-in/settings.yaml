@@ -169,7 +169,7 @@ onFlowStart:
       id: api-key-value
     timeout: 30000
 - tapOn:
-    id: api-key-made-backdrop
+    id: api-key-made-close
 - scrollUntilVisible:
     element:
       text: ${output.key}
