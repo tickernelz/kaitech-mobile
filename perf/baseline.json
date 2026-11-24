@@ -28,13 +28,13 @@
       "value": 24623415,
       "maxIncrease": 0.15,
       "unit": "bytes",
-      "source": "Size run 45439492001, merge SHA 5f2a427 (exact bytes from the perf-ios artifact): @expo/ui excluded from iOS autolinking (ZHA-7773); the Kaitech executable is back to its v0.4.1 size (4599313 compressed bytes), since @expo/ui's SwiftUI module (PR #50) was all of its +1653608; was 26328941 at 8c4e00e (v0.5.0), 24574366 at v0.4.1, 22884555 at e866df1"
+      "source": "run 45439492001 (ios ipa size of PR #98), merge SHA 5f2a427 (exact bytes from the perf-ios artifact): @expo/ui excluded from iOS autolinking (ZHA-7773); the Kaitech executable is back to its v0.4.1 size (4599313 compressed bytes), since @expo/ui's SwiftUI module (PR #50) was all of its +1653608; was 26328941 at 8c4e00e (v0.5.0), 24574366 at v0.4.1, 22884555 at e866df1"
     },
     "ios.js_bundle_bytes": {
       "value": 9159155,
       "maxIncrease": 0.15,
       "unit": "bytes",
-      "source": "Size run 45439492001, merge SHA 5f2a427 (exact bytes from the perf-ios artifact): the iOS bundle no longer carries the 92 @expo/ui/jetpack-compose modules (-137920 bytes on 9297075 at v0.5.0, ZHA-7773); the rest of the growth since e866df1 is shipped features measured release by release: 9100194 at v0.4.1 (run 45223745106), 9257590 at 98f2010 (run 45379483993); was 8123359 at e866df1"
+      "source": "run 45439492001 (ios ipa size of PR #98), merge SHA 5f2a427 (exact bytes from the perf-ios artifact): the iOS bundle no longer carries the 92 @expo/ui/jetpack-compose modules (-137920 bytes on 9297075 at v0.5.0, ZHA-7773); the rest of the growth since e866df1 is shipped features measured release by release: 9100194 at v0.4.1 (run 45223745106), 9257590 at 98f2010 (run 45379483993); was 8123359 at e866df1"
     },
     "android.cold_start_ms": {
       "value": 1103,
