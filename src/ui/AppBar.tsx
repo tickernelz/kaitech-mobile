@@ -1,24 +1,40 @@
-import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { useState, useSyncExternalStore, type ReactNode } from 'react';
 import { StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { space, useTheme } from '../theme';
 import { Text } from './Text';
 
 export const appBarHeight = 64;
 
-export function useScrolledUnder(): { scrolled: boolean; onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void } {
-  const [scrolled, setScrolled] = useState(false);
-  const shown = useRef(false);
-  const onScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const next = event.nativeEvent.contentOffset.y > 0;
-    if (next === shown.current) return;
-    shown.current = next;
-    setScrolled(next);
-  }, []);
-  return { scrolled, onScroll };
+export type ScrolledUnder = { get: () => boolean; subscribe: (listener: () => void) => () => void };
+
+function scrolledUnder(): { scrolled: ScrolledUnder; onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void } {
+  let value = false;
+  const listeners = new Set<() => void>();
+  return {
+    scrolled: {
+      get: () => value,
+      subscribe: (listener) => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+    },
+    onScroll: (event) => {
+      const next = event.nativeEvent.contentOffset.y > 0;
+      if (next === value) return;
+      value = next;
+      listeners.forEach((listener) => listener());
+    },
+  };
 }
 
-export function TopAppBar({ title, scrolled, navigation, actions }: { title: string; scrolled: boolean; navigation?: ReactNode; actions?: ReactNode }) {
+export function useScrolledUnder() {
+  const [bar] = useState(scrolledUnder);
+  return bar;
+}
+
+export function TopAppBar({ title, scrolled: under, navigation, actions }: { title: string; scrolled: ScrolledUnder; navigation?: ReactNode; actions?: ReactNode }) {
   const { material } = useTheme();
+  const scrolled = useSyncExternalStore(under.subscribe, under.get);
   return (
     <View style={[styles.bar, { backgroundColor: scrolled ? material.surfaceContainer : material.background }]} testID="app-bar">
       {navigation}

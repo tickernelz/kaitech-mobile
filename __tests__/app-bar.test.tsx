@@ -68,8 +68,10 @@ describe('top app bar', () => {
     expect(screen.getByTestId('app-bar-title').props.importantForAccessibility ?? 'auto').toBe('auto');
   });
 
-  test('the bar tints once the list scrolls under it and clears again at the top', async () => {
+  test('the bar tints once the list scrolls under it and clears again at the top, without re-rendering the screen', async () => {
+    let screenRenders = 0;
     function Probe() {
+      screenRenders += 1;
       const bar = useScrolledUnder();
       return (
         <>
@@ -80,11 +82,14 @@ describe('top app bar', () => {
     }
     await render(<Probe />);
     const resting = style('app-bar').backgroundColor;
+    const rendered = screenRenders;
     await fireEvent.scroll(screen.getByTestId('list'), { nativeEvent: { contentOffset: { x: 0, y: 1 } } });
+    await fireEvent.scroll(screen.getByTestId('list'), { nativeEvent: { contentOffset: { x: 0, y: 40 } } });
     expect(style('app-bar').backgroundColor).not.toBe(resting);
     await fireEvent.scroll(screen.getByTestId('list'), { nativeEvent: { contentOffset: { x: 0, y: 0 } } });
     expect(style('app-bar').backgroundColor).toBe(resting);
     expect(style('app-bar-title').opacity ?? 1).toBe(1);
+    expect(screenRenders).toBe(rendered);
   });
 });
 
