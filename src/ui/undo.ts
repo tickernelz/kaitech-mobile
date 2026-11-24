@@ -42,7 +42,7 @@ async function settle(item: Pending) {
   }
   if (ok) return;
   item.revert();
-  showFailure('', item.id);
+  if (!pending) showFailure('', item.id);
 }
 
 export function showFailure(label: string, id = nextId++) {
