@@ -28,12 +28,12 @@ export function useSheetPresentation(onClose: () => void): { native: boolean; cl
 
 export function NativeSheet({ presentation: { attach, onDismiss }, children, testID }: { presentation: Presentation; children: ReactNode; testID?: string }) {
   const { colors, material } = useTheme();
-  const { height } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   return (
     <MaterialHost matchContents style={styles.host}>
       <ModalBottomSheet ref={attach} onDismissRequest={onDismiss} skipPartiallyExpanded containerColor={material.surfaceContainerLow} scrimColor={colors.scrim} showDragHandle>
         <RNHostView matchContents={{ vertical: true }}>
-          <View accessibilityViewIsModal style={[styles.content, { maxHeight: height * 0.88 }]} testID={testID}>
+          <View accessibilityViewIsModal style={[styles.content, { width: Math.min(width, sheetMaxWidth), maxHeight: height * 0.88 }]} testID={testID}>
             {children}
           </View>
         </RNHostView>
@@ -41,6 +41,8 @@ export function NativeSheet({ presentation: { attach, onDismiss }, children, tes
     </MaterialHost>
   );
 }
+
+const sheetMaxWidth = 640;
 
 const styles = StyleSheet.create({
   host: { position: 'absolute' },
