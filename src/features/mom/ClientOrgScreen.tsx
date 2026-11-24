@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Modal, Pressable, RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { Alert, Modal, RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { invalidate, useResource } from '../../api/resource';

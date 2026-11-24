@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View, type AccessibilityActionEvent, type AccessibilityActionInfo } from 'react-native';
+import { StyleSheet, View, type AccessibilityActionEvent, type AccessibilityActionInfo } from 'react-native';
+import { Pressable } from './Pressable';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { radius, space, useTheme } from '../theme';
 import { ActionSheet, type SheetAction } from './ActionSheet';

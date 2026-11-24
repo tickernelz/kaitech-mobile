@@ -1,0 +1,24 @@
+appId: io.kaitech.mobile
+name: Open the chat list for the scroll measurement
+tags:
+  - signed-in
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/no-ring.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      id: chat-list
+    timeout: 30000
+- waitForAnimationToEnd

@@ -1,7 +1,8 @@
 import { useLocalSearchParams } from 'expo-router';
 import { memo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { useSession } from '../../auth/session';
 import { BackgroundPaint } from '../../features/appearance/ChatBackground';
 import { backgroundFor, changeAppearance, plainColors, presetBackground, useChatAppearance, type Background, type Scope } from '../../features/appearance/appearance';

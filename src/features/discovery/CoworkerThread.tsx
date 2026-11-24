@@ -3,18 +3,8 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-import {
-  ActivityIndicator,
-  Alert,
-  AppState,
-  FlatList,
-  Keyboard,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, AppState, FlatList, Keyboard, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { update, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';

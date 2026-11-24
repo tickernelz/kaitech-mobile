@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { update, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';

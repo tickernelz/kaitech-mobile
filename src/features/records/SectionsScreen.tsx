@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
 import { radius, space, useTheme } from '../../theme';

@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
 import { HeaderActions } from '../../screens/HeaderActions';
+import { TopAppBar, largeTitleOwnsActions, useCollapsingTitle } from '../../ui/AppBar';
 import { space, useTheme } from '../../theme';
 import { Text } from '../../ui/Text';
 import { briefing } from '../discovery/api';
@@ -20,13 +21,14 @@ export function ActivityScreen() {
   const [source, setSource] = useState<Source>('odoo');
   const odoo = useActivityOverview();
   const discovery = useResource('activity.discovery', briefing, 30_000);
+  const bar = useCollapsingTitle();
   const header = (
     <>
       <View style={styles.top}>
         <Text variant="display" accessibilityRole="header" style={styles.fill}>
           {t('tabs.activity')}
         </Text>
-        <HeaderActions />
+        {largeTitleOwnsActions ? <HeaderActions /> : null}
       </View>
       <Segmented
         testID="activity-source"
@@ -41,7 +43,12 @@ export function ActivityScreen() {
   );
   return (
     <SafeAreaView edges={['top', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-activity">
-      {source === 'odoo' ? <OdooActivities items={odoo} header={header} /> : <DiscoveryActivities items={discovery} header={header} />}
+      <TopAppBar title={t('tabs.activity')} collapsed={bar.collapsed} actions={<HeaderActions />} />
+      {source === 'odoo' ? (
+        <OdooActivities items={odoo} header={header} onScroll={bar.onScroll} />
+      ) : (
+        <DiscoveryActivities items={discovery} header={header} onScroll={bar.onScroll} />
+      )}
     </SafeAreaView>
   );
 }
