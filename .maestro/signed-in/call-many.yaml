@@ -183,10 +183,12 @@ onFlowStart:
       SHARE: '-'
 - tapOn:
     id: tab-button-chat
-- extendedWaitUntil:
-    visible:
+- scrollUntilVisible:
+    element:
       text: ${CHANNEL_NAME}
+    direction: UP
     timeout: 30000
+    centerElement: true
 - tapOn:
     text: ${CHANNEL_NAME}
 - extendedWaitUntil:
