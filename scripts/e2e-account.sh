@@ -27,6 +27,10 @@ if [ "$account" -ge "$count" ]; then
   echo "::error::account $account is not below KAITECH_E2E_ACCOUNTS=$count"
   exit 1
 fi
+if [ "$account" -eq 0 ] && [ "$count" -gt 1 ]; then
+  echo "::error::account 0 is reserved for the call jobs while KAITECH_E2E_ACCOUNTS=$count; pick 1 to $((count - 1))"
+  exit 1
+fi
 
 if [ "$account" -eq 0 ]; then
   suffix=''
