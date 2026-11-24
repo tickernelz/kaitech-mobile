@@ -1,15 +1,22 @@
 import { Component, type ReactNode, useCallback, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
-import { personColors, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
+import { radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';
 import type { Tone } from './read';
 
-const SERIES = [4, 2, 8, 0, 3, 6];
+export const series = [
+  ['#7955A0', '#BB99E3'],
+  ['#007D7E', '#3FC0C0'],
+  ['#286CAB', '#73B0EE'],
+  ['#A24852', '#E88D94'],
+  ['#905D00', '#D3A056'],
+  ['#357A3A', '#7DBD7F'],
+] as const;
 
 export function seriesColor(index: number, scheme: Scheme): string {
-  return personColors(SERIES[index % SERIES.length], scheme).name;
+  return series[index % series.length][scheme === 'dark' ? 1 : 0];
 }
 
 export function toneColors(tone: Tone | null, colors: Colors): { solid: string; ink: string; band: string } {
