@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
+import { Pressable } from '../../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
 import { Sheet } from '../../../../ui/Sheet';

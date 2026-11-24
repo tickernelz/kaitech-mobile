@@ -124,7 +124,7 @@ fi
 
 adb shell settings put global hide_error_dialogs 1
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null
-adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
+adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run --remote-debugging-socket-name=kaitech_e2e_chrome" > /data/local/tmp/chrome-command-line'
 adb shell am set-debug-app --persistent com.android.chrome
 if adb shell pm path io.kaitech.mobile 2>/dev/null | grep -q '^package:'; then
   adb uninstall io.kaitech.mobile
@@ -203,6 +203,34 @@ if grep -q 'telemetry (debug, not sent)' "$console"; then
   status=1
 fi
 rm -f "$console"
+if grep -rqsE --include=maestro-runner.log 'CDP socket available.*\(type=browser\)' "$out/maestro"; then
+  echo "::error::maestro-runner found a Chrome DevTools socket and looked for native elements in the page DOM"
+  status=1
+fi
+
+if [ -n "${E2E_THEMED_FLOWS:-}" ]; then
+  read -ra themed <<< "$E2E_THEMED_FLOWS"
+  for theme in light dark; do
+    adb shell cmd uimode night "$([ "$theme" = dark ] && echo yes || echo no)"
+    "${run[@]}" test "${themed[@]}" \
+      -e APP_LANGUAGE="$language" \
+      -e DEVICE_SIZE="$size" \
+      -e ORIENTATION="$orientation" \
+      -e THEME="$theme" \
+      "${signed_in[@]}" \
+      --format junit \
+      --output "$out/junit-$theme.xml" \
+      --test-output-dir "$out/maestro/$theme" || status=$?
+  done
+  adb shell cmd uimode night no
+fi
+
+if [ -n "${E2E_SCROLL_FLOW:-}" ]; then
+  "${run[@]}" test "${E2E_SCROLL_FLOW%.yaml}-ready.yaml" "${signed_in[@]}" --format junit --output "$out/junit-scroll-ready.xml" --test-output-dir "$out/maestro/scroll-ready" || status=$?
+  adb shell dumpsys gfxinfo io.kaitech.mobile reset > /dev/null
+  "${run[@]}" test "$E2E_SCROLL_FLOW" "${signed_in[@]}" --format junit --output "$out/junit-scroll.xml" --test-output-dir "$out/maestro/scroll" || status=$?
+  adb shell dumpsys gfxinfo io.kaitech.mobile | tr -d '\r' | sed -n '/^Total frames rendered/,/^99th percentile/p' > "$out/scroll-gfxinfo.txt"
+fi
 
 sleep 2
 if [ -n "$audio_log" ]; then
@@ -241,7 +269,7 @@ node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$l
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name junit.xml ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name scroll-gfxinfo.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2

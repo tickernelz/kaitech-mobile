@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Sheet, SheetItem } from '../../../ui/Sheet';

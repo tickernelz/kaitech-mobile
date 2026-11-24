@@ -1,7 +1,8 @@
 import { useAudioPlayer, useAudioPlayerStatus, type AudioPlayer } from 'expo-audio';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { playbackUrl } from './api';
 import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';

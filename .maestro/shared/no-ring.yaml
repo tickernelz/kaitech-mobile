@@ -1,0 +1,7 @@
+appId: io.kaitech.mobile
+name: Wait out a ring from a call test running on the same account in a parallel cell
+---
+- extendedWaitUntil:
+    notVisible:
+      id: incoming-call
+    timeout: 90000

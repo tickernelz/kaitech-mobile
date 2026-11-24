@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../ui/Pressable';
 import { radius, space, useTheme } from '../../theme';
 import type { IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';

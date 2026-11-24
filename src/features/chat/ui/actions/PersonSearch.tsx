@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
+import { Pressable } from '../../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../../theme';
 import { Icon } from '../../../../ui/icons';
 import { Text } from '../../../../ui/Text';
