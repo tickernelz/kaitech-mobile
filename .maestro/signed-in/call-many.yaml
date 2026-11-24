@@ -196,6 +196,9 @@ onFlowStart:
       id: call-notice-.*-join
     timeout: 30000
 - assertNotVisible:
+    id: call-notice-.*-join
+    index: 1
+- assertNotVisible:
     id: incoming-call
 - runFlow:
     file: ../shared/screenshot.yaml

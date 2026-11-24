@@ -286,11 +286,15 @@ function serve() {
         if (path === '/join' || path === '/leave') {
           const note = (line) => sessions.logs.push(new Date().toISOString() + ' ' + line);
           note(path.slice(1) + ' asked');
-          (path === '/join' ? join() : leaveCall())
+          const done = (path === '/join' ? join() : leaveCall())
             .then(() => note(path.slice(1) + ' done, session ' + sessions.sessionId))
             .catch((error) => note(path.slice(1) + ' failed: ' + error));
-          response.statusCode = 202;
-          response.end('accepted');
+          if (path === '/join') {
+            response.statusCode = 202;
+            response.end('accepted');
+            return;
+          }
+          done.then(() => response.end('left'));
           return;
         }
         if (path === '/state') {
@@ -474,7 +478,9 @@ async function leaveOne(peer) {
 }
 
 async function leave() {
-  console.log(JSON.stringify(await Promise.all(peers().map(leaveOne)), null, 2));
+  const reports = [];
+  for (const peer of peers()) reports.push(await leaveOne(peer));
+  console.log(JSON.stringify(reports, null, 2));
 }
 
 async function stop() {
