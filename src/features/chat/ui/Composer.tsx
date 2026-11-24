@@ -25,7 +25,6 @@ import { pickAttachments, type AttachSource } from './attach';
 import { Avatar } from './Avatar';
 import { photoFrom } from '../../people/photo';
 import { notePhotoList } from '../../people/photos';
-import { authorColor } from './MessageBubble';
 import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
 import { AttachSheet, MicButton, RecordingStrip, StagedFile, type Extra } from './MediaControls';
@@ -69,7 +68,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   ref,
 ) {
   const { t } = useTranslation('chat');
-  const { colors, scheme } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardState((state) => state.isVisible);
   const { windowClass } = useWindowClass();
@@ -95,7 +94,6 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const typingAt = useRef(0);
   const hardwareSubmit = windowClass !== 'compact';
   const parent = parentId ? messages.find((message) => message.id === parentId) : null;
-  const replyTint = authorColor(parent?.authorId ?? null, scheme, colors);
 
   useImperativeHandle(ref, () => ({
     reply: (message) => {
@@ -359,7 +357,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
       {parentId ? (
         <View style={[styles.replyBar, { backgroundColor: colors.surface2 }]} testID="composer-reply">
           <View style={styles.flex}>
-            <Text variant="footnote" style={[styles.strong, { color: replyTint }]}>
+            <Text variant="footnote" style={[styles.strong, { color: colors.ink }]}>
               {t('composer.replyingTo', { name: parent?.author ?? '' })}
             </Text>
             <Text variant="footnote" tone="inkSoft" numberOfLines={1}>

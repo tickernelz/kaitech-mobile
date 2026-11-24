@@ -46,23 +46,10 @@ export function colorsFor(scheme: Scheme): Colors {
   return Object.fromEntries(Object.entries(pairs).map(([name, pair]) => [name, pair[index]])) as Colors;
 }
 
-const people = [
-  { name: ['#68680F', '#9E9E21'], fill: '#787823' },
-  { name: ['#397210', '#5CAB24'], fill: '#4C8226' },
-  { name: ['#10725F', '#24AC91'], fill: '#268370' },
-  { name: ['#126E81', '#29A7C0'], fill: '#2A7F90' },
-  { name: ['#4B50E5', '#8E91E7'], fill: '#6669D2' },
-  { name: ['#7241E4', '#A589E6'], fill: '#8260D1' },
-  { name: ['#9E1ED5', '#C47CE3'], fill: '#A54DCB' },
-  { name: ['#B31AA4', '#E06DD4'], fill: '#C238B5' },
-  { name: ['#BF1B6D', '#E274AB'], fill: '#C84185' },
-] as const;
+export const avatarFills = ['#8E565F', '#3A775E', '#27767A', '#426D91', '#646393', '#7F5A81'] as const;
 
-export const personCount = people.length;
-
-export function personColors(seed: number, scheme: Scheme): { name: string; fill: string } {
-  const person = people[Math.abs(Math.trunc(seed)) % people.length];
-  return { name: person.name[scheme === 'dark' ? 1 : 0], fill: person.fill };
+export function avatarFill(seed: number): string {
+  return avatarFills[Math.abs(Math.trunc(seed)) % avatarFills.length];
 }
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 40 } as const;

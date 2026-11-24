@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { personColors, useTheme } from '../../../theme';
+import { avatarFill, useTheme } from '../../../theme';
 import { initials } from '../../../screens/initials';
 import { Text } from '../../../ui/Text';
 import type { Photo } from '../../people/photo';
@@ -26,7 +26,7 @@ export const Avatar = memo(function Avatar({
   photo?: Photo | null;
   partnerId?: number | null;
 }) {
-  const { scheme, colors } = useTheme();
+  const { colors } = useTheme();
   const origin = useChat((state) => state.origin);
   const accountId = useChat((state) => state.accountId);
   const known = usePartnerPhoto(accountId, photo === undefined ? partnerId : null);
@@ -39,7 +39,7 @@ export const Avatar = memo(function Avatar({
     () => (large && shown && origin && cookie && shown.medium !== shown.small ? { uri: `${origin}${shown.medium}`, headers: cookie } : null),
     [large, shown, origin, cookie],
   );
-  const frame = { width: size, height: size, borderRadius: size / 2, backgroundColor: personColors(seed, scheme).fill };
+  const frame = { width: size, height: size, borderRadius: size / 2, backgroundColor: avatarFill(seed) };
   return (
     <View style={[styles.frame, frame]} accessible={false} importantForAccessibility="no-hide-descendants" testID={shown ? 'avatar-photo' : 'avatar-initials'}>
       {icon ? (
