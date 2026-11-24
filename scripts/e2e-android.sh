@@ -165,6 +165,22 @@ if [ -n "${E2E_LOGIN:-}" ]; then
     -e HIDE_DIRECT="${E2E_HIDE_DIRECT:-false}" -e RUN="E2E$(date +%s)${RANDOM}"
     -e MINUTES_NAME="${E2E_MINUTES_NAME:-}" -e FOLLOWUP_OWNER="${E2E_FOLLOWUP_OWNER:-}"
   )
+  node scripts/e2e-prune-devices.mjs | tee "$out/devices-pruned.txt" || echo "the test-account device prune failed; calls ring every stale device" >&2
+fi
+
+peer_state="$(mktemp -d)/call-peer.json"
+if [ "${E2E_CALL_PEER:-}" = 1 ]; then
+  export CALL_SERVER="$E2E_SERVER" CALL_DB="$E2E_DB" CALL_LOGIN="$E2E_WEB_LOGIN" CALL_PASSWORD="$E2E_WEB_PASSWORD"
+  export CALL_CHANNEL_ID="$E2E_CHANNEL_ID" CALL_VIDEO=1 CALL_PEER_HOLD_MS=1 CALL_PEER_STATE="$peer_state" CALL_PEER_PORT=8765
+  trap 'node scripts/call-peer.mjs stop >/dev/null 2>&1 || true' EXIT
+  if [ ! -f node_modules/livekit-client/dist/livekit-client.umd.js ]; then
+    livekit="$(node -p "require('./package-lock.json').packages['node_modules/livekit-client'].version")"
+    peer_modules="$(mktemp -d)"
+    npm install --prefix "$peer_modules" --no-save --no-audit --no-fund --ignore-scripts "livekit-client@$livekit" > /dev/null
+    mkdir -p node_modules
+    ln -s "$peer_modules/node_modules/livekit-client" node_modules/livekit-client
+  fi
+  node scripts/call-peer.mjs start > /dev/null
 fi
 
 recording="e2e-android-$cell.mp4"
@@ -232,6 +248,12 @@ if [ -n "${E2E_SCROLL_FLOW:-}" ]; then
   adb shell dumpsys gfxinfo io.kaitech.mobile | tr -d '\r' | sed -n '/^Total frames rendered/,/^99th percentile/p' > "$out/scroll-gfxinfo.txt"
 fi
 
+if [ "${E2E_CALL_PEER:-}" = 1 ]; then
+  node scripts/call-peer.mjs leave > "$out/call-peer.json" 2>&1 || true
+  call_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
+  adb logcat -d -b main,crash -v time --uid="$call_uid" | grep -E 'KaitechCall|ReactNativeJS|AndroidRuntime|Logging|PeerConnection|livekit' | grep -viE 'token|cookie|session_id|password|authorization' | tail -n 600 > "$out/call-logcat.txt" || true
+fi
+
 sleep 2
 if [ -n "$audio_log" ]; then
   kill "$audio_logger" 2> /dev/null || true
@@ -269,7 +291,7 @@ node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$l
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name scroll-gfxinfo.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name scroll-gfxinfo.txt ! -name call-peer.json ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2

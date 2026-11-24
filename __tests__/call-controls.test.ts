@@ -1,12 +1,11 @@
 import { controlsFor, groupedMore, pillLimit, type ControlInput } from '../src/features/call/controls';
 
-const base: ControlInput = { phase: 'active', video: true, cameraOn: true, sharing: false, share: true, record: true, pip: true, wide: false, invite: true, crowd: true };
+const base: ControlInput = { phase: 'active', cameraOn: true, sharing: false, share: true, record: true, pip: true, wide: false, invite: true, crowd: true };
 
 describe('call controls', () => {
   it.each([
-    ['video', base],
-    ['video, camera off', { ...base, cameraOn: false }],
-    ['voice', { ...base, video: false }],
+    ['camera on', base],
+    ['camera off', { ...base, cameraOn: false }],
     ['sharing', { ...base, sharing: true }],
     ['connecting', { ...base, phase: 'connecting' as const, share: false, record: false }],
   ])('%s keeps the phone pill within the limit, with the microphone and the hang-up last', (_, input) => {
@@ -28,6 +27,12 @@ describe('call controls', () => {
     expect(more).not.toContain('share');
   });
 
+  it('offers the camera in every call, also while sharing the screen', () => {
+    expect(controlsFor({ ...base, cameraOn: false }).pill).toEqual(['speaker', 'mute', 'camera', 'more', 'hangup']);
+    expect(controlsFor(base).pill).toEqual(['flip', 'mute', 'camera', 'more', 'hangup']);
+    expect(controlsFor({ ...base, sharing: true }).more).toContain('camera');
+  });
+
   it('moves participants onto the pill on a wide screen', () => {
     const { pill, more } = controlsFor({ ...base, wide: true });
     expect(pill.length).toBeLessThanOrEqual(pillLimit.wide);
@@ -45,9 +50,9 @@ describe('call controls', () => {
     ]);
   });
 
-  it('offers background blur in the video group of More only for a video call on a phone that has the effect', () => {
+  it('offers background blur in the video group of More only while the camera is on, on a phone that has the effect', () => {
     expect(groupedMore(controlsFor({ ...base, blur: true }).more).find((entry) => entry.group === 'video')?.actions[0]).toBe('blur');
-    expect(controlsFor({ ...base, blur: true, video: false }).more).not.toContain('blur');
+    expect(controlsFor({ ...base, blur: true, cameraOn: false }).more).not.toContain('blur');
     expect(controlsFor(base).more).not.toContain('blur');
   });
 

@@ -31,7 +31,7 @@ name: Join the web peer's voice call from the ring or from the chat
           text: ${PEER}
       - extendedWaitUntil:
           visible:
-            id: (call-voice|incoming-answer)
+            id: (call-start|incoming-answer)
           timeout: 30000
       - runFlow:
           when:
@@ -43,7 +43,7 @@ name: Join the web peer's voice call from the ring or from the chat
       - runFlow:
           when:
             visible:
-              id: call-voice
+              id: call-start
           commands:
             - tapOn:
-                id: call-voice
+                id: call-start

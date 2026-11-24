@@ -28,17 +28,19 @@ describe('what the picture-in-picture window shows', () => {
 });
 
 describe('when a call may go into picture-in-picture', () => {
-  it('is a video call, or a voice call where someone else shows video', () => {
-    expect(pipEligible('active', true, [me])).toBe(true);
-    expect(pipEligible('active', false, [me, person('a')])).toBe(false);
-    expect(pipEligible('active', false, [me, person('a', { screenOn: true })])).toBe(true);
-    expect(pipEligible('active', false, [{ ...me, screenOn: true }, person('a')])).toBe(false);
-    expect(pipEligible('ended', true, [me])).toBe(false);
-    expect(pipEligible('outgoing', true, [me])).toBe(false);
+  it('opens once anyone shows a camera, or someone else shares a screen', () => {
+    const dark = { ...me, cameraOn: false };
+    expect(pipEligible('active', [me])).toBe(true);
+    expect(pipEligible('active', [dark, person('a')])).toBe(false);
+    expect(pipEligible('active', [dark, person('a', { cameraOn: true })])).toBe(true);
+    expect(pipEligible('active', [dark, person('a', { screenOn: true })])).toBe(true);
+    expect(pipEligible('active', [{ ...dark, screenOn: true }, person('a')])).toBe(false);
+    expect(pipEligible('ended', [me])).toBe(false);
+    expect(pipEligible('outgoing', [me])).toBe(false);
   });
 
   it('takes the window shape from the video it shows and falls back to portrait for an avatar', () => {
-    const base = { allowed: true, phase: 'active' as const, video: true, muted: false, cameraOn: true, screenSharing: false };
+    const base = { allowed: true, phase: 'active' as const, muted: false, cameraOn: true, screenSharing: false };
     const caller = person('a', { cameraOn: true });
     expect(pipSpec({ ...base, people: [me, caller], focus: { person: caller, source: 'camera' }, dimensions: { width: 1280, height: 720 } })).toMatchObject({ enabled: true, width: 1280, height: 720 });
     const dark = person('a');

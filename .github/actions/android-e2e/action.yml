@@ -37,6 +37,9 @@ inputs:
   audio:
     description: true starts the emulator with audio; recording flows need it.
     default: 'false'
+  call-peer:
+    description: true joins a headless web peer to the test call with its camera on and gives the emulator a front camera; call flows need it.
+    default: 'false'
   retention-days:
     default: '30'
 runs:
@@ -94,6 +97,7 @@ runs:
         E2E_THEMED_FLOWS: ${{ inputs.themed-flows }}
         E2E_SCROLL_FLOW: ${{ inputs.scroll-flow }}
         E2E_RUNNER: ${{ inputs.runner }}
+        E2E_CALL_PEER: ${{ inputs.call-peer == 'true' && '1' || '' }}
         PORTRAIT_COLD_START_RUNS: ${{ inputs.cold-start }}
       with:
         api-level: 35
@@ -102,7 +106,7 @@ runs:
         profile: ${{ steps.device.outputs.profile }}
         disable-animations: true
         force-avd-creation: true
-        emulator-options: -no-window -no-snapshot -wipe-data -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '' }} -no-boot-anim -camera-back none
+        emulator-options: -no-window -no-snapshot -wipe-data -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '' }} -no-boot-anim -camera-back none -camera-front ${{ inputs.call-peer == 'true' && 'emulated' || 'none' }}
         script: for o in ${{ inputs.orientations }}; do runs=0; [ "$o" = portrait ] && runs="$PORTRAIT_COLD_START_RUNS"; COLD_START_RUNS="$runs" bash scripts/e2e-android.sh "${{ inputs.apk-dir }}" "e2e-output/${{ inputs.output-prefix }}${{ inputs.size }}-$o-${{ inputs.locale }}" ${{ inputs.locale }} ${{ inputs.size }} "$o" || status=1; done; exit "${status:-0}"
     - name: Scan E2E output for secrets
       id: scan-e2e

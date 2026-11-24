@@ -1,4 +1,4 @@
-import { layoutFor, pagesFor, presenterOf, stageFor } from '../src/features/call/grid';
+import { layoutFor, pagesFor, presenterOf, stageFor, stageView } from '../src/features/call/grid';
 
 describe('call video grid', () => {
   it('stacks two people in portrait and puts them side by side in landscape', () => {
@@ -81,3 +81,45 @@ describe('presenterOf', () => {
     expect(presenterOf([person('me', true, false), person('b', false, false)])).toBeNull();
   });
 });
+
+describe('what the call stage shows, per participant', () => {
+  const seat = (sid: string, extra: { local?: boolean; cameraOn?: boolean; screenOn?: boolean } = {}) => ({ sid, local: false, cameraOn: false, screenOn: false, ...extra });
+  const me = seat('me', { local: true });
+  const view = (people: ReturnType<typeof seat>[], options: { spotted?: ReturnType<typeof seat> | null; swapped?: boolean } = {}) =>
+    stageView({ people, presenter: presenterOf(people), spotted: options.spotted ?? null, swapped: options.swapped ?? false });
+
+  it('shows the other person avatar while nobody shows video', () => {
+    const sari = seat('sari');
+    expect(view([me, sari])).toMatchObject({ kind: 'avatar', onStage: false, face: sari, small: null });
+  });
+
+  it('switches to the other person video when they turn the camera on, and back when they turn it off', () => {
+    const sari = seat('sari', { cameraOn: true });
+    expect(view([me, sari])).toMatchObject({ kind: 'focus', onStage: true, big: sari, small: me });
+    expect(view([me, { ...sari, cameraOn: false }])).toMatchObject({ kind: 'avatar', onStage: false });
+  });
+
+  it('puts my own camera in the corner of a two-person call when only I show video', () => {
+    const sari = seat('sari');
+    const mine = { ...me, cameraOn: true };
+    expect(view([mine, sari])).toMatchObject({ kind: 'focus', onStage: true, big: sari, small: mine });
+    expect(view([mine, sari], { swapped: true })).toMatchObject({ big: mine, small: sari });
+  });
+
+  it('keeps a grid of avatars and videos for a group, and the spotlight button focuses one person', () => {
+    const people = [me, seat('a', { cameraOn: true }), seat('b')];
+    expect(view(people)).toMatchObject({ kind: 'grid', onStage: true, big: null });
+    expect(view(people, { spotted: people[2] })).toMatchObject({ kind: 'focus', big: people[2] });
+    expect(view([me, seat('a'), seat('b')])).toMatchObject({ kind: 'grid', onStage: false });
+  });
+
+  it('focuses a shared screen over every camera', () => {
+    const people = [me, seat('a', { cameraOn: true }), seat('b', { screenOn: true })];
+    expect(view(people)).toMatchObject({ kind: 'screen', onStage: true });
+  });
+
+  it('shows nothing to focus in an empty call', () => {
+    expect(view([])).toMatchObject({ kind: 'avatar', onStage: false, big: null, small: null, face: null });
+  });
+});
+

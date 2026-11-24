@@ -8,10 +8,10 @@ export type SessionValues = { is_muted?: boolean; is_camera_on?: boolean; is_dea
 export class CallClient {
   constructor(readonly account: Account) {}
 
-  async join(channelId: number, camera: boolean): Promise<Joined> {
+  async join(channelId: number): Promise<Joined> {
     const answer = await bearer<Record<string, unknown>>(this.account, '/kaitech_mobile/call/join', {
       method: 'POST',
-      body: { channel_id: channelId, camera },
+      body: { channel_id: channelId, camera: false },
     });
     const sessionId = Number(answer.session_id);
     if (!Number.isInteger(sessionId) || typeof answer.url !== 'string' || typeof answer.token !== 'string') {

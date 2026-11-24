@@ -4,7 +4,7 @@ import { render } from '@testing-library/react-native';
 const mockSurface: boolean[] = [];
 const mockPush = jest.fn();
 let mockPath = '/';
-let mockCall = { phase: 'idle', answering: false, channelId: 5, video: false, channelName: '', callerName: 'Budi' };
+let mockCall = { phase: 'idle', answering: false, channelId: 5, channelName: '', callerName: 'Budi' };
 
 jest.mock('expo-sqlite/kv-store', () => ({
   getItemSync: () => null,

@@ -37,9 +37,9 @@ export type CallState = {
   phase: CallPhase;
   channelId: number;
   channelName: string;
-  video: boolean;
   muted: boolean;
   cameraOn: boolean;
+  cameraBlocked: boolean;
   speaker: boolean;
   facing: 'user' | 'environment';
   callerName: string;
@@ -70,10 +70,10 @@ const idle: CallState = {
   phase: 'idle',
   channelId: 0,
   channelName: '',
-  video: false,
   muted: false,
   cameraOn: false,
-  speaker: true,
+  cameraBlocked: false,
+  speaker: false,
   facing: 'user',
   callerName: '',
   callerPartnerId: null,
@@ -109,6 +109,7 @@ let sessionPartners = new Map<number, number>();
 let pingTimer: ReturnType<typeof setInterval> | null = null;
 let endTimer: ReturnType<typeof setTimeout> | null = null;
 let generation = 0;
+let outputChosen = false;
 let callAccount: Account | null = null;
 let sharingBusy = false;
 let shareStarting = false;
@@ -291,10 +292,12 @@ export async function toggleRecording() {
   }
 }
 
-export async function startCall(input: { channelId: number; channelName: string; video: boolean }) {
+export async function startCall(input: { channelId: number; channelName: string }) {
+  if (state.phase === 'incoming' && state.channelId === input.channelId && callAccount?.id === activeAccount()?.id) return answer();
   if (state.phase !== 'idle' && state.phase !== 'ended') return;
   const api = callClient();
   if (!api) return;
+  cancelIdle();
   const started = ++generation;
   callAccount = api.account;
   if (!(await ensureMicrophone())) {
@@ -304,29 +307,18 @@ export async function startCall(input: { channelId: number; channelName: string;
     }
     return;
   }
-  if (stale(started)) return;
-  if (input.video && !(await ensureCamera())) {
-    if (started === generation) {
-      publish({ ...idle, phase: 'ended', endedReason: 'camera', version: state.version + 1 });
-      scheduleIdle();
-    }
-    return;
-  }
-  if (stale(started)) return;
+  if (started !== generation) return;
   publish({
     ...idle,
     phase: 'outgoing',
     channelId: input.channelId,
     channelName: input.channelName,
-    video: input.video,
-    cameraOn: input.video,
-    speaker: true,
     version: state.version + 1,
   });
-  await connect(api, input.channelId, input.video, started);
+  await connect(api, input.channelId, started);
 }
 
-export async function answer(camera = state.video) {
+export async function answer() {
   if (state.phase !== 'incoming') return;
   const api = sessionClient();
   if (!api) return;
@@ -340,11 +332,8 @@ export async function answer(camera = state.video) {
     await api.decline(state.channelId).catch(() => undefined);
     return;
   }
-  if (stale(started)) return;
-  const video = camera && (await ensureCamera());
-  if (stale(started)) return;
-  publish({ phase: 'connecting', video, cameraOn: video, ringing: false });
-  await connect(api, state.channelId, video, started);
+  publish({ phase: 'connecting', cameraOn: false, ringing: false });
+  await connect(api, state.channelId, started);
 }
 
 export async function decline() {
@@ -358,11 +347,11 @@ export async function decline() {
   await api?.decline(channelId).catch(() => undefined);
 }
 
-async function connect(api: CallClient, channelId: number, video: boolean, started: number) {
+async function connect(api: CallClient, channelId: number, started: number) {
   try {
     const sdk = await loadClient();
     const livekit = await loadLiveKit();
-    const session = await api.join(channelId, video);
+    const session = await api.join(channelId);
     if (stale(started)) {
       await api.leave(session.channelId, session.sessionId).catch(() => undefined);
       return;
@@ -383,18 +372,18 @@ async function connect(api: CallClient, channelId: number, video: boolean, start
       return;
     }
     await instance.localParticipant.setMicrophoneEnabled(true);
-    if (video) await instance.localParticipant.setCameraEnabled(true);
-    await routeAudio(video);
+    outputChosen = false;
+    await routeAudio(false);
     if (stale(started)) {
       await teardown();
       await api.leave(session.channelId, session.sessionId).catch(() => undefined);
       return;
     }
     collect();
-    publish({ phase: 'active', startedAt: Date.now(), muted: false, cameraOn: video, speaker: true, recording: instance.isRecording });
+    publish({ phase: 'active', startedAt: Date.now(), muted: false, cameraOn: false, speaker: false, recording: instance.isRecording });
     if (instance.isRecording) void lookUpRecorder();
     void callNative()?.setInCall(true);
-    void callNative()?.startCall(video, state.channelName || state.callerName, i18n.t('call:inCall'), channelId);
+    void callNative()?.startCall(state.channelName || state.callerName, i18n.t('call:inCall'), channelId);
     startPing(api, started);
     void loadVolumes(api.account)
       .then((saved) => {
@@ -526,8 +515,13 @@ async function teardown() {
 }
 
 function scheduleIdle() {
-  if (endTimer) clearTimeout(endTimer);
+  cancelIdle();
   endTimer = setTimeout(reset, 2400);
+}
+
+function cancelIdle() {
+  if (endTimer) clearTimeout(endTimer);
+  endTimer = null;
 }
 
 function reset() {
@@ -561,14 +555,38 @@ export async function toggleMute() {
   presence();
 }
 
-export async function toggleCamera() {
-  if (!room) return;
+export type CameraResult = 'on' | 'off' | 'blocked' | 'unavailable';
+
+export async function toggleCamera(): Promise<CameraResult> {
+  const instance = room;
+  if (!instance) return 'unavailable';
   const next = !state.cameraOn;
-  if (next && !(await ensureCamera())) return;
-  await room.localParticipant.setCameraEnabled(next).catch(() => undefined);
-  publish({ cameraOn: next, video: state.video || next });
+  if (next && !(await ensureCamera())) {
+    if (room === instance) publish({ cameraBlocked: true });
+    return 'blocked';
+  }
+  if (room !== instance) return 'unavailable';
+  try {
+    await instance.localParticipant.setCameraEnabled(next);
+  } catch {
+    if (room === instance) collect();
+    return 'unavailable';
+  }
+  if (room !== instance) return 'unavailable';
+  publish({ cameraOn: next, cameraBlocked: false });
+  collect();
   void send({ is_camera_on: next });
   presence();
+  if (next) await speakerForCamera(instance);
+  return next ? 'on' : 'off';
+}
+
+async function speakerForCamera(instance: unknown) {
+  if (outputChosen || state.speaker) return;
+  const outputs = await audioOutputs();
+  if (room !== instance || outputChosen || outputs.some((output) => output === 'headset' || output === 'bluetooth')) return;
+  await routeAudio(true);
+  if (room === instance && !outputChosen) publish({ speaker: true });
 }
 
 export async function flipCamera() {
@@ -582,8 +600,9 @@ export async function flipCamera() {
 }
 
 export async function toggleSpeaker() {
+  outputChosen = true;
   const next = !state.speaker;
-  await routeAudio(next ? state.video : !state.video).catch(() => undefined);
+  await routeAudio(next);
   publish({ speaker: next });
 }
 
@@ -714,6 +733,7 @@ export async function audioOutputs(): Promise<string[]> {
 }
 
 export async function chooseAudioOutput(output: string) {
+  outputChosen = true;
   try {
     await (await loadLiveKit()).AudioSession.selectAudioOutput(output);
     publish({ output, speaker: output === 'speaker' || output === 'force_speaker' });
@@ -731,7 +751,6 @@ function send(values: SessionValues) {
 function presence() {
   if (!joined) return;
   void callNative()?.updateCall(
-    state.video,
     state.screenSharing || shareStarting ? i18n.t('call:sharingTitle') : state.channelName || state.callerName,
     i18n.t(state.screenSharing ? 'call:sharingScreen' : 'call:inCall'),
     state.channelId,
@@ -760,7 +779,6 @@ export function pictureInPictureSpec(current: CallState = state): PipSpec {
   return pipSpec({
     allowed: pictureInPictureAllowed(),
     phase: current.phase,
-    video: current.video,
     muted: current.muted || current.deaf,
     cameraOn: current.cameraOn,
     screenSharing: current.screenSharing,
@@ -781,7 +799,7 @@ function syncPictureInPicture() {
   const key = JSON.stringify(spec);
   if (key === pipKey) return;
   pipKey = key;
-  void native.setPictureInPicture(spec.enabled, spec.width, spec.height, spec.muted, spec.camera, spec.video, spec.sharing).catch(() => false);
+  void native.setPictureInPicture(spec.enabled, spec.width, spec.height, spec.muted, spec.camera, spec.sharing).catch(() => false);
 }
 
 export function setPictureInPictureHint(x: number, y: number, width: number, height: number) {
@@ -839,7 +857,7 @@ async function lookForInvitations(channelId: number | null, options: { account?:
       return [];
     }
     if (state.phase === 'incoming' && found[0].channelId === state.channelId) {
-      publish({ callId: found[0].callId, callerName: found[0].callerName, callerPartnerId: found[0].callerPartnerId ?? state.callerPartnerId, video: found[0].video });
+      publish({ callId: found[0].callId, callerName: found[0].callerName, callerPartnerId: found[0].callerPartnerId ?? state.callerPartnerId });
       return found;
     }
     if (state.phase === 'idle' || state.phase === 'ended') {
@@ -853,6 +871,7 @@ async function lookForInvitations(channelId: number | null, options: { account?:
 }
 
 function ring(invitation: Invitation, account: Account) {
+  cancelIdle();
   generation += 1;
   callAccount = account;
   publish({
@@ -863,7 +882,6 @@ function ring(invitation: Invitation, account: Account) {
     callerName: invitation.callerName,
     callerPartnerId: invitation.callerPartnerId,
     callId: invitation.callId,
-    video: invitation.video,
     version: state.version + 1,
   });
 }
@@ -876,7 +894,7 @@ function inAppRing() {
   void native.ringing().then((ringing) => {
     if (ringing) return;
     const account = callAccount ?? activeAccount();
-    void native.ring(state.callerName || state.channelName, i18n.t('call:incoming.voice'), state.channelId, state.callId, state.video, account?.db ?? '', account?.userId ?? 0);
+    void native.ring(state.callerName || state.channelName, i18n.t('call:incoming'), state.channelId, state.callId, account?.db ?? '', account?.userId ?? 0);
   });
 }
 
@@ -933,7 +951,7 @@ async function takeLaunch(action: CallAction, target: Account | null) {
   const account = target ?? activeAccount();
   let placed = -1;
   if (account && (state.phase === 'idle' || state.phase === 'ended')) {
-    ring({ channelId: action.channelId, callId: action.callId ?? 0, callerName: action.title ?? '', callerPartnerId: null, video: Boolean(action.video), channelType: '', channelName: '' }, account);
+    ring({ channelId: action.channelId, callId: action.callId ?? 0, callerName: action.title ?? '', callerPartnerId: null, channelType: '', channelName: '' }, account);
     placed = generation;
   }
   const found = await lookForInvitations(action.channelId, { account });

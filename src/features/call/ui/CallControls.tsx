@@ -14,6 +14,7 @@ import { groupedMore, type CallAction } from '../controls';
 export type ControlState = {
   muted: boolean;
   cameraOn: boolean;
+  cameraBlocked?: boolean;
   speaker: boolean;
   sharing: boolean;
   recording: { on: boolean; busy: boolean } | null;
@@ -33,6 +34,7 @@ function useLook() {
       case 'mute':
         return { icon: state.muted ? 'micOff' : 'mic', label: state.muted ? t('unmute') : t('mute'), active: state.muted };
       case 'camera':
+        if (state.cameraBlocked && !state.cameraOn) return { icon: 'videoOff', label: t('cameraBlocked.action'), active: true };
         return { icon: state.cameraOn ? 'video' : 'videoOff', label: state.cameraOn ? t('cameraTurnOff') : t('cameraOn'), active: !state.cameraOn };
       case 'flip':
         return { icon: 'cameraFlip', label: t('flip') };

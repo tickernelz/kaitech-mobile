@@ -2,12 +2,12 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
-import { AccessibilityInfo, Platform, StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
+import { AccessibilityInfo, Alert, Linking, Platform, StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import Animated from 'react-native-reanimated';
 import { ScreenCapturePickerView } from '@livekit/react-native-webrtc';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { layoutFor, pagesFor, presenterOf, stageFor, tileGap } from '../grid';
+import { layoutFor, pagesFor, presenterOf, stageFor, stageView, tileGap } from '../grid';
 import { screenShareSupported, setBroadcastPicker } from '../screenShare';
 import { useTheme, space } from '../../../theme';
 import { Text } from '../../../ui/Text';
@@ -72,22 +72,25 @@ export function CallScreen() {
   const presenter = compact && shared?.local ? null : shared;
   const self = call.people.find((person) => person.local) ?? null;
   const remote = call.people.filter((person) => !person.local);
-  const duo = call.video && Boolean(self) && remote.length === 1;
-  const onStage = call.video || Boolean(presenter);
   const remoteVideo = remote.some((person) => person.cameraOn || person.screenOn);
   const [sheet, setSheet] = useState<'more' | 'people' | null>(null);
   const [panel, setPanel] = useState<'invite' | 'output' | null>(null);
   const [spotlight, setSpotlight] = useState(false);
-  const canInvite = (conversationById(getChat(), call.channelId)?.type ?? 'chat') !== 'chat';
   const [swapped, setSwapped] = useState(false);
-  const pinned = call.phase !== 'active' || !call.video || !remoteVideo || call.screenSharing || sheet !== null;
+  const spotted =
+    spotlight && call.people.length > 2
+      ? (remote.find((person) => person.sid === call.focus?.sid) ?? remote.find((person) => call.speaking.includes(person.sid)) ?? remote[0] ?? null)
+      : null;
+  const view = stageView({ people: call.people, presenter, spotted, swapped });
+  const onStage = view.onStage;
+  const canInvite = (conversationById(getChat(), call.channelId)?.type ?? 'chat') !== 'chat';
+  const pinned = call.phase !== 'active' || !remoteVideo || call.screenSharing || sheet !== null;
   const hide = useAutoHide(pinned, `${call.muted}|${call.cameraOn}|${call.recording}|${call.speaker}`);
   const elapsed = useElapsed(call.startedAt, call.phase === 'active');
 
   const share = call.phase === 'active' && screenShareSupported();
   const controls = controlsFor({
     phase: call.phase,
-    video: call.video,
     cameraOn: call.cameraOn,
     sharing: call.screenSharing,
     share,
@@ -101,6 +104,7 @@ export function CallScreen() {
   const state: ControlState = {
     muted: call.muted || call.deaf,
     cameraOn: call.cameraOn,
+    cameraBlocked: call.cameraBlocked,
     speaker: call.speaker,
     sharing: call.screenSharing,
     recording: call.phase === 'active' ? { on: call.recording, busy: call.recordingBusy } : null,
@@ -158,7 +162,12 @@ export function CallScreen() {
   const onAction = (action: CallAction) => {
     setSheet(action === 'more' ? 'more' : action === 'people' ? 'people' : null);
     if (action === 'mute') void toggleMute();
-    if (action === 'camera') void toggleCamera();
+    if (action === 'camera') {
+      const blocked = call.cameraBlocked;
+      void toggleCamera().then((result) => {
+        if (result === 'blocked' && blocked) askForCamera(t('cameraBlocked.title'), t('cameraBlocked.body'), t('cameraBlocked.cancel'), t('cameraBlocked.settings'));
+      });
+    }
     if (action === 'flip') void flipCamera();
     if (action === 'speaker') void toggleSpeaker();
     if (action === 'share') void toggleScreenShare();
@@ -193,12 +202,7 @@ export function CallScreen() {
     );
   }
 
-  const spotted =
-    spotlight && call.people.length > 2
-      ? (remote.find((person) => person.sid === call.focus?.sid) ?? remote.find((person) => call.speaking.includes(person.sid)) ?? remote[0] ?? null)
-      : null;
-  const big: CallPerson | null = spotted ?? (duo ? (swapped ? self : remote[0]) : remote.length === 0 && self && call.video && self.cameraOn ? self : null);
-  const small = duo ? (swapped ? remote[0] : self) : null;
+  const { big, small } = view;
   const scrimTop = insets.top + scrimSize;
   const pillBottom = insets.bottom + edge;
   const shownPill = hide.shown ? pillSize + space.md : 0;
@@ -213,7 +217,7 @@ export function CallScreen() {
     );
   } else if (big) {
     stage = <CallTile person={big} width={width} height={height} corner={0} bare pip={pipFor(big)} />;
-  } else if (call.people.length > 2) {
+  } else if (view.kind === 'grid') {
     stage = (
       <View style={[styles.fill, framed]}>
         <View style={styles.grid} onLayout={onStageLayout} testID="call-grid">
@@ -231,9 +235,9 @@ export function CallScreen() {
       </View>
     );
   } else {
-    const face = remote[0] ?? null;
+    const face = view.face;
     stage = (
-      <View style={[styles.fill, styles.center]}>
+      <View style={[styles.fill, styles.center]} testID="call-stage-avatar">
         <Avatar name={face?.name ?? title} seed={face?.partnerId ?? call.callerPartnerId ?? call.channelId} partnerId={face ? face.partnerId : call.callerPartnerId} size={112} />
       </View>
     );
@@ -280,6 +284,13 @@ export function CallScreen() {
             <Text variant="footnote" numberOfLines={2} style={{ color: soft }} accessibilityLiveRegion="polite" testID="call-status">
               {subtitle}
             </Text>
+          ) : null}
+          {call.cameraBlocked && !call.cameraOn ? (
+            <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings()} testID="call-camera-blocked">
+              <Text variant="footnote" tone="warnInk" accessibilityLiveRegion="polite">
+                {t('cameraBlocked.notice')}
+              </Text>
+            </Pressable>
           ) : null}
           {call.recordingError ? (
             <Text variant="footnote" tone="warnInk" accessibilityLiveRegion="polite" testID="call-recording-error">
@@ -330,6 +341,13 @@ export function CallScreen() {
   );
 }
 
+function askForCamera(title: string, body: string, cancel: string, settings: string) {
+  Alert.alert(title, body, [
+    { text: cancel, style: 'cancel' },
+    { text: settings, onPress: () => void Linking.openSettings() },
+  ]);
+}
+
 function FullScreenNotice() {
   const { t } = useTranslation('call');
   const [needed, setNeeded] = useState(false);
@@ -352,7 +370,6 @@ const endedReasons = [
   'disconnected',
   'removed',
   'microphone',
-  'camera',
   'signedOut',
   'call_unavailable',
   'temporarily_unavailable',

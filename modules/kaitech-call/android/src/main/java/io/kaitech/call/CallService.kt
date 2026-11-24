@@ -28,7 +28,6 @@ class CallService : Service() {
     val body: String,
     val channelId: Int,
     val callId: Int,
-    val video: Boolean,
     val db: String,
     val uid: Int,
     val system: Boolean,
@@ -36,7 +35,6 @@ class CallService : Service() {
   )
 
   data class Ongoing(
-    val video: Boolean,
     val title: String,
     val body: String,
     val channelId: Int,
@@ -45,7 +43,7 @@ class CallService : Service() {
     val sharing: Boolean = false,
     val startedAt: Long = System.currentTimeMillis(),
   ) {
-    fun ring() = Ring(title, body, channelId, 0, video, "", 0, system = false)
+    fun ring() = Ring(title, body, channelId, 0, "", 0, system = false)
   }
 
   override fun onBind(intent: Intent?): IBinder? = null
@@ -65,7 +63,6 @@ class CallService : Service() {
       intent.getStringExtra(EXTRA_BODY) ?: "",
       intent.getIntExtra(CallIntents.EXTRA_CHANNEL_ID, 0),
       intent.getIntExtra(CallIntents.EXTRA_CALL_ID, 0),
-      intent.getBooleanExtra(CallIntents.EXTRA_VIDEO, false),
       intent.getStringExtra(CallIntents.EXTRA_DB) ?: "",
       intent.getIntExtra(CallIntents.EXTRA_UID, 0),
       system = true,
@@ -84,7 +81,6 @@ class CallService : Service() {
 
   private fun startCall(intent: Intent) {
     val call = Ongoing(
-      intent.getBooleanExtra(CallIntents.EXTRA_VIDEO, false),
       intent.getStringExtra(EXTRA_TITLE) ?: "Kaitech",
       intent.getStringExtra(EXTRA_BODY) ?: "",
       intent.getIntExtra(CallIntents.EXTRA_CHANNEL_ID, 0),
@@ -96,7 +92,7 @@ class CallService : Service() {
     ringingKey = ""
     stopRingtone()
     main.removeCallbacks(timeout)
-    val type = if (call.video) {
+    val type = if (call.camera) {
       ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
     } else {
       ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
@@ -191,7 +187,7 @@ class CallService : Service() {
         .putExtra(EXTRA_TITLE, ring.title)
         .putExtra(EXTRA_BODY, ring.body)
         .putExtra(EXTRA_MUTED, false)
-        .putExtra(EXTRA_CAMERA, ring.video)
+        .putExtra(EXTRA_CAMERA, false)
       CallIntents.fill(intent, ring)
       start(context, intent)
     }
