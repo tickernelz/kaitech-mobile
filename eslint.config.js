@@ -48,6 +48,27 @@ module.exports = defineConfig([
     },
   },
   {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/**/*.android.{ts,tsx}', 'src/layout/MaterialTabs.tsx', 'src/ui/MaterialHost.tsx'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@expo/ui', '@expo/ui/*'],
+              message: 'package.json keeps @expo/ui out of the iOS build (expo.autolinking.ios.exclude); import it only from *.android.tsx files.',
+            },
+            {
+              regex: '(^|/)(MaterialTabs|MaterialHost)$',
+              message: 'MaterialTabs and MaterialHost import @expo/ui, which iOS does not link; import them only from *.android.tsx files.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['src/**/*.tsx'],
     ...i18next.configs['flat/recommended'],
     rules: {
