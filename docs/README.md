@@ -2,7 +2,8 @@
 
 | Page | Contents |
 |---|---|
-| [Releases](releases.md) | release files, what is proven on emulators and simulators, what is not yet verified |
+| [Releases](releases.md) | release files, cutting a release, what is proven on emulators and simulators, what is not yet verified |
+| [Changelog](changelog.md) | what changed in each release |
 | [Install the APK](install-android.md) | installing and updating the Android build |
 | [Install the IPA](install-ios.md) | re-signing and installing the unsigned iOS build, iOS limits |
 | [Store accounts](store-accounts.md) | what waits for Google Play and Apple Developer accounts |

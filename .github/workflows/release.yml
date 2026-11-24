@@ -34,6 +34,9 @@ jobs:
             echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not on main; release only reviewed, merged commits."
             exit 1
           }
+      - name: The tag must have a changelog section
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: scripts/changelog-section.sh "$GITHUB_REF_NAME" > /dev/null
       - uses: ./.github/actions/setup-gitleaks
       - name: Scan full git history
         run: gitleaks git --redact --verbose --exit-code 1 .
@@ -215,6 +218,10 @@ jobs:
             if [ "$PUSH_SET" != true ]; then
               echo "- **Android push is off in this build**: built without \`google-services.json\`, so new messages and rings only show while the app is open."
             fi
+            echo
+            echo "## Changes in $TAG"
+            echo
+            scripts/changelog-section.sh "$TAG"
             echo
             echo "Built from \`$GITHUB_SHA\`. Release run (APK and IPA, gitleaks scan, install test from the Release on phone and tablet emulators, recording per cell): $RUN_URL"
           } > "$RUNNER_TEMP/notes.md"

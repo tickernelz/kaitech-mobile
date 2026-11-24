@@ -21,7 +21,7 @@ Download the latest build from [Releases](https://github.com/tickernelz/kaitech-
 - Android: `kaitech-<build>-<sha>-arm64-v8a.apk`, see [Install the APK](docs/install-android.md).
 - iOS: `kaitech-<build>-<sha>-unsigned.ipa`, re-signed with a personal Apple ID, see [Install the IPA](docs/install-ios.md).
 
-What is proven and what is not yet verified: [Releases](docs/releases.md).
+What is proven and what is not yet verified: [Releases](docs/releases.md). What changed in each release: [Changelog](docs/changelog.md).
 
 ## Documentation
 
