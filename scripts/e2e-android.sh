@@ -253,7 +253,7 @@ if [ "${E2E_LAYOUT_CHECK:-}" = 1 ]; then
     adb shell am force-stop "$pkg"
   done
   adb shell cmd uimode night no
-  adb shell am start -n "$activity" > /dev/null
+  adb shell am start -S -W -n "$activity" > /dev/null
   sleep 3
   node scripts/e2e-layout.mjs "$out" "$size" "$orientation" "$language" || status=1
 fi
