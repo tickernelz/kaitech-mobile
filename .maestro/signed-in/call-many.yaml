@@ -65,8 +65,15 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: m2-group-grid
-- tapOn:
-    id: call-more
+- retry:
+    maxRetries: 1
+    commands:
+      - tapOn:
+          id: call-more
+      - extendedWaitUntil:
+          visible:
+            id: call-sheet-more
+          timeout: 5000
 - scrollUntilVisible:
     element:
       id: call-sheet-people
@@ -127,19 +134,15 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: m5-group-peer-screen
-- runFlow:
-    when:
-      notVisible:
-        id: call-hangup
+- retry:
+    maxRetries: 1
     commands:
       - tapOn:
-          id: call-stage
-- tapOn:
-    id: call-hangup
-- extendedWaitUntil:
-    notVisible:
-      id: call-screen
-    timeout: 30000
+          id: call-hangup
+      - extendedWaitUntil:
+          notVisible:
+            id: call-screen
+          timeout: 10000
 - runScript:
     file: ../scripts/call-peer-command.js
     env:
@@ -200,8 +203,15 @@ onFlowStart:
 - assertNotVisible:
     id: call-tile-PA_.*
     index: 3
-- tapOn:
-    id: call-more
+- retry:
+    maxRetries: 1
+    commands:
+      - tapOn:
+          id: call-more
+      - extendedWaitUntil:
+          visible:
+            id: call-sheet-more
+          timeout: 5000
 - scrollUntilVisible:
     element:
       id: call-sheet-people
@@ -226,19 +236,15 @@ onFlowStart:
       SCREEN: m7-channel-people
 - tapOn:
     id: call-sheet-backdrop
-- runFlow:
-    when:
-      notVisible:
-        id: call-hangup
+- retry:
+    maxRetries: 1
     commands:
       - tapOn:
-          id: call-stage
-- tapOn:
-    id: call-hangup
-- extendedWaitUntil:
-    notVisible:
-      id: call-screen
-    timeout: 30000
+          id: call-hangup
+      - extendedWaitUntil:
+          notVisible:
+            id: call-screen
+          timeout: 10000
 - runScript:
     file: ../scripts/call-peer-command.js
     env:
