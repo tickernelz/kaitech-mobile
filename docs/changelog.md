@@ -2,6 +2,14 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.5.1 - 2026-11-24
+
+First published release with the changes of 0.5.0, which was tagged but never published: its Release run stopped at the iOS size gate.
+
+### Changed
+
+- Releases: the iOS IPA size baseline is the v0.5.0 measurement, 26328941 bytes; main had grown 14.9% over the old one before 0.5.0 (#96, ZHA-7730).
+
 ## 0.5.0 - 2026-11-24
 
 ### Added
