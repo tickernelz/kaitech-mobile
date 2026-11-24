@@ -10,6 +10,7 @@ import { useFormatters } from '../../i18n';
 import { Panes } from '../../layout/Panes';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
+import { Refresh } from '../../ui/Refresh';
 import { RowActions } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
 import { textActions } from '../../ui/textActions';
@@ -181,8 +182,7 @@ export function EvidenceScreen({ programme, initial = 'findings' }: { programme:
             onPress={() => (expanded ? setSelected(item.id) : router.push({ pathname: '/program/finding/[id]', params: { id: String(item.id), programme: String(programme) } }))}
           />
         )}
-        onRefresh={() => void found.refresh()}
-        refreshing={found.loading && !!found.data}
+        refreshControl={<Refresh refreshing={found.loading && !!found.data} onRefresh={() => void found.refresh()} />}
         ListEmptyComponent={
           <StateView
             loading={found.loading}
@@ -201,8 +201,7 @@ export function EvidenceScreen({ programme, initial = 'findings' }: { programme:
         renderItem={({ item }) => <EvidenceRow row={item} />}
         onEndReachedThreshold={0.5}
         onEndReached={() => void paged.more()}
-        onRefresh={() => void paged.reload()}
-        refreshing={paged.loading && paged.rows.length > 0}
+        refreshControl={<Refresh refreshing={paged.loading && paged.rows.length > 0} onRefresh={() => void paged.reload()} />}
         ListEmptyComponent={
           <StateView
             loading={paged.loading}

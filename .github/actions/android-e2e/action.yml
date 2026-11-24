@@ -28,6 +28,9 @@ inputs:
   scroll-flow:
     description: A Maestro flow whose frame statistics (gfxinfo) are saved as scroll-gfxinfo.txt; its <name>-ready.yaml runs first to reach the starting screen. Empty skips it.
     default: ''
+  layout-check:
+    description: true runs scripts/e2e-layout.mjs after the flows, on the signed-in tabs, and saves layout.txt with layout-* and pull-* screenshots.
+    default: 'false'
   runner:
     description: auto (maestro-runner in the natural orientation, Maestro CLI when rotated), maestro, or maestro-runner.
     default: auto
@@ -97,6 +100,7 @@ runs:
         E2E_THEMED_FLOWS: ${{ inputs.themed-flows }}
         E2E_SCROLL_FLOW: ${{ inputs.scroll-flow }}
         E2E_RUNNER: ${{ inputs.runner }}
+        E2E_LAYOUT_CHECK: ${{ inputs.layout-check == 'true' && '1' || '' }}
         E2E_CALL_PEER: ${{ inputs.call-peer == 'true' && '1' || '' }}
         PORTRAIT_COLD_START_RUNS: ${{ inputs.cold-start }}
       with:

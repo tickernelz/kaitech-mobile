@@ -2,7 +2,7 @@ import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, FlatList, Modal, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Modal, ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +39,7 @@ import { ChoiceRow } from './followupParts';
 import { MoreSheet, type MoreAction } from './MoreSheet';
 import { SmallButton } from './parts';
 import { PlayerBar, usePlayback } from './playback';
+import { Refresh } from '../../ui/Refresh';
 
 const pageSize = 150;
 const settleMs = 300;
@@ -148,7 +149,7 @@ export function EditorScreen({ recording }: { recording: number }) {
         initialNumToRender={20}
         windowSize={7}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={view.loading} onRefresh={() => void view.refresh()} />}
+        refreshControl={<Refresh refreshing={view.loading} onRefresh={() => void view.refresh()} />}
         ListHeaderComponent={
           <View style={styles.top}>
             {data.settled ? (

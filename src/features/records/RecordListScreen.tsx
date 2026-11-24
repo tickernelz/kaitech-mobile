@@ -2,7 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
@@ -22,6 +22,7 @@ import { Sheet } from './Sheet';
 import { stash, unstash, useRecordsGeneration } from './stash';
 import { actionScope, type ListStash, type RecordStash } from './useRunAction';
 import { compileList, compileSearch, titleColumn, type ListSpec, type SearchSpec } from './views';
+import { Refresh } from '../../ui/Refresh';
 
 const page = 40;
 
@@ -287,7 +288,7 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
             if (!loading && rows.length < total) void fetchPage(rows.length);
           }}
           onEndReachedThreshold={0.5}
-          refreshControl={<RefreshControl refreshing={loading && !!rows.length} onRefresh={() => void fetchPage(0)} />}
+          refreshControl={<Refresh refreshing={loading && !!rows.length} onRefresh={() => void fetchPage(0)} />}
           ListEmptyComponent={loading ? <StateView loading testID="list-rows" /> : <StateView empty={{ title: t('records.empty'), icon: 'search' }} testID="list-rows" />}
           contentContainerStyle={styles.listContent}
           testID="list-rows"

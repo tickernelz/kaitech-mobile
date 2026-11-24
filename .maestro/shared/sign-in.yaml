@@ -3,6 +3,13 @@ name: Sign in on the server page and finish setup when the app is signed out
 ---
 - tapOn:
     id: welcome-sign-in
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          text: (Continue|Lanjutkan)
+          optional: true
 - extendedWaitUntil:
     visible:
       text: (Email|Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
@@ -41,6 +48,13 @@ name: Sign in on the server page and finish setup when the app is signed out
           index: 0
       - inputText: ${PASSWORD}
       - pressKey: Enter
+      - runFlow:
+          when:
+            platform: iOS
+          commands:
+            - tapOn:
+                text: (Not Now|Nanti)
+                optional: true
 - extendedWaitUntil:
     visible:
       text: (Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)

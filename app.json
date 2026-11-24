@@ -2,7 +2,7 @@
   "expo": {
     "name": "Kaitech",
     "slug": "kaitech-mobile",
-    "version": "0.4.1",
+    "version": "0.5.1",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -146,7 +146,8 @@
         }
       ],
       "expo-background-task",
-      "./plugins/meeting-recording.js"
+      "./plugins/meeting-recording.js",
+      "./plugins/with-native-sheets"
     ]
   }
 }

@@ -5,6 +5,7 @@ import { Pressable } from '../../../ui/Pressable';
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';
+import { FloatingSurface } from '../../../ui/FloatingSurface';
 import { Text } from '../../../ui/Text';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Slider } from '../../../ui/Slider';
@@ -128,16 +129,18 @@ export function CallPill({
       importantForAccessibility={shown ? 'auto' : 'no-hide-descendants'}
       accessibilityElementsHidden={!shown}
       style={motion}>
-      <View
+      <FloatingSurface
+        solid={onStage ? colors.stageScrim : colors.surface2}
+        overMedia={onStage}
         onTouchStart={onTouch}
-        style={[styles.pill, vertical ? styles.pillColumn : styles.pillRow, { backgroundColor: onStage ? colors.stageScrim : colors.surface2 }]}
+        style={[styles.pill, vertical ? styles.pillColumn : styles.pillRow]}
         testID="call-controls">
         {actions.map((action) => (
           <View key={action} style={action === 'hangup' ? (vertical ? styles.endColumn : styles.endRow) : null}>
             <RoundButton {...look(action, state)} onStage={onStage} onPress={() => onAction(action)} testID={`call-${action}`} />
           </View>
         ))}
-      </View>
+      </FloatingSurface>
     </Animated.View>
   );
 }
