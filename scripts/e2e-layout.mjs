@@ -123,8 +123,9 @@ for (const [tab, rootId] of Object.entries(tabs)) {
   if (!content) failures.push(`${tab}: nothing under the bar`);
   else {
     const gap = dp(content.top - bar.bottom);
-    lines.push(`${tab}: first content ${box(content)} "${content.text || content.id}", ${gap}dp under the bar`);
-    if (gap > contentGapDp) failures.push(`${tab}: ${gap}dp empty between the bar and the first content`);
+    const state = [...walk(screen)].find((node) => /-(loading|error|empty)$/.test(node.id) && node.top <= content.top && node.bottom >= content.bottom && node.left <= content.left && node.right >= content.right);
+    lines.push(`${tab}: first content ${box(content)} "${content.text || content.id}", ${gap}dp under the bar${state ? `, inside the centred state view ${state.id}` : ''}`);
+    if (gap > contentGapDp && !state) failures.push(`${tab}: ${gap}dp empty between the bar and the first content`);
   }
   const twin = title?.text && [...walk(screen)].find((node) => inside(node) && node.top >= bar.bottom && node.text === title.text);
   if (twin) failures.push(`${tab}: a second title ${box(twin)} under the bar`);
