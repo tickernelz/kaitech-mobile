@@ -1,14 +1,15 @@
 # CI/CD
 
-Everything runs on GitHub Actions standard runners: `ubuntu-latest` for Linux work and Android emulators, `macos-26` (pinned, newest Xcode 26) for iOS. `macos-15` cannot build the app: its newest Xcode is 26.3, and Expo SDK 58's `expo-modules-jsi` fails to compile there (`JavaScriptObject.swift:946: error: sending 'slot' risks causing data races`, run 45043443333). There are three workflows and no others.
+Everything runs on GitHub Actions standard runners: `ubuntu-latest` for Linux work and Android emulators, `macos-26` (pinned, newest Xcode 26) for iOS. `macos-15` cannot build the app: its newest Xcode is 26.3, and Expo SDK 58's `expo-modules-jsi` fails to compile there (`JavaScriptObject.swift:946: error: sending 'slot' risks causing data races`, run 45043443333). There are four workflows and no others.
 
 | Workflow | Triggers | Purpose |
 |---|---|---|
 | `CI` (`.github/workflows/ci.yml`) | push to `main` (not docs-only), every pull request, manual | Fast merge gate, Linux only, no emulator |
 | `E2E` (`.github/workflows/e2e.yml`) | push to `main`, pull request labelled `run-e2e`, nightly at 19:00 UTC (02:00 WIB), manual | Android emulator and iPhone simulator flows |
 | `Release` (`.github/workflows/release.yml`) | tag `v*`, manual | Release APKs and IPA, GitHub Release |
+| `Size` (`.github/workflows/size.yml`) | pull request that changes native inputs or is labelled `measure-ios`, nightly at 18:00 UTC (01:00 WIB), manual | Release IPA and JS bundle size against the baseline |
 
-Composite actions in `.github/actions/` hold the shared steps: `build-android-apk` (build or repack, sign, verify, upload an APK), `android-e2e` (one emulator, Maestro flows, secret scan, upload), and the pinned, checksum-verified tool installers `setup-gitleaks`, `setup-maestro`, `setup-maestro-runner`, `setup-ccache`.
+Composite actions in `.github/actions/` hold the shared steps: `build-android-apk` (build or repack, sign, verify, upload an APK), `build-ios-ipa` (unsigned Release IPA, upload, size gate; used by `Release` and `Size`), `android-e2e` (one emulator, Maestro flows, secret scan, upload), and the pinned, checksum-verified tool installers `setup-gitleaks`, `setup-maestro`, `setup-maestro-runner`, `setup-ccache`.
 
 ## CI: the merge gate
 
@@ -125,8 +126,10 @@ Every job that touches a cache writes a table to its run summary: each cache wit
 |---|---|
 | `android.apk_x86_64_bytes`, `android.js_bundle_bytes` | E2E `android apk x86_64` |
 | `android.apk_universal_bytes`, `android.apk_arm64-v8a_bytes` | Release `android apk …` |
-| `ios.ipa_bytes`, `ios.js_bundle_bytes` | Release `ios ipa (unsigned)` |
+| `ios.ipa_bytes`, `ios.js_bundle_bytes` | Release `ios ipa (unsigned)`, Size `ios ipa size` |
 | `android.cold_start_ms` | E2E phone portrait `en-US` (median of 5 `am start -W -S`) |
+
+The iOS sizes need a Release build for `iphoneos` (about 20 minutes on `macos-26`), so `CI` and `E2E` do not measure them. `Size` builds it on a pull request when the pull request changes a native input (`package.json`, `package-lock.json`, `app.json`, `app.config.ts`, `fingerprint.config.js`, `assets/`, `plugins/`, `modules/`, `patches/`, `perf/`, the gate or the workflow itself) or carries the label `measure-ios`, and every night on `main`. A pull request that grows the JS bundle without touching those files is caught that night; label it `measure-ios` to see its size before the merge. Before this workflow the IPA was measured only by `Release`, so the 1.65 MB that `@expo/ui` added to the iOS binary in pull request #50 surfaced only when the v0.5.0 tag stopped at +15.1% (ZHA-7773).
 
 ## Secrets and variables
 
@@ -145,6 +148,7 @@ Secret values never reach the repository, logs, or artifacts. Pull requests from
 
 - Branch protection on `main`: required checks `gitleaks diff`, `lint`, `typecheck`, `unit` (all from `CI`), branches up to date before merging.
 - Label `run-e2e`: `gh label create run-e2e --color 0E8A16 --description "Run the E2E smoke on this pull request"`.
+- Label `measure-ios`: `gh label create measure-ios --color 1D76DB --description "Build the Release IPA and check its size on this pull request"`.
 
 ## Local checks before a pull request
 
