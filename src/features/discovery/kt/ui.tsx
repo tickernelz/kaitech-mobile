@@ -1,5 +1,6 @@
 import { Component, type ReactNode, useCallback, useState } from 'react';
-import { type LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
+import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { Pressable } from '../../../ui/Pressable';
 import { personColors, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';

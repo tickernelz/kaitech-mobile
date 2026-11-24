@@ -4,6 +4,7 @@
   "main": "index.ts",
   "dependencies": {
     "@config-plugins/react-native-webrtc": "^15.0.2",
+    "@expo/ui": "~58.0.29",
     "@livekit/react-native": "^3.2.0",
     "@livekit/react-native-expo-plugin": "^1.2.0",
     "@livekit/react-native-webrtc": "150.2.0",
@@ -57,6 +58,7 @@
   },
   "devDependencies": {
     "@expo/repack-app": "0.10.4",
+    "@material/material-color-utilities": "0.3.0",
     "@testing-library/react-native": "^14.1.0",
     "@types/jest": "30.0.0",
     "@types/node": "^24.19.2",
