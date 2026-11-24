@@ -282,6 +282,21 @@ describe('one call that starts as voice', () => {
   });
 });
 
+describe('calling again right after hanging up', () => {
+  it('keeps the new call when the previous call ends its closing pause', async () => {
+    const { call } = await placed();
+    await call.hangUp('left');
+    expect(call.callState().phase).toBe('ended');
+    await call.startCall({ channelId: 5, channelName: 'Team' });
+    await flush();
+    expect(call.callState().phase).toBe('active');
+    jest.advanceTimersByTime(3000);
+    await flush();
+    expect(call.callState().phase).toBe('active');
+    expect(mockJoins).toHaveLength(2);
+  });
+});
+
 describe('turning the camera on during a call', () => {
   it('asks for the camera on the first press, publishes it and tells Odoo', async () => {
     const { call, room } = await placed();

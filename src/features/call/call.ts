@@ -297,6 +297,7 @@ export async function startCall(input: { channelId: number; channelName: string 
   if (state.phase !== 'idle' && state.phase !== 'ended') return;
   const api = callClient();
   if (!api) return;
+  cancelIdle();
   const started = ++generation;
   callAccount = api.account;
   if (!(await ensureMicrophone())) {
@@ -306,7 +307,7 @@ export async function startCall(input: { channelId: number; channelName: string 
     }
     return;
   }
-  if (stale(started)) return;
+  if (started !== generation) return;
   publish({
     ...idle,
     phase: 'outgoing',
@@ -514,8 +515,13 @@ async function teardown() {
 }
 
 function scheduleIdle() {
-  if (endTimer) clearTimeout(endTimer);
+  cancelIdle();
   endTimer = setTimeout(reset, 2400);
+}
+
+function cancelIdle() {
+  if (endTimer) clearTimeout(endTimer);
+  endTimer = null;
 }
 
 function reset() {
@@ -865,6 +871,7 @@ async function lookForInvitations(channelId: number | null, options: { account?:
 }
 
 function ring(invitation: Invitation, account: Account) {
+  cancelIdle();
   generation += 1;
   callAccount = account;
   publish({
