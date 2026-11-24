@@ -38,13 +38,12 @@ class CallMessagingService : FirebaseMessagingService() {
       return
     }
     val title = data["title"].orEmpty().ifBlank { data["caller"].orEmpty() }
-    val body = data["body"].orEmpty()
-    val video = data["video"] == "1"
+    val body = ringBody(data["channel_type"].orEmpty(), data["caller"].orEmpty())
     val db = data["db"].orEmpty()
     val uid = data["uid"]?.toIntOrNull() ?: 0
     if (system) {
       MessageNotifications.rememberCall(data)
-      CallService.ring(this, CallService.Ring(title, body, channelId, callId, video, db, uid, system = true))
+      CallService.ring(this, CallService.Ring(title, body, channelId, callId, db, uid, system = true))
     }
     CallBridge.send(
       mapOf(
@@ -52,7 +51,6 @@ class CallMessagingService : FirebaseMessagingService() {
         "system" to system,
         "channelId" to channelId,
         "callId" to callId,
-        "video" to video,
         "title" to title,
         "body" to body,
         "caller" to data["caller"].orEmpty(),
@@ -60,6 +58,12 @@ class CallMessagingService : FirebaseMessagingService() {
         "uid" to uid,
       ),
     )
+  }
+
+  private fun ringBody(channelType: String, caller: String): String {
+    val text = MessageNotifications.localized(this)
+    return if (channelType == "chat" || caller.isBlank()) text.getString(R.string.kaitech_call_incoming)
+    else text.getString(R.string.kaitech_call_incoming_from, caller)
   }
 
   override fun onNewToken(token: String) {

@@ -199,7 +199,7 @@ async function flush() {
 
 async function activeCall() {
   const call = require('../src/features/call/call');
-  await call.startCall({ channelId: 5, channelName: 'Team', video: false });
+  await call.startCall({ channelId: 5, channelName: 'Team' });
   await flush();
   expect(call.callState().phase).toBe('active');
   const room = mockRooms[mockRooms.length - 1];

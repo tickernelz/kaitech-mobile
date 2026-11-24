@@ -100,6 +100,13 @@ function frames() {
     return { identity, width: element.videoWidth, height: element.videoHeight, fps };
   });
 }
+async function camera(on) {
+  const room = globalThis.room;
+  if (!room || room.localParticipant.isCameraEnabled === on) return;
+  await room.localParticipant.setCameraEnabled(on);
+  log(on ? 'camera on' : 'camera off');
+  refresh();
+}
 async function share(on) {
   const room = globalThis.room;
   if (!room) return;
@@ -137,6 +144,7 @@ async function share(on) {
 setInterval(() => {
   fetch('/command').then((answer) => answer.json()).then((command) => {
     if (command && command.share !== undefined) share(command.share);
+    if (command && command.camera !== undefined) camera(command.camera);
   }).catch(() => undefined);
   frames();
 }, 1000);

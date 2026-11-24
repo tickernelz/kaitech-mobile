@@ -48,6 +48,27 @@ export function presenterOf<T extends { local: boolean; screenOn: boolean }>(peo
   return people.find((person) => person.screenOn && !person.local) ?? people.find((person) => person.screenOn) ?? null;
 }
 
+type Seat = { local: boolean; cameraOn: boolean; screenOn: boolean };
+
+export type StageView<T> = {
+  onStage: boolean;
+  kind: 'screen' | 'focus' | 'grid' | 'avatar';
+  big: T | null;
+  small: T | null;
+  face: T | null;
+};
+
+export function stageView<T extends Seat>(input: { people: T[]; presenter: T | null; spotted: T | null; swapped: boolean }): StageView<T> {
+  const self = input.people.find((person) => person.local) ?? null;
+  const remote = input.people.filter((person) => !person.local);
+  const anyVideo = input.people.some((person) => person.cameraOn || person.screenOn);
+  const duo = anyVideo && self !== null && remote.length === 1;
+  const big = input.spotted ?? (duo ? (input.swapped ? self : remote[0]) : remote.length === 0 && self?.cameraOn ? self : null);
+  const small = duo ? (input.swapped ? remote[0] : self) : null;
+  const kind = input.presenter ? 'screen' : big ? 'focus' : input.people.length > 2 ? 'grid' : 'avatar';
+  return { onStage: anyVideo || input.presenter !== null, kind, big, small, face: remote[0] ?? null };
+}
+
 export function layoutFor(width: number, height: number): CallLayout {
   return {
     pip: Math.min(width, height) > 0 && Math.min(width, height) < pipMaxSide,

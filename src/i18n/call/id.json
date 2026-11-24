@@ -1,8 +1,5 @@
 {
-  "incoming": {
-    "voice": "Panggilan suara masuk",
-    "video": "Panggilan video masuk"
-  },
+  "incoming": "Panggilan masuk",
   "calling": "Memanggil…",
   "connecting": "Menyambungkan…",
   "reconnecting": "Menyambung ulang…",
@@ -21,6 +18,14 @@
   "unmute": "Nyalakan mikrofon",
   "cameraOn": "Nyalakan kamera",
   "cameraTurnOff": "Matikan kamera",
+  "cameraBlocked": {
+    "action": "Akses kamera mati",
+    "notice": "Akses kamera mati. Panggilan tetap berjalan; ketuk di sini untuk mengizinkan kamera di Pengaturan.",
+    "title": "Akses kamera mati",
+    "body": "Izinkan akses kamera untuk Kaitech di Pengaturan, lalu ketuk tombol kamera lagi. Panggilan tetap tersambung.",
+    "cancel": "Nanti saja",
+    "settings": "Buka Pengaturan"
+  },
   "flip": "Ganti kamera",
   "speaker": "Pengeras suara",
   "earpiece": "Gunakan telepon",
@@ -28,8 +33,7 @@
   "pictureInPicture": "Kecilkan ke jendela kecil",
   "close": "Tutup",
   "backToCall": "Kembali ke panggilan",
-  "startVoice": "Panggilan suara",
-  "startVideo": "Panggilan video",
+  "start": "Panggil",
   "shareScreen": "Bagikan layar",
   "stopSharing": "Berhenti berbagi",
   "sharingScreen": "Sedang membagikan layar",
@@ -72,7 +76,6 @@
     "disconnected": "Koneksi terputus",
     "removed": "Anda dikeluarkan dari panggilan",
     "microphone": "Izin mikrofon dibutuhkan untuk menelepon",
-    "camera": "Izin kamera dibutuhkan untuk panggilan video",
     "signedOut": "Panggilan berakhir karena keluar akun",
     "call_unavailable": "Panggilan tidak tersedia untuk percakapan ini",
     "temporarily_unavailable": "Panggilan sedang tidak tersedia. Coba lagi nanti.",
@@ -112,7 +115,5 @@
     "headset": "Headset",
     "other": "{{name}}"
   },
-  "outputNone": "Tidak ada keluaran audio lain yang tersambung.",
-  "answerVideo": "Jawab dengan video",
-  "answerVoice": "Jawab dengan suara saja"
+  "outputNone": "Tidak ada keluaran audio lain yang tersambung."
 }
