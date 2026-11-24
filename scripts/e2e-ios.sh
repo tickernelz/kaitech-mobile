@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+. scripts/e2e-lease.sh
 
 usage="usage: e2e-ios.sh <Kaitech.app built for the simulator> <output-dir> <locale: en-US|id-ID> [family: iphone|ipad]"
 app="${1:?$usage}"
@@ -100,6 +101,7 @@ boot
 xcrun simctl install "$udid" "$app"
 log "installed"
 
+hold_server "${GITHUB_RUN_ID:-local} ios $size-$locale"
 for orientation in $orientations; do
   for appearance in $appearances; do
     xcrun simctl ui "$udid" appearance "$appearance"
@@ -137,6 +139,7 @@ for orientation in $orientations; do
     fi
   done
 done
+release_server
 xcrun simctl shutdown "$udid"
 log "shut down"
 

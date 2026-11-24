@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+. scripts/e2e-lease.sh
 
 usage="usage: e2e-call.sh <apk> <out-dir> <serial> <locale: en-US|id-ID> <size: phone|tablet> <orientation: portrait|landscape>"
 apk="${1:?$usage}"
@@ -36,6 +37,8 @@ adb -s "$serial" shell screenrecord --bit-rate 4000000 --time-limit 170 "/sdcard
 recorder=$!
 sleep 1
 
+export E2E_SERVER="${E2E_SERVER:-$SERVER}" E2E_DB="${E2E_DB:-$CALL_DB}" E2E_LOGIN="${E2E_LOGIN:-$LOGIN}" E2E_PASSWORD="${E2E_PASSWORD:-$PASSWORD}"
+hold_server "${GITHUB_RUN_ID:-local} call $size-$orientation-$locale"
 node scripts/call-peer.mjs start > "$out/peer-start.json"
 
 status=0
@@ -46,6 +49,7 @@ maestro --device "$serial" test .maestro/signed-in/call.yaml \
 
 node scripts/call-peer.mjs logs > "$out/peer-logs.json" || true
 node scripts/call-peer.mjs leave > "$out/peer-leave.json" || true
+release_server
 sleep 2
 adb -s "$serial" shell pkill -INT screenrecord >/dev/null 2>&1 || true
 wait "$recorder" || true
