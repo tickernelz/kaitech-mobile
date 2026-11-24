@@ -146,7 +146,8 @@
         }
       ],
       "expo-background-task",
-      "./plugins/meeting-recording.js"
+      "./plugins/meeting-recording.js",
+      "./plugins/with-native-sheets"
     ]
   }
 }

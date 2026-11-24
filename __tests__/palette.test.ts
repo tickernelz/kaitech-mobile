@@ -1,4 +1,5 @@
-import { colorsFor, personColors, personCount, type ColorName, type Scheme } from '../src/theme/tokens';
+import { avatarFill, avatarFills, colorsFor, type ColorName, type Scheme } from '../src/theme/tokens';
+import { series, seriesColor } from '../src/features/discovery/kt/ui';
 
 function channel(value: number) {
   const c = value / 255;
@@ -59,16 +60,16 @@ describe.each<Scheme>(['light', 'dark'])('%s palette', (scheme) => {
     for (const name of ['canvas', 'surface', 'surface2', 'line', 'lineStrong'] as const) expect(saturation(colors[name])).toBeLessThan(0.08);
   });
 
-  it('gives every person a readable name and avatar', () => {
-    for (let seed = 0; seed < personCount; seed++) {
-      const person = personColors(seed, scheme);
-      expect((['surface', 'surface2', 'select'] as const).filter((bg) => contrast(person.name, colors[bg]) < 4.5)).toEqual([]);
-      expect(contrast(colors.onPrimary, person.fill)).toBeGreaterThanOrEqual(4.5);
-    }
+  it('keeps every chart series at 3:1 on the surface', () => {
+    expect(series.map((_, index) => seriesColor(index, scheme)).filter((ink) => contrast(ink, colors.surface) < 3)).toEqual([]);
   });
 });
 
-it('keeps one colour per person', () => {
-  expect(personColors(42, 'dark').fill).toBe(personColors(42 + personCount, 'light').fill);
-  expect(new Set(Array.from({ length: personCount }, (_, seed) => personColors(seed, 'light').name)).size).toBe(personCount);
+it('puts white initials on every avatar fill at 4.5:1', () => {
+  expect(avatarFills.filter((fill) => contrast('#FFFFFF', fill) < 4.5)).toEqual([]);
+});
+
+it('picks the avatar fill of a partner id as the web chat does', () => {
+  expect(avatarFills).toEqual(['#8E565F', '#3A775E', '#27767A', '#426D91', '#646393', '#7F5A81']);
+  expect([6, 7, 11, -7].map(avatarFill)).toEqual(['#8E565F', '#3A775E', '#7F5A81', '#3A775E']);
 });
