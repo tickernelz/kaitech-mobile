@@ -3,9 +3,13 @@ set -euo pipefail
 
 count="${E2E_ACCOUNTS:-1}"
 case "$count" in
-  '' | *[!0-9]* | 0) echo "::error::KAITECH_E2E_ACCOUNTS must be a positive whole number, got '$count'"; exit 1 ;;
+  '' | *[!0-9]*) echo "::error::KAITECH_E2E_ACCOUNTS must be a positive whole number, got '$count'"; exit 1 ;;
 esac
 count=$((10#$count))
+if [ "$count" -lt 1 ]; then
+  echo "::error::KAITECH_E2E_ACCOUNTS must be a positive whole number, got '$E2E_ACCOUNTS'"
+  exit 1
+fi
 
 account="${E2E_ACCOUNT:-}"
 if [ -z "$account" ]; then
