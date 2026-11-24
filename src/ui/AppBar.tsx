@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { space, useTheme } from '../theme';
 import { Text } from './Text';
@@ -7,7 +7,14 @@ export const appBarHeight = 64;
 
 export function useScrolledUnder(): { scrolled: boolean; onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void } {
   const [scrolled, setScrolled] = useState(false);
-  return { scrolled, onScroll: (event) => setScrolled(event.nativeEvent.contentOffset.y > 0) };
+  const shown = useRef(false);
+  const onScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const next = event.nativeEvent.contentOffset.y > 0;
+    if (next === shown.current) return;
+    shown.current = next;
+    setScrolled(next);
+  }, []);
+  return { scrolled, onScroll };
 }
 
 export function TopAppBar({ title, scrolled, navigation, actions }: { title: string; scrolled: boolean; navigation?: ReactNode; actions?: ReactNode }) {
