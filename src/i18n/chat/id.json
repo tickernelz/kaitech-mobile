@@ -417,7 +417,8 @@
     "notUrgent": "Tidak mendesak",
     "urgentOn": "Mendesak: orang di sini mendapat peringatan keras",
     "urgentLeft_one": "Sisa {{count}} hari ini",
-    "urgentLeft_other": "Sisa {{count}} hari ini"
+    "urgentLeft_other": "Sisa {{count}} hari ini",
+    "urgentNone": "Jatah pesan mendesak hari ini sudah habis"
   },
   "work": {
     "title": "Pekerjaan Coworker",
