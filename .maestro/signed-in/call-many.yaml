@@ -65,15 +65,8 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: m2-group-grid
-- retry:
-    maxRetries: 1
-    commands:
-      - tapOn:
-          id: call-more
-      - extendedWaitUntil:
-          visible:
-            id: call-sheet-more
-          timeout: 5000
+- tapOn:
+    id: call-more
 - scrollUntilVisible:
     element:
       id: call-sheet-people
@@ -134,15 +127,32 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: m5-group-peer-screen
-- retry:
-    maxRetries: 1
-    commands:
-      - tapOn:
-          id: call-hangup
-      - extendedWaitUntil:
-          notVisible:
-            id: call-screen
-          timeout: 10000
+- runScript:
+    file: ../scripts/call-peer-command.js
+    env:
+      PEER_PORT: ${GROUP_PEER_2}
+      PEER_ACTION: command
+      CAMERA: '-'
+      SHARE: 'off'
+- runScript:
+    file: ../scripts/call-peer-command.js
+    env:
+      PEER_PORT: ${GROUP_PEER_1}
+      PEER_ACTION: command
+      CAMERA: 'off'
+      SHARE: '-'
+- extendedWaitUntil:
+    visible:
+      id: call-hangup
+    timeout: 30000
+- assertNotVisible:
+    id: call-screen-share
+- tapOn:
+    id: call-hangup
+- extendedWaitUntil:
+    notVisible:
+      id: call-screen
+    timeout: 30000
 - runScript:
     file: ../scripts/call-peer-command.js
     env:
@@ -203,15 +213,8 @@ onFlowStart:
 - assertNotVisible:
     id: call-tile-PA_.*
     index: 3
-- retry:
-    maxRetries: 1
-    commands:
-      - tapOn:
-          id: call-more
-      - extendedWaitUntil:
-          visible:
-            id: call-sheet-more
-          timeout: 5000
+- tapOn:
+    id: call-more
 - scrollUntilVisible:
     element:
       id: call-sheet-people
@@ -236,15 +239,12 @@ onFlowStart:
       SCREEN: m7-channel-people
 - tapOn:
     id: call-sheet-backdrop
-- retry:
-    maxRetries: 1
-    commands:
-      - tapOn:
-          id: call-hangup
-      - extendedWaitUntil:
-          notVisible:
-            id: call-screen
-          timeout: 10000
+- tapOn:
+    id: call-hangup
+- extendedWaitUntil:
+    notVisible:
+      id: call-screen
+    timeout: 30000
 - runScript:
     file: ../scripts/call-peer-command.js
     env:
