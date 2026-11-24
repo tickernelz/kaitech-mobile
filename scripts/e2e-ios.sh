@@ -100,9 +100,9 @@ boot
 xcrun simctl install "$udid" "$app"
 log "installed"
 
-for appearance in $appearances; do
-  xcrun simctl ui "$udid" appearance "$appearance"
-  for orientation in $orientations; do
+for orientation in $orientations; do
+  for appearance in $appearances; do
+    xcrun simctl ui "$udid" appearance "$appearance"
     cell="$size-$orientation-$locale"
     [ "$appearances" = light ] || cell="$cell-$appearance"
     dir="$out/$cell"
