@@ -12,6 +12,8 @@ First published release with the changes of 0.5.0, which was tagged but never pu
 
 ## 0.5.0 - 2026-11-24
 
+Not published: Release run 45427529768 stopped at the iOS size gate (`ios.ipa_bytes` +15.1% on the old baseline, limit 15%), so no GitHub Release exists for this tag. These changes first shipped in 0.5.1.
+
 ### Added
 
 - Android: Material 3 Expressive with the Kaitech seed: colour roles, navigation bar and rail, bottom sheets and controls (#50, ZHA-7471).
