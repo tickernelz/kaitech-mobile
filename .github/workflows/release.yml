@@ -316,26 +316,45 @@ jobs:
           runner: ${{ vars.E2E_RUNNER || 'auto' }}
           retention-days: '90'
 
+  account:
+    name: test account
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      suffix: ${{ steps.account.outputs.suffix }}
+      group: ${{ steps.account.outputs.group }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/e2e-account.sh
+          sparse-checkout-cone-mode: false
+      - id: account
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          E2E_ACCOUNTS: ${{ vars.KAITECH_E2E_ACCOUNTS }}
+        run: bash scripts/e2e-account.sh
+
   rows-from-release:
     name: rows from release
-    needs: release-assets
+    needs: [release-assets, account]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
       contents: read
     concurrency:
-      group: kaitech-e2e-account-${{ matrix.size }}-${{ matrix.locale }}
+      group: kaitech-e2e-account-${{ needs.account.outputs.group }}${{ matrix.size }}-${{ matrix.locale }}
       cancel-in-progress: false
       queue: max
     env:
-      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
-      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
-      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
-      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_LOGIN: ${{ secrets[format('KAITECH_E2E_LOGIN{0}', needs.account.outputs.suffix)] }}
+      E2E_PASSWORD: ${{ secrets[format('KAITECH_E2E_PASSWORD{0}', needs.account.outputs.suffix)] }}
+      E2E_WEB_LOGIN: ${{ secrets[format('KAITECH_E2E_WEB_LOGIN{0}', needs.account.outputs.suffix)] }}
+      E2E_WEB_PASSWORD: ${{ secrets[format('KAITECH_E2E_WEB_PASSWORD{0}', needs.account.outputs.suffix)] }}
       E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
       E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
-      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
-      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
+      E2E_CHANNEL_ID: ${{ vars[format('KAITECH_E2E_CHANNEL_ID{0}', needs.account.outputs.suffix)] }}
+      E2E_PEER: ${{ vars[format('KAITECH_E2E_PEER{0}', needs.account.outputs.suffix)] }}
       E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
       E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
       E2E_HIDE_DIRECT: ${{ matrix.variant == 'hide-direct' }}
