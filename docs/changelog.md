@@ -4,14 +4,13 @@ Every release of Kaitech Mobile, newest first. Each version has one section, `##
 
 ## 0.4.1 - 2026-11-23
 
-No app code changed since 0.4.0 (only the version in `app.json`); this release carries E2E and CI fixes.
-
 ### Changed
 
 - E2E: the signed-in rows cells keep the audio and media-recorder lines of logcat (#68, ZHA-7506).
 
 ### Fixed
 
+- MoM (Android): the recording service binds without losing its connection (#68, ZHA-7506).
 - E2E: leave the Android sign-in fields with Enter instead of hiding the keyboard (#69, ZHA-7533).
 - E2E: the iOS Maestro driver keeps serving after an XCTest issue (#73, ZHA-7574).
 
@@ -41,6 +40,7 @@ First published release with the changes of 0.3.1, which was tagged but never pu
 ### Fixed
 
 - Settings: Sign out everywhere stays reachable on long device lists (#47, ZHA-7443).
+- Chat: a conversation list refresh asked during a load runs after it instead of being dropped (#58, ZHA-7476).
 
 ## 0.3.1 - 2026-11-22
 
@@ -124,6 +124,7 @@ No app code changed since 0.2.0 (only the version in `app.json`).
 
 ### Changed
 
+- App: follows the device rotation on phones and tablets (#3, ZHA-7265).
 - Release: the APK and IPA are checked from a draft release before it is published (#14, ZHA-7244).
 - CI: phone and tablet in both orientations (#3, ZHA-7265); an x86_64 APK for E2E, native compile caches and a performance gate (#4, #5, ZHA-7285); the iPad simulator trial outside the main run (#7, ZHA-7334; #10, ZHA-7338); the universal APK size recorded after calls (#13, ZHA-7240).
 
