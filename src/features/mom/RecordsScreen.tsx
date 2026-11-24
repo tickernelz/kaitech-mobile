@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
 import { readableWidth } from '../../layout/windowClass';
@@ -12,6 +12,7 @@ import { StateView } from '../discovery/ui';
 import { ChoiceRow } from './followupParts';
 import { Line, SmallButton } from './parts';
 import { recordPage, type RecordKind } from './records';
+import { Refresh } from '../../ui/Refresh';
 
 const pageSize = 40;
 const settleMs = 300;
@@ -45,7 +46,7 @@ export function RecordsScreen({ kind }: { kind: RecordKind }) {
         keyExtractor={(line) => String(line.id)}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={page.loading && !!page.data} onRefresh={() => void page.refresh()} />}
+        refreshControl={<Refresh refreshing={page.loading && !!page.data} onRefresh={() => void page.refresh()} />}
         ListHeaderComponent={
           <View style={styles.head}>
             <TextField label={t('mom.records.search')} value={typed} onChangeText={setTyped} returnKeyType="search" autoCorrect={false} testID="mom-records-search" />

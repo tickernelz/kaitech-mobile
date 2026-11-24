@@ -2,6 +2,47 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.5.1 - 2026-11-24
+
+First published release with the changes of 0.5.0, which was tagged but never published: its Release run stopped at the iOS size gate.
+
+### Changed
+
+- Releases: the iOS IPA size baseline is the v0.5.0 measurement, 26328941 bytes; main had grown 14.9% over the old one before 0.5.0 (#96, ZHA-7730).
+
+## 0.5.0 - 2026-11-24
+
+Not published: Release run 45427529768 stopped at the iOS size gate (`ios.ipa_bytes` +15.1% on the old baseline, limit 15%), so no GitHub Release exists for this tag. These changes first shipped in 0.5.1.
+
+### Added
+
+- Android: Material 3 Expressive with the Kaitech seed: colour roles, navigation bar and rail, bottom sheets and controls (#50, ZHA-7471).
+- iOS 26+: Liquid Glass tab bar, native form sheets and floating controls (#51, ZHA-7469).
+- Chat: a Starred row lists starred messages and removes every star (#54, ZHA-7440).
+
+### Changed
+
+- Calls: one Call button; every call starts as voice and the camera and screen share are turned on inside it (#52, ZHA-7463).
+- Chat, Discovery, MoM and Activity: one top bar with the title, Search and profile in a single row on Android and iOS; every pull to refresh shows its whole indicator (#90, ZHA-7730).
+- Chat: sender names in the neutral ink colour and placeholder avatars in the web's six fills (#91, ZHA-7751).
+- E2E: the signed-in cells use parallel test accounts and the call cells run next to the rows cells (#85, ZHA-7641; #86, ZHA-7463).
+- E2E: the rows cells check the top bar, empty space and the pull-to-refresh indicator of every main tab (#90, ZHA-7730).
+- Releases ship a changelog in `docs/changelog.md` and on the release page (#87, ZHA-7720).
+
+### Fixed
+
+- Rows: Undo hides as soon as its window closes and keeps the newer Undo when an earlier delete fails (#82, #84, ZHA-7439).
+- Sheets (Android): sheet content stays within the window width (#89, ZHA-7439).
+- E2E: iOS portrait cells skip the no-op rotation at flow start (#72, ZHA-7557).
+- E2E: Android sign-in presses Enter again when the first press did not reach the database field, and types verbatim (#74, ZHA-7589; #81, ZHA-7629).
+- E2E: flows wait for the closed form and the refreshed MoM board (#76, ZHA-7626; #77, ZHA-7628).
+- E2E: the emulator and its system image install are retried until they unpack (#78, #79, ZHA-7631).
+- E2E: the sign-in Custom Tab closes by its button and maestro-runner stays off Chrome DevTools (#80, ZHA-7633; #83, ZHA-7636).
+
+### Known gaps
+
+- E2E: the rows tablet cells fail on main when lab0 answers the Discovery panel with a server error (ZHA-7766).
+
 ## 0.4.1 - 2026-11-23
 
 ### Changed

@@ -1,11 +1,12 @@
 import { FlashList } from '@shopify/flash-list';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { radius, space, useTheme } from '../../../theme';
-import { TopAppBar, largeTitleOwnsActions, useCollapsingTitle } from '../../../ui/AppBar';
+import { TopAppBar, useScrolledUnder } from '../../../ui/AppBar';
+import { Refresh } from '../../../ui/Refresh';
 import { Text } from '../../../ui/Text';
 import { loadArchived, loadMoreConversations, refreshConversations, useChat } from '../chat';
 import { IconButton } from '../../../ui/IconButton';
@@ -170,19 +171,9 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
     void loadArchived();
   };
   const unreadTotal = useMemo(() => conversations.filter((conversation) => conversation.unread > 0).length, [conversations]);
-  const bar = useCollapsingTitle();
+  const bar = useScrolledUnder();
 
   const archiveBack = <IconButton icon="back" label={t('translation:row.back')} onPress={() => setInArchive(false)} testID="chat-archive-back" />;
-  const archiveHeader = (
-    <View style={styles.header}>
-      <View style={styles.titleRow}>
-        {largeTitleOwnsActions ? archiveBack : null}
-        <Text variant="display" accessibilityRole="header" style={styles.flex}>
-          {t('rowActions.archivedTitle')}
-        </Text>
-      </View>
-    </View>
-  );
 
   const starredEntry =
     filter === 'all' && starred > 0 ? (
@@ -222,12 +213,6 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
 
   const header = (
     <View style={styles.header}>
-      <View style={styles.titleRow}>
-        <Text variant="display" accessibilityRole="header" style={styles.flex}>
-          {t('translation:tabs.chat')}
-        </Text>
-        {largeTitleOwnsActions ? <HeaderActions /> : null}
-      </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityRole="tablist">
         {filters.map((name) => {
           const on = filter === name;
@@ -295,7 +280,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
     <View style={styles.flex} testID="chat-list">
       <TopAppBar
         title={inArchive ? t('rowActions.archivedTitle') : t('translation:tabs.chat')}
-        collapsed={bar.collapsed}
+        scrolled={bar.scrolled}
         navigation={inArchive ? archiveBack : null}
         actions={inArchive ? null : <HeaderActions />}
       />
@@ -306,20 +291,18 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <Row conversation={item} selected={item.id === selectedId} pending={waiting.get(item.id) ?? 0} onOpen={onOpen} inArchive={inArchive} />}
         extraData={`${selectedId}|${pending.length}|${inArchive}`}
-        ListHeaderComponent={inArchive ? archiveHeader : header}
+        ListHeaderComponent={inArchive ? null : header}
         ListEmptyComponent={empty}
         onEndReached={() => void (inArchive ? loadArchived(true) : loadMoreConversations())}
         onEndReachedThreshold={0.5}
         refreshControl={
-          <RefreshControl
+          <Refresh
             refreshing={pulled && loading}
             onRefresh={() => {
               setPulled(true);
               if (!inArchive) void refreshStarred();
               void (inArchive ? loadArchived() : refreshConversations()).finally(() => setPulled(false));
             }}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
           />
         }
       />
@@ -341,8 +324,7 @@ const styles = StyleSheet.create({
   center: { textAlign: 'center' },
   archiveEntry: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
   strong: { fontWeight: '600' },
-  header: { paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.sm, gap: space.md },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.xs },
+  header: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.sm, gap: space.md },
   chips: { gap: space.sm, paddingHorizontal: space.xs },
   chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
   count: { minWidth: 18, height: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },

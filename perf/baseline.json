@@ -25,10 +25,10 @@
       "source": "run 45347516468, SHA 022a21e (exact bytes from the perf artifact): Liquid Glass on iOS (ZHA-7469: expo-glass-effect, glass tab bar, native sheets, glass app bar); main at 5544c29 was already 7604100 (run 45347361587, +14.6% on the old baseline), so this branch adds 25244 bytes; was 6632972 at e866df1"
     },
     "ios.ipa_bytes": {
-      "value": 22884555,
+      "value": 26328941,
       "maxIncrease": 0.15,
       "unit": "bytes",
-      "source": "run 44824949991, SHA e866df1 (exact bytes from the perf artifact); F2 Calls (ZHA-7240): @livekit/react-native-webrtc 150.2.0 native libraries, livekit-client loaded eagerly by the call screen, the local Android call module and the call screens; was 22428369 at 6cab11b"
+      "source": "run 45427529768, SHA 8c4e00e (exact bytes from the perf-ios artifact, v0.5.0 tag): main at 98f2010 was already 26288461 (run 45379483993, +14.9% on the old baseline) after Material 3 (#50), the unified call (#52), starred chat (#54) and neutral chat names (#91); Liquid Glass (#51) and the one-row top bar (#90) add 40480 bytes on top; v0.4.1 was 24574366 (run 45223745106); was 22884555 at e866df1"
     },
     "ios.js_bundle_bytes": {
       "value": 8123359,

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
@@ -18,6 +18,7 @@ import { loadAction, sectionGroups, type SectionGroup, type SectionLink } from '
 import { useFailureAlert } from './Chatter';
 import { stash } from './stash';
 import { useRunAction, type RecordStash } from './useRunAction';
+import { Refresh } from '../../ui/Refresh';
 
 export function SectionsScreen({ programme, name }: { programme: number; name?: string }) {
   const { t } = useTranslation();
@@ -65,7 +66,7 @@ export function SectionsScreen({ programme, name }: { programme: number; name?: 
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={groups.loading && !!groups.data} onRefresh={() => void groups.refresh()} />}>
+        refreshControl={<Refresh refreshing={groups.loading && !!groups.data} onRefresh={() => void groups.refresh()} />}>
         <Section>
           <Row
             title={t('records.programme')}

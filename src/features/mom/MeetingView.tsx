@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { FlatList, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { useResource } from '../../api/resource';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
@@ -18,6 +18,7 @@ import { ItemExtra, ItemFilters, MinutesBar, MinutesLinks } from './MinutesExtra
 import { MeetingChip, SmallButton, useMomFormat } from './parts';
 import { PlayerBar, usePlayback } from './playback';
 import { useRecording } from './recorder';
+import { Refresh } from '../../ui/Refresh';
 
 type Tab = 'notes' | 'items' | 'transcript' | 'final';
 
@@ -257,7 +258,7 @@ export function MeetingView({ meeting, back }: { meeting: number; back: boolean 
   const scrolled = (body: ReactNode) => (
     <ScrollView
       contentContainerStyle={short ? styles.shortContent : styles.content}
-      refreshControl={<RefreshControl refreshing={detail.loading} onRefresh={() => void detail.refresh()} />}>
+      refreshControl={<Refresh refreshing={detail.loading} onRefresh={() => void detail.refresh()} />}>
       {inner}
       {short ? <View style={styles.content}>{body}</View> : body}
     </ScrollView>
