@@ -94,6 +94,11 @@
         "buildFromSource": [
           "expo-audio"
         ]
+      },
+      "ios": {
+        "exclude": [
+          "@expo/ui"
+        ]
       }
     }
   }
