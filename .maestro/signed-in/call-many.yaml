@@ -67,6 +67,10 @@ onFlowStart:
       SCREEN: m2-group-grid
 - tapOn:
     id: call-more
+- scrollUntilVisible:
+    element:
+      id: call-sheet-people
+    direction: DOWN
 - tapOn:
     id: call-sheet-people
 - extendedWaitUntil:
@@ -198,6 +202,10 @@ onFlowStart:
     index: 3
 - tapOn:
     id: call-more
+- scrollUntilVisible:
+    element:
+      id: call-sheet-people
+    direction: DOWN
 - tapOn:
     id: call-sheet-people
 - extendedWaitUntil:
