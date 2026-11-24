@@ -55,7 +55,23 @@ name: Read the seeded test meeting minutes, items, transcript and Final MoM, the
 - runFlow:
     when:
       visible:
+        id: final-not-ready
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: final-sign
+      - assertVisible:
+          id: final-sign
+          enabled: false
+      - runFlow:
+          file: screenshot.yaml
+          env:
+            SCREEN: m5-not-ready
+- runFlow:
+    when:
+      visible:
         id: final-sign
+        enabled: true
     commands:
       - scrollUntilVisible:
           element:

@@ -6,6 +6,8 @@ import { useKeyboardState } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
+import { FloatingSurface } from '../../../ui/FloatingSurface';
+import { useSurface } from '../../../ui/glass';
 import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, useChat, type Outgoing } from '../chat';
 import { cannedQuery, cannedResponses, markCannedUsed, sendLater, type Canned } from '../composerExtras';
@@ -25,7 +27,6 @@ import { pickAttachments, type AttachSource } from './attach';
 import { Avatar } from './Avatar';
 import { photoFrom } from '../../people/photo';
 import { notePhotoList } from '../../people/photos';
-import { authorColor } from './MessageBubble';
 import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
 import { AttachSheet, MicButton, RecordingStrip, StagedFile, type Extra } from './MediaControls';
@@ -69,7 +70,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   ref,
 ) {
   const { t } = useTranslation('chat');
-  const { colors, scheme } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardState((state) => state.isVisible);
   const { windowClass } = useWindowClass();
@@ -95,7 +96,6 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const typingAt = useRef(0);
   const hardwareSubmit = windowClass !== 'compact';
   const parent = parentId ? messages.find((message) => message.id === parentId) : null;
-  const replyTint = authorColor(parent?.authorId ?? null, scheme, colors);
 
   useImperativeHandle(ref, () => ({
     reply: (message) => {
@@ -285,7 +285,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           ? [{ key: 'later', icon: 'clock' as const, label: t('extras.later'), onPress: () => { setSheet(false); if (text.trim() || files.length) setExtra('later'); else onNotice?.(t('extras.laterEmpty')); } }]
           : []),
         ...(hasFeature(features, 'urgent')
-          ? [{ key: 'urgent', icon: 'alert' as const, label: urgent ? t('extras.notUrgent') : t('extras.urgent'), detail: features.urgentLeft !== null ? t('extras.urgentLeft', { count: features.urgentLeft }) : undefined, onPress: () => { setSheet(false); setUrgent((value) => !value); } }]
+          ? [{ key: 'urgent', icon: 'alert' as const, label: urgent ? t('extras.notUrgent') : t('extras.urgent'), detail: features.urgentLeft === null ? undefined : features.urgentLeft < 1 ? t('extras.urgentNone') : t('extras.urgentLeft', { count: features.urgentLeft }), disabled: !urgent && features.urgentLeft !== null && features.urgentLeft < 1, onPress: () => { setSheet(false); setUrgent((value) => !value); } }]
           : []),
       ];
 
@@ -299,10 +299,11 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const recording = voice.recording;
 
   const canSend = (text.trim().length > 0 || files.length > 0) && !recording;
+  const glass = useSurface() === 'glass';
   const bottom = keyboardVisible ? space.sm : Math.max(insets.bottom, space.sm);
 
   return (
-    <View style={[styles.container, { borderTopColor: colors.line, backgroundColor: colors.canvas, paddingBottom: bottom }]} testID="composer">
+    <View style={[styles.container, glass ? styles.bare : { borderTopColor: colors.line }, { backgroundColor: colors.canvas, paddingBottom: bottom }]} testID="composer">
       {queryText !== null && suggestions.length ? (
         <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="mention-suggestions">
           {suggestions.map((person) => (
@@ -359,7 +360,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
       {parentId ? (
         <View style={[styles.replyBar, { backgroundColor: colors.surface2 }]} testID="composer-reply">
           <View style={styles.flex}>
-            <Text variant="footnote" style={[styles.strong, { color: replyTint }]}>
+            <Text variant="footnote" style={[styles.strong, { color: colors.ink }]}>
               {t('composer.replyingTo', { name: parent?.author ?? '' })}
             </Text>
             <Text variant="footnote" tone="inkSoft" numberOfLines={1}>
@@ -391,7 +392,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           <>
             {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />}
             {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
-            <View style={[styles.field, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+            <FloatingSurface solid={colors.surface} style={[styles.field, glass ? styles.bare : { borderColor: colors.line }]}>
               <TextInput
                 ref={input}
                 value={text}
@@ -413,7 +414,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
                 testID="composer-input"
                 style={[styles.input, { color: colors.ink }]}
               />
-            </View>
+            </FloatingSurface>
           </>
         )}
         {editing ? (
@@ -447,6 +448,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   strong: { fontWeight: '600' },
   container: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm, paddingHorizontal: space.sm, gap: space.sm },
+  bare: { borderWidth: 0, borderTopWidth: 0 },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: space.xs },
   round: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   field: { flex: 1, minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, justifyContent: 'center' },

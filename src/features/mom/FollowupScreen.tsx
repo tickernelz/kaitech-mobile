@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { invalidate, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
@@ -18,6 +18,7 @@ import { Card, StateView, useErrorText } from '../discovery/ui';
 import { StatusChip, useDueLabel } from './followupParts';
 import { agree, archive, canWork, followupItem, markDone, recordProgress, type FollowupItem } from './followups';
 import { MoreSheet } from './MoreSheet';
+import { Refresh } from '../../ui/Refresh';
 
 export function FollowupScreen({ id }: { id: number }) {
   const { t } = useTranslation();
@@ -86,7 +87,7 @@ export function FollowupScreen({ id }: { id: number }) {
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={item.loading} onRefresh={() => void item.refresh()} />}>
+        refreshControl={<Refresh refreshing={item.loading} onRefresh={() => void item.refresh()} />}>
         <View style={styles.block}>
           <Text variant="title" testID="followup-name">
             {data.name}

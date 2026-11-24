@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Modal, RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,6 +31,7 @@ import {
 import { ChoiceRow, PickRow } from './followupParts';
 import { MoreSheet } from './MoreSheet';
 import { SmallButton } from './parts';
+import { Refresh } from '../../ui/Refresh';
 
 type Tab = 'departments' | 'employees' | 'aliases';
 type Editing = { kind: 'department'; item: ClientDepartment | null } | { kind: 'employee'; item: ClientEmployee | null } | null;
@@ -88,7 +89,7 @@ export function ClientOrgScreen() {
   return (
     <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="mom-client-org">
       <Header title={t('mom.clientOrg.title')} subtitle={client ? client.name : undefined} />
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={board.loading && !!data} onRefresh={() => void board.refresh()} />}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" refreshControl={<Refresh refreshing={board.loading && !!data} onRefresh={() => void board.refresh()} />}>
         {data && data.clients.length > 1 ? (
           <PickRow label={t('mom.clientOrg.client')} value={client ? client.name : ''} placeholder={t('mom.setup.choose')} onPress={() => setPicking(true)} testID="client-org-client" />
         ) : null}

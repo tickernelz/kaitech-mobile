@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { invalidate, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
@@ -18,6 +18,7 @@ import { ChoiceRow, FollowupLine } from './followupParts';
 import { followupBoard, followupStatuses, rescan, type FeedEntry, type FollowupBoard, type FollowupMeeting, type FollowupStatus } from './followups';
 import { MoreSheet } from './MoreSheet';
 import { Line, SmallButton, useMomFormat } from './parts';
+import { Refresh } from '../../ui/Refresh';
 
 type Pane = 'list' | 'team' | 'meetings' | 'updates';
 
@@ -161,7 +162,7 @@ export function FollowupsScreen() {
         keyExtractor={(row) => String(row.id)}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={board.loading && !!data} onRefresh={() => void board.refresh()} />}
+        refreshControl={<Refresh refreshing={board.loading && !!data} onRefresh={() => void board.refresh()} />}
         ListHeaderComponent={top}
         renderItem={({ item }) => <FollowupLine row={item} onPress={() => open(item.id)} />}
         ListEmptyComponent={view === 'list' ? state : <View style={styles.body}>{body[view]}</View>}

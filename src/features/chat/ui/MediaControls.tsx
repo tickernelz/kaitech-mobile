@@ -10,7 +10,7 @@ import { Icon, type IconName } from '../../../ui/icons';
 import { SheetItem } from '../../../ui/Sheet';
 import { cancelDistance, type Recording, type useVoiceHold } from './useVoiceHold';
 
-export type Extra = { key: string; icon: IconName; label: string; detail?: string; onPress: () => void };
+export type Extra = { key: string; icon: IconName; label: string; detail?: string; disabled?: boolean; onPress: () => void };
 
 export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[] }) {
   const { t } = useTranslation('chat');
@@ -36,7 +36,7 @@ export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible
             ))}
           </View>
           {extras.map((extra) => (
-            <SheetItem key={extra.key} icon={extra.icon} label={extra.label} detail={extra.detail} onPress={extra.onPress} testID={`extra-${extra.key}`} />
+            <SheetItem key={extra.key} icon={extra.icon} label={extra.label} detail={extra.detail} disabled={extra.disabled} onPress={extra.onPress} testID={`extra-${extra.key}`} />
           ))}
         </Pressable>
       </Pressable>

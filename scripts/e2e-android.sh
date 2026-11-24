@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 trap 'echo "::error::e2e-android.sh line $LINENO exited $?: $BASH_COMMAND" >&2' ERR
+. scripts/e2e-lease.sh
 
 usage="usage: e2e-android.sh <apk-dir> <output-dir> <locale: en-US|id-ID> <size: phone|tablet> <orientation: portrait|landscape>"
 apk_dir="${1:?$usage}"
@@ -169,6 +170,8 @@ if [ -n "${E2E_LOGIN:-}" ]; then
   node scripts/e2e-prune-devices.mjs | tee "$out/devices-pruned.txt" || echo "the test-account device prune failed; calls ring every stale device" >&2
 fi
 
+hold_server "${GITHUB_RUN_ID:-local} android $cell"
+
 peer_state="$(mktemp -d)/call-peer.json"
 if [ "${E2E_CALL_PEER:-}" = 1 ]; then
   export CALL_SERVER="$E2E_SERVER" CALL_DB="$E2E_DB" CALL_LOGIN="$E2E_WEB_LOGIN" CALL_PASSWORD="$E2E_WEB_PASSWORD"
@@ -249,11 +252,22 @@ if [ -n "${E2E_SCROLL_FLOW:-}" ]; then
   adb shell dumpsys gfxinfo io.kaitech.mobile | tr -d '\r' | sed -n '/^Total frames rendered/,/^99th percentile/p' > "$out/scroll-gfxinfo.txt"
 fi
 
+if [ "${E2E_LAYOUT_CHECK:-}" = 1 ]; then
+  for pkg in dev.devicelab.driver.android.test dev.devicelab.driver.android dev.mobile.maestro.test dev.mobile.maestro; do
+    adb shell am force-stop "$pkg"
+  done
+  adb shell cmd uimode night no
+  adb shell am start -S -W -n "$activity" > /dev/null
+  sleep 3
+  node scripts/e2e-layout.mjs "$out" "$size" "$orientation" "$language" || status=1
+fi
+
 if [ "${E2E_CALL_PEER:-}" = 1 ]; then
   node scripts/call-peer.mjs leave > "$out/call-peer.json" 2>&1 || true
   call_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
   adb logcat -d -b main,crash -v time --uid="$call_uid" | grep -E 'KaitechCall|ReactNativeJS|AndroidRuntime|Logging|PeerConnection|livekit' | grep -viE 'token|cookie|session_id|password|authorization' | tail -n 600 > "$out/call-logcat.txt" || true
 fi
+release_server
 
 sleep 2
 if [ -n "$audio_log" ]; then
@@ -265,6 +279,23 @@ if [ -n "$audio_log" ]; then
     -e "${head}ReactNativeJS *: .*[Rr]ecord" \
     -e "${head}ActivityManager *: .*(AudioRecordingService|ANR in io\.kaitech\.mobile|Process io\.kaitech\.mobile )" \
     "$audio_log" > "$out/audio.txt" || true
+  if [ "$status" != 0 ]; then
+    secrets=()
+    for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
+      [ -n "$secret" ] && secrets+=(-e "$secret")
+    done
+    {
+      grep -aE \
+        -e "${head}ActivityTaskManager *: (START|Displayed)" \
+        -e "${head}ActivityManager *: .*(Start proc|has died|Killing|ANR in|Force stopping).*(com\.android\.chrome|io\.kaitech\.mobile)" \
+        -e "${head}WindowManager *: .*(Changing focus|Not Responding)" \
+        -e "${head}AndroidRuntime *: " \
+        -e "^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [WEF] (chromium|cr_[A-Za-z]+) *: " \
+        "$audio_log" || true
+      echo "activities at the end:"
+      adb shell dumpsys activity activities | tr -d '\r' | grep -E 'Task\{|Hist +#|ResumedActivity' || true
+    } | sed -E 's#(https?://[^ ?}]*)\?[^ }]*#\1?<query>#g' | grep -avF "${secrets[@]}" > "$out/signin.txt" || true
+  fi
   rm -f "$audio_log"
 fi
 if [ -z "${E2E_LOGIN:-}" ]; then
@@ -292,7 +323,7 @@ node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$l
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name scroll-gfxinfo.txt ! -name call-peer.json ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name signin.txt ! -name scroll-gfxinfo.txt ! -name layout.txt ! -name call-peer.json ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2

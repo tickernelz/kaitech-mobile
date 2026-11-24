@@ -139,17 +139,43 @@ onFlowStart:
           element:
             id: extra-urgent
           direction: DOWN
-      - tapOn:
-          id: extra-urgent
-      - extendedWaitUntil:
-          visible:
-            id: composer-urgent
-          timeout: 10000
-      - tapOn:
-          id: composer-input
-      - inputText: ${RUN + ' c3 urgent'}
-      - tapOn:
-          id: composer-send
+      - runFlow:
+          when:
+            visible:
+              id: extra-urgent
+              enabled: false
+          commands:
+            - runFlow:
+                file: ../shared/screenshot.yaml
+                env:
+                  SCREEN: c3-urgent-none
+            - tapOn:
+                point: 50%,5%
+      - runFlow:
+          when:
+            visible:
+              id: extra-urgent
+              enabled: true
+          commands:
+            - tapOn:
+                id: extra-urgent
+            - extendedWaitUntil:
+                visible:
+                  id: composer-urgent
+                timeout: 10000
+            - tapOn:
+                id: composer-input
+            - inputText: ${RUN + ' c3 urgent'}
+            - tapOn:
+                id: composer-send
+            - extendedWaitUntil:
+                visible:
+                  text: ${'.*' + RUN + ' c3 urgent'}
+                timeout: 20000
+            - extendedWaitUntil:
+                notVisible:
+                  id: (pending-queued|pending-sending|pending-failed)
+                timeout: 30000
 - tapOn:
     id: composer-input
 - inputText: '::'

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
-import { personColors, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
+import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
 import { attachmentUrl, isCallNotice, isRemoved, type ReadState } from '../odoo';
@@ -159,17 +159,12 @@ function Frame({
 
 export type Quote = { author: string; authorId: number | null; text: string } | null;
 
-export function authorColor(authorId: number | null, scheme: Scheme, colors: Colors): string {
-  return authorId === null ? colors.link : personColors(authorId, scheme).name;
-}
-
 function QuoteBlock({ quote, mine, onPress }: { quote: Quote; mine: boolean; onPress?: () => void }) {
-  const { colors, scheme } = useTheme();
+  const { colors } = useTheme();
   if (!quote) return null;
-  const tint = authorColor(quote.authorId, scheme, colors);
   return (
     <Pressable onPress={onPress} accessibilityRole="button" style={[styles.quoteBox, { backgroundColor: mine ? colors.surface : colors.surface2 }]}>
-      <Text variant="footnote" style={[styles.bold, { color: tint }]} numberOfLines={1}>
+      <Text variant="footnote" style={[styles.bold, { color: colors.ink }]} numberOfLines={1}>
         {quote.author}
       </Text>
       <Text variant="footnote" tone="inkSoft" numberOfLines={2}>
@@ -211,7 +206,7 @@ export const MessageBubble = memo(function MessageBubble({
   agentTag?: boolean;
 }) {
   const { t } = useTranslation('chat');
-  const { colors, scheme } = useTheme();
+  const { colors } = useTheme();
   const { clock } = useChatFormat();
   const removed = isRemoved(message);
   const shownBody = message.translated && message.translation ? message.translation.body : message.body;
@@ -279,7 +274,7 @@ export const MessageBubble = memo(function MessageBubble({
         {(showAuthor || (agent && agentTag)) && !mine ? (
           <View style={styles.authorRow}>
             {showAuthor ? (
-              <Text variant="footnote" numberOfLines={1} style={[styles.bold, styles.authorName, { color: authorColor(message.authorId, scheme, colors) }]}>
+              <Text variant="footnote" numberOfLines={1} style={[styles.bold, styles.authorName, { color: colors.ink }]}>
                 {message.author}
               </Text>
             ) : null}

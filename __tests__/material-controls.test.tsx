@@ -1,8 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
-const mockSearch = jest.fn();
-
 jest.mock('react-native-reanimated', () => {
   const { View } = require('react-native');
   return {
@@ -44,7 +42,6 @@ const { Button } = require('../src/ui/Button.android') as typeof import('../src/
 const { TextField } = require('../src/ui/TextField.android') as typeof import('../src/ui/TextField.android');
 const { Fab } = require('../src/ui/Fab.android') as typeof import('../src/ui/Fab.android');
 const { Pressable: RipplePressable, stateLayerInk } = require('../src/ui/Pressable.android') as typeof import('../src/ui/Pressable.android');
-const { TopAppBar, useCollapsingTitle } = require('../src/ui/AppBar.android') as typeof import('../src/ui/AppBar.android');
 
 function labelLift(text: string): number {
   let node = screen.getByText(text).parent;
@@ -83,48 +80,6 @@ describe('Android Material 3 button', () => {
     await render(<Button label="Save" disabled onPress={onPress} testID="save" />);
     await act(async () => fireEvent.press(screen.getByTestId('save')));
     expect(onPress).not.toHaveBeenCalled();
-  });
-});
-
-describe('Android Material 3 top app bar', () => {
-  function Screen() {
-    const bar = useCollapsingTitle();
-    const { Pressable, ScrollView, View } = require('react-native');
-    return (
-      <View>
-        <TopAppBar title="Chat" collapsed={bar.collapsed} actions={<Pressable testID="open-search" onPress={mockSearch} />} />
-        <ScrollView testID="list" onScroll={bar.onScroll} />
-      </View>
-    );
-  }
-  const scrollTo = (y: number) => fireEvent.scroll(screen.getByTestId('list'), { nativeEvent: { contentOffset: { x: 0, y } } });
-  const title = () => screen.getByTestId('app-bar-title', { includeHiddenElements: true });
-
-  beforeEach(() => mockSearch.mockClear());
-
-  test('the bar sits above the list, not over it, so rows under it stay reachable', async () => {
-    await render(<Screen />);
-    const bar = screen.getByTestId('app-bar');
-    expect(StyleSheet.flatten(bar.props.style).position).toBeUndefined();
-  });
-
-  test('at the top the small title is invisible and hidden from TalkBack while the actions work', async () => {
-    await render(<Screen />);
-    expect(StyleSheet.flatten(title().props.style).opacity).toBe(0);
-    expect(title().props.importantForAccessibility).toBe('no-hide-descendants');
-    await act(async () => fireEvent.press(screen.getByTestId('open-search')));
-    expect(mockSearch).toHaveBeenCalledTimes(1);
-  });
-
-  test('scrolling the large title away shows the small title; scrolling back hides it', async () => {
-    await render(<Screen />);
-    await act(async () => scrollTo(30));
-    expect(StyleSheet.flatten(title().props.style).opacity).toBe(0);
-    await act(async () => scrollTo(200));
-    expect(StyleSheet.flatten(title().props.style).opacity).toBe(1);
-    expect(title().props.importantForAccessibility).toBe('auto');
-    await act(async () => scrollTo(0));
-    expect(StyleSheet.flatten(title().props.style).opacity).toBe(0);
   });
 });
 

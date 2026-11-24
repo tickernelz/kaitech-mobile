@@ -5,14 +5,14 @@ import { IconButton } from '../../ui/IconButton';
 import { seesClientOrg, useMomAccess } from './access';
 import { MoreSheet } from './MoreSheet';
 import { StatusRow } from './StatusRow';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { Panes } from '../../layout/Panes';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
 import { HeaderActions } from '../../screens/HeaderActions';
-import { TopAppBar, largeTitleOwnsActions, useCollapsingTitle } from '../../ui/AppBar';
+import { TopAppBar, useScrolledUnder } from '../../ui/AppBar';
 import { space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Section } from '../../ui/List';
@@ -28,6 +28,7 @@ import { RowActions } from '../../ui/RowActions';
 import { textActions } from '../../ui/textActions';
 import { useRecording } from './recorder';
 import { useUploads } from './uploads';
+import { Refresh } from '../../ui/Refresh';
 
 const pageSize = 40;
 
@@ -45,7 +46,7 @@ export function MomHome() {
   const [limit, setLimit] = useState(pageSize);
   const [selection, setSelection] = useState<{ account: string; meeting: number } | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
-  const bar = useCollapsingTitle();
+  const bar = useScrolledUnder();
   const access = useMomAccess();
   const [removing, setRemoving] = useState<{ meeting: number; title: string } | null>(null);
   const selected = selection && selection.account === active?.id ? selection.meeting : null;
@@ -81,7 +82,7 @@ export function MomHome() {
     <View style={styles.fill}>
       <TopAppBar
         title={t('tabs.mom')}
-        collapsed={bar.collapsed}
+        scrolled={bar.scrolled}
         actions={
           <>
             {menu}
@@ -93,19 +94,8 @@ export function MomHome() {
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={meetings.loading && !!meetings.data} onRefresh={() => void meetings.refresh()} />}
+        refreshControl={<Refresh refreshing={meetings.loading && !!meetings.data} onRefresh={() => void meetings.refresh()} />}
         testID="mom-home">
-        <View style={styles.top}>
-          <Text variant="display" accessibilityRole="header" style={styles.fill}>
-            {t('tabs.mom')}
-          </Text>
-          {largeTitleOwnsActions ? (
-            <>
-              {menu}
-              <HeaderActions />
-            </>
-          ) : null}
-        </View>
         <StatusRow onOpenMeeting={open} />
         {ownRecording ? (
           <RecordingCard recording={ownRecording} onOpen={() => router.push('/mom/record')} />
@@ -265,6 +255,5 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center', padding: space.xl },
   centerText: { textAlign: 'center', maxWidth: readableWidth },
-  content: { paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.xxl, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
-  top: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.sm },
+  content: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xxl, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
 });

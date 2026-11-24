@@ -3,7 +3,8 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { iconNames, plan } from '../src/ui/icons/glyphs.ts';
+import { iconNames } from '../src/ui/icons/glyphs.ts';
+import { glyphSvg as icon } from './glyph-svg.mjs';
 
 const out = resolve(process.argv[2] ?? 'icon-sheet.png');
 const sizes = [16, 20, 24, 32];
@@ -14,25 +15,6 @@ const schemes = [
 const columns = 9;
 const cell = { w: 136, h: 104 };
 const pad = 16;
-
-function paintAttrs(p, color) {
-  return `d="${p.d}" fill="${p.fill ? color : 'none'}" stroke="${p.stroke ? color : 'none'}" stroke-width="${p.width}"`;
-}
-
-function icon(name, variant, size, color, x, y, id) {
-  const { rotate, masked, cutouts, over } = plan(name, variant, size);
-  const common = 'stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4"';
-  const mask = cutouts.length
-    ? `<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="#fff"/>${cutouts
-        .map((p) => `<path ${paintAttrs(p, '#000')} ${common}/>`)
-        .join('')}</mask>`
-    : '';
-  const body = masked.map((p) => `<path ${paintAttrs(p, color)} ${common}/>`).join('');
-  const top = over.map((p) => `<path ${paintAttrs(p, color)} ${common}/>`).join('');
-  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 24 24" overflow="visible">${mask}<g transform="rotate(${rotate} 12 12)"><g${
-    cutouts.length ? ` mask="url(#${id})"` : ''
-  }>${body}</g>${top}</g></svg>`;
-}
 
 function panel(scheme, top) {
   const rows = Math.ceil(iconNames.length / columns);
