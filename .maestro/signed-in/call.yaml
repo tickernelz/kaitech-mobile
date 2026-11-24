@@ -103,6 +103,7 @@ onFlowStart:
     visible:
       id: com.android.permissioncontroller:id/permission_deny_button
     timeout: 15000
+- waitForAnimationToEnd
 - tapOn:
     id: com.android.permissioncontroller:id/permission_deny_button
 - extendedWaitUntil:
@@ -126,6 +127,7 @@ onFlowStart:
       visible:
         id: com.android.permissioncontroller:id/permission_allow_foreground_only_button
     commands:
+      - waitForAnimationToEnd
       - tapOn:
           id: com.android.permissioncontroller:id/permission_allow_foreground_only_button
 - extendedWaitUntil:
