@@ -1,7 +1,8 @@
-import { ModalBottomSheet, RNHostView, type ModalBottomSheetRef } from '@expo/ui/jetpack-compose';
+import type { ModalBottomSheetRef } from '@expo/ui/jetpack-compose';
 import { useCallback, useRef, type ReactNode } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { space, useTheme } from '../theme';
+import { compose } from './compose';
 import { MaterialHost } from './MaterialHost';
 
 type Presentation = { attach: (sheet: ModalBottomSheetRef | null) => void; onDismiss: () => void };
@@ -29,6 +30,7 @@ export function useSheetPresentation(onClose: () => void): { native: boolean; cl
 export function NativeSheet({ presentation: { attach, onDismiss }, children, testID }: { presentation: Presentation; children: ReactNode; testID?: string }) {
   const { colors, material } = useTheme();
   const { width, height } = useWindowDimensions();
+  const { ModalBottomSheet, RNHostView } = compose();
   return (
     <MaterialHost matchContents style={styles.host}>
       <ModalBottomSheet ref={attach} onDismissRequest={onDismiss} skipPartiallyExpanded containerColor={material.surfaceContainerLow} scrimColor={colors.scrim} showDragHandle>
