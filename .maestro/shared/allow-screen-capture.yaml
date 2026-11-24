@@ -7,12 +7,12 @@ appId: io.kaitech.mobile
 - runFlow:
     when:
       visible:
-        text: (?i)(a single app|satu aplikasi)
+        text: (?i).*(a single app|satu aplikasi).*
     commands:
       - tapOn:
-          text: (?i)(a single app|satu aplikasi)
+          text: (?i).*(a single app|satu aplikasi).*
       - tapOn:
-          text: (?i)(entire screen|seluruh layar|share entire screen|bagikan seluruh layar)
+          text: (?i).*(entire screen|seluruh layar).*
 - tapOn:
     text: (?i)(start|mulai|share screen|bagikan layar)
     index: -1

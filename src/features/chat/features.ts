@@ -83,6 +83,11 @@ export function featuresFromSession(info: unknown): ChatFeatures {
   };
 }
 
+export function urgentLeftFrom(storeData: unknown): number | null {
+  const globals = isRecord(storeData) && isRecord(storeData.Store) ? storeData.Store : null;
+  return globals ? numberOr(globals.kaitech_chat_urgent_left) : null;
+}
+
 export function hasFeature(features: ChatFeatures, name: string): boolean {
   return features.on.includes(name);
 }

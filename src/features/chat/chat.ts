@@ -31,7 +31,7 @@ import {
   type ChannelInfo,
 } from './odoo';
 import { isShownWork, workFrom, workOf, type Work } from './coworker';
-import { featuresFromSession, noFeatures, type ChatFeatures } from './features';
+import { featuresFromSession, noFeatures, urgentLeftFrom, type ChatFeatures } from './features';
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
 import type { Conversation, Member, Mention, Message, Pending, PendingFile, Reaction } from './types';
@@ -184,6 +184,8 @@ function notePeople(store: unknown) {
 function delivered(sent: Sent) {
   const { pending } = sent;
   notePeople(sent.data);
+  const urgentLeft = urgentLeftFrom(sent.data);
+  if (urgentLeft !== null) setFeatures({ urgentLeft });
   pending.files.forEach((file) => dropFile(file.uri));
   const message = messagesFromStore(sent.data, state.partnerId).find((item) => item.id === sent.messageId);
   if (message) {
