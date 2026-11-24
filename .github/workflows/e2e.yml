@@ -16,6 +16,10 @@ on:
         type: choice
         options: [smoke, android, full]
         default: smoke
+      account:
+        description: Test account for the signed-in jobs (0 is the original one); empty picks the run number modulo KAITECH_E2E_ACCOUNTS.
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -43,6 +47,9 @@ jobs:
       mode: ${{ steps.mode.outputs.mode }}
       cells: ${{ steps.mode.outputs.cells }}
       flows: ${{ steps.mode.outputs.flows }}
+      account: ${{ steps.account.outputs.account }}
+      account_suffix: ${{ steps.account.outputs.suffix }}
+      account_group: ${{ steps.account.outputs.group }}
     steps:
       - id: mode
         env:
@@ -78,6 +85,20 @@ jobs:
             echo "cells=$(jq -c --arg mode "$mode" 'map({mode: $mode} + .)' <<< "$cells")"
             echo "flows=$flows"
           } >> "$GITHUB_OUTPUT"
+      - if: steps.mode.outputs.mode == 'full' || steps.mode.outputs.mode == 'android'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+          sparse-checkout: scripts/e2e-account.sh
+          sparse-checkout-cone-mode: false
+      - id: account
+        if: steps.mode.outputs.mode == 'full' || steps.mode.outputs.mode == 'android'
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          E2E_ACCOUNTS: ${{ vars.KAITECH_E2E_ACCOUNTS }}
+          E2E_ACCOUNT: ${{ inputs.account }}
+        run: bash scripts/e2e-account.sh
 
   android-apk:
     name: android apk x86_64
@@ -144,18 +165,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     concurrency:
-      group: kaitech-e2e-account-${{ matrix.size }}-${{ matrix.locale }}
+      group: kaitech-e2e-account-${{ needs.plan.outputs.account_group }}${{ matrix.size }}-${{ matrix.locale }}
       cancel-in-progress: false
       queue: max
     env:
-      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
-      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
-      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
-      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_LOGIN: ${{ secrets[format('KAITECH_E2E_LOGIN{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_PASSWORD: ${{ secrets[format('KAITECH_E2E_PASSWORD{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_WEB_LOGIN: ${{ secrets[format('KAITECH_E2E_WEB_LOGIN{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_WEB_PASSWORD: ${{ secrets[format('KAITECH_E2E_WEB_PASSWORD{0}', needs.plan.outputs.account_suffix)] }}
       E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
       E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
-      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
-      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
+      E2E_CHANNEL_ID: ${{ vars[format('KAITECH_E2E_CHANNEL_ID{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_PEER: ${{ vars[format('KAITECH_E2E_PEER{0}', needs.plan.outputs.account_suffix)] }}
       E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
       E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
       E2E_HIDE_DIRECT: ${{ matrix.variant == 'hide-direct' }}
@@ -197,18 +218,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     concurrency:
-      group: kaitech-e2e-account-${{ matrix.size }}-${{ matrix.locale }}
+      group: kaitech-e2e-account-${{ needs.plan.outputs.account_group }}${{ matrix.size }}-${{ matrix.locale }}
       cancel-in-progress: false
       queue: max
     env:
-      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
-      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
-      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
-      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_LOGIN: ${{ secrets[format('KAITECH_E2E_LOGIN{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_PASSWORD: ${{ secrets[format('KAITECH_E2E_PASSWORD{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_WEB_LOGIN: ${{ secrets[format('KAITECH_E2E_WEB_LOGIN{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_WEB_PASSWORD: ${{ secrets[format('KAITECH_E2E_WEB_PASSWORD{0}', needs.plan.outputs.account_suffix)] }}
       E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
       E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
-      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
-      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
+      E2E_CHANNEL_ID: ${{ vars[format('KAITECH_E2E_CHANNEL_ID{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_PEER: ${{ vars[format('KAITECH_E2E_PEER{0}', needs.plan.outputs.account_suffix)] }}
       E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
       E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
       E2E_MINUTES_NAME: Kickoff Payroll
@@ -249,18 +270,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     concurrency:
-      group: kaitech-e2e-account-${{ matrix.size }}-${{ matrix.locale }}
+      group: kaitech-e2e-account-${{ needs.plan.outputs.account_group }}${{ matrix.size }}-${{ matrix.locale }}
       cancel-in-progress: false
       queue: max
     env:
-      E2E_LOGIN: ${{ secrets.KAITECH_E2E_LOGIN }}
-      E2E_PASSWORD: ${{ secrets.KAITECH_E2E_PASSWORD }}
-      E2E_WEB_LOGIN: ${{ secrets.KAITECH_E2E_WEB_LOGIN }}
-      E2E_WEB_PASSWORD: ${{ secrets.KAITECH_E2E_WEB_PASSWORD }}
+      E2E_LOGIN: ${{ secrets[format('KAITECH_E2E_LOGIN{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_PASSWORD: ${{ secrets[format('KAITECH_E2E_PASSWORD{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_WEB_LOGIN: ${{ secrets[format('KAITECH_E2E_WEB_LOGIN{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_WEB_PASSWORD: ${{ secrets[format('KAITECH_E2E_WEB_PASSWORD{0}', needs.plan.outputs.account_suffix)] }}
       E2E_SERVER: ${{ vars.KAITECH_LINK_HOST }}
       E2E_DB: ${{ vars.KAITECH_DEFAULT_DB }}
-      E2E_CHANNEL_ID: ${{ vars.KAITECH_E2E_CHANNEL_ID }}
-      E2E_PEER: ${{ vars.KAITECH_E2E_PEER }}
+      E2E_CHANNEL_ID: ${{ vars[format('KAITECH_E2E_CHANNEL_ID{0}', needs.plan.outputs.account_suffix)] }}
+      E2E_PEER: ${{ vars[format('KAITECH_E2E_PEER{0}', needs.plan.outputs.account_suffix)] }}
       E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
       E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
     strategy:
