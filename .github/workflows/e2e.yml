@@ -314,8 +314,8 @@ jobs:
 
   android-call:
     name: android call
-    needs: [plan, android-apk, android-rows, android-mom, android-chat]
-    if: always() && (needs.plan.outputs.mode == 'full' || needs.plan.outputs.mode == 'android') && needs.android-apk.result == 'success'
+    needs: [plan, android-apk]
+    if: needs.plan.outputs.mode == 'full' || needs.plan.outputs.mode == 'android'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     concurrency:

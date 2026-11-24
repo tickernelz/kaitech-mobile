@@ -13,7 +13,11 @@ fi
 
 account="${E2E_ACCOUNT:-}"
 if [ -z "$account" ]; then
-  account=$((RUN_NUMBER % count))
+  if [ "$count" -eq 1 ]; then
+    account=0
+  else
+    account=$((1 + RUN_NUMBER % (count - 1)))
+  fi
 fi
 case "$account" in
   *[!0-9]*) echo "::error::account must be a whole number, got '$account'"; exit 1 ;;
