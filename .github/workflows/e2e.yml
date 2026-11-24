@@ -510,8 +510,8 @@ jobs:
           APPEARANCES: light dark
           MIN_IOS: '26'
         run: bash scripts/e2e-ios.sh build/native-app/Kaitech.app e2e-output en-US
-      - name: Liquid Glass tour signed in (skipped, waiting for ZHA-7277, Apple Team ID for the Universal Link)
-        if: false
+      - name: Liquid Glass tour signed in (runs once ZHA-7277 sets the APPLE_TEAM_ID variable for the Universal Link)
+        if: vars.APPLE_TEAM_ID != ''
         run: E2E_FLOWS=.maestro/ios APPEARANCES='light dark' bash scripts/e2e-ios.sh build/native-app/Kaitech.app e2e-output-glass en-US
       - name: Scan E2E output for secrets
         id: scan-e2e

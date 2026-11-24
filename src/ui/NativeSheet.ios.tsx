@@ -10,7 +10,7 @@ export function useSheetPresentation(onClose: () => void): { native: boolean; cl
   const native = isLiquidGlassAvailable();
   const [closing, setClosing] = useState<{ then: () => void } | null>(null);
   const close = (then: () => void = onClose) => {
-    if (native) setClosing({ then });
+    if (native) setClosing((current) => current ?? { then });
     else then();
   };
   return { native, close, presentation: { open: !closing, onDismiss: closing?.then ?? onClose, onNativeDismiss: onClose } };

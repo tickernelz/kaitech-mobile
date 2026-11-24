@@ -89,6 +89,26 @@ describe('sheets with Liquid Glass', () => {
     expect(order).toEqual(['rename', 'close']);
   });
 
+  it('runs only the first action when a second one is tapped while the sheet is still closing', async () => {
+    const order: string[] = [];
+    await render(
+      framed(
+        <ActionSheet
+          title="Room 4"
+          actions={[
+            { key: 'rename', icon: 'edit', label: 'Rename', onPress: () => order.push('rename') },
+            { key: 'remove', icon: 'trash', label: 'Remove', onPress: () => order.push('remove') },
+          ]}
+          onClose={() => order.push('close')}
+        />,
+      ),
+    );
+    await act(async () => fireEvent.press(screen.getByTestId('row-action-rename')));
+    await act(async () => fireEvent.press(screen.getByTestId('row-action-remove')));
+    await act(async () => nativeSheet().props.onDismiss());
+    expect(order).toEqual(['rename', 'close']);
+  });
+
   it('opens a choice page inside the same native sheet without closing it', async () => {
     const onClose = jest.fn();
     await render(
