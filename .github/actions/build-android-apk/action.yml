@@ -136,6 +136,24 @@ runs:
     - if: steps.native.outputs.native == 'built'
       shell: bash
       run: npx expo prebuild --platform android --no-install
+    - name: Check the Gradle wrapper
+      if: steps.native.outputs.native == 'built'
+      shell: bash
+      working-directory: android
+      run: |
+        set -euo pipefail
+        version="$(node -p "require('../plugins/with-gradle-wrapper').gradle.version")"
+        sha256="$(node -p "require('../plugins/with-gradle-wrapper').gradle.sha256")"
+        grep -qx "distributionSha256Sum=$sha256" gradle/wrapper/gradle-wrapper.properties || {
+          echo "::error::gradle-wrapper.properties does not carry the Gradle $version checksum from plugins/with-gradle-wrapper.js"
+          exit 1
+        }
+        ./gradlew --version | tee "$RUNNER_TEMP/gradle-version.txt"
+        actual="$(sed -n 's/^Gradle //p' "$RUNNER_TEMP/gradle-version.txt")"
+        [ "$actual" = "$version" ] || {
+          echo "::error::The Gradle wrapper runs Gradle $actual, expected $version from plugins/with-gradle-wrapper.js"
+          exit 1
+        }
     - name: Assemble release APK
       if: steps.native.outputs.native == 'built'
       shell: bash

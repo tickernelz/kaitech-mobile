@@ -55,6 +55,7 @@
         }
       ],
       "./plugins/with-livekit-gradle",
+      "./plugins/with-gradle-wrapper",
       [
         "@livekit/react-native-expo-plugin",
         {
