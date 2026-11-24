@@ -103,6 +103,7 @@ onFlowStart:
     visible:
       id: com.android.permissioncontroller:id/permission_deny_button
     timeout: 15000
+- waitForAnimationToEnd
 - tapOn:
     id: com.android.permissioncontroller:id/permission_deny_button
 - extendedWaitUntil:
@@ -126,6 +127,7 @@ onFlowStart:
       visible:
         id: com.android.permissioncontroller:id/permission_allow_foreground_only_button
     commands:
+      - waitForAnimationToEnd
       - tapOn:
           id: com.android.permissioncontroller:id/permission_allow_foreground_only_button
 - extendedWaitUntil:
@@ -195,6 +197,17 @@ onFlowStart:
     notVisible:
       id: call-screen
     timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: (call-start|chat-list)
+    timeout: 30000
+- runFlow:
+    when:
+      notVisible:
+        id: call-start
+    commands:
+      - tapOn:
+          text: ${PEER}
 - extendedWaitUntil:
     visible:
       id: call-start

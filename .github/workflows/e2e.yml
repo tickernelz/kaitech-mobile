@@ -208,6 +208,7 @@ jobs:
           flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
           themed-flows: .maestro/themed/tour.yaml
           scroll-flow: .maestro/themed/scroll.yaml
+          layout-check: 'true'
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}
           audio: 'true'
 

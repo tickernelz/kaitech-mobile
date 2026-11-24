@@ -9,6 +9,7 @@ import { useFormatters } from '../../i18n';
 import { readableWidth } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
 import { ToggleRow } from '../../ui/List';
+import { Refresh } from '../../ui/Refresh';
 import { RowActions } from '../../ui/RowActions';
 import { textActions } from '../../ui/textActions';
 import { Text } from '../../ui/Text';
@@ -91,8 +92,7 @@ export function DiscoveryActivities({
       contentContainerStyle={styles.list}
       onScroll={onScroll}
       scrollEventThrottle={16}
-      onRefresh={() => void items.refresh()}
-      refreshing={items.loading && !!items.data}
+      refreshControl={<Refresh refreshing={items.loading && !!items.data} onRefresh={() => void items.refresh()} />}
       ListHeaderComponent={
         <View style={styles.head}>
           {header}
@@ -193,7 +193,7 @@ export function DiscoveryActivities({
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  list: { padding: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
+  list: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   head: { gap: space.md, paddingBottom: space.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, minHeight: 60 },
   icon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },

@@ -417,7 +417,8 @@
     "notUrgent": "Not urgent",
     "urgentOn": "Urgent: the people here get a loud alert",
     "urgentLeft_one": "{{count}} left today",
-    "urgentLeft_other": "{{count}} left today"
+    "urgentLeft_other": "{{count}} left today",
+    "urgentNone": "No urgent messages left today"
   },
   "work": {
     "title": "Coworker work",
