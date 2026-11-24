@@ -17,7 +17,7 @@ on:
         options: [smoke, android, full]
         default: smoke
       account:
-        description: Test account for the signed-in jobs (0 is the original one); empty picks the run number modulo KAITECH_E2E_ACCOUNTS.
+        description: Test account for the rows, MoM and chat jobs (1 to KAITECH_E2E_ACCOUNTS - 1; 0 is kept for the call jobs when there are several); empty rotates by run number.
         type: string
         default: ''
 
@@ -314,8 +314,8 @@ jobs:
 
   android-call:
     name: android call
-    needs: [plan, android-apk, android-rows, android-mom, android-chat]
-    if: always() && (needs.plan.outputs.mode == 'full' || needs.plan.outputs.mode == 'android') && needs.android-apk.result == 'success'
+    needs: [plan, android-apk]
+    if: needs.plan.outputs.mode == 'full' || needs.plan.outputs.mode == 'android'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     concurrency:
