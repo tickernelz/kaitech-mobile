@@ -53,7 +53,7 @@ export function ChatHome() {
   }, [expanded, router]);
 
   const detail = selected ? (
-    <ThreadView key={selected} channelId={selected} twoPane focusMessage={focusedMessage()} onOpenChannel={(id) => selectChannel(id)} />
+    <ThreadView key={selected} channelId={selected} twoPane focusMessage={focusedMessage()} onOpenChannel={(id) => selectChannel(id)} onBack={() => selectChannel(null)} />
   ) : (
     <View style={[styles.placeholder, { backgroundColor: colors.surface2 }]}>
       <View style={styles.faint} importantForAccessibility="no-hide-descendants">

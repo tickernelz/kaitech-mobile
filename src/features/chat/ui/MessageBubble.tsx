@@ -22,6 +22,8 @@ import { RecordingCard } from '../../call/ui/RecordingCard';
 import { callState, startCall } from '../../call/call';
 import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
+import { AgentSaid } from './coworker/Cards';
+import type { AgentCard, CardStore } from '../coworker';
 
 export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
@@ -190,6 +192,8 @@ export const MessageBubble = memo(function MessageBubble({
   onQuotePress,
   onReact,
   onOpenThread,
+  agent = null,
+  agentTag = false,
 }: {
   message: Message;
   mine: boolean;
@@ -203,6 +207,8 @@ export const MessageBubble = memo(function MessageBubble({
   onQuotePress: (id: number) => void;
   onReact: (message: Message, content: string) => void;
   onOpenThread: (message: Message) => void;
+  agent?: CardStore<number, AgentCard> | null;
+  agentTag?: boolean;
 }) {
   const { t } = useTranslation('chat');
   const { colors, scheme } = useTheme();
@@ -270,14 +276,32 @@ export const MessageBubble = memo(function MessageBubble({
   const body = (
     <>
       <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label}>
-        {showAuthor && !mine ? (
-          <Text variant="footnote" numberOfLines={1} style={[styles.bold, { color: authorColor(message.authorId, scheme, colors) }]}>
-            {message.author}
-          </Text>
+        {(showAuthor || (agent && agentTag)) && !mine ? (
+          <View style={styles.authorRow}>
+            {showAuthor ? (
+              <Text variant="footnote" numberOfLines={1} style={[styles.bold, styles.authorName, { color: authorColor(message.authorId, scheme, colors) }]}>
+                {message.author}
+              </Text>
+            ) : null}
+            {agent && agentTag ? (
+              <View style={[styles.agentTag, { backgroundColor: colors.infoBand }]} testID={`agent-tag-${message.id}`}>
+                <Icon name="sparkle" size={12} color={colors.infoInk} />
+                <Text variant="label" tone="infoInk">
+                  {t('thread.agentTag')}
+                </Text>
+              </View>
+            ) : null}
+          </View>
         ) : null}
         <QuoteBlock quote={quote} mine={mine} onPress={message.parentId ? () => onQuotePress(message.parentId as number) : undefined} />
         <Attachments attachments={message.attachments} origin={origin} mine={mine} />
-        {blocks.length ? <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} /> : null}
+        {agent && !removed && !message.translated ? (
+          <AgentSaid store={agent} messageId={message.id}>
+            {blocks.length ? <RichText blocks={blocks} color={colors.ink} tint={colors.surface2} /> : null}
+          </AgentSaid>
+        ) : blocks.length ? (
+          <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} />
+        ) : null}
         {message.translated && message.translation ? (
           <Text variant="label" tone="inkFaint" testID={`translated-${message.id}`}>
             {message.translation.lang ? t('thread.translatedFrom', { lang: message.translation.lang }) : t('thread.translated')}
@@ -432,6 +456,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
   bold: { fontWeight: '600' },
+  authorRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  authorName: { flexShrink: 1 },
+  agentTag: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: space.xs, borderRadius: radius.sm },
   wrap: { paddingHorizontal: space.lg, marginTop: 2, maxWidth: '100%' },
   wrapMine: { alignItems: 'flex-end' },
   wrapTheirs: { alignItems: 'flex-start' },

@@ -28,8 +28,11 @@ onFlowStart:
     commands:
       - tapOn:
           id: programme-switch
+      - scrollUntilVisible:
+          element:
+            id: programme-${PROGRAMME}
       - tapOn:
-          text: ${PROGRAMME}
+          id: programme-${PROGRAMME}
       - extendedWaitUntil:
           visible:
             id: programme-summary

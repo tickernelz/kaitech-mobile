@@ -1,3 +1,5 @@
+import { act, renderHook } from '@testing-library/react-native';
+
 const undo = require('../src/ui/undo') as typeof import('../src/ui/undo');
 
 async function settle() {
@@ -31,6 +33,50 @@ describe('undo window', () => {
     expect(first.revert).not.toHaveBeenCalled();
     jest.advanceTimersByTime(undo.undoWindowMs * 2);
     await settle();
+    expect(second.commit).not.toHaveBeenCalled();
+  });
+
+  it('stops offering Undo as soon as the window closes, while the action is still on its way to the server', async () => {
+    let finish: (ok: boolean) => void = () => undefined;
+    const item = { apply: jest.fn(), revert: jest.fn(), commit: jest.fn(() => new Promise<boolean>((resolve) => (finish = resolve))) };
+    const bar = await renderHook(() => undo.useUndo());
+    await act(async () => {
+      undo.deferUndoable({ label: 'gone', ...item });
+    });
+    expect(bar.result.current?.label).toBe('gone');
+    await act(async () => {
+      jest.advanceTimersByTime(undo.undoWindowMs);
+      await settle();
+    });
+    expect(item.commit).toHaveBeenCalledTimes(1);
+    expect(bar.result.current).toBeNull();
+    await act(async () => {
+      finish(true);
+      await settle();
+    });
+    expect(item.revert).not.toHaveBeenCalled();
+  });
+
+  it('keeps the newer action\'s Undo when an earlier action fails on the server', async () => {
+    let failFirst: (ok: boolean) => void = () => undefined;
+    const first = { apply: jest.fn(), revert: jest.fn(), commit: jest.fn(() => new Promise<boolean>((resolve) => (failFirst = resolve))) };
+    const second = { apply: jest.fn(), revert: jest.fn(), commit: jest.fn(async () => true) };
+    const bar = await renderHook(() => undo.useUndo());
+    await act(async () => {
+      undo.deferUndoable({ label: 'first', ...first });
+      undo.deferUndoable({ label: 'second', ...second });
+    });
+    expect(bar.result.current?.label).toBe('second');
+    await act(async () => {
+      failFirst(false);
+      await settle();
+    });
+    expect(first.revert).toHaveBeenCalledTimes(1);
+    expect(bar.result.current).toEqual(expect.objectContaining({ label: 'second', failed: false }));
+    await act(async () => {
+      undo.undoLast();
+    });
+    expect(second.revert).toHaveBeenCalledTimes(1);
     expect(second.commit).not.toHaveBeenCalled();
   });
 });
