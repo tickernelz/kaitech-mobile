@@ -285,7 +285,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           ? [{ key: 'later', icon: 'clock' as const, label: t('extras.later'), onPress: () => { setSheet(false); if (text.trim() || files.length) setExtra('later'); else onNotice?.(t('extras.laterEmpty')); } }]
           : []),
         ...(hasFeature(features, 'urgent')
-          ? [{ key: 'urgent', icon: 'alert' as const, label: urgent ? t('extras.notUrgent') : t('extras.urgent'), detail: features.urgentLeft !== null ? t('extras.urgentLeft', { count: features.urgentLeft }) : undefined, onPress: () => { setSheet(false); setUrgent((value) => !value); } }]
+          ? [{ key: 'urgent', icon: 'alert' as const, label: urgent ? t('extras.notUrgent') : t('extras.urgent'), detail: features.urgentLeft === null ? undefined : features.urgentLeft < 1 ? t('extras.urgentNone') : t('extras.urgentLeft', { count: features.urgentLeft }), disabled: !urgent && features.urgentLeft !== null && features.urgentLeft < 1, onPress: () => { setSheet(false); setUrgent((value) => !value); } }]
           : []),
       ];
 
