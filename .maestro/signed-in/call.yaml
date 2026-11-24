@@ -199,6 +199,17 @@ onFlowStart:
     timeout: 30000
 - extendedWaitUntil:
     visible:
+      id: (call-start|chat-list)
+    timeout: 30000
+- runFlow:
+    when:
+      notVisible:
+        id: call-start
+    commands:
+      - tapOn:
+          text: ${PEER}
+- extendedWaitUntil:
+    visible:
       id: call-start
     timeout: 30000
 - tapOn:
