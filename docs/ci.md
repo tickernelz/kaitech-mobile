@@ -62,6 +62,8 @@ Adding account `k`:
 
 Rollback: set `KAITECH_E2E_ACCOUNTS` to 1 and every run uses account 0 again; nothing else changes. The Android matrix and the iOS job never sign in (`scripts/e2e-ios.sh` runs only `.maestro/welcome.yaml` and `.maestro/sign-in-form.yaml`, without account values), so they hold no account group: the iOS job queues on its own group `kaitech-e2e-ios`, and a run's Android jobs never wait for another run's iOS job. A job that signs the phone in as `KAITECH_E2E_LOGIN` must take a `kaitech-e2e-account-*` group; the call jobs always use account 0 with the two accounts swapped and take `kaitech-e2e-call` instead. Android and full runs get a group of their own per run at workflow level. Pull request runs use `queue: single`, since GitHub rejects `queue: max` with `cancel-in-progress: true`.
 
+The phone `en-US` call cell also runs the group and channel call (`.maestro/signed-in/call-many.yaml`, see [Calls](calls.md#calls-with-more-people)). Its second web peer is the web user of account 1 (`KAITECH_E2E_WEB_LOGIN_1`, `KAITECH_E2E_WEB_PASSWORD_1`), and it reads the variables `KAITECH_E2E_GROUP_CALL_ID`, `KAITECH_E2E_GROUP_CALL_NAME`, `KAITECH_E2E_CHANNEL_CALL_ID` and `KAITECH_E2E_CHANNEL_CALL_NAME` (lab0 group 1214 and channel 1215, whose members are the two account 0 users and the account 1 web user). Deleting `KAITECH_E2E_GROUP_CALL_ID` turns that stage off.
+
 Pull request runs of the same pull request cancel each other; labelling a pull request with another label does not cancel a running E2E run.
 
 ### Native fingerprint cache

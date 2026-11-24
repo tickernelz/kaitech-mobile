@@ -6,31 +6,49 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readFileSync as read,
 import { tmpdir } from 'node:os';
 import { join as joinPath } from 'node:path';
 
-const statePath = process.env.CALL_PEER_STATE ?? joinPath(tmpdir(), 'kaitech-call-peer.json');
+const baseState = process.env.CALL_PEER_STATE ?? joinPath(tmpdir(), 'kaitech-call-peer.json');
 const action = process.argv[2] ?? 'state';
-const port = Number(process.env.CALL_PEER_PORT ?? 8765);
+const basePort = Number(process.env.CALL_PEER_PORT ?? 8765);
+const count = Number(process.env.CALL_PEERS ?? 1);
+if (!Number.isInteger(count) || count < 1) throw new Error('CALL_PEERS must be a whole number from 1, not ' + process.env.CALL_PEERS);
 
-function config() {
+function peerOf(index) {
+  const suffix = index === 1 ? '' : '_' + index;
+  return {
+    index,
+    loginKey: 'CALL_LOGIN' + suffix,
+    passwordKey: 'CALL_PASSWORD' + suffix,
+    port: basePort + index - 1,
+    statePath: index === 1 ? baseState : baseState.replace(/(\.json)?$/, '-' + index + '.json'),
+  };
+}
+
+function peers() {
+  return Array.from({ length: count }, (_, at) => peerOf(at + 1));
+}
+
+function config(peer) {
   const host = (process.env.CALL_SERVER ?? '').replace(/^https?:\/\//, '').replace(/\/$/, '');
-  const missing = ['CALL_DB', 'CALL_LOGIN', 'CALL_PASSWORD', 'CALL_CHANNEL_ID'].filter((key) => !process.env[key]);
+  const missing = ['CALL_DB', peer.loginKey, peer.passwordKey, 'CALL_CHANNEL_ID'].filter((key) => !process.env[key]);
   if (!host) missing.unshift('CALL_SERVER');
   if (missing.length) throw new Error('missing ' + missing.join(', '));
   return {
     origin: 'https://' + host,
     db: process.env.CALL_DB,
-    login: process.env.CALL_LOGIN,
-    password: process.env.CALL_PASSWORD,
+    login: process.env[peer.loginKey],
+    password: process.env[peer.passwordKey],
     channelId: Number(process.env.CALL_CHANNEL_ID),
     video: process.env.CALL_VIDEO !== '0',
     holdMs: Number(process.env.CALL_PEER_HOLD_MS ?? 0),
+    joinOnCommand: process.env.CALL_PEER_JOIN === 'command',
   };
 }
 
-function writeState(next) {
+function writeState(statePath, next) {
   writeFileSync(statePath, JSON.stringify(next, null, 2));
 }
 
-function readState() {
+function readState(statePath) {
   if (!existsSync(statePath)) return null;
   try {
     return JSON.parse(readFileSync(statePath, 'utf8'));
@@ -77,7 +95,7 @@ const page = [
   '</body></html>',
 ].join('');
 
-const peer = `
+const peerScript = `
 const out = document.getElementById('log');
 const state = { connected: false, participants: [], speakers: [], remoteAudio: 0, audioPlays: 0, recording: false, screens: [], sharing: false, error: null };
 const screens = new Map();
@@ -145,6 +163,7 @@ setInterval(() => {
   fetch('/command').then((answer) => answer.json()).then((command) => {
     if (command && command.share !== undefined) share(command.share);
     if (command && command.camera !== undefined) camera(command.camera);
+    if (command && command.leave && globalThis.room) globalThis.room.disconnect();
   }).catch(() => undefined);
   frames();
 }, 1000);
@@ -229,12 +248,17 @@ async function start(call) {
   }
   ready();
 }
-fetch('/call').then((answer) => answer.json()).then(start).catch((error) => { state.error = String(error); log('no call: ' + error); ready(); });
+function waitForCall() {
+  fetch('/call').then((answer) => answer.json()).then((call) => (call ? start(call) : setTimeout(waitForCall, 500))).catch((error) => { state.error = String(error); log('no call: ' + error); ready(); });
+}
+waitForCall();
 `;
 
 function serve() {
-  const cfg = config();
-  const sessions = { cookie: '', sessionId: 0, state: null, ready: 0, logs: [], room: null, command: {} };
+  const peer = peerOf(Number(process.env.CALL_PEER_INDEX ?? 1));
+  const cfg = config(peer);
+  const { port, statePath } = peer;
+  const sessions = { cookie: '', sessionId: 0, state: null, ready: 0, logs: [], room: null, command: {}, ping: null, joining: null, leftCall: false };
   const framesDir = process.env.CALL_PEER_FRAMES ?? '';
   let frameCount = 0;
   if (framesDir) mkdirSync(framesDir, { recursive: true });
@@ -242,12 +266,33 @@ function serve() {
   let chrome = null;
   let finished = false;
 
+  const report = (extra = {}) => ({ ok: true, pid: sessions.pid, port, sessionId: sessions.sessionId, logs: sessions.logs, state: sessions.state, ...extra });
+
+  const leaveCall = async () => {
+    if (sessions.ping) clearInterval(sessions.ping);
+    sessions.ping = null;
+    sessions.command = { leave: true };
+    if (!sessions.sessionId || sessions.leftCall) return;
+    sessions.leftCall = true;
+    await rpc(cfg.origin, '/mail/rtc/channel/leave_call', { channel_id: cfg.channelId, session_id: sessions.sessionId }, sessions.cookie).catch(() => undefined);
+  };
+
   const server = createServer((request, response) => {
     const path = new URL(request.url ?? '/', 'http://127.0.0.1').pathname;
     if (request.method === 'POST') {
       let body = '';
       request.on('data', (chunk) => { body += chunk; });
       request.on('end', () => {
+        if (path === '/join' || path === '/leave') {
+          response.setHeader('content-type', 'application/json');
+          (path === '/join' ? join() : leaveCall())
+            .then(() => response.end(JSON.stringify({ sessionId: sessions.sessionId })))
+            .catch((error) => {
+              response.statusCode = 500;
+              response.end(JSON.stringify({ error: String(error) }));
+            });
+          return;
+        }
         if (path === '/state') {
           try { sessions.state = JSON.parse(body); } catch { sessions.state = null; }
         }
@@ -291,7 +336,7 @@ function serve() {
     }
     if (path === '/peer.js') {
       response.setHeader('content-type', 'text/javascript');
-      response.end(peer);
+      response.end(peerScript);
       return;
     }
     response.setHeader('content-type', 'text/html');
@@ -302,7 +347,7 @@ function serve() {
   const finish = (payload) => {
     if (finished) return;
     finished = true;
-    writeState(payload);
+    writeState(statePath, payload);
     setTimeout(() => {
       try { chrome.kill('SIGKILL'); } catch { /* already gone */ }
       try { rmSync(chromeDir, { recursive: true, force: true }); } catch { /* already gone */ }
@@ -312,14 +357,50 @@ function serve() {
 
   const failed = (error) => finish({ ok: false, pid: sessions.pid, error: String(error), logs: sessions.logs, state: sessions.state });
 
+  const watchConnect = () => {
+    const limit = Date.now() + 60_000;
+    const timer = setInterval(() => {
+      const peerState = sessions.state;
+      if (sessions.ready && peerState && peerState.connected) {
+        clearInterval(timer);
+        if (cfg.holdMs === 0 && !cfg.joinOnCommand) {
+          finish(report());
+          return;
+        }
+        writeState(statePath, report());
+        return;
+      }
+      if (sessions.ready && peerState && peerState.error) {
+        clearInterval(timer);
+        failed(peerState.error);
+        return;
+      }
+      if (Date.now() > limit) {
+        clearInterval(timer);
+        failed('the peer did not connect in 60s: ' + JSON.stringify(peerState));
+      }
+    }, 250);
+  };
+
+  const join = () => {
+    sessions.joining ??= (async () => {
+      sessions.room = await joinRoom(cfg, sessions.cookie);
+      sessions.sessionId = sessions.room.sessionId;
+      sessions.ping = setInterval(() => {
+        rpc(cfg.origin, '/discuss/channel/ping', { channel_id: cfg.channelId, rtc_session_id: sessions.sessionId, check_rtc_session_ids: [] }, sessions.cookie).catch(() => undefined);
+      }, 20_000);
+      watchConnect();
+    })();
+    return sessions.joining;
+  };
+
   (async () => {
     sessions.pid = process.pid;
     sessions.cookie = await login(cfg);
-    sessions.room = await joinRoom(cfg, sessions.cookie);
-    sessions.sessionId = sessions.room.sessionId;
-    setInterval(() => {
-      rpc(cfg.origin, '/discuss/channel/ping', { channel_id: cfg.channelId, rtc_session_id: sessions.sessionId, check_rtc_session_ids: [] }, sessions.cookie).catch(() => undefined);
-    }, 20_000);
+    if (!cfg.joinOnCommand) {
+      await join();
+      writeState(statePath, { ok: null, pid: sessions.pid, port, room: sessions.room.url, sessionId: sessions.sessionId });
+    }
     const binary = process.env.CHROME_BIN ?? 'google-chrome';
     chrome = spawn(binary, [
       '--headless=new',
@@ -337,112 +418,102 @@ function serve() {
     chrome.on('exit', (code) => {
       if (sessions.ready === 0) failed('chrome exited ' + code + ': ' + stderr.slice(-400));
     });
-    writeState({ ok: null, pid: sessions.pid, port, room: sessions.room.url, sessionId: sessions.sessionId });
-    const limit = Date.now() + 60_000;
-    const timer = setInterval(() => {
-      const peerState = sessions.state;
-      if (sessions.ready && peerState && peerState.connected) {
-        clearInterval(timer);
-        const report = { ok: true, pid: sessions.pid, port, sessionId: sessions.sessionId, logs: sessions.logs, state: peerState };
-        if (cfg.holdMs === 0) {
-          finish(report);
-          return;
-        }
-        writeState(report);
-        return;
-      }
-      if (sessions.ready && peerState && peerState.error) {
-        clearInterval(timer);
-        failed(peerState.error);
-        return;
-      }
-      if (Date.now() > limit) {
-        clearInterval(timer);
-        failed('the peer did not connect in 60s: ' + JSON.stringify(peerState));
-      }
-    }, 250);
+    if (cfg.joinOnCommand) writeState(statePath, report({ waiting: true }));
   })().catch(failed);
 
   process.on('SIGTERM', () => {
-    rpc(cfg.origin, '/mail/rtc/channel/leave_call', { channel_id: cfg.channelId, session_id: sessions.sessionId }, sessions.cookie)
-      .catch(() => undefined)
-      .finally(() => {
-        writeState({ ok: true, pid: sessions.pid, port, sessionId: sessions.sessionId, logs: sessions.logs, state: sessions.state });
-        try { process.kill(-process.pid, 'SIGKILL'); } catch { /* the group is gone */ }
-      });
+    leaveCall().finally(() => {
+      writeState(statePath, report({ left: true }));
+      try { process.kill(-process.pid, 'SIGKILL'); } catch { /* the group is gone */ }
+    });
   });
 }
 
-async function start() {
-  const previous = readState();
-  if (previous?.pid) throw new Error('the peer is already running as ' + previous.pid);
-  writeState({ ok: null, pid: 0, startedAt: Date.now() });
-  const child = spawn(process.execPath, [new URL(import.meta.url).pathname, 'serve'], { detached: true, stdio: 'ignore', env: process.env });
+async function startOne(peer) {
+  const previous = readState(peer.statePath);
+  if (previous?.pid) throw new Error('peer ' + peer.index + ' is already running as ' + previous.pid);
+  writeState(peer.statePath, { ok: null, pid: 0, startedAt: Date.now() });
+  const child = spawn(process.execPath, [new URL(import.meta.url).pathname, 'serve'], { detached: true, stdio: 'ignore', env: { ...process.env, CALL_PEER_INDEX: String(peer.index) } });
   child.unref();
-  writeState({ ok: null, pid: child.pid, startedAt: Date.now(), port });
+  writeState(peer.statePath, { ok: null, pid: child.pid, startedAt: Date.now(), port: peer.port });
   const limit = Date.now() + 90_000;
   while (Date.now() < limit) {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    const current = readState();
+    const current = readState(peer.statePath);
     if (current?.pid !== child.pid) continue;
-    if (current.ok === true) {
-      console.log(JSON.stringify(current, null, 2));
-      return;
-    }
-    if (current.ok === false) throw new Error(current.error);
+    if (current.ok === true) return current;
+    if (current.ok === false) throw new Error('peer ' + peer.index + ': ' + current.error);
   }
-  throw new Error('the peer did not report in 90s');
+  throw new Error('peer ' + peer.index + ' did not report in 90s');
+}
+
+async function start() {
+  const reports = [];
+  for (const peer of peers()) reports.push(await startOne(peer));
+  console.log(JSON.stringify(reports, null, 2));
 }
 
 async function state() {
-  const current = readState();
-  console.log(JSON.stringify({ running: Boolean(current && current.pid), store: current }, null, 2));
+  console.log(JSON.stringify(peers().map((peer) => {
+    const current = readState(peer.statePath);
+    return { peer: peer.index, running: Boolean(current && current.pid), store: current };
+  }), null, 2));
 }
 
-async function leave() {
-  const current = readState();
-  if (!current?.pid) return;
+async function leaveOne(peer) {
+  const current = readState(peer.statePath);
+  if (!current?.pid) return null;
   try { process.kill(current.pid, 'SIGTERM'); } catch { /* already gone */ }
   const limit = Date.now() + 20_000;
   while (Date.now() < limit) {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    const next = readState();
-    if (next?.ok === true || next?.ok === false) {
-      console.log(JSON.stringify(next, null, 2));
-      return;
-    }
+    const next = readState(peer.statePath);
+    if (next?.left || next?.ok === false) return next;
   }
-  throw new Error('the peer did not report its leave in 20s');
+  throw new Error('peer ' + peer.index + ' did not report its leave in 20s');
+}
+
+async function leave() {
+  console.log(JSON.stringify(await Promise.all(peers().map(leaveOne)), null, 2));
 }
 
 async function stop() {
-  const current = readState();
-  if (current?.pid) {
-    try { process.kill(current.pid, 'SIGKILL'); } catch { /* already gone */ }
+  for (const peer of peers()) {
+    const current = readState(peer.statePath);
+    if (current?.pid) {
+      try { process.kill(current.pid, 'SIGKILL'); } catch { /* already gone */ }
+    }
+    rmSync(peer.statePath, { force: true });
   }
-  rmSync(statePath, { force: true });
+}
+
+function runningPeer(index) {
+  const peer = peerOf(Number(index ?? 1));
+  const current = readState(peer.statePath);
+  if (!current?.port) throw new Error('peer ' + peer.index + ' is not running');
+  return current;
 }
 
 async function screen() {
-  const current = readState();
-  if (!current?.port) throw new Error('the peer is not running');
   const on = process.argv[3] === 'on';
+  const current = runningPeer(process.argv[4]);
   await fetch('http://127.0.0.1:' + current.port + '/command', { method: 'POST', body: JSON.stringify({ share: on }) });
   console.log(JSON.stringify({ share: on }));
 }
 
 async function live() {
-  const current = readState();
-  if (!current?.port) throw new Error('the peer is not running');
+  const current = runningPeer(process.argv[3]);
   const answer = await fetch('http://127.0.0.1:' + current.port + '/state');
   console.log(JSON.stringify(await answer.json(), null, 2));
 }
 
 async function logs() {
-  const current = readState();
-  if (!current?.port) throw new Error('the peer is not running');
-  const answer = await fetch('http://127.0.0.1:' + current.port + '/logs');
-  console.log(JSON.stringify(await answer.json(), null, 2));
+  console.log(JSON.stringify(await Promise.all(peers().map(async (peer) => {
+    const current = readState(peer.statePath);
+    if (!current?.port) return { peer: peer.index, logs: null };
+    const answer = await fetch('http://127.0.0.1:' + current.port + '/logs');
+    return { peer: peer.index, logs: await answer.json() };
+  })), null, 2));
 }
 
 const actions = { serve, start, state, leave, stop, screen, live, logs };

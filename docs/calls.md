@@ -43,6 +43,19 @@ CallStyle notification. Answering from the notification opens the app and joins.
 is not. iOS has the in-app ring only: VoIP push and CallKit need an Apple Developer account and entitlements the
 unsigned build does not have, so there the app must be open to ring (marked unverified).
 
+## Calls with more people
+
+Every conversation type (direct chat, group, channel) has one LiveKit room, and the call button shows in all three (`ThreadView.tsx`). Who rings differs, and that is Odoo core, not the app: `discuss.channel._should_invite_members_to_join_call` invites the other members only when the first person joins and only when the conversation is not a channel. A group rings the other members; a channel rings nobody, so members join from the "Call in progress" notice in the thread (`MessageBubble.tsx`, `call-notice-<id>-join`) or the call button.
+
+Limits:
+
+- lab0 LiveKit (`livekit-server` 1.13.11, `/etc/livekit/livekit.yaml`, read 24 November 2026) sets `room.max_participants: 50`, so one call holds at most 50 people. The `kaitech_mobile` addon adds no cap of its own. The media ports are one UDP range for all rooms on the box (`rtc.port_range_start` 50000 to `port_range_end` 50199); how many people that serves at once was not measured.
+- The grid (`src/features/call/grid.ts`) puts 1 to 6 people on one page (up to 2 x 3), then 3 x 3; phones narrower than 400 dp stay at 2 x 3 in portrait. The seventh person on such a phone, or the tenth elsewhere, starts a second page; the active speaker is swapped onto the current page.
+
+What CI proves, on the phone `en-US` call cell (`.maestro/signed-in/call-many.yaml`, after `call.yaml`): two web peers wait in the group `KAITECH_E2E_GROUP_CALL_ID` and two in the channel `KAITECH_E2E_CHANNEL_CALL_ID`, all with the camera off. In the group, the first peer joins, the phone rings in the app, the second peer joins, and the phone answers into a call that already holds both: the grid has three tiles and "People in the call" three rows; then one peer turns its camera on and the other shares a screen, and the camera tile, the shared screen with its "<name>'s screen" label and the people strip show. In the channel, both peers join, the phone gets no ring, opens the channel from the Chat list, joins from the call notice and again sees three people. The first peer is the call cell's usual peer (the phone user of account 0); the second is the web user of account 1, who is signed in on no phone, so its ring reaches no device.
+
+Not tested on a device: calls with more than three people, the second grid page, the tablet and landscape layouts of a group call, and the iOS ring (iOS has the in-app ring only, see above).
+
 ## Trying a call from this machine
 
 `scripts/call-peer.mjs` joins a conversation as a browser peer (headless Chrome with a fake microphone and camera),
@@ -55,6 +68,8 @@ node scripts/call-peer.mjs leave
 ```
 
 It prints the room, the peer session id and what the peer subscribed to, and keeps the peer in the call until `leave`.
+
+`CALL_PEERS=<n>` starts `n` peers in the same conversation, one after another, so peer 1 is the caller: peer `k` signs in with `CALL_LOGIN_<k>` and `CALL_PASSWORD_<k>` (peer 1 with `CALL_LOGIN` and `CALL_PASSWORD`), listens on `CALL_PEER_PORT + k - 1` and keeps its state next to `CALL_PEER_STATE` with a `-<k>` suffix. `leave`, `stop` and `logs` act on all of them; `live <k>` and `screen on|off <k>` on one. With `CALL_PEER_JOIN=command` a peer signs in and opens its page but joins only on `POST /join` to its port, so a flow decides when the phone rings; `POST /leave` leaves the call, and `POST /command` with `{"camera": true}` or `{"share": true}` turns the camera or a drawn screen share on. Maestro flows send these through `.maestro/scripts/call-peer-command.js` (`PEER_PORT`, `PEER_ACTION`, `CAMERA`, `SHARE`).
 
 The whole device check is one command once an emulator boots:
 

@@ -72,7 +72,7 @@ onFlowStart:
 - assertVisible:
     id: call-camera
 - runScript:
-    file: ../scripts/call-peer-camera.js
+    file: ../scripts/call-peer-command.js
     env:
       CAMERA: 'on'
 - extendedWaitUntil:
@@ -84,7 +84,7 @@ onFlowStart:
     env:
       SCREEN: u2-peer-camera
 - runScript:
-    file: ../scripts/call-peer-camera.js
+    file: ../scripts/call-peer-command.js
     env:
       CAMERA: 'off'
 - extendedWaitUntil:
