@@ -13,7 +13,11 @@ fi
 
 account="${E2E_ACCOUNT:-}"
 if [ -z "$account" ]; then
-  account=$((RUN_NUMBER % count))
+  if [ "$count" -eq 1 ]; then
+    account=0
+  else
+    account=$((1 + RUN_NUMBER % (count - 1)))
+  fi
 fi
 case "$account" in
   *[!0-9]*) echo "::error::account must be a whole number, got '$account'"; exit 1 ;;
@@ -21,6 +25,10 @@ esac
 account=$((10#$account))
 if [ "$account" -ge "$count" ]; then
   echo "::error::account $account is not below KAITECH_E2E_ACCOUNTS=$count"
+  exit 1
+fi
+if [ "$account" -eq 0 ] && [ "$count" -gt 1 ]; then
+  echo "::error::account 0 is reserved for the call jobs while KAITECH_E2E_ACCOUNTS=$count; pick 1 to $((count - 1))"
   exit 1
 fi
 
