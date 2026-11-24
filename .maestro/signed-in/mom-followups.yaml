@@ -27,7 +27,7 @@ onFlowStart:
     timeout: 30000
 - tapOn:
     id: setup-name
-- inputText: ${'E2E FU ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
+- inputText: ${'E2E FU ' + RUN}
 - runFlow: ../shared/dismiss-keyboard.yaml
 - scrollUntilVisible:
     element:
@@ -101,13 +101,13 @@ onFlowStart:
     commands:
       - tapOn:
           id: mom-more-sheet-search
-      - inputText: ${'E2E FU ' + DEVICE_SIZE + ' ' + ORIENTATION}
+      - inputText: ${RUN}
 - tapOn:
-    text: ${'E2E FU ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
+    text: ${'E2E FU ' + RUN}
     index: 0
 - tapOn:
     id: followup-name-field
-- inputText: ${'E2E follow-up ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
+- inputText: ${'E2E follow-up ' + RUN}
 - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
     id: followup-owner
@@ -225,7 +225,7 @@ onFlowStart:
       - tapOn:
           id: upload-dismiss
 - tapOn:
-    text: ${'E2E FU ' + DEVICE_SIZE + ' ' + ORIENTATION + ' ' + APP_LANGUAGE}
+    text: ${'E2E FU ' + RUN}
     index: 0
 - extendedWaitUntil:
     visible:
