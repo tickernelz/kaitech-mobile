@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+. scripts/e2e-lease.sh
 
 usage="usage: e2e-android.sh <apk-dir> <output-dir> <locale: en-US|id-ID> <size: phone|tablet> <orientation: portrait|landscape>"
 apk_dir="${1:?$usage}"
@@ -168,6 +169,8 @@ if [ -n "${E2E_LOGIN:-}" ]; then
   node scripts/e2e-prune-devices.mjs | tee "$out/devices-pruned.txt" || echo "the test-account device prune failed; calls ring every stale device" >&2
 fi
 
+hold_server "${GITHUB_RUN_ID:-local} android $cell"
+
 peer_state="$(mktemp -d)/call-peer.json"
 peers_dir="$(mktemp -d)"
 many_peers() {
@@ -291,6 +294,7 @@ if [ "${E2E_CALL_PEER:-}" = 1 ]; then
   call_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
   adb logcat -d -b main,crash -v time --uid="$call_uid" | grep -E 'KaitechCall|ReactNativeJS|AndroidRuntime|Logging|PeerConnection|livekit' | grep -viE 'token|cookie|session_id|password|authorization' | tail -n 600 > "$out/call-logcat.txt" || true
 fi
+release_server
 
 sleep 2
 if [ -n "$audio_log" ]; then
