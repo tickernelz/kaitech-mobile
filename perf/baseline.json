@@ -19,10 +19,10 @@
       "source": "run 44858309277, SHA 57e5846 (exact bytes from the perf artifact): first arm64-v8a-only release APK (ZHA-7362); the universal APK at the same SHA is 159780738"
     },
     "android.js_bundle_bytes": {
-      "value": 6632972,
+      "value": 7629344,
       "maxIncrease": 0.15,
       "unit": "bytes",
-      "source": "run 44824949991, SHA e866df1 (exact bytes from the perf artifact); F2 Calls (ZHA-7240): @livekit/react-native-webrtc 150.2.0 native libraries, livekit-client loaded eagerly by the call screen, the local Android call module and the call screens; was 5840568 at 6cab11b"
+      "source": "run 45347516468, SHA 022a21e (exact bytes from the perf artifact): Liquid Glass on iOS (ZHA-7469: expo-glass-effect, glass tab bar, native sheets, glass app bar); main at 5544c29 was already 7604100 (run 45347361587, +14.6% on the old baseline), so this branch adds 25244 bytes; was 6632972 at e866df1"
     },
     "ios.ipa_bytes": {
       "value": 22884555,
