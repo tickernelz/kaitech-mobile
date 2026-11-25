@@ -104,8 +104,8 @@ jest.mock('../src/auth/session', () => ({ onAccountForgotten: () => () => undefi
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 
 const mockNative = {
-  renderPdfPage: jest.fn(async () => ({ width: 480, height: 679, pages: 12 })),
-  videoFrame: jest.fn(async () => ({ width: 480, height: 270, durationMs: 83000 })),
+  renderPdfPage: jest.fn(async (..._args: unknown[]) => ({ width: 480, height: 679, pages: 12 })),
+  videoFrame: jest.fn(async (..._args: unknown[]) => ({ width: 480, height: 270, durationMs: 83000 })),
 };
 
 
@@ -279,10 +279,10 @@ describe('making previews', () => {
     const video = attachment(14, 'late.mp4', 'video/mp4');
     let finish: () => void = () => undefined;
     mockNative.videoFrame.mockImplementationOnce(
-      (_url: string, _headers: Record<string, string>, _width: number, target: string) =>
+      (...args: unknown[]) =>
         new Promise((resolve) => {
           finish = () => {
-            mockFiles.set(target.replace(/^file:\/+/, ''), 'jpeg');
+            mockFiles.set(String(args[3]).replace(/^file:\/+/, ''), 'jpeg');
             resolve({ width: 480, height: 270, durationMs: 1000 });
           };
         }),
