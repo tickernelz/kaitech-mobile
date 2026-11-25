@@ -155,6 +155,11 @@ onFlowComplete:
     notVisible:
       id: recording-remove
     timeout: 30000
+- extendedWaitUntil:
+    notVisible:
+      text: ${output.meeting}
+    timeout: 15000
+    optional: true
 - runFlow:
     when:
       visible:
