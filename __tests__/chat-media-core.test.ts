@@ -250,6 +250,19 @@ describe('making previews', () => {
     expect(cachedMeta('A', video)).toMatchObject({ width: 480, height: 270, durationMs: 83000 });
   });
 
+  it('asks again after a failed frame read, as when the network dropped, but stops after the second failure', async () => {
+    const video = attachment(13, 'drop.mp4', 'video/mp4');
+    mockNative.videoFrame.mockRejectedValueOnce(new Error('offline')).mockRejectedValueOnce(new Error('offline'));
+    wantPreview(context, video);
+    await flush();
+    wantPreview(context, video);
+    await flush();
+    wantPreview(context, video);
+    await flush();
+    expect(mockNative.videoFrame).toHaveBeenCalledTimes(2);
+    expect(cachedMeta('A', video)).toBeUndefined();
+  });
+
   it('downloads a small PDF to draw its first page and count pages, but never a large one or one the server already drew', async () => {
     const small = attachment(9, 'laporan.pdf', 'application/pdf', { size: 200_000 });
     expect(previewWanted(attachment(10, 'big.pdf', 'application/pdf', { size: pdfAutoBytes + 1 }), 'o')).toBeNull();

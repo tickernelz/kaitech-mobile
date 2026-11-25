@@ -9,11 +9,13 @@ import type { Attachment } from '../types';
 export const pdfAutoBytes = 10 * 1024 * 1024;
 export const previewWidth = 480;
 const parallel = 2;
+const attemptsPerSession = 2;
 
 export type PreviewContext = { accountId: string; origin: string; headers: Record<string, string> };
 
 const queue: (() => Promise<void>)[] = [];
 const asked = new Set<string>();
+const failures = new Map<string, number>();
 let running = 0;
 
 function pump() {
@@ -71,17 +73,24 @@ export function wantPreview(context: PreviewContext, attachment: Attachment) {
   const epoch = epochOf(context.accountId);
   queue.push(async () => {
     if (epoch !== epochOf(context.accountId)) return;
-    if (kind === 'video') {
-      await describeVideo(context, attachment, epoch);
-      return;
+    try {
+      if (kind === 'video') {
+        await describeVideo(context, attachment, epoch);
+        return;
+      }
+      const file = await fetchFile(
+        { accountId: context.accountId, attachmentId: attachment.id, checksum: attachment.checksum },
+        downloadUrl(context.origin, attachment),
+        attachment.name || `file-${attachment.id}.pdf`,
+        context.headers,
+      );
+      await describePdf(context.accountId, attachment, file.uri, epoch);
+    } catch (error) {
+      const failed = (failures.get(id) ?? 0) + 1;
+      failures.set(id, failed);
+      if (failed < attemptsPerSession && epoch === epochOf(context.accountId)) asked.delete(id);
+      throw error;
     }
-    const file = await fetchFile(
-      { accountId: context.accountId, attachmentId: attachment.id, checksum: attachment.checksum },
-      downloadUrl(context.origin, attachment),
-      attachment.name || `file-${attachment.id}.pdf`,
-      context.headers,
-    );
-    await describePdf(context.accountId, attachment, file.uri, epoch);
   });
   pump();
 }
@@ -89,6 +98,7 @@ export function wantPreview(context: PreviewContext, attachment: Attachment) {
 export function forgetPreviews(accountId: string) {
   const prefix = `${accountId}|`;
   for (const id of [...asked]) if (id.startsWith(prefix)) asked.delete(id);
+  for (const id of [...failures.keys()]) if (id.startsWith(prefix)) failures.delete(id);
 }
 
 onAccountForgotten(forgetPreviews);
