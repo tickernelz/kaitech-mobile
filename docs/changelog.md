@@ -2,6 +2,22 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.5.3 - 2026-11-25
+
+### Fixed
+
+- Chat: message bubbles are as wide as their text and at most 80% of the message lane on phones too, yours on the right and everyone else's on the left, like WhatsApp; a wrapped message used to fill the whole row because the 576 dp cap was wider than a phone. On tablets the lane stays centred at 720 dp, so the cap is still 576 dp (#103, ZHA-7809).
+
+### Changed
+
+- E2E: the rows cells post a short and a long message from each side of the test conversation, measure the bubbles against the lane, and delete them again (#103, ZHA-7809).
+- E2E: group and channel calls are proved with two web peers on the phone en-US call cell (#88, ZHA-7721).
+- E2E: a signed-in cell whose sign-in page never opens keeps a screenshot and the sign-in activity log (#97, ZHA-7771).
+
+### Known gaps
+
+- iOS: bubble widths are not verified on an iPhone or the simulator in this release (ZHA-7277).
+
 ## 0.5.2 - 2026-11-24
 
 ### Changed
