@@ -316,7 +316,7 @@ pkill -P "$transport_watcher" 2> /dev/null || true
 kill "$transport_watcher" 2> /dev/null || true
 wait "$transport_watcher" 2> /dev/null || true
 secrets=()
-for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD" ${E2E_SECOND_PEER_LOGIN:+"$E2E_SECOND_PEER_LOGIN"} ${E2E_SECOND_PEER_PASSWORD:+"$E2E_SECOND_PEER_PASSWORD"}; do
+for secret in "${E2E_LOGIN:-}" "${E2E_PASSWORD:-}" "${E2E_WEB_LOGIN:-}" "${E2E_WEB_PASSWORD:-}" ${E2E_SECOND_PEER_LOGIN:+"$E2E_SECOND_PEER_LOGIN"} ${E2E_SECOND_PEER_PASSWORD:+"$E2E_SECOND_PEER_PASSWORD"}; do
   [ -n "$secret" ] && secrets+=(-e "$secret")
 done
 [ "${#secrets[@]}" -gt 0 ] || secrets=(-e $'\x01')
