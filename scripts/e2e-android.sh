@@ -292,7 +292,7 @@ if [ "${E2E_CALL_PEER:-}" = 1 ]; then
     many_peers "$E2E_CHANNEL_CALL_ID" channel 8768 leave > "$out/call-peers-channel.json" 2>&1 || true
   fi
   call_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
-  adb logcat -d -b main,crash -v time --uid="$call_uid" | grep -E 'KaitechCall|ReactNativeJS|AndroidRuntime|Logging|PeerConnection|livekit' | grep -viE 'token|cookie|session_id|password|authorization' | tail -n 600 > "$out/call-logcat.txt" || true
+  adb logcat -d -b main,crash -v time --uid="$call_uid" | grep -E 'KaitechCall|ReactNativeJS|AndroidRuntime|Logging|PeerConnection|livekit' | grep -viE 'token|cookie|session_id|password|authorization' | tail -n 8000 > "$out/call-logcat.txt" || true
 fi
 release_server
 
@@ -346,6 +346,9 @@ else
   done < <(find "$out/maestro" -path '*/assets/*' -name 'cmd-[0-9][0-9][0-9]-*.png' ! -name 'cmd-[0-9][0-9][0-9]-before.png' ! -name 'cmd-[0-9][0-9][0-9]-after.png' ! -name 'cmd-[0-9][0-9][0-9]-diff.png' -print0)
 fi
 node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
+if [ "${E2E_CALL_PEER:-}" = 1 ] && [ -n "${E2E_GROUP_CALL_ID:-}" ]; then
+  node scripts/check-screen-share.mjs "$out"/screenshots/m5-group-peer-screen-*.png "$out"/screenshots/m6-group-peer-screen-again-*.png || status=1
+fi
 
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"

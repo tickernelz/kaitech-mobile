@@ -1,8 +1,8 @@
 diff --git a/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCModule.java b/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCModule.java
-index c8aaa3b..a4cf757 100644
+index c8aaa3b..e5cb30e 100644
 --- a/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCModule.java
 +++ b/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCModule.java
-@@ -495,6 +495,22 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
+@@ -495,6 +495,26 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
          return null;
      }
  
@@ -15,7 +15,11 @@ index c8aaa3b..a4cf757 100644
 +            PeerConnectionObserver pco = mPeerConnectionObservers.valueAt(i);
 +            if (pco.remoteStreams.containsKey(streamReactTag)) {
 +                MediaStreamTrack track = pco.remoteTracks.get(streamTrack.id());
-+                return track instanceof VideoTrack ? (VideoTrack) track : null;
++                if (!(track instanceof VideoTrack)) {
++                    Log.w(TAG, "No receiver video track " + streamTrack.id() + " for stream " + streamReactTag);
++                    return null;
++                }
++                return (VideoTrack) track;
 +            }
 +        }
 +

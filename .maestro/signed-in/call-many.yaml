@@ -156,6 +156,10 @@ onFlowStart:
           visible:
             text: .*'s screen
           timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m6-group-peer-screen-again
 - runScript:
     file: ../scripts/call-peer-command.js
     env:
