@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { invalidate, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
@@ -19,6 +19,7 @@ import { followupBoard, followupStatuses, rescan, type FeedEntry, type FollowupB
 import { MoreSheet } from './MoreSheet';
 import { Line, SmallButton, useMomFormat } from './parts';
 import { Refresh } from '../../ui/Refresh';
+import { notify } from '../../ui/dialog';
 
 type Pane = 'list' | 'team' | 'meetings' | 'updates';
 
@@ -69,9 +70,9 @@ export function FollowupsScreen() {
     try {
       const answer = await rescan(active, programme);
       invalidate(`${active.id}:mom.followups.`);
-      Alert.alert('', t('mom.followups.rescanStarted', { count: answer.meetings }));
+      notify(t('mom.followups.rescanStarted', { count: answer.meetings }));
     } catch (error) {
-      Alert.alert('', errorText(error));
+      notify(errorText(error));
     }
   };
 

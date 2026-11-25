@@ -16,8 +16,7 @@ name: Long recording, part 2 - still recording after the screen was off, finish,
 - tapOn:
     id: recorder-stop
 - tapOn:
-    text: (?i)(finish|selesai)
-    index: -1
+    id: recorder-stop-dialog-confirm
 - extendedWaitUntil:
     visible:
       id: upload-sending

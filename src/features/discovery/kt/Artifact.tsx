@@ -1,7 +1,7 @@
 import { lazy, memo, Suspense, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Linking, ScrollView, StyleSheet, View } from 'react-native';
-import { Modal } from '../../../ui/Modal';
+import { Overlay } from '../../../ui/Overlay';
 import { Pressable } from '../../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';
@@ -78,7 +78,7 @@ function Screen({ versions, start, onClose }: { versions: Version[]; start: Vers
   const shown = versions.find((version) => version.number === picked) ?? start;
   const kept = versions.slice(-MAX_VERSIONS);
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible animationType="slide" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <SafeAreaView style={[styles.screen, { backgroundColor: colors.canvas }]}>
         <View style={styles.head}>
           <View style={shared.grow}>
@@ -125,7 +125,7 @@ function Screen({ versions, start, onClose }: { versions: Version[]; start: Vers
           {origin ? <Tool icon="external" label={t('discovery.block.openWeb')} onPress={() => void Linking.openURL(webChatUrl(origin))} /> : null}
         </View>
       </SafeAreaView>
-    </Modal>
+    </Overlay>
   );
 }
 

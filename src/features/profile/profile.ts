@@ -1,4 +1,4 @@
-import { launchCameraAsync, launchImageLibraryAsync, requestCameraPermissionsAsync, type ImagePickerOptions } from 'expo-image-picker';
+import { getCameraPermissionsAsync, launchCameraAsync, launchImageLibraryAsync, requestCameraPermissionsAsync, type ImagePickerOptions } from 'expo-image-picker';
 import { bearer, bearerFile } from '../../api/odoo';
 import { load, update, useResource } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
@@ -8,6 +8,7 @@ import { shrinkToJpeg } from '../media/shrink';
 import { photoFrom, type Photo } from '../people/photo';
 import { notePhoto } from '../people/photos';
 import { cleanStatus, statusFrom } from '../people/status';
+import { askPermission } from '../../ui/permission';
 
 export type Profile = { userId: number; partnerId: number; name: string; login: string; photo: Photo | null; status: string | null };
 
@@ -84,7 +85,7 @@ export type PhotoSource = 'library' | 'camera';
 const cropOptions: ImagePickerOptions = { mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], shape: 'oval', quality: 1 };
 
 export async function pickProfilePhoto(source: PhotoSource): Promise<string | null> {
-  if (source === 'camera' && !(await requestCameraPermissionsAsync()).granted) return null;
+  if (source === 'camera' && !(await askPermission('camera', getCameraPermissionsAsync, requestCameraPermissionsAsync))) return null;
   const picked = source === 'camera' ? await launchCameraAsync(cropOptions) : await launchImageLibraryAsync(cropOptions);
   const asset = picked.canceled ? null : picked.assets[0];
   if (!asset) return null;

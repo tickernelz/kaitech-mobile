@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
-import { Modal } from '../../ui/Modal';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Overlay } from '../../ui/Overlay';
 import { Pressable } from '../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,6 +32,7 @@ import { assistKey, Scroll, useAssistRun, usePoll } from './assistParts';
 import { ChoiceRow } from './followupParts';
 import { MoreSheet, type MoreAction } from './MoreSheet';
 import { SmallButton } from './parts';
+import { confirm } from '../../ui/dialog';
 
 const approaches = ['ODOO_STANDARD', 'ODOO_CUSTOM', 'NON_ODOO'] as const;
 const efforts = ['LOW', 'MEDIUM', 'HIGH'] as const;
@@ -152,7 +153,7 @@ function Sheet({ onClose, children, testID }: { onClose: () => void; children: R
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <KeyboardAvoidingView behavior="padding" style={styles.fill}>
         <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
           <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID={testID}>
@@ -162,7 +163,7 @@ function Sheet({ onClose, children, testID }: { onClose: () => void; children: R
           </Pressable>
         </Pressable>
       </KeyboardAvoidingView>
-    </Modal>
+    </Overlay>
   );
 }
 
@@ -211,10 +212,9 @@ function ItemSheet({ item, data, meeting, older, onClose }: { item: SolusiItem; 
   const approve = () => {
     const run = () => void action.run('approve', (account) => solusiCall(account, 'approve_solusi_item', item.id, true)).then(done);
     if (data.pendingDecisions.length) {
-      Alert.alert(t('mom.assist.solusi.pendingTitle'), data.pendingDecisions.join('\n'), [
-        { text: t('mom.recorder.cancel'), style: 'cancel' },
-        { text: t('mom.assist.solusi.approve'), onPress: run },
-      ]);
+      void confirm({ title: t('mom.assist.solusi.pendingTitle'), body: data.pendingDecisions.join('\n'), cancel: t('mom.recorder.cancel'), confirm: t('mom.assist.solusi.approve'), icon: 'decision', testID: 'solusi-approve-dialog' }).then((go) => {
+        if (go) run();
+      });
     } else run();
   };
   const load = async (kind: 'reuse' | 'conflicts') => {

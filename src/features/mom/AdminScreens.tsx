@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { invalidate, useResource } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
@@ -32,6 +32,7 @@ import { ChoiceRow } from './followupParts';
 import { McpKeysScreen } from './McpKeysScreen';
 import { MoreSheet } from './MoreSheet';
 import { SmallButton } from './parts';
+import { confirm, notify } from '../../ui/dialog';
 
 export type AdminPart = 'keys' | 'settings' | 'import';
 
@@ -49,7 +50,7 @@ function useAdminRun(key: string) {
       invalidate(`${active.id}:${key}`);
       return answer;
     } catch (error) {
-      Alert.alert('', errorText(error));
+      notify(errorText(error));
       return undefined;
     } finally {
       setBusy('');
@@ -87,7 +88,7 @@ function SettingsForm({ data, refreshing, onRefresh }: { data: Settings; refresh
   const model = (vendor: keyof Settings['transcription']['models']) => (value: string) => setForm((current) => ({ ...current, models: { ...current.models, [vendor]: value } }));
   const test = async () => {
     const answer = await action.run('lark', testLark);
-    if (answer) Alert.alert('', answer.message);
+    if (answer) notify(answer.message);
   };
   return (
     <Scroll refreshing={refreshing} onRefresh={onRefresh}>
@@ -260,11 +261,10 @@ function RunPanel({ run, onBack }: { run: number; onBack: () => void }) {
   const action = useAdminRun('mom.admin.import');
   const data = detail.data;
   if (!data) return <StateView loading={!detail.error} error={detail.error} onRetry={() => void detail.refresh()} testID="import-run" />;
-  const confirmRollBack = () =>
-    Alert.alert(t('mom.admin.import.rollBackTitle'), data.rollbackNote || data.name, [
-      { text: t('mom.recorder.cancel'), style: 'cancel' },
-      { text: t('mom.admin.import.rollBack'), style: 'destructive', onPress: () => void action.run('rollBack', (account) => rollBack(account, run)).then(() => void detail.refresh()) },
-    ]);
+  const confirmRollBack = async () => {
+    const go = await confirm({ title: t('mom.admin.import.rollBackTitle'), body: data.rollbackNote || data.name, cancel: t('mom.recorder.cancel'), confirm: t('mom.admin.import.rollBack'), danger: true, icon: 'retry', testID: 'import-roll-back-dialog' });
+    if (go) void action.run('rollBack', (account) => rollBack(account, run)).then(() => void detail.refresh());
+  };
   return (
     <Scroll refreshing={detail.loading} onRefresh={() => void detail.refresh()}>
       <SmallButton label={t('mom.admin.import.back')} onPress={onBack} testID="import-run-back" />

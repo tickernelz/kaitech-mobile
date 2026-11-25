@@ -2,8 +2,8 @@ import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, FlatList, ScrollView, StyleSheet, View } from 'react-native';
-import { Modal } from '../../ui/Modal';
+import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
+import { Overlay } from '../../ui/Overlay';
 import { Pressable } from '../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,6 +41,7 @@ import { MoreSheet, type MoreAction } from './MoreSheet';
 import { SmallButton } from './parts';
 import { PlayerBar, usePlayback } from './playback';
 import { Refresh } from '../../ui/Refresh';
+import { notify } from '../../ui/dialog';
 
 const pageSize = 150;
 const settleMs = 300;
@@ -62,10 +63,10 @@ export function useEditorRun(recording: number) {
         await work(active);
         invalidate(`${active.id}:${editorKey(recording)}`);
         invalidate(`${active.id}:mom.transcript.${recording}`);
-        if (done) Alert.alert('', done);
+        if (done) notify(done);
         return true;
       } catch (error) {
-        Alert.alert('', errorText(error));
+        notify(errorText(error));
         return false;
       } finally {
         setBusy('');
@@ -288,7 +289,7 @@ function SegmentSheet({ segment, view, editable, onPlay, onClose }: { segment: E
       : []),
   ];
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={page === 'menu' ? onClose : () => setPage('menu')} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible transparent animationType="fade" onRequestClose={page === 'menu' ? onClose : () => setPage('menu')} supportedOrientations={['portrait', 'landscape']}>
       <KeyboardAvoidingView behavior="padding" style={styles.fill}>
         <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
           <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="segment-sheet">
@@ -359,7 +360,7 @@ function SegmentSheet({ segment, view, editable, onPlay, onClose }: { segment: E
           </Pressable>
         </Pressable>
       </KeyboardAvoidingView>
-    </Modal>
+    </Overlay>
   );
 }
 

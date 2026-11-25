@@ -3,7 +3,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { rpc } from '../../../api/odoo';
@@ -17,6 +17,7 @@ import { decimalsOf, useNumbers, type Numbers } from './format';
 import { useThread, type Place } from './place';
 import { isDate, isNumber, SUMMED, type Cell, type Column, type TableBlock, type Tone } from './read';
 import { BlockTitle, seriesColor, Status, Tool, styles as shared } from './ui';
+import { notify } from '../../../ui/dialog';
 
 const FIRST_ROWS = 20;
 const exportFolder = 'kt-export';
@@ -182,13 +183,13 @@ export const KtTable = memo(function KtTable({ block, place, exportable = true, 
   };
   const copy = async () => {
     await Clipboard.setStringAsync(tableMarkdown(numbers, columns, visible, totalRow, t('discovery.block.table.total')));
-    Alert.alert('', t('discovery.block.table.copied'));
+    notify(t('discovery.block.table.copied'));
   };
   const runExport = (fileFormat: 'csv' | 'xlsx') => {
     if (!thread.account || !place || busy) return;
     setBusy(true);
     exportAs(thread.account, place, fileFormat, ordered ? visible.map((row) => row.position) : null)
-      .catch(() => Alert.alert('', t('discovery.block.table.exportFailed')))
+      .catch(() => notify(t('discovery.block.table.exportFailed')))
       .finally(() => setBusy(false));
   };
   return (

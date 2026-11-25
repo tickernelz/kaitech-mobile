@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
-import { Modal } from '../../../ui/Modal';
+import { Overlay } from '../../../ui/Overlay';
 import { Pressable } from '../../../ui/Pressable';
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -171,7 +171,7 @@ export function MoreSheet({
   const insets = useSafeAreaInsets();
   const look = useLook();
   return (
-    <Modal visible={view !== null} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent navigationBarTranslucent>
+    <Overlay visible={view !== null} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent navigationBarTranslucent>
       <Pressable accessibilityRole="button" accessibilityLabel={t('close')} onPress={onClose} style={[styles.backdrop, { backgroundColor: colors.scrim }]} testID="call-sheet-backdrop" />
       <View style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: insets.bottom + space.md }]} testID={`call-sheet-${view ?? 'closed'}`}>
         <View style={[styles.grabber, { backgroundColor: colors.lineStrong }]} />
@@ -235,7 +235,7 @@ export function MoreSheet({
           </ScrollView>
         )}
       </View>
-    </Modal>
+    </Overlay>
   );
 }
 

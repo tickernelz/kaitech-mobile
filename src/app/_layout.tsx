@@ -17,7 +17,8 @@ import { useRecentsGuard } from '../lock/useRecentsGuard';
 import { useTheme } from '../theme';
 import { useReduceMotion } from '../theme/reduceMotion';
 import { useAppliedTheme } from '../features/appearance/appearance';
-import { UndoBar } from '../ui/UndoBar';
+import { DialogLayer } from '../ui/Dialog';
+import { holdDialogs } from '../ui/dialog';
 
 void SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 240, fade: true });
@@ -36,6 +37,7 @@ export default function RootLayout() {
   useAppliedTheme(signedIn ? session.activeId : null);
   useEffect(() => {
     setLocked(signedIn && lock.locked);
+    holdDialogs(signedIn && lock.locked);
   }, [signedIn, lock.locked]);
   const home = !hasAccount ? '/welcome' : session.expired ? '/expired' : session.onboarded ? '/' : '/setup';
 
@@ -85,7 +87,7 @@ export default function RootLayout() {
             <Stack.Screen name="sign-in" />
           </Stack.Protected>
         </Stack>
-        {signedIn && session.onboarded ? <UndoBar /> : null}
+        <DialogLayer root />
         </SafeAreaProvider>
       </View>
       <CallRuntime account={signedIn && session.onboarded ? session.active : null} />

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Modal } from './Modal';
+import { Overlay } from './Overlay';
 import { Pressable } from './Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -97,7 +97,7 @@ export function FormSheet({
     );
   }
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <KeyboardAvoidingView behavior="padding" style={styles.fill}>
         <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('row.close')}>
           <Pressable
@@ -109,7 +109,7 @@ export function FormSheet({
           </Pressable>
         </Pressable>
       </KeyboardAvoidingView>
-    </Modal>
+    </Overlay>
   );
 }
 

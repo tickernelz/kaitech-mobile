@@ -389,7 +389,7 @@ onFlowComplete:
 - tapOn:
     id: thread-action-delete
 - tapOn:
-    text: (?i)(delete thread|hapus thread)
+    id: thread-delete-dialog-confirm
 - runFlow:
     when:
       visible:
@@ -410,7 +410,7 @@ onFlowComplete:
 - tapOn:
     id: thread-action-leave
 - tapOn:
-    text: (?i)(leave|keluar)
+    id: thread-leave-dialog-confirm
 - extendedWaitUntil:
     visible:
       id: chat-list

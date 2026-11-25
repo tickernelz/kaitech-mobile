@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Modal } from '../../../ui/Modal';
+import { Overlay } from '../../../ui/Overlay';
 import { Pressable } from '../../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
@@ -157,7 +157,7 @@ function Screen({ title, summary, picture, onClose }: { title: string; summary: 
   const [zoom, setZoom] = useState(1);
   const step = (by: number) => setZoom(ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, (ZOOMS.indexOf(zoom) === -1 ? 2 : ZOOMS.indexOf(zoom)) + by))]);
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible animationType="slide" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <SafeAreaView style={[styles.screen, { backgroundColor: colors.canvas }]}>
         <View style={styles.screenHead}>
           <Text variant="headline" style={shared.grow} numberOfLines={2}>
@@ -181,7 +181,7 @@ function Screen({ title, summary, picture, onClose }: { title: string; summary: 
           ) : null}
         </ScrollView>
       </SafeAreaView>
-    </Modal>
+    </Overlay>
   );
 }
 
