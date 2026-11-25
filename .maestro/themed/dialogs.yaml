@@ -84,12 +84,13 @@ onFlowStart:
     id: settings-back
 - extendedWaitUntil:
     visible:
-      id: settings
+      id: settings-close
     timeout: 10000
-- back
+- tapOn:
+    id: settings-close
 - extendedWaitUntil:
     visible:
-      id: tab-chat
+      id: tab-button-chat
     timeout: 30000
 - tapOn:
     id: tab-button-chat
