@@ -270,7 +270,7 @@ export const MessageBubble = memo(function MessageBubble({
     .join(', ');
   const body = (
     <>
-      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label}>
+      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} testID={`bubble-${message.id}`}>
         {(showAuthor || (agent && agentTag)) && !mine ? (
           <View style={styles.authorRow}>
             {showAuthor ? (
@@ -415,7 +415,7 @@ export const PendingBubble = memo(function PendingBubble({
   const label = [pending.text, status].filter(Boolean).join(', ');
   return (
     <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`}>
-      <Frame mine label={label} failed={failed}>
+      <Frame mine label={label} failed={failed} testID="bubble-pending">
         {pending.files.map((file) => (
           <PendingFileRow key={file.key} file={file} />
         ))}
