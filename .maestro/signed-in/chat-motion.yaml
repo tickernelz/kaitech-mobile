@@ -1,0 +1,36 @@
+appId: io.kaitech.mobile
+name: Send three messages and fling the thread while the screen is recorded for frame comparison
+tags:
+  - signed-in
+  - motion
+---
+- tapOn:
+    id: composer-input
+- repeat:
+    times: 3
+    commands:
+      - inputText: ${RUN + ' motion'}
+      - tapOn:
+          id: composer-send
+      - extendedWaitUntil:
+          notVisible:
+            id: (pending-queued|pending-sending)
+          timeout: 30000
+      - waitForAnimationToEnd
+- runFlow: ../shared/dismiss-keyboard.yaml
+- waitForAnimationToEnd
+- repeat:
+    times: 6
+    commands:
+      - swipe:
+          start: 50%, 30%
+          end: 50%, 80%
+          duration: 80
+- repeat:
+    times: 6
+    commands:
+      - swipe:
+          start: 50%, 80%
+          end: 50%, 30%
+          duration: 80
+- waitForAnimationToEnd

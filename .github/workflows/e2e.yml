@@ -346,6 +346,7 @@ jobs:
           locale: ${{ matrix.locale }}
           orientations: ${{ matrix.orientations }}
           flows: .maestro/signed-in/message-actions.yaml .maestro/signed-in/thread-actions.yaml .maestro/signed-in/composer-extras.yaml .maestro/signed-in/new-conversation.yaml
+          motion-flow: ${{ matrix.size == 'phone' && '.maestro/signed-in/chat-motion.yaml' || '' }}
           runner: maestro
 
   android-call:
