@@ -95,11 +95,11 @@ describe('panel', () => {
     expect(handleOutcome(5, 0.9, true)).toBe('half');
   });
 
-  it('opens at the last keyboard height, kept within 260 to 360 dp, and 300 dp without one', () => {
+  it('opens at the last keyboard height so the composer does not move, at least 260 dp, and 300 dp without one', () => {
     expect(halfPanelHeight(0)).toBe(300);
     expect(halfPanelHeight(300)).toBe(300);
     expect(halfPanelHeight(200)).toBe(260);
-    expect(halfPanelHeight(420)).toBe(360);
+    expect(halfPanelHeight(420)).toBe(420);
   });
 
   it('orders stickers as favorites, recent, then packs, and skips empty sections', () => {
