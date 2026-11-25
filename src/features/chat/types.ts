@@ -84,6 +84,7 @@ export type PendingFile = {
   size: number;
   voice: boolean;
   durationMs: number | null;
+  waveform?: string | null;
   attachmentId: number | null;
   ownershipToken: string | null;
 };

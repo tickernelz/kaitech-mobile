@@ -118,7 +118,7 @@
       "photos": "Foto & video",
       "files": "Dokumen"
     },
-    "micBusy": "Rapat sedang direkam. Selesaikan dulu untuk merekam pesan suara.",
+    "micBusy": "Mikrofon sedang dipakai rekaman rapat atau panggilan.",
     "uploading": "Mengunggah {{name}}",
     "uploadingPercent": "{{name}} · {{percent}}%",
     "tooBig_one": "{{names}} melebihi batas {{limit}}.",
@@ -145,7 +145,31 @@
     "slideToLock": "Geser ke atas untuk mengunci rekaman",
     "showKeyboard": "Tampilkan keyboard",
     "openPanel": "Emoji, stiker, dan GIF",
-    "recordFailed": "Pesan suara gagal direkam. Coba lagi."
+    "recordFailed": "Pesan suara gagal direkam. Coba lagi.",
+    "micReady": "Izin diberikan. Tahan tombol mikrofon untuk merekam.",
+    "diskFull": "Ruang penyimpanan hampir penuh. Hapus beberapa berkas lalu coba lagi.",
+    "micFailed": "Mikrofon tidak bisa dimulai. Coba lagi.",
+    "voiceSendFailed": "Pesan suara gagal disiapkan. Rekamannya masih tersimpan, coba lagi.",
+    "voiceDiscarded": "Rekaman dibuang",
+    "shortHint": "Tahan untuk merekam, lepas untuk mengirim. Geser ke atas untuk merekam tanpa menahan.",
+    "recordHint": "Tahan untuk merekam. Atau gunakan aksi Rekam untuk merekam tanpa menahan.",
+    "discardVoice": "Buang rekaman",
+    "pauseVoice": "Jeda rekaman",
+    "resumeVoice": "Lanjutkan merekam",
+    "playDraft": "Putar rekaman",
+    "pauseDraft": "Jeda pemutaran",
+    "draftPosition": "{{position}} / {{duration}}",
+    "draftSeek": "Posisi rekaman",
+    "timeLeft": "sisa {{time}}",
+    "recordingElapsed": "Merekam, {{time}}",
+    "interrupted": {
+      "background": "Rekaman dijeda karena aplikasi ditutup. Drafnya aman.",
+      "call": "Rekaman dijeda karena ada panggilan masuk. Dengarkan, lanjutkan, atau kirim.",
+      "limit": "Batas 30 menit tercapai. Dengarkan dulu, lalu kirim.",
+      "device": "Perangkat audio berubah. Rekaman dijeda.",
+      "restored": "Pesan suara yang belum terkirim masih ada."
+    },
+    "cameraHint": "Tahan untuk membuka galeri"
   },
   "voice": {
     "play": "Putar pesan suara",

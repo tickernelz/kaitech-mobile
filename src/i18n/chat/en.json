@@ -118,7 +118,7 @@
       "photos": "Photos & videos",
       "files": "Document"
     },
-    "micBusy": "A meeting is being recorded. Finish it first to record a voice message.",
+    "micBusy": "The microphone is in use by a meeting recording or a call.",
     "uploading": "Uploading {{name}}",
     "uploadingPercent": "{{name}} · {{percent}}%",
     "tooBig_one": "{{names}} is over the {{limit}} limit.",
@@ -145,7 +145,31 @@
     "slideToLock": "Slide up to lock recording",
     "showKeyboard": "Show keyboard",
     "openPanel": "Emoji, stickers and GIFs",
-    "recordFailed": "Couldn't record the voice message. Try again."
+    "recordFailed": "Couldn't record the voice message. Try again.",
+    "micReady": "Microphone allowed. Hold the mic button to record.",
+    "diskFull": "Storage is almost full. Delete some files and try again.",
+    "micFailed": "The microphone couldn't start. Try again.",
+    "voiceSendFailed": "The voice message couldn't be prepared. The recording is still saved, so try again.",
+    "voiceDiscarded": "Recording discarded",
+    "shortHint": "Hold to record, release to send. Slide up to record hands-free.",
+    "recordHint": "Hold to record. Or use the Record action to record hands-free.",
+    "discardVoice": "Discard recording",
+    "pauseVoice": "Pause recording",
+    "resumeVoice": "Continue recording",
+    "playDraft": "Play recording",
+    "pauseDraft": "Pause playback",
+    "draftPosition": "{{position}} / {{duration}}",
+    "draftSeek": "Recording position",
+    "timeLeft": "{{time}} left",
+    "recordingElapsed": "Recording, {{time}}",
+    "interrupted": {
+      "background": "Recording paused because the app was closed. The draft is safe.",
+      "call": "Recording paused because of a call. Listen, continue, or send.",
+      "limit": "The 30-minute limit was reached. Listen first, then send.",
+      "device": "The audio device changed. Recording paused.",
+      "restored": "Your unsent voice message is still here."
+    },
+    "cameraHint": "Hold to open the gallery"
   },
   "voice": {
     "play": "Play voice message",

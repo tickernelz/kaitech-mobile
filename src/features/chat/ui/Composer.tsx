@@ -1,7 +1,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BackHandler, Platform, ScrollView, StyleSheet, TextInput, View, type TextInputSelectionChangeEvent } from 'react-native';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { Pressable } from '../../../ui/Pressable';
 import { KeyboardController, useKeyboardState, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
@@ -15,8 +15,11 @@ import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, useChat, type Outgoing } from '../chat';
 import { cannedQuery, cannedResponses, deleteBefore, markCannedUsed, sendLater, type Canned } from '../composerExtras';
 import { hasFeature } from '../features';
-import { CameraSlot, FieldButton, LockHint, SendMicButton, controlGap } from './composer/Controls';
+import { CameraSlot, FieldButton, LockPill, SendMicButton, ShortHint, controlGap } from './composer/Controls';
 import { sendModeOf } from './composer/gesture';
+import { useVoiceRecorder, type Voice } from './composer/useVoiceRecorder';
+import { DiscardAnimation, InterruptionBanner, VoiceRow, voiceRowPhase } from './composer/VoiceBar';
+import { useScreenReader } from '../../call/ui/useAutoHide';
 import { ComposerPanel } from './composer/Panel';
 import { SendLaterSheet } from './composer/SendLaterSheet';
 import { clearDraft, readDraft, writeDraft } from '../drafts';
@@ -33,8 +36,7 @@ import { photoFrom } from '../../people/photo';
 import { notePhotoList } from '../../people/photos';
 import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
-import { AttachSheet, RecordingStrip, StagedFile, type Extra } from './MediaControls';
-import { useVoiceHold, type Voice } from './useVoiceHold';
+import { AttachSheet, StagedFile, type Extra } from './MediaControls';
 import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 
 type Staged = Outgoing['files'][number];
@@ -304,9 +306,18 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     if (replyTo) setParentId(null);
     void send({ channelId, text: '', parentId: replyTo, mentions: [], files: [voice] }, startedAt).then((key) => delivered(key));
   };
-  const voice = useVoiceHold(sendVoice);
-  const recording = voice.recording;
-  const mode = sendModeOf({ text, files: files.length, locked: recording?.locked === true });
+  const tapMode = useScreenReader();
+  const voice = useVoiceRecorder({ accountId, channelId, tapMode, onSend: sendVoice });
+  const voicePhase = voiceRowPhase(voice);
+  const [discarding, setDiscarding] = useState(false);
+  const cancelled = voice.state.phase === 'cancelled';
+  const [seenCancel, setSeenCancel] = useState(false);
+  if (cancelled !== seenCancel) {
+    setSeenCancel(cancelled);
+    if (cancelled) setDiscarding(true);
+  }
+  const endDiscard = useCallback(() => setDiscarding(false), []);
+  const mode = sendModeOf({ text, files: files.length, locked: voicePhase === 'locked' || voicePhase === 'paused' });
 
   const sendRich = (rich: Rich) => {
     const replyTo = parentId;
@@ -452,11 +463,14 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           ))}
         </ScrollView>
       ) : null}
+      {voice.state.phase === 'paused' ? <InterruptionBanner reason={voice.state.reason} /> : null}
       <View style={styles.row} testID="composer-row">
-        {recording ? (
-          <RecordingStrip recording={recording} onCancel={() => voice.stop(true)} />
+        {voicePhase ? (
+          <Animated.View key="voice" style={styles.group} entering={FadeIn.duration(duration.quick)} exiting={FadeOut.duration(duration.quick)}>
+            <VoiceRow voice={voice} channelId={channelId} />
+          </Animated.View>
         ) : (
-          <>
+          <Animated.View key="compose" style={styles.group} entering={FadeIn.duration(duration.quick).delay(discarding ? 680 : 0)} exiting={FadeOut.duration(duration.quick)}>
             {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />}
             {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
             <FloatingSurface solid={colors.surface} style={[styles.field, glass ? styles.bare : { borderColor: colors.line }]} testID="composer-field">
@@ -491,17 +505,19 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
                 testID={panel ? 'composer-keyboard' : 'composer-panel-toggle'}
               />
             </FloatingSurface>
-            {editing ? null : <CameraSlot shown={mode === 'mic'} onPress={() => void pickFrom('camera')} />}
-          </>
+            {editing ? null : <CameraSlot shown={mode === 'mic'} onPress={() => void pickFrom('camera')} onLongPress={() => void pickFrom('photos')} />}
+          </Animated.View>
         )}
+        {discarding ? <DiscardAnimation onDone={endDiscard} /> : null}
         {editing ? (
           <RoundButton icon="check" label={t('composer.saveEdit')} filled onPress={submit} testID="composer-save-edit" />
         ) : (
-          <SendMicButton mode={mode} voice={voice} onSend={submit} />
+          <SendMicButton mode={mode} voice={voice} tapMode={tapMode} onSend={submit} />
         )}
-        {editing ? null : <LockHint voice={voice} />}
+        {editing ? null : <LockPill voice={voice} />}
+        {editing ? null : <ShortHint shown={voice.hint} />}
       </View>
-      {markup.showBar && !recording ? <FormatBar onApply={markup.apply} onHide={markup.hide} /> : null}
+      {markup.showBar && !voicePhase ? <FormatBar onApply={markup.apply} onHide={markup.hide} /> : null}
       {panel ? (
         <Animated.View style={[styles.panelClip, panelStyle]}>
           <View style={{ height: searching ? searchHeight : panelHeight }}>
@@ -528,6 +544,7 @@ const styles = StyleSheet.create({
   container: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm, paddingHorizontal: space.sm, gap: space.sm },
   bare: { borderWidth: 0, borderTopWidth: 0 },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: controlGap },
+  group: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: controlGap },
   panelClip: { overflow: 'hidden', marginHorizontal: -space.sm },
   round: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingLeft: space.md, paddingRight: space.sm },

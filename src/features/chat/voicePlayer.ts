@@ -42,6 +42,18 @@ export function useVoice(): VoiceState {
   );
 }
 
+async function load(id: string, uri: string, headers?: Record<string, string>): Promise<AudioPlayer> {
+  await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: meetingRecording() });
+  subscription?.remove();
+  player?.remove();
+  const made = createAudioPlayer({ uri, headers }, { updateInterval: 250 });
+  player = made;
+  made.setPlaybackRate(state.rate);
+  subscription = made.addListener('playbackStatusUpdate', onStatus);
+  set({ id, playing: false, position: 0, duration: 0, loading: true });
+  return made;
+}
+
 export async function toggleVoice(id: string, uri: string, headers?: Record<string, string>) {
   if (state.id === id && player) {
     startWhenLoaded = false;
@@ -49,15 +61,25 @@ export async function toggleVoice(id: string, uri: string, headers?: Record<stri
     else player.play();
     return;
   }
-  await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: meetingRecording() });
-  subscription?.remove();
-  player?.remove();
-  player = createAudioPlayer({ uri, headers }, { updateInterval: 250 });
-  player.setPlaybackRate(state.rate);
-  subscription = player.addListener('playbackStatusUpdate', onStatus);
-  set({ id, playing: false, position: 0, duration: 0, loading: true });
+  const made = await load(id, uri, headers);
   startWhenLoaded = true;
-  player.play();
+  made.play();
+}
+
+export async function seekVoice(id: string, uri: string, positionMs: number) {
+  const made = state.id === id && player ? player : await load(id, uri);
+  await made.seekTo(Math.max(0, positionMs) / 1000);
+  set({ position: Math.max(0, positionMs) });
+}
+
+export function releaseVoice(id: string) {
+  if (state.id !== id) return;
+  startWhenLoaded = false;
+  subscription?.remove();
+  subscription = null;
+  player?.remove();
+  player = null;
+  set({ id: null, playing: false, position: 0, duration: 0, loading: false });
 }
 
 export function cycleVoiceRate() {

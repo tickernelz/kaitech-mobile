@@ -147,7 +147,7 @@ export class ChatClient {
         uploadType: UploadType.MULTIPART,
         fieldName: 'file',
         mimeType: file.mimetype,
-        parameters: { channel_id: String(channelId), key: file.key, ...(file.voice ? { voice: 'true', ...voiceSeconds(file.durationMs) } : {}) },
+        parameters: { channel_id: String(channelId), key: file.key, ...(file.voice ? { voice: 'true', ...voiceSeconds(file.durationMs), ...(file.waveform ? { waveform: file.waveform } : {}) } : {}) },
         headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(this.account.db ? { 'X-Odoo-Database': this.account.db } : {}) },
         signal: controller.signal,
         ...(onProgress ? { onProgress: ({ bytesSent, totalBytes }: UploadProgress) => totalBytes > 0 && onProgress(bytesSent / totalBytes) } : {}),

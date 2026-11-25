@@ -4,9 +4,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import '../src/i18n';
 
 const mockSend = jest.fn(async () => 'key');
-const mockStop = jest.fn();
+const mockSendVoice = jest.fn();
+const mockDiscard = jest.fn();
 const mockStartLocked = jest.fn();
-let mockRecording: { started: number; elapsed: number; offset: number; lift: number; locked: boolean } | null = null;
+let mockVoiceState: { phase: string; locked?: boolean; reason?: string | null } = { phase: 'idle' };
 
 jest.mock('react-native-reanimated', () => {
   const { View } = jest.requireActual('react-native');
@@ -15,6 +16,11 @@ jest.mock('react-native-reanimated', () => {
     __esModule: true,
     default: { View },
     Easing: chain(),
+    FadeIn: chain(),
+    FadeOut: chain(),
+    withRepeat: (value: unknown) => value,
+    withSequence: (...values: unknown[]) => values[values.length - 1],
+    withDelay: (_delay: number, value: unknown) => value,
     interpolate: (value: number, input: number[], output: number[]) => output[0] + ((value - input[0]) / (input[1] - input[0])) * (output[1] - output[0]),
     useReducedMotion: () => true,
     useSharedValue: (value: unknown) => ({ get: () => value, set: () => undefined }),
@@ -50,9 +56,33 @@ jest.mock('../src/features/chat/drafts', () => ({ readDraft: () => ({ text: '', 
 jest.mock('../src/features/chat/push', () => ({ askForPushOnce: jest.fn() }));
 jest.mock('../src/features/chat/limits', () => ({ useUploadLimit: () => null }));
 jest.mock('../src/features/chat/files', () => ({ dropFile: jest.fn(), stageFile: jest.fn() }));
-jest.mock('../src/features/chat/ui/useVoiceHold', () => ({
-  useVoiceHold: () => ({ recording: mockRecording, hold: {}, startLocked: mockStartLocked, stop: mockStop }),
-}));
+jest.mock('../src/features/chat/ui/composer/useVoiceRecorder', () => {
+  const { ClockStore } = jest.requireActual('../src/features/chat/voice/clock');
+  const clock = new ClockStore();
+  const value = (initial: number) => ({ get: () => initial, set: () => undefined });
+  return {
+    useVoiceRecorder: () => ({
+      state: mockVoiceState,
+      clock,
+      dx: value(0),
+      dy: value(0),
+      level: value(0),
+      hint: false,
+      draftUri: null,
+      hold: {},
+      startLocked: mockStartLocked,
+      pause: jest.fn(),
+      resume: jest.fn(),
+      send: mockSendVoice,
+      discard: mockDiscard,
+    }),
+  };
+});
+jest.mock('../src/features/chat/voicePlayer', () => ({ useVoice: () => ({ id: null, playing: false, position: 0, duration: 0, rate: 1, loading: false }), toggleVoice: jest.fn(), seekVoice: jest.fn(), stopVoice: jest.fn() }));
+jest.mock('../src/features/chat/ui/useVoiceHold', () => ({ cancelDistance: 96, useVoiceHold: jest.fn() }));
+jest.mock('react-native-svg', () => ({ __esModule: true, default: () => null, Path: () => null }));
+jest.mock('../src/features/call/call', () => ({ callState: () => ({ phase: 'idle' }), subscribeCall: () => () => undefined }));
+jest.mock('../src/features/call/ui/useAutoHide', () => ({ useScreenReader: () => false }));
 jest.mock('../src/features/chat/ui/composer/Panel', () => ({ ComposerPanel: () => null }));
 
 const { Composer } = require('../src/features/chat/ui/Composer') as typeof import('../src/features/chat/ui/Composer');
@@ -75,7 +105,7 @@ function visible(testID: string): boolean {
 }
 
 beforeEach(() => {
-  mockRecording = null;
+  mockVoiceState = { phase: 'idle' };
   mockSend.mockClear();
 });
 
@@ -128,15 +158,27 @@ describe('adaptive composer', () => {
     expect(visible('composer-mic')).toBe(true);
   });
 
-  it('turns the locked recording into cancel and send controls', async () => {
-    mockRecording = { started: 0, elapsed: 4200, offset: 0, lift: 0, locked: true };
+  it('turns a locked recording into discard, pause and send-voice controls in the same 44 dp row', async () => {
+    mockVoiceState = { phase: 'recording', locked: true };
     await show();
     expect(screen.getByTestId('voice-recording-locked')).toBeTruthy();
+    expect(screen.queryByTestId('composer-attach')).toBeNull();
     expect(visible('composer-send-voice')).toBe(true);
-    await fireEvent.press(screen.getByTestId('voice-cancel'));
-    expect(mockStop).toHaveBeenCalledWith(true);
+    expect(visible('composer-mic')).toBe(false);
+    await fireEvent.press(screen.getByTestId('voice-discard'));
+    expect(mockDiscard).toHaveBeenCalledTimes(1);
     await fireEvent.press(screen.getByTestId('composer-send-voice'));
-    expect(mockStop).toHaveBeenCalledWith(false);
+    expect(mockSendVoice).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('composer-send-slot', hidden).props.style).toMatchObject({ width: 44, height: 44 });
+  });
+
+  it('shows the paused draft with its interruption banner and the send-voice button', async () => {
+    mockVoiceState = { phase: 'paused', reason: 'call' };
+    await show();
+    expect(screen.getByTestId('voice-paused')).toBeTruthy();
+    expect(screen.getByTestId('voice-interrupted-call')).toBeTruthy();
+    expect(screen.getByTestId('voice-draft-play')).toBeTruthy();
+    expect(visible('composer-send-voice')).toBe(true);
   });
 
   it('switches the field button between the panel and the keyboard', async () => {

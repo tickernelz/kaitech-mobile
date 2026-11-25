@@ -2,7 +2,7 @@ import { ChatClient } from '../src/features/chat/api';
 import { deleteBefore, pageOf, shelfOf } from '../src/features/chat/composerExtras';
 import { messagePatches, messagesFromStore } from '../src/features/chat/odoo';
 import { gifFrom, richOf, richPostData, stickerFrom } from '../src/features/chat/rich';
-import { dragTo, releaseOf, sendModeOf, type Drag } from '../src/features/chat/ui/composer/gesture';
+import { dragFrom, dragTo, releaseOf, sendModeOf, tooShort } from '../src/features/chat/ui/composer/gesture';
 
 const mockRoute = jest.fn();
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
@@ -38,32 +38,39 @@ describe('send button mode', () => {
 });
 
 describe('voice hold gesture', () => {
-  const start: Drag = { x: 300, y: 700, dx: 0, dy: 0, locked: false };
+  const start = dragFrom(300, 700);
 
-  it('sends on release without movement', () => {
-    expect(releaseOf(dragTo(start, 302, 690))).toBe('send');
+  it('ignores movement inside the 12 dp direction slop', () => {
+    const moved = dragTo(start, 300 - 8, 700 - 8);
+    expect(moved).toMatchObject({ axis: 'none', dx: 0, dy: 0, locked: false });
+    expect(releaseOf(moved)).toBe('send');
   });
 
-  it('cancels after sliding left past the cancel distance', () => {
-    const moved = dragTo(start, 180, 690);
-    expect(moved.locked).toBe(false);
-    expect(releaseOf(moved)).toBe('cancel');
+  it('cancels from exactly 96 dp to the left, not 95', () => {
+    expect(releaseOf(dragTo(start, 300 - 95, 700))).toBe('send');
+    expect(releaseOf(dragTo(start, 300 - 96, 700))).toBe('cancel');
   });
 
-  it('locks after sliding up and keeps recording on release', () => {
-    const halfway = dragTo(start, 298, 650);
-    expect(halfway.locked).toBe(false);
-    expect(halfway.dy).toBe(-50);
-    const locked = dragTo(halfway, 298, 610);
+  it('locks from exactly 64 dp up, not 63, and keeps recording on release', () => {
+    expect(dragTo(start, 300, 700 - 63).locked).toBe(false);
+    const locked = dragTo(start, 300, 700 - 64);
     expect(locked.locked).toBe(true);
     expect(releaseOf(locked)).toBe('keep');
-    expect(dragTo(locked, 100, 700)).toBe(locked);
+    expect(dragTo(locked, 0, 700)).toBe(locked);
   });
 
-  it('does not lock while the finger travels mostly sideways', () => {
-    const moved = dragTo(start, 150, 620);
-    expect(moved.locked).toBe(false);
-    expect(releaseOf(moved)).toBe('cancel');
+  it('keeps the first axis, so a diagonal never both locks and cancels', () => {
+    const sideways = dragTo(dragTo(start, 300 - 20, 700 - 5), 300 - 120, 700 - 120);
+    expect(sideways).toMatchObject({ axis: 'x', dy: 0, locked: false });
+    expect(releaseOf(sideways)).toBe('cancel');
+    const upward = dragTo(dragTo(start, 300 - 5, 700 - 20), 300 - 150, 700 - 30);
+    expect(upward).toMatchObject({ axis: 'y', dx: 0 });
+    expect(releaseOf(upward)).toBe('send');
+  });
+
+  it('treats under 1000 ms as too short and 1000 ms as a message', () => {
+    expect(tooShort(999)).toBe(true);
+    expect(tooShort(1000)).toBe(false);
   });
 });
 
