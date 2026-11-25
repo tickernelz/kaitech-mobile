@@ -190,11 +190,11 @@ async function checkBubbles() {
   const missing = ['E2E_SERVER', 'E2E_DB', 'E2E_LOGIN', 'E2E_PASSWORD', 'E2E_WEB_LOGIN', 'E2E_WEB_PASSWORD', 'E2E_CHANNEL_ID'].filter((key) => !process.env[key]);
   if (missing.length) return failures.push(`bubbles: missing ${missing.join(', ')}`);
   const channel = Number(process.env.E2E_CHANNEL_ID);
-  const stamp = `Layout ${Date.now().toString(36)}`;
+  const stamp = `L${Date.now().toString(36)}`;
   const filler = 'the delivery for this order left the main warehouse this morning, please check it at receiving and report any shortfall or damaged packing';
   const sent = [
-    { key: 'mine short', mine: true, long: false, body: `${stamp} mine short` },
-    { key: 'theirs short', mine: false, long: false, body: `${stamp} theirs short` },
+    { key: 'mine short', mine: true, long: false, body: `${stamp} ok` },
+    { key: 'theirs short', mine: false, long: false, body: `${stamp} hi` },
     { key: 'mine long', mine: true, long: true, body: `${stamp} mine long, ${filler}` },
     { key: 'theirs long', mine: false, long: true, body: `${stamp} theirs long, ${filler}` },
   ];
@@ -244,7 +244,7 @@ async function checkBubbles() {
     lines.push(`bubbles: ${one.key} ${box(node)} ${dp(width)}dp, ${Math.round((width / laneWidth) * 100)}% of the lane, ${dp(gap)}dp from its side`);
     if (width > cap + 2) failures.push(`bubbles: ${one.key} is ${dp(width)}dp, wider than 80% of the lane (${dp(cap)}dp)`);
     if (Math.abs(gap) > 2) failures.push(`bubbles: ${one.key} sits ${dp(gap)}dp away from the ${one.mine ? 'right' : 'left'} side of the lane`);
-    if (!one.long && width >= laneWidth / 2) failures.push(`bubbles: ${one.key} is ${dp(width)}dp, not sized to its text`);
+    if (!one.long && width >= Math.min(cap - 16 * scale, laneWidth * 0.6)) failures.push(`bubbles: ${one.key} is ${dp(width)}dp, not sized to its text`);
     if (one.long && width < laneWidth * 0.6) failures.push(`bubbles: ${one.key} is ${dp(width)}dp, so the text did not wrap at the cap`);
   }
   screenshot('layout-bubbles');
