@@ -173,10 +173,22 @@ fi
 hold_server "${GITHUB_RUN_ID:-local} android $cell"
 
 peer_state="$(mktemp -d)/call-peer.json"
+peers_dir="$(mktemp -d)"
+many_peers() {
+  CALL_PEERS=2 CALL_PEER_JOIN=command CALL_VIDEO=0 CALL_LOGIN_2="$E2E_SECOND_PEER_LOGIN" CALL_PASSWORD_2="$E2E_SECOND_PEER_PASSWORD" \
+    CALL_CHANNEL_ID="$1" CALL_PEER_STATE="$peers_dir/$2.json" CALL_PEER_PORT="$3" node scripts/call-peer.mjs "$4"
+}
+stop_peers() {
+  node scripts/call-peer.mjs stop >/dev/null 2>&1 || true
+  if [ -n "${E2E_GROUP_CALL_ID:-}" ]; then
+    many_peers "$E2E_GROUP_CALL_ID" group 8766 stop >/dev/null 2>&1 || true
+    many_peers "$E2E_CHANNEL_CALL_ID" channel 8768 stop >/dev/null 2>&1 || true
+  fi
+}
 if [ "${E2E_CALL_PEER:-}" = 1 ]; then
   export CALL_SERVER="$E2E_SERVER" CALL_DB="$E2E_DB" CALL_LOGIN="$E2E_WEB_LOGIN" CALL_PASSWORD="$E2E_WEB_PASSWORD"
   export CALL_CHANNEL_ID="$E2E_CHANNEL_ID" CALL_VIDEO=1 CALL_PEER_HOLD_MS=1 CALL_PEER_STATE="$peer_state" CALL_PEER_PORT=8765
-  trap 'node scripts/call-peer.mjs stop >/dev/null 2>&1 || true' EXIT
+  trap stop_peers EXIT
   if [ ! -f node_modules/livekit-client/dist/livekit-client.umd.js ]; then
     livekit="$(node -p "require('./package-lock.json').packages['node_modules/livekit-client'].version")"
     peer_modules="$(mktemp -d)"
@@ -264,6 +276,22 @@ fi
 
 if [ "${E2E_CALL_PEER:-}" = 1 ]; then
   node scripts/call-peer.mjs leave > "$out/call-peer.json" 2>&1 || true
+  if [ -n "${E2E_GROUP_CALL_ID:-}" ]; then
+    if many_peers "$E2E_GROUP_CALL_ID" group 8766 start > "$out/call-peers-start.json" 2>&1 &&
+      many_peers "$E2E_CHANNEL_CALL_ID" channel 8768 start >> "$out/call-peers-start.json" 2>&1; then
+      "${run[@]}" test .maestro/signed-in/call-many.yaml \
+        -e APP_LANGUAGE="$language" -e DEVICE_SIZE="$size" -e ORIENTATION="$orientation" \
+        "${signed_in[@]}" \
+        -e GROUP_NAME="$E2E_GROUP_CALL_NAME" -e CHANNEL_NAME="$E2E_CHANNEL_CALL_NAME" \
+        -e GROUP_PEER_1=8766 -e GROUP_PEER_2=8767 -e CHANNEL_PEER_1=8768 -e CHANNEL_PEER_2=8769 \
+        --format junit --output "$out/junit-call-many.xml" --test-output-dir "$out/maestro/call-many" || status=$?
+    else
+      echo "::error::the group and channel call peers did not start; see call-peers-start.json"
+      status=1
+    fi
+    many_peers "$E2E_GROUP_CALL_ID" group 8766 leave > "$out/call-peers-group.json" 2>&1 || true
+    many_peers "$E2E_CHANNEL_CALL_ID" channel 8768 leave > "$out/call-peers-channel.json" 2>&1 || true
+  fi
   call_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
   adb logcat -d -b main,crash -v time --uid="$call_uid" | grep -E 'KaitechCall|ReactNativeJS|AndroidRuntime|Logging|PeerConnection|livekit' | grep -viE 'token|cookie|session_id|password|authorization' | tail -n 600 > "$out/call-logcat.txt" || true
 fi
@@ -323,8 +351,8 @@ node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$l
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name signin.txt ! -name scroll-gfxinfo.txt ! -name layout.txt ! -name call-peer.json ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
-  for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
+  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name signin.txt ! -name scroll-gfxinfo.txt ! -name layout.txt ! -name call-peer.json ! -name 'call-peers-*.json' ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD" ${E2E_SECOND_PEER_LOGIN:+"$E2E_SECOND_PEER_LOGIN"} ${E2E_SECOND_PEER_PASSWORD:+"$E2E_SECOND_PEER_PASSWORD"}; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2
       rm -rf "$out"
