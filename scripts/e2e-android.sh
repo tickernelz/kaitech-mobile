@@ -132,6 +132,11 @@ if adb shell pm path io.kaitech.mobile 2>/dev/null | grep -q '^package:'; then
 fi
 adb logcat -c
 adb install -r "$apk"
+for asset in .maestro/assets/device/*; do
+  [ -f "$asset" ] || continue
+  adb push "$asset" "/sdcard/Download/$(basename "$asset")" > /dev/null
+  adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file:///sdcard/Download/$(basename "$asset")" > /dev/null
+done
 adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' | head -2 | tee "$out/installed.txt"
 
 activity="$(adb shell cmd package resolve-activity --brief io.kaitech.mobile | tr -d '\r' | tail -1)"

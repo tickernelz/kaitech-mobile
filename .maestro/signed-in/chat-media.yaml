@@ -1,0 +1,156 @@
+appId: io.kaitech.mobile
+name: Chat media - send a photo, a video, a PDF and a document, see each preview, play the video, read the PDF and download the document
+tags:
+  - signed-in
+  - chat-actions
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      text: ${PEER}
+    timeout: 60000
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- runFlow:
+    file: ../shared/attach-device-file.yaml
+    env:
+      FILE: kaitech-e2e-photo.jpg
+- runFlow:
+    file: ../shared/attach-device-file.yaml
+    env:
+      FILE: kaitech-e2e-video.mp4
+- runFlow:
+    file: ../shared/attach-device-file.yaml
+    env:
+      FILE: kaitech-e2e-report.pdf
+- runFlow:
+    file: ../shared/attach-device-file.yaml
+    env:
+      FILE: kaitech-e2e-notes.docx
+- tapOn:
+    id: composer-input
+- inputText: ${RUN + ' m1'}
+- tapOn:
+    id: composer-send
+- extendedWaitUntil:
+    notVisible:
+      id: (pending-queued|pending-sending|pending-progress)
+    timeout: 180000
+- runFlow: ../shared/dismiss-keyboard.yaml
+- extendedWaitUntil:
+    visible:
+      id: media-video
+    timeout: 60000
+- extendedWaitUntil:
+    visible:
+      id: video-duration
+      text: 0:06
+    timeout: 60000
+- assertVisible:
+    id: media-photo
+- scrollUntilVisible:
+    element:
+      text: .*2 (pages|halaman).*
+    direction: UP
+    timeout: 60000
+- assertVisible:
+    id: pdf-preview
+- scrollUntilVisible:
+    element:
+      id: media-file
+    direction: UP
+- assertVisible:
+    text: .*DOCX.*
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m1-previews
+- tapOn:
+    id: file-download
+- extendedWaitUntil:
+    visible:
+      id: attachment-share
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: media-video
+    direction: DOWN
+- tapOn:
+    id: media-video
+- extendedWaitUntil:
+    visible:
+      id: media-viewer
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: video-state
+      text: (Playing|Sedang diputar)
+    timeout: 45000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m2-video-playing
+- tapOn:
+    id: viewer-close
+- scrollUntilVisible:
+    element:
+      id: media-photo
+    direction: DOWN
+- tapOn:
+    id: media-photo
+- extendedWaitUntil:
+    visible:
+      id: viewer-photo
+    timeout: 10000
+- assertVisible:
+    id: viewer-counter
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m3-photo-viewer
+- swipe:
+    direction: RIGHT
+- extendedWaitUntil:
+    visible:
+      id: video-state
+    timeout: 20000
+- tapOn:
+    id: viewer-close
+- scrollUntilVisible:
+    element:
+      id: media-pdf
+    direction: UP
+- tapOn:
+    id: media-pdf
+- extendedWaitUntil:
+    visible:
+      id: pdf-page-1
+    timeout: 60000
+- assertVisible:
+    text: (Page|Halaman) 1 (of|dari) 2
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m4-pdf-reader
+- tapOn:
+    id: pdf-close
+- assertVisible:
+    id: composer-input

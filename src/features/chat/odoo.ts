@@ -1,5 +1,5 @@
 import { photoFrom, type Photo } from '../people/photo';
-import type { Attachment, CallRecord, Conversation, ConversationType, LastMessage, Member, Message, Reaction } from './types';
+import type { Attachment, CallRecord, Conversation, ConversationType, LastMessage, Member, Message, Reaction, ServerMedia } from './types';
 
 type Raw = Record<string, unknown>;
 
@@ -109,9 +109,26 @@ export function conversationPhotos(body: unknown): [number, Photo | null][] {
   return out;
 }
 
+function positive(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.round(value) : undefined;
+}
+
+function serverMedia(value: Raw): ServerMedia | undefined {
+  const media: ServerMedia = {
+    width: positive(value.kaitech_mobile_width),
+    height: positive(value.kaitech_mobile_height),
+    durationMs: positive(value.kaitech_mobile_duration_ms),
+    pages: positive(value.kaitech_mobile_pages),
+    thumbnail: value.has_thumbnail === true ? { token: text(value.thumbnail_access_token) || null } : undefined,
+  };
+  const known = Object.fromEntries(Object.entries(media).filter(([, field]) => field !== undefined)) as ServerMedia;
+  return Object.keys(known).length ? known : undefined;
+}
+
 function attachmentFrom(value: Raw): Attachment | null {
   const attachmentId = id(value.id);
   if (!attachmentId) return null;
+  const media = serverMedia(value);
   return {
     id: attachmentId,
     name: text(value.name),
@@ -121,6 +138,7 @@ function attachmentFrom(value: Raw): Attachment | null {
     accessToken: text(value.raw_access_token) || null,
     checksum: text(value.checksum) || null,
     url: value.type === 'url' ? text(value.url) || null : null,
+    ...(media ? { media } : {}),
   };
 }
 

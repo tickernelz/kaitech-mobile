@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
@@ -14,8 +14,8 @@ import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { UploadProgress } from './MediaControls';
 import { RichText } from './RichText';
-import { useCookie } from './useCookie';
-import { useOpenAttachment } from './useOpenAttachment';
+import { MediaAttachment } from './media/Tiles';
+import { tileMax } from '../media/kind';
 import { VoiceNote } from './VoiceNote';
 import { recordingIdOf } from '../../call/recording';
 import { RecordingCard } from '../../call/ui/RecordingCard';
@@ -29,75 +29,7 @@ export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
 
 export const bubbleMaxWidth = Math.round(readableWidth * 0.8);
-
-function ShareButton({ name, onPress, raised }: { name: string; onPress: () => void; raised?: boolean }) {
-  const { t } = useTranslation('chat');
-  const { colors } = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t('thread.share', { name })}
-      hitSlop={8}
-      onPress={onPress}
-      testID="attachment-share"
-      style={({ pressed }) => [styles.share, raised && { backgroundColor: colors.surface }, { opacity: pressed ? 0.7 : 1 }]}>
-      <Icon name="share" size={20} color={colors.inkSoft} />
-    </Pressable>
-  );
-}
-
-function FileChip({ attachment, mine }: { attachment: Attachment; mine: boolean }) {
-  const { t } = useTranslation('chat');
-  const { colors } = useTheme();
-  const { size } = useChatFormat();
-  const { open, share, opening } = useOpenAttachment();
-  const busy = opening === attachment.id;
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t('thread.openFile', { name: attachment.name })}
-      accessibilityState={{ busy }}
-      accessibilityActions={[{ name: 'share', label: t('thread.share', { name: attachment.name }) }]}
-      onAccessibilityAction={() => void share(attachment)}
-      onPress={() => void open(attachment)}
-      style={({ pressed }) => [styles.file, { backgroundColor: mine ? colors.surface : colors.surface2, opacity: pressed ? 0.8 : 1 }]}>
-      <View style={[styles.fileIcon, { backgroundColor: colors.dangerBand }]}>
-        {busy ? <ActivityIndicator color={colors.dangerInk} /> : <Icon name="file" color={colors.dangerInk} />}
-      </View>
-      <View style={styles.fileText}>
-        <Text variant="callout" numberOfLines={2} style={styles.bold}>
-          {attachment.name}
-        </Text>
-        <Text variant="footnote" tone="inkSoft">
-          {size(attachment.size)}
-        </Text>
-      </View>
-      <ShareButton name={attachment.name} onPress={() => void share(attachment)} />
-    </Pressable>
-  );
-}
-
-function Picture({ attachment, origin }: { attachment: Attachment; origin: string }) {
-  const { t } = useTranslation('chat');
-  const { colors } = useTheme();
-  const uri = attachmentUrl(origin, attachment);
-  const cookie = useCookie();
-  const { open, share, opening } = useOpenAttachment();
-  return (
-    <Pressable
-      accessibilityRole="imagebutton"
-      accessibilityLabel={t('thread.openImage', { name: attachment.name })}
-      accessibilityState={{ busy: opening === attachment.id }}
-      accessibilityActions={[{ name: 'share', label: t('thread.share', { name: attachment.name }) }]}
-      onAccessibilityAction={() => void share(attachment)}
-      onPress={() => void open(attachment)}>
-      <Image source={{ uri, ...(cookie ? { headers: cookie } : {}) }} style={[styles.picture, { backgroundColor: colors.surface2 }]} resizeMode="cover" />
-      <View style={styles.pictureShare}>
-        <ShareButton name={attachment.name} onPress={() => void share(attachment)} raised />
-      </View>
-    </Pressable>
-  );
-}
+const mediaWidth = Math.min(tileMax.width, bubbleMaxWidth - 2 * space.sm);
 
 export function Attachments({ attachments, origin, mine }: { attachments: Attachment[]; origin: string; mine: boolean }) {
   if (!attachments.length) return null;
@@ -105,15 +37,11 @@ export function Attachments({ attachments, origin, mine }: { attachments: Attach
     <View style={styles.attachments}>
       {attachments.map((attachment) => {
         const recordingId = recordingIdOf(attachment.url);
-        return recordingId !== null ? (
-          <RecordingCard key={attachment.id} recordingId={recordingId} mine={mine} />
-        ) : attachment.voice || attachment.mimetype.startsWith('audio/') ? (
-          <VoiceNote key={attachment.id} id={`a${attachment.id}`} uri={attachmentUrl(origin, attachment)} mine={mine} seed={attachment.id} />
-        ) : attachment.mimetype.startsWith('image/') ? (
-          <Picture key={attachment.id} attachment={attachment} origin={origin} />
-        ) : (
-          <FileChip key={attachment.id} attachment={attachment} mine={mine} />
-        );
+        if (recordingId !== null) return <RecordingCard key={attachment.id} recordingId={recordingId} mine={mine} />;
+        if (attachment.voice || attachment.mimetype.startsWith('audio/')) {
+          return <VoiceNote key={attachment.id} id={`a${attachment.id}`} uri={attachmentUrl(origin, attachment)} mine={mine} seed={attachment.id} />;
+        }
+        return <MediaAttachment key={attachment.id} attachment={attachment} origin={origin} mine={mine} siblings={attachments} width={mediaWidth} />;
       })}
     </View>
   );
@@ -463,12 +391,7 @@ const styles = StyleSheet.create({
   quoteBox: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
   file: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48, width: 260, maxWidth: '100%' },
-  fileText: { flexShrink: 1, flexGrow: 1 },
   pendingFile: { minWidth: 200 },
-  fileIcon: { width: 40, height: 40, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
-  picture: { width: 240, maxWidth: '100%', aspectRatio: 4 / 3, borderRadius: radius.md },
-  pictureShare: { position: 'absolute', right: space.xs, bottom: space.xs },
-  share: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   meta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
   time: { fontWeight: '400' },
   removed: { fontStyle: 'italic' },

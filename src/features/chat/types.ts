@@ -39,7 +39,10 @@ export type Attachment = {
   accessToken: string | null;
   checksum: string | null;
   url: string | null;
+  media?: ServerMedia;
 };
+
+export type ServerMedia = { width?: number; height?: number; durationMs?: number; pages?: number; thumbnail?: { token: string | null } };
 
 export type Reaction = { content: string; count: number; mine: boolean; people?: string[] };
 

@@ -70,6 +70,14 @@
       "expo-web-browser",
       "expo-sqlite",
       [
+        "expo-media-library",
+        {
+          "photosPermission": "Kaitech shows your photos when you choose one to send.",
+          "savePhotosPermission": "Kaitech saves photos and videos from chats when you tap Save.",
+          "granularPermissions": ["photo", "video"]
+        }
+      ],
+      [
         "expo-local-authentication",
         {
           "faceIDPermission": "Kaitech uses Face ID to unlock the app when app lock is on."

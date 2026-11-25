@@ -8,6 +8,8 @@ import { ChatClient, errorCode, sendErrorFrom } from './api';
 import { forgetChatAccount } from './cleanup';
 import { forgetDrafts } from './drafts';
 import { clearOpenedFiles, dropFile, sweepStaging } from './files';
+import { forgetPreviews } from './media/preview';
+import { forgetViewer } from './media/viewer';
 import { allPendingFileUris, cachedConversations, dropConversation, cachedMessages, forgetAccount, pendingFor, removePending, savePending, storeConversations, storeMessages } from './db';
 import { composeBody, mentionsInText } from './html';
 import { bodyPreview } from './markdown';
@@ -530,7 +532,9 @@ export function stopChat() {
 
 onAccountForgotten((id) => {
   if (state.accountId === id) stopChat();
-  clearOpenedFiles();
+  clearOpenedFiles(id);
+  forgetPreviews(id);
+  forgetViewer(id);
   void forgetChatAccount(id, { pendingFor, dropFile, forgetDrafts, forgetAccount });
 });
 

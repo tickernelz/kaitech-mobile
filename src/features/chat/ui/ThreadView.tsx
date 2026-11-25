@@ -38,6 +38,8 @@ import { MessageCards, useAgentCards, useRecordCards } from './coworker/Cards';
 import { WorkBar, WorkSheet } from './coworker/Work';
 import { linksOfMessage, type RecordCard } from '../coworker';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
+import { GalleryContext } from './media/gallery';
+import { galleryOfMessages } from '../media/viewer';
 import { NotifySheet } from './NotifySheet';
 import { router } from 'expo-router';
 import { ChatBackground } from '../../appearance/ChatBackground';
@@ -149,6 +151,7 @@ export function ThreadView({
     [thread.messages, thread.subChannels],
   );
   const byId = useMemo(() => new Map(thread.messages.map((message) => [message.id, message])), [thread.messages]);
+  const gallery = useCallback(() => galleryOfMessages(threadOf(getChat(), channelId).messages), [channelId]);
   const name = conversation?.name || thread.info?.name || '';
   const type = conversation?.type ?? (thread.info?.type as 'chat' | 'group' | 'channel' | undefined) ?? 'channel';
   const twoPeople = type === 'chat';
@@ -414,6 +417,7 @@ export function ThreadView({
   );
 
   return (
+    <GalleryContext.Provider value={gallery}>
     <SafeAreaView edges={twoPane ? ['top', 'right'] : ['top', 'left', 'right']} style={[styles.flex, { backgroundColor: colors.canvas }]} testID={`thread-${channelId}`}>
       {header}
       {thread.info?.link && linkedOn ? (
@@ -536,6 +540,7 @@ export function ThreadView({
         />
       ) : null}
     </SafeAreaView>
+    </GalleryContext.Provider>
   );
 }
 
