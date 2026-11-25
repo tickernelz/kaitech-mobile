@@ -6,6 +6,7 @@ tags:
 onFlowStart:
   - runFlow: ../shared/orientation.yaml
 ---
+- setAirplaneMode: disabled
 - launchApp
 - extendedWaitUntil:
     visible:
@@ -68,11 +69,11 @@ onFlowStart:
     id: media-photo
 - scrollUntilVisible:
     element:
-      text: .*2 (pages|halaman).*
+      id: pdf-preview
     direction: UP
     timeout: 60000
 - assertVisible:
-    id: pdf-preview
+    text: .*2 (pages|halaman).*
 - scrollUntilVisible:
     element:
       id: media-file
@@ -126,12 +127,25 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: m3-photo-viewer
-- swipe:
-    direction: RIGHT
+- copyTextFrom:
+    id: viewer-counter
+- runFlow:
+    when:
+      true: ${maestro.copiedText.startsWith('1 ')}
+    commands:
+      - swipe:
+          direction: LEFT
+- runFlow:
+    when:
+      true: ${!maestro.copiedText.startsWith('1 ')}
+    commands:
+      - swipe:
+          direction: RIGHT
 - extendedWaitUntil:
-    visible:
-      id: video-state
-    timeout: 20000
+    notVisible:
+      id: viewer-counter
+      text: ${maestro.copiedText}
+    timeout: 10000
 - tapOn:
     id: viewer-close
 - scrollUntilVisible:
