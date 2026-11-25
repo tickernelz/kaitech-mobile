@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Overlay } from '../../ui/Overlay';
 import { Pressable } from '../../ui/Pressable';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, useKeyboardState } from 'react-native-keyboard-controller';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { invalidate, useResource } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
 import { useSession } from '../../auth/session';
@@ -34,6 +34,7 @@ import { MoreSheet } from './MoreSheet';
 import { SmallButton } from './parts';
 import { Refresh } from '../../ui/Refresh';
 import { notify } from '../../ui/dialog';
+import { useBottomInset } from '../../ui/insets';
 
 type Tab = 'departments' | 'employees' | 'aliases';
 type Editing = { kind: 'department'; item: ClientDepartment | null } | { kind: 'employee'; item: ClientEmployee | null } | null;
@@ -252,7 +253,8 @@ function Aliases({ data }: { data: ClientBoard }) {
 function EditSheet({ editing, data, client, onClose }: { editing: NonNullable<Editing>; data: ClientBoard; client: number; onClose: () => void }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const keyboardVisible = useKeyboardState((state) => state.isVisible);
+  const bottomInset = useBottomInset(space.lg, keyboardVisible);
   const action = useOrgRun();
   const department = editing.kind === 'department' ? editing.item : null;
   const employee = editing.kind === 'employee' ? editing.item : null;
@@ -281,7 +283,7 @@ function EditSheet({ editing, data, client, onClose }: { editing: NonNullable<Ed
     <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <KeyboardAvoidingView behavior="padding" style={styles.fill}>
         <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
-          <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="client-org-edit">
+          <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }]} onPress={() => undefined} accessibilityViewIsModal testID="client-org-edit">
             <ScrollView contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled">
               <Text variant="headline">{t(`mom.clientOrg.${editing.kind}${editing.item ? 'Edit' : 'New'}`)}</Text>
               <TextField label={t('mom.clientOrg.name')} value={name} onChangeText={setName} testID="client-org-name" />
