@@ -55,7 +55,7 @@ onFlowStart:
     id: composer-send
 - assertNotVisible:
     id: composer-camera
-- eraseText: 20
+- eraseText: 40
 - extendedWaitUntil:
     visible:
       id: composer-mic

@@ -348,6 +348,8 @@ function checkComposer(state, parts) {
 }
 
 const peer = process.env.E2E_PEER;
+adb('shell', 'monkey', '-p', 'io.kaitech.mobile', '-c', 'android.intent.category.LAUNCHER', '1');
+sleep(3000);
 const screenWidthAll = dump().children[0].right;
 if (peer) {
   waitForNoCall();
