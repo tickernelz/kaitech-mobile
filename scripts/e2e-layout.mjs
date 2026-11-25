@@ -383,6 +383,33 @@ if (peer) {
         if (Math.abs(now.row.bottom - now.row.top - (before.row.bottom - before.row.top)) > 1) failures.push(`composer ${state}: row height ${dp(now.row.bottom - now.row.top)}dp, empty was ${dp(before.row.bottom - before.row.top)}dp`);
         if (Math.abs(now.slot.left - before.slot.left) > 1 || Math.abs(now.slot.right - before.slot.right) > 1) failures.push(`composer ${state}: the mic/send slot moved from ${box(before.slot)} to ${box(now.slot)}`);
       }
+      const withKeyboard = find(dump(), 'composer-row');
+      const toggle = withKeyboard && find(dump(), 'composer-panel-toggle');
+      if (withKeyboard && toggle) {
+        tapNode(toggle);
+        sleep(1500);
+        const panelTree = dump();
+        const withPanel = find(panelTree, 'composer-row');
+        const panel = find(panelTree, 'composer-panel');
+        if (!panel) failures.push('composer panel: the panel did not open');
+        if (withPanel) {
+          const moved = dp(Math.abs(withPanel.top - withKeyboard.top));
+          lines.push(`composer panel: row ${box(withPanel)} with the panel, ${box(withKeyboard)} with the keyboard, moved ${moved}dp`);
+          if (moved > 1) failures.push(`composer panel: the row moved ${moved}dp when the panel replaced the keyboard`);
+        }
+        screenshot('composer-panel');
+        const back = find(panelTree, 'composer-keyboard');
+        if (back) {
+          tapNode(back);
+          sleep(1500);
+          const again = find(dump(), 'composer-row');
+          if (again) {
+            const moved = dp(Math.abs(again.top - withKeyboard.top));
+            lines.push(`composer panel: row ${box(again)} after the keyboard came back, moved ${moved}dp`);
+            if (moved > 1) failures.push(`composer panel: the row moved ${moved}dp when the keyboard came back`);
+          }
+        } else failures.push('composer panel: no keyboard button while the panel is open');
+      } else lines.push('composer panel: skipped, no keyboard-open row or panel button');
       adb('shell', 'input', 'keyevent', 'KEYCODE_BACK');
       sleep(1000);
     } else failures.push('composer: no composer-input');

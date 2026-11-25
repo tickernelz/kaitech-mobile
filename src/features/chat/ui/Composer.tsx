@@ -20,6 +20,7 @@ import { sendModeOf } from './composer/gesture';
 import { useVoiceRecorder, type Voice } from './composer/useVoiceRecorder';
 import { DiscardAnimation, InterruptionBanner, VoiceRow, voiceRowPhase } from './composer/VoiceBar';
 import { useScreenReader } from '../../call/ui/useAutoHide';
+import { useTapToRecord } from '../voice/tapSetting';
 import { ComposerPanel } from './composer/Panel';
 import { halfPanelHeight, searchPanelHeight } from './composer/panel/logic';
 import { SendLaterSheet } from './composer/SendLaterSheet';
@@ -310,7 +311,9 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     if (replyTo) setParentId(null);
     void send({ channelId, text: '', parentId: replyTo, mentions: [], files: [voice] }, startedAt).then((key) => delivered(key));
   };
-  const tapMode = useScreenReader();
+  const screenReader = useScreenReader();
+  const tapSetting = useTapToRecord();
+  const tapMode = screenReader || tapSetting;
   const voice = useVoiceRecorder({ accountId, channelId, tapMode, onSend: sendVoice });
   const voicePhase = voiceRowPhase(voice);
   const [discarding, setDiscarding] = useState(false);
