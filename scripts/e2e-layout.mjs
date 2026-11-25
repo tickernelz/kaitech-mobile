@@ -186,23 +186,24 @@ async function signIn(login, password) {
   return `session_id=${cookie}`;
 }
 
-async function checkBubbles() {
+async function checkBubbles(sent) {
   const missing = ['E2E_SERVER', 'E2E_DB', 'E2E_LOGIN', 'E2E_PASSWORD', 'E2E_WEB_LOGIN', 'E2E_WEB_PASSWORD', 'E2E_CHANNEL_ID'].filter((key) => !process.env[key]);
   if (missing.length) return failures.push(`bubbles: missing ${missing.join(', ')}`);
   const channel = Number(process.env.E2E_CHANNEL_ID);
   const stamp = `L${Date.now().toString(36)}`;
   const filler = 'the delivery for this order left the main warehouse this morning, please check it at receiving and report any shortfall or damaged packing';
-  const sent = [
+  sent.push(
     { key: 'mine short', mine: true, long: false, body: `${stamp} ok` },
     { key: 'theirs short', mine: false, long: false, body: `${stamp} hi` },
     { key: 'mine long', mine: true, long: true, body: `${stamp} mine long, ${filler}` },
     { key: 'theirs long', mine: false, long: true, body: `${stamp} theirs long, ${filler}` },
-  ];
+  );
   const phone = await signIn(process.env.E2E_LOGIN, process.env.E2E_PASSWORD);
   const peer = await signIn(process.env.E2E_WEB_LOGIN, process.env.E2E_WEB_PASSWORD);
   for (const one of sent) {
+    one.cookie = one.mine ? phone : peer;
     const post_data = { body: one.body, message_type: 'comment', subtype_xmlid: 'mail.mt_comment' };
-    await rpc('/mail/message/post', { thread_model: 'discuss.channel', thread_id: channel, post_data }, one.mine ? phone : peer);
+    await rpc('/mail/message/post', { thread_model: 'discuss.channel', thread_id: channel, post_data }, one.cookie);
   }
   const found = (await rpc('/discuss/channel/messages', { channel_id: channel, fetch_params: { search_term: stamp, limit: 10 } }, phone)).result.data['mail.message'] ?? [];
   for (const one of sent) {
@@ -252,13 +253,33 @@ async function checkBubbles() {
   sleep(1500);
 }
 
+async function removeProbes(sent) {
+  const removed = { unlink: 0, emptied: 0 };
+  for (const one of sent.filter((probe) => probe.id)) {
+    try {
+      await rpc('/web/dataset/call_kw/mail.message/unlink', { model: 'mail.message', method: 'unlink', args: [[one.id]], kwargs: {} }, one.cookie);
+      removed.unlink++;
+    } catch {
+      await rpc('/mail/message/update_content', { message_id: one.id, update_data: { body: '', attachment_ids: [], attachment_tokens: [] } }, one.cookie);
+      removed.emptied++;
+    }
+  }
+  lines.push(`bubbles: removed ${removed.unlink} probe messages, emptied ${removed.emptied} the author could not delete`);
+}
+
+const probes = [];
 try {
-  await checkBubbles();
+  await checkBubbles(probes);
 } catch (error) {
   const focus = adb('shell', 'dumpsys', 'window').match(/mCurrentFocus=\S+ \S+ (\S+)/)?.[1] ?? 'unknown';
   const running = adb('shell', 'pidof io.kaitech.mobile || true').trim() ? 'running' : 'not running';
   failures.push(`bubbles: ${error.message} (focus ${focus}, app ${running})`);
   screenshot('layout-bubbles-failed');
+}
+try {
+  await removeProbes(probes);
+} catch (error) {
+  failures.push(`bubbles: probe messages ${probes.map((one) => one.id).join(', ')} were not removed: ${error.message}`);
 }
 
 lines.push(...failures.map((failure) => `FAIL ${failure}`));
