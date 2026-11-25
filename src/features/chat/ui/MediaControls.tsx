@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Modal, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Modal } from '../../../ui/Modal';
 import { Pressable } from '../../../ui/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';

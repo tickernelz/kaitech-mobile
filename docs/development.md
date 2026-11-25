@@ -49,3 +49,9 @@ Settings > Security > Passkeys adds a passkey through the phone's passkey manage
 ## Icons and splash
 
 `node scripts/brand-assets.mjs` regenerates every icon, the small Android notification icon, and the splash images from the K letter and the gradient bar of the Kaitech logo (needs `inkscape`). In-app icons are drawn in-house and live only in `src/ui/icons` (component `Icon`, variants `line` and `fill`); `node scripts/icon-sheet.mjs <out.png>` makes a contact sheet of the whole set at 16/20/24/32 px, light and dark. The SVG sources are in `assets/brand/`. The splash background colour equals the theme canvas colour (light `#FAF9FC`, dark `#110B18`), so there is no white flash when JS takes over. The brand font Plus Jakarta Sans (OFL, `assets/fonts/OFL.txt`) is embedded through the `expo-font` plugin; body text uses the system font.
+
+## Motion
+
+Every animation takes its duration and curve from `src/theme/motion.ts`: `quick` 120 ms for press feedback, `base` 180 ms for small state changes, `slow` 240 ms for exits, `hero` 320 ms for first screens, `axis` 300 ms for step changes; the `standard` curve for things that move on screen, `expo` for things that enter, `exit` for things that leave, and the `spring` set for Material 3 shapes. Sheets and dialogs fade (`src/ui/Modal.tsx`), screens use the platform push.
+
+`useReduceMotion()` (`src/theme/reduceMotion.ts`) follows the system Reduce motion / Remove animations setting live. When it is on, screens change without a transition, `Modal` opens without one, Reanimated controls drop their movement (they jump or only fade), and the chat scrolls to a sent message or a jumped-to message without animating. Use `Modal` from `src/ui/Modal.tsx` and `useReduceMotion()` for new code; `useReducedMotion` from `react-native-reanimated` reads the setting once at start and is not used.

@@ -3,7 +3,8 @@ import { useEffect, type ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../ui/Pressable';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useReduceMotion } from '../theme/reduceMotion';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../theme';
 import { duration, easing } from '../theme/motion';
@@ -18,7 +19,7 @@ const icons = { chat: 'chat', discovery: 'compass', mom: 'minutes', activity: 'b
 function TabButton({ name, rail, isFocused, ...props }: TabTriggerSlotProps & { name: TabName; rail: boolean }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReduceMotion();
   const shown = useSharedValue(isFocused ? 1 : 0);
   useEffect(() => {
     const target = isFocused ? 1 : 0;

@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentRef, type Ref } from 'react';
 import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
-import Animated, { interpolate, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { interpolate, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { useReduceMotion } from '../theme/reduceMotion';
 import { space, type as typography, useTheme } from '../theme';
 import { spring } from '../theme/motion';
 import { Text } from './Text';
@@ -24,7 +25,7 @@ export function TextField({
   ...props
 }: Omit<TextInputProps, 'ref'> & { label: string; hint?: string; error?: string | null; ref?: Ref<TextFieldRef> }) {
   const { colors, material } = useTheme();
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReduceMotion();
   const [focused, setFocused] = useState(false);
   const [typed, setTyped] = useState(!!props.defaultValue);
   const filled = props.value !== undefined ? props.value.length > 0 : typed;

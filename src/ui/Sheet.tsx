@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Modal } from './Modal';
 import { Pressable } from './Pressable';
 import { useTranslation } from 'react-i18next';
 import { useKeyboardState } from 'react-native-keyboard-controller';

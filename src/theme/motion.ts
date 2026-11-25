@@ -1,4 +1,5 @@
-import { Easing, useReducedMotion } from 'react-native-reanimated';
+import { Easing } from 'react-native-reanimated';
+import { useReduceMotion } from './reduceMotion';
 
 export const duration = { quick: 120, base: 180, slow: 240, hero: 320, axis: 300 } as const;
 
@@ -25,5 +26,5 @@ export const spring = {
 export const stagger = 60;
 
 export function useMotion<T>(animation: T): T | undefined {
-  return useReducedMotion() ? undefined : animation;
+  return useReduceMotion() ? undefined : animation;
 }

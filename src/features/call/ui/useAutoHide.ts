@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useReduceMotion } from '../../../theme/reduceMotion';
 
 export const hideAfterMs = 5000;
 const showMs = 200;
@@ -26,7 +27,7 @@ export function useScreenReader(): boolean {
 }
 
 export function useAutoHide(pinned: boolean, wakeKey: string) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReduceMotion();
   const screenReader = useScreenReader();
   const hold = pinned || screenReader;
   const [visible, setVisible] = useState(true);

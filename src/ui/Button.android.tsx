@@ -1,6 +1,7 @@
 import { ActivityIndicator, StyleSheet, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import { Pressable } from './Pressable';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { useReduceMotion } from '../theme/reduceMotion';
 import { space, useTheme } from '../theme';
 import { spring } from '../theme/motion';
 import { Text } from './Text';
@@ -21,7 +22,7 @@ export function Button({
   ...props
 }: Omit<PressableProps, 'children' | 'style'> & { label: string; kind?: Kind; busy?: boolean; style?: StyleProp<ViewStyle> }) {
   const { colors, material } = useTheme();
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReduceMotion();
   const corner = useSharedValue(height / 2);
   const shape = useAnimatedStyle(() => ({ borderRadius: corner.get() }));
   const inactive = disabled || busy;
