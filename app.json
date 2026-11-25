@@ -126,7 +126,7 @@
           "microphonePermission": "Kaitech uses the microphone to record meetings and voice messages, and to make calls.",
           "recordAudioAndroid": true,
           "enableBackgroundRecording": true,
-          "enableBackgroundPlayback": false
+          "enableBackgroundPlayback": true
         }
       ],
       [
