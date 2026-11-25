@@ -9,6 +9,7 @@ const entries = new Map<string, Entry>();
 const listeners = new Map<string, Set<() => void>>();
 const idle: Entry = { at: 0, loading: false };
 const generations = new Map<string, number>();
+const invalidatedWhileLoading = new Set<string>();
 
 function generationOf(key: string): number {
   return generations.get(key.slice(0, key.indexOf(':'))) ?? 0;
@@ -33,6 +34,7 @@ export async function load<T>(key: string, fetcher: () => Promise<T>): Promise<v
   } catch (error) {
     next = { error, loading: false };
   }
+  if (invalidatedWhileLoading.delete(key) && next.at) next.at = 0;
   if (generationOf(key) === generation) put(key, next);
 }
 
@@ -43,6 +45,7 @@ export function update<T>(key: string, change: (current: T | undefined) => T) {
 export function invalidate(prefix: string) {
   for (const [key, entry] of entries) {
     if (key.startsWith(prefix)) {
+      if (entry.loading) invalidatedWhileLoading.add(key);
       entries.set(key, { ...entry, at: 0 });
       notify(key);
     }
