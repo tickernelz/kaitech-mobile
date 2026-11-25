@@ -214,8 +214,8 @@ if [ -n "${E2E_LOGIN:-}" ]; then
 fi
 
 if [ "$runner" = maestro ]; then
-  adb shell am force-stop dev.devicelab.driver.android.test
-  adb shell am force-stop dev.devicelab.driver.android
+  adb shell am force-stop dev.devicelab.driver.android.test || true
+  adb shell am force-stop dev.devicelab.driver.android || true
 fi
 console="$(mktemp)"
 echo "runner: $runner" | tee -a "$out/display.txt"
