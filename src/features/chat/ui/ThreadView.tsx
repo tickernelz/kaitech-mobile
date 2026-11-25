@@ -9,12 +9,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { chatClient, loadWorks, refreshConversations, conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat, type Delivered } from '../chat';
+import { chatClient, loadWorks, refreshConversations, conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat } from '../chat';
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
 import { bodyPreview, bodyShape } from '../markdown';
-import { isCallNotice, readersOf, readState } from '../odoo';
-import type { Message, Pending } from '../types';
+import { readersOf, readState } from '../odoo';
+import { buildRows, type Row } from '../threadRows';
+import type { Message } from '../types';
 import { CallButton } from '../../call/ui/CallButton';
 import { Avatar } from './Avatar';
 import { Composer, type ComposerHandle } from './Composer';
@@ -44,31 +45,10 @@ import { ChatBackground } from '../../appearance/ChatBackground';
 import { usePartnerStatus } from '../../people/statuses';
 import { confirm, inform } from '../../../ui/dialog';
 
-type Row =
-  | { kind: 'day'; key: string; date: number }
-  | { kind: 'message'; key: string; message: Message; showAuthor: boolean }
-  | { kind: 'pending'; key: string; pending: Pending };
-
-const groupGapMs = 5 * 60 * 1000;
 const noticeMs = 4000;
 const noLinks: string[] = [];
 
 type SheetKind = 'emoji' | 'forward' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers';
-
-export function buildRows(messages: Message[], pending: Pending[], delivered: Delivered[], sameDay: (a: number, b: number) => boolean): Row[] {
-  const rows: Row[] = [];
-  let previous: Message | null = null;
-  for (const message of messages) {
-    if (previous && isCallNotice(previous) && isCallNotice(message) && sameDay(previous.date, message.date)) continue;
-    if (!previous || !sameDay(previous.date, message.date)) rows.push({ kind: 'day', key: `day-${message.id}`, date: message.date });
-    const continues = previous && previous.authorId === message.authorId && message.date - previous.date < groupGapMs && sameDay(previous.date, message.date) && previous.type !== 'notification';
-    rows.push({ kind: 'message', key: `m-${message.id}`, message, showAuthor: !continues });
-    previous = message;
-  }
-  for (const item of delivered) rows.push({ kind: 'pending', key: `p-${item.key}`, pending: { ...item.pending, state: 'sending' } });
-  for (const item of pending) rows.push({ kind: 'pending', key: `p-${item.key}`, pending: item });
-  return rows;
-}
 
 export function rowType(row: Row): string {
   return row.kind === 'message' ? `message-${bodyShape(row.message.body)}` : row.kind;
