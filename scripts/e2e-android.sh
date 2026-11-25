@@ -24,6 +24,7 @@ apk="$(find "$apk_dir" -maxdepth 1 -name '*.apk' | head -1)"
 region="${locale#*-}"
 
 framework_config() { adb shell am get-config 2>/dev/null | tr -d '\r' | grep -m1 '^config:' || true; }
+guest_memory() { adb shell 'grep -E "^(MemTotal|MemAvailable|SwapTotal|SwapFree):" /proc/meminfo; sed "s/^/pressure /" /proc/pressure/memory' 2> /dev/null | tr -d '\r' | tr -s ' \n' ' ' || true; }
 is_root() { [ "$(adb shell id -u 2>/dev/null | tr -d '\r')" = 0 ]; }
 become_root() {
   for _ in $(seq 1 10); do
@@ -130,6 +131,7 @@ adb shell am set-debug-app --persistent com.android.chrome
 if adb shell pm path io.kaitech.mobile 2>/dev/null | grep -q '^package:'; then
   adb uninstall io.kaitech.mobile
 fi
+adb logcat -G 16M > /dev/null 2>&1 || true
 adb logcat -c
 adb install -r "$apk"
 adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' | head -2 | tee "$out/installed.txt"
@@ -212,12 +214,25 @@ if [ -n "${E2E_LOGIN:-}" ]; then
   audio_logger=$!
 fi
 
+transport_log="$out/transport.txt"
+: > "$transport_log"
+watch_transport() {
+  while adb wait-for-disconnect 2> /dev/null; do
+    echo "$(date -u +%H:%M:%S.%3N) emulator-5554 left the adb server" >> "$transport_log"
+    adb wait-for-device 2> /dev/null || return
+    echo "$(date -u +%H:%M:%S.%3N) emulator-5554 back as $(adb get-state 2>&1)" >> "$transport_log"
+  done
+}
+watch_transport &
+transport_watcher=$!
+
 if [ "$runner" = maestro ]; then
   adb shell am force-stop dev.devicelab.driver.android.test
   adb shell am force-stop dev.devicelab.driver.android
 fi
 console="$(mktemp)"
 echo "runner: $runner" | tee -a "$out/display.txt"
+echo "memory before flows: $(guest_memory)" | tee -a "$out/display.txt"
 set +e
 "${run[@]}" test "${flows[@]}" \
   -e APP_LANGUAGE="$language" \
@@ -297,20 +312,36 @@ fi
 release_server
 
 sleep 2
+pkill -P "$transport_watcher" 2> /dev/null || true
+kill "$transport_watcher" 2> /dev/null || true
+wait "$transport_watcher" 2> /dev/null || true
+secrets=()
+for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD" ${E2E_SECOND_PEER_LOGIN:+"$E2E_SECOND_PEER_LOGIN"} ${E2E_SECOND_PEER_PASSWORD:+"$E2E_SECOND_PEER_PASSWORD"}; do
+  [ -n "$secret" ] && secrets+=(-e "$secret")
+done
+[ "${#secrets[@]}" -gt 0 ] || secrets=(-e $'\x01')
+head='^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [VDIWEF] '
+if [ -s "$transport_log" ] || [ "$status" != 0 ]; then
+  cat "$transport_log"
+  tail -n 400 "${TMPDIR:-/tmp}/adb.$(id -u).log" > "$out/adb-server.log" 2> /dev/null || true
+  adb logcat -d -b main,system,crash,events -v threadtime 2> /dev/null | grep -aE \
+    -e "${head}(adbd|init|lmkd|lowmemorykiller|libc|DEBUG|Watchdog|AndroidRuntime|TestRunner|MonitoringInstr|am_kill|am_proc_died|am_crash|am_anr)[^ :]* *: " \
+    -e "${head}ActivityManager *: .*(dev\.mobile\.maestro|Killing|has died|Process .* died)" \
+    | grep -avF "${secrets[@]}" > "$out/device-transport.txt" || true
+  find "$out/maestro" -name maestro.log -print0 2> /dev/null | while IFS= read -r -d '' log; do
+    echo "== ${log#"$out/maestro"}"
+    grep -aE 'dadb|adb|AndroidDriver|AndroidDeviceConnection|DeviceServerDied|DeviceUnreachable|[Ii]nstrument|[Uu]ninstall|[Ii]nstall|Shutdown device|Exception|Caused by|Unknown error' "$log" | grep -avF "${secrets[@]}" | tail -n 300 || true
+  done > "$out/maestro-transport.txt" || true
+fi
 if [ -n "$audio_log" ]; then
   kill "$audio_logger" 2> /dev/null || true
   wait "$audio_logger" 2> /dev/null || true
-  head='^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [VDIWEF] '
   grep -aE \
     -e "${head}[^ :]*([Aa]udio|AUDIO|AHAL|MediaRecorder|StagefrightRecorder|MPEG4Writer|CCodec|MediaCodec|AndroidRuntime)[^ :]* *: " \
     -e "${head}ReactNativeJS *: .*[Rr]ecord" \
     -e "${head}ActivityManager *: .*(AudioRecordingService|ANR in io\.kaitech\.mobile|Process io\.kaitech\.mobile )" \
     "$audio_log" > "$out/audio.txt" || true
   if [ "$status" != 0 ]; then
-    secrets=()
-    for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
-      [ -n "$secret" ] && secrets+=(-e "$secret")
-    done
     {
       grep -aE \
         -e "${head}ActivityTaskManager *: (START|Displayed)" \
@@ -335,6 +366,7 @@ if [ -z "${E2E_LOGIN:-}" ]; then
 fi
 find "$out/maestro" -name device-logcat.txt -delete
 echo "after maestro: $(rotation_state)" | tee -a "$out/display.txt"
+echo "memory after flows: $(guest_memory)" | tee -a "$out/display.txt"
 
 mkdir -p "$out/screenshots"
 if [ "$runner" = maestro ]; then
@@ -350,7 +382,7 @@ node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$l
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name signin.txt ! -name scroll-gfxinfo.txt ! -name layout.txt ! -name call-peer.json ! -name 'call-peers-*.json' ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name signin.txt ! -name scroll-gfxinfo.txt ! -name layout.txt ! -name call-peer.json ! -name 'call-peers-*.json' ! -name call-logcat.txt ! -name devices-pruned.txt ! -name transport.txt ! -name adb-server.log ! -name device-transport.txt ! -name maestro-transport.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD" ${E2E_SECOND_PEER_LOGIN:+"$E2E_SECOND_PEER_LOGIN"} ${E2E_SECOND_PEER_PASSWORD:+"$E2E_SECOND_PEER_PASSWORD"}; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2
