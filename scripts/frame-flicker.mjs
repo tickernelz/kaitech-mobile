@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 
-const usage = 'usage: frame-flicker.mjs <video.mp4> <left,top,right,bottom> [--out result.json] [--max-flicker N]';
+const usage = 'usage: frame-flicker.mjs <video.mp4> <left,top,right,bottom> [--out result.json] [--max-flicker N] [--max-blank N]';
 const scale = 4;
 const changed = 28;
 const jumpAt = 0.01;
@@ -27,7 +27,15 @@ if (!video || !box) fail(usage);
 const [left, top, right, bottom] = box.split(',').map(Number);
 if (![left, top, right, bottom].every(Number.isFinite) || right <= left || bottom <= top) fail(`bad box "${box}"; ${usage}`);
 const out = option('--out');
-const maxFlicker = Number(option('--max-flicker') ?? 0);
+const limit = (name) => {
+  const value = option(name);
+  if (value === undefined) return Infinity;
+  if (!/^\d+$/.test(value)) fail(`bad ${name} "${value}"; ${usage}`);
+  return Number(value);
+};
+const maxFlicker = limit('--max-flicker');
+const maxBlank = limit('--max-blank');
+const shown = (value) => (value === Infinity ? 'no limit' : `limit ${value}`);
 
 const times = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'frame=pts_time', '-of', 'csv=p=0', video])
   .toString()
@@ -119,6 +127,6 @@ const blank = frames.filter((frame) => emptyShare(frame) >= blankShare).length;
 
 const result = { video, box, frames: count, unexplained: steps.filter((step) => step.residual >= jumpAt).length, flicker: flicker.length, flickerAt: flicker, blank };
 if (out) writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`);
-console.log(`${video}: ${count} frames, ${result.unexplained} frames changed beyond scrolling, ${flicker.length} flicker (limit ${maxFlicker}), ${blank} frames with a quarter of the list empty`);
+console.log(`${video}: ${count} frames, ${result.unexplained} frames changed beyond scrolling, ${flicker.length} flicker (${shown(maxFlicker)}), ${blank} frames with a quarter of the list empty (${shown(maxBlank)})`);
 for (const item of flicker) console.log(`  flicker at ${item.atMs} ms for ${item.lastedMs} ms, ${(item.changed * 100).toFixed(1)}% of the list changed and came back`);
-if (flicker.length > maxFlicker) process.exit(1);
+if (flicker.length > maxFlicker || blank > maxBlank) process.exit(1);
