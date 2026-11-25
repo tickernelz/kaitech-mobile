@@ -11,10 +11,20 @@ import { chatWith, personCard, type Presence } from '../../features/people/card'
 import { RowIcon, SettingsPage } from '../../screens/SettingsPage';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
+import { DialogLayer } from '../../ui/Dialog';
 import { Row, Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
 
-export default function PersonScreen() {
+export default function PersonRoute() {
+  return (
+    <>
+      <PersonScreen />
+      <DialogLayer />
+    </>
+  );
+}
+
+function PersonScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();

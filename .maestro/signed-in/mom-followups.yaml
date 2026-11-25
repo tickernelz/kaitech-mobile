@@ -42,8 +42,7 @@ onFlowStart:
 - tapOn:
     id: recorder-stop
 - tapOn:
-    text: (?i)(finish|selesai)
-    index: -1
+    id: recorder-stop-dialog-confirm
 - extendedWaitUntil:
     visible:
       id: upload-done

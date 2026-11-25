@@ -130,8 +130,8 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: b4-raid-accept-refused
-- tapOn:
-    text: OK
+- assertVisible:
+    id: snackbar
 - assertVisible:
     id: button-action_accept
 - tapOn:

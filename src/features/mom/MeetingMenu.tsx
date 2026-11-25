@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
 import { invalidate, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { IconButton } from '../../ui/IconButton';
@@ -9,6 +8,7 @@ import { useErrorText } from '../discovery/ui';
 import { MoreSheet, type MoreGroup } from './MoreSheet';
 import { verbActions, type RecordingVerb } from './recordingActions';
 import { compareWithElevenLabs, meetingRecordings, transcribe, type RecordingCard } from './records';
+import { confirm, notify } from '../../ui/dialog';
 
 export function MeetingMenu({ meeting }: { meeting: number }) {
   const { t } = useTranslation();
@@ -24,9 +24,9 @@ export function MeetingMenu({ meeting }: { meeting: number }) {
     try {
       await (verb === 'compare' ? compareWithElevenLabs(active, card.id) : transcribe(active, card.id));
       invalidate(`${active.id}:mom.`);
-      Alert.alert('', t(`mom.recordingMenu.started.${verb === 'compare' ? 'compare' : 'transcribe'}`, { title: card.name }));
+      notify(t(`mom.recordingMenu.started.${verb === 'compare' ? 'compare' : 'transcribe'}`, { title: card.name }));
     } catch (error) {
-      Alert.alert('', errorText(error));
+      notify(errorText(error));
     }
   };
 
@@ -35,10 +35,9 @@ export function MeetingMenu({ meeting }: { meeting: number }) {
       router.push({ pathname: '/mom/remove', params: { recording: String(card.id), meeting: String(meeting) } });
       return;
     }
-    Alert.alert(t(`mom.recordingMenu.confirm.${verb}`), card.name, [
-      { text: t('mom.recorder.cancel'), style: 'cancel' },
-      { text: t(`mom.recordingMenu.${verb}`), onPress: () => void start(verb, card) },
-    ]);
+    void confirm({ title: t(`mom.recordingMenu.confirm.${verb}`), body: card.name, cancel: t('mom.recorder.cancel'), confirm: t(`mom.recordingMenu.${verb}`), icon: 'record', testID: 'recording-verb-dialog' }).then(async (go) => {
+      if (go) await start(verb, card);
+    });
   };
 
   const groups: MoreGroup[] = board.data

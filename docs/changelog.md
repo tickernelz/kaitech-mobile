@@ -2,6 +2,45 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.6.0 - 2026-11-25
+
+### Added
+
+- Dialogs: every confirm, choice, text prompt and one-line message is drawn by the app in the Kaitech colours of the light or dark theme, the same on Android and iOS, instead of the system alert. Destructive confirms paint the confirm button red, a one-line message shows in the snackbar at the bottom, and the Android back button, a tap outside and Cancel all answer no (#101, ZHA-7789).
+- Permissions: a card says what the camera, microphone or notifications are used for before the system prompt, and offers Settings when the system will not ask again (#101, ZHA-7789).
+
+### Changed
+
+- Lint rejects `Alert`, `ActionSheetIOS`, `ToastAndroid` and `Modal` from React Native in `src/`; a test fails for a native modal route that does not mount its own dialog layer (#101, ZHA-7789).
+- E2E: `themed/dialogs.yaml` photographs the destructive confirm, the camera card and the snackbar in light and dark and asserts no system dialog is on screen (#101, ZHA-7789).
+
+### Fixed
+
+- CI: `maestro check-syntax` no longer races to unpack its dependencies when flows are checked in parallel (#101, ZHA-7789).
+
+### Known gaps
+
+- iOS: dialogs on screens that need a signed-in account are not yet proven on the simulator; that waits for iOS sign-in in CI (ZHA-7277, follow-up ZHA-7797).
+- A snackbar raised while a dialog is open is drawn under the dialog's scrim.
+- Still drawn by the system: the permission prompts, the photo, camera and file pickers, the share sheet, the biometric prompt of the app lock, the screen-capture consent and the sign-in browser tab.
+- Calls: the app can crash when a peer stops sharing their screen in a group call (ZHA-7832).
+
+## 0.5.3 - 2026-11-25
+
+### Fixed
+
+- Chat: message bubbles are as wide as their text and at most 80% of the message lane on phones too, yours on the right and everyone else's on the left, like WhatsApp; a wrapped message used to fill the whole row because the 576 dp cap was wider than a phone. On tablets the lane stays centred at 720 dp, so the cap is still 576 dp (#103, ZHA-7809).
+
+### Changed
+
+- E2E: the rows cells post a short and a long message from each side of the test conversation, measure the bubbles against the lane, and delete them again (#103, ZHA-7809).
+- E2E: group and channel calls are proved with two web peers on the phone en-US call cell (#88, ZHA-7721).
+- E2E: a signed-in cell whose sign-in page never opens keeps a screenshot and the sign-in activity log (#97, ZHA-7771).
+
+### Known gaps
+
+- iOS: bubble widths are not verified on an iPhone or the simulator in this release (ZHA-7277).
+
 ## 0.5.2 - 2026-11-24
 
 ### Changed

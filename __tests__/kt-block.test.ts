@@ -20,6 +20,7 @@ import i18n from '../src/i18n';
 
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn(() => Promise.resolve(true)) }));
+jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 const webViews: Record<string, unknown>[] = [];
 let chartRenders = 0;
 jest.mock('../src/features/discovery/kt/Chart', () => {

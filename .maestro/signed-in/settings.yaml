@@ -177,7 +177,7 @@ onFlowStart:
 - tapOn:
     text: ${output.key}
 - tapOn:
-    text: (?i)(delete key|hapus kunci)
+    id: api-key-delete-dialog-confirm
 - extendedWaitUntil:
     notVisible:
       text: ${output.key}

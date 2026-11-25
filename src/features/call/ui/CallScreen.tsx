@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
-import { AccessibilityInfo, Alert, Linking, Platform, StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
+import { AccessibilityInfo, Linking, Platform, StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import Animated from 'react-native-reanimated';
 import { ScreenCapturePickerView } from '@livekit/react-native-webrtc';
@@ -47,6 +47,7 @@ import { CallTile } from './CallTile';
 import { FloatingTile } from './FloatingTile';
 import { ScreenStage, type PipTarget } from './ScreenStage';
 import { useAutoHide } from './useAutoHide';
+import { confirm } from '../../../ui/dialog';
 
 const pillSize = 68;
 const scrimSize = 72;
@@ -165,7 +166,7 @@ export function CallScreen() {
     if (action === 'camera') {
       const blocked = call.cameraBlocked;
       void toggleCamera().then((result) => {
-        if (result === 'blocked' && blocked) askForCamera(t('cameraBlocked.title'), t('cameraBlocked.body'), t('cameraBlocked.cancel'), t('cameraBlocked.settings'));
+        if (result === 'blocked' && blocked) void askForCamera(t('cameraBlocked.title'), t('cameraBlocked.body'), t('cameraBlocked.cancel'), t('cameraBlocked.settings'));
       });
     }
     if (action === 'flip') void flipCamera();
@@ -341,11 +342,8 @@ export function CallScreen() {
   );
 }
 
-function askForCamera(title: string, body: string, cancel: string, settings: string) {
-  Alert.alert(title, body, [
-    { text: cancel, style: 'cancel' },
-    { text: settings, onPress: () => void Linking.openSettings() },
-  ]);
+async function askForCamera(title: string, body: string, cancel: string, settings: string) {
+  if (await confirm({ title, body, cancel, confirm: settings, icon: 'videoOff', testID: 'call-camera-settings-dialog' })) await Linking.openSettings();
 }
 
 function FullScreenNotice() {
