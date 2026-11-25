@@ -10,8 +10,7 @@ name: Finish the running recording and wait until its upload starts (local only,
 - tapOn:
     id: recorder-stop
 - tapOn:
-    text: (?i)(finish|selesai)
-    index: -1
+    id: recorder-stop-dialog-confirm
 - extendedWaitUntil:
     visible:
       id: upload-sending

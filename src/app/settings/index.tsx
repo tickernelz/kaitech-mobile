@@ -1,7 +1,7 @@
 import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 import { signOut, useSession } from '../../auth/session';
 import { Avatar } from '../../features/chat/ui/Avatar';
 import { RowIcon, SettingsPage } from '../../screens/SettingsPage';
@@ -9,6 +9,7 @@ import { useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Icon, type IconName } from '../../ui/icons';
 import { Divider, Row, Section } from '../../ui/List';
+import { confirm, notify } from '../../ui/dialog';
 
 type Entry = { icon: IconName; title: string; href: Href; testID: string };
 
@@ -30,22 +31,23 @@ export default function Settings() {
     { icon: 'bulb', title: t('settings.about'), href: '/settings/about', testID: 'settings-about' },
   ];
 
-  const confirmSignOut = () => {
-    Alert.alert(t('settings.signOutTitle', { name: active.name }), t('settings.signOutBody'), [
-      { text: t('settings.cancel'), style: 'cancel' },
-      {
-        text: t('settings.signOut'),
-        style: 'destructive',
-        onPress: () => {
-          setBusy(true);
-          void signOut(active.id)
-            .then((result) => {
-              if (result === 'local') Alert.alert(t('settings.signOut'), t('settings.signOutOffline'));
-            })
-            .finally(() => setBusy(false));
-        },
-      },
-    ]);
+  const confirmSignOut = async () => {
+    const go = await confirm({
+      title: t('settings.signOutTitle', { name: active.name }),
+      body: t('settings.signOutBody'),
+      cancel: t('settings.cancel'),
+      confirm: t('settings.signOut'),
+      danger: true,
+      icon: 'leave',
+      testID: 'sign-out-dialog',
+    });
+    if (!go) return;
+    setBusy(true);
+    void signOut(active.id)
+      .then((result) => {
+        if (result === 'local') notify(t('settings.signOutOffline'));
+      })
+      .finally(() => setBusy(false));
   };
 
   return (

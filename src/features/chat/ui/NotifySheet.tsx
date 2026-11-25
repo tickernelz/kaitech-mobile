@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Overlay } from '../../../ui/Overlay';
 import { Pressable } from '../../../ui/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSession } from '../../../auth/session';
@@ -81,7 +82,7 @@ export function NotifySheet({
   }
   const status = until ? (mutedForever(mutedUntil, now) ? t('notify.mutedAlways') : t('notify.mutedUntil', { time: new Intl.DateTimeFormat(i18n.language, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(until) })) : null;
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('actions.close')}>
         <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="notify-sheet">
           <Text variant="headline" accessibilityRole="header" style={styles.title}>
@@ -110,7 +111,7 @@ export function NotifySheet({
           </View>
         </Pressable>
       </Pressable>
-    </Modal>
+    </Overlay>
   );
 }
 

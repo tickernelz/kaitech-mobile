@@ -29,8 +29,6 @@ import type { AgentCard, CardStore } from '../coworker';
 export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
 
-export const bubbleMaxWidth = Math.round(readableWidth * 0.8);
-
 function ShareButton({ name, onPress, raised }: { name: string; onPress: () => void; raised?: boolean }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
@@ -276,7 +274,7 @@ export const MessageBubble = memo(function MessageBubble({
     .join(', ');
   const body = (
     <>
-      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} bare={rich !== undefined && 'sticker' in rich && !quote}>
+      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} testID={`bubble-${message.id}`} bare={rich !== undefined && 'sticker' in rich && !quote}>
         {(showAuthor || (agent && agentTag)) && !mine ? (
           <View style={styles.authorRow}>
             {showAuthor ? (
@@ -425,7 +423,7 @@ export const PendingBubble = memo(function PendingBubble({
   const label = [pending.rich ? richLabel(t, pending.rich) : pending.text, status].filter(Boolean).join(', ');
   return (
     <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`}>
-      <Frame mine label={label} failed={failed} bare={pending.rich !== undefined && 'sticker' in pending.rich}>
+      <Frame mine label={label} failed={failed} testID="bubble-pending" bare={pending.rich !== undefined && 'sticker' in pending.rich}>
         {pending.rich ? <RichMedia rich={pending.rich} origin={origin} testID="pending-rich" /> : null}
         {pending.files.map((file) => (
           <PendingFileRow key={file.key} file={file} />
@@ -465,10 +463,10 @@ const styles = StyleSheet.create({
   authorRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   authorName: { flexShrink: 1 },
   agentTag: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: space.xs, borderRadius: radius.sm },
-  wrap: { paddingHorizontal: space.lg, marginTop: 2, maxWidth: '100%' },
+  wrap: { paddingHorizontal: space.lg, marginTop: 2, width: '100%', maxWidth: readableWidth + 2 * space.lg, alignSelf: 'center' },
   wrapMine: { alignItems: 'flex-end' },
   wrapTheirs: { alignItems: 'flex-start' },
-  bubble: { maxWidth: bubbleMaxWidth, minWidth: 88, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
+  bubble: { maxWidth: '80%', minWidth: 88, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   bare: { backgroundColor: 'transparent', borderColor: 'transparent', paddingHorizontal: 0, minWidth: 0 },
   mine: { borderBottomRightRadius: radius.sm },
   theirs: { borderBottomLeftRadius: radius.sm },
@@ -492,5 +490,5 @@ const styles = StyleSheet.create({
   callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs },
   withFace: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm, paddingLeft: space.sm },
   faceSpace: { width: faceSize },
-  faceColumn: { flexShrink: 1, alignItems: 'flex-start' },
+  faceColumn: { flex: 1, alignItems: 'flex-start' },
 });

@@ -147,14 +147,6 @@
     "openPanel": "Emoji, stiker, dan GIF",
     "recordFailed": "Pesan suara gagal direkam. Coba lagi."
   },
-  "permissions": {
-    "cameraTitle": "Akses kamera tidak aktif",
-    "cameraBody": "Izinkan akses kamera di Pengaturan untuk memotret.",
-    "microphoneTitle": "Akses mikrofon tidak aktif",
-    "microphoneBody": "Izinkan akses mikrofon di Pengaturan untuk merekam pesan suara.",
-    "cancel": "Nanti saja",
-    "openSettings": "Buka Pengaturan"
-  },
   "voice": {
     "play": "Putar pesan suara",
     "pause": "Jeda pesan suara",

@@ -22,6 +22,8 @@ Android push goes through FCM when the build carries `GOOGLE_SERVICES_JSON`; the
 
 In an expanded window the list is on the left (360 dp) and the conversation on the right; in compact and medium windows the conversation opens as its own screen. In medium and expanded windows the Enter key on a physical keyboard sends the message; in compact windows Enter makes a new line. When the app lock is on, the preview in the recent apps list is blanked (Android `FLAG_SECURE` while the app is in the background, an iOS blur layer).
 
+Message bubbles follow WhatsApp: your own on the right, everyone else's on the left, each as wide as its content and at most 80% of the message lane. The lane is the conversation width minus 16 dp on each side, capped at 720 dp and centred like the composer, so a bubble never grows past 576 dp. In a group the sender's bubble takes at most 80% of the space beside the avatar. A message still sending or failed keeps the width it will have once sent (ZHA-7809).
+
 Message actions follow the lab0 web (Odoo Discuss and `kaitech_chat`). The app reads `kaitech_chat_features`, the admin status, and `kaitech_chat_can_make_task` from `/web/session/get_session_info` (`storeData`), so an action the server turns off also disappears on the phone. A long press on a message opens one sheet: an emoji row (the button at its end opens the full emoji picker from Odoo's CLDR data), then Reply, Copy, Forward, Edit, Delete; More holds reply in thread, pin, star, mark as unread, copy link, translate, make a task, make an activity, schedule a meeting, and who reacted. The rules for who may do what are in `messageOptions()` (edit and delete for the author or an admin, delete closed after 24 hours when `recall_limit` is on). Edit uses the composer; the draft being typed is saved and restored after the edit. Reactions are read from Odoo 19's `MessageReactions` store.
 
 The `signed-in/message-actions.yaml` flow sends one test message, then pins it, stars it, reacts through the emoji picker, edits it, forwards it, makes an activity, copies the link, deletes a second message, tries to star in airplane mode (a failure message must appear), then checks the results on the server through a web account (`scripts/actions-peer.js`). Extra variables: `-e FORWARD_TO=<name of the target test conversation>`; `-e MAKE_TASK=yes` and `-e MEETING=yes` only for a test account with Project and Chat rights.
@@ -61,6 +63,22 @@ On iOS 26 and later the app takes the system Liquid Glass look for navigation an
 - Header: iOS has no header of its own; the tab screens keep the title in one row with Search and profile (the header layout belongs to ZHA-7730), and on iOS 26+ the Search and profile pair sits on one interactive glass capsule (`src/screens/HeaderActions.tsx`).
 
 NativeTabs, expo-glass-effect and the native form sheet need a development or CI build; Expo Go does not carry them.
+
+## Dialogs, snackbar and permission cards (`src/ui/dialog.ts`, `src/ui/Dialog.tsx`, `src/ui/permission.ts`)
+
+The app draws every dialog itself, the same on Android and iOS, in the Kaitech colours of the current light or dark theme (ZHA-7789). `src/ui/dialog.ts` holds the calls: `confirm` (a destructive variant with `danger: true` paints the confirm button red), `inform` (one button), `choose` (several choices plus Cancel), `prompt` (a text field; `required` keeps the confirm button off while it is empty) and `notify`, a one-line message in the snackbar at the bottom (the same bar as Undo, testID `snackbar`). Each returns a promise, so the code that deletes, signs out or calls the server runs only after the answer. The Android back button, a tap outside the card and Cancel all answer no. Dialogs queue and show one at a time; they wait while the app lock is on.
+
+A dialog is drawn by the topmost dialog layer: the root layout, every native modal route (settings, person, add account, call, recording, and the MoM record, sign, remove, final tool and follow-up form routes), every `Overlay` (the only allowed wrapper of React Native `Modal`) and the iOS native form sheet each mount one. On iOS a modal can only be presented from the screen on top, so this keeps a dialog asked from inside a sheet or a settings page visible; on Android the dialog is its own window either way. A route presented as a native modal must render `<DialogLayer />` itself: without it a dialog asked there is presented from the screen under the modal, which iOS refuses, and the promise never settles. `__tests__/modal-routes-dialog-layer.test.ts` fails for a modal route in any stack layout that does not mount one.
+
+Known gap: a snackbar raised while a dialog is open is drawn in the screen under the dialog's scrim, because the dialog is its own modal window, and it can time out before the dialog closes.
+
+TestIDs: the `testID` given to a dialog names the card, with `<testID>-title`, `-body`, `-input`, `-backdrop`, `-modal` and `-<choice>` (`-confirm`, `-cancel`, `-ok`, or the key given to `choose`). Every dialog in the app ends in `-dialog`, for example `sign-out-dialog-confirm`.
+
+`eslint.config.js` rejects `Alert`, `ActionSheetIOS`, `ToastAndroid` and `Modal` from `react-native` in `src/` (only `Overlay.tsx` and `Dialog.tsx` import `Modal`).
+
+Permission cards: `askPermission` shows a card that says what the camera, microphone or notifications are used for before the system prompt, so the system prompt only appears after Continue. When the system will not ask again, the card offers Settings instead, unless the screen shows its own notice (calls, MoM recording setup, notifications).
+
+Still drawn by the system, because the app cannot restyle them: the permission prompts themselves (camera, microphone, notifications; the app asks for no location), the photo, camera and file pickers (`expo-image-picker`, `expo-document-picker`), the share sheet (`expo-sharing`, `Share`), the biometric prompt of the app lock (`expo-local-authentication`), the screen capture consent of screen sharing, and the browser tab used to sign in. On iOS 26 and later the sheets keep the system form sheet container (see iOS 26+: Liquid Glass); their content is the app's.
 
 ## Row actions (`src/ui/RowActions.tsx`)
 

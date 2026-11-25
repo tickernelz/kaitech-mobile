@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { invalidate } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
 import { useSession } from '../../auth/session';
@@ -8,6 +8,7 @@ import { space } from '../../theme';
 import { useErrorText } from '../discovery/ui';
 import type { AssistPart } from './assist';
 import { Refresh } from '../../ui/Refresh';
+import { notify } from '../../ui/dialog';
 
 const pollMs = 3_000;
 
@@ -27,7 +28,7 @@ export function useAssistRun(part: AssistPart, meeting: number) {
       invalidate(`${active.id}:${assistKey(part, meeting)}`);
       return true;
     } catch (error) {
-      Alert.alert('', errorText(error));
+      notify(errorText(error));
       return false;
     } finally {
       setBusy('');

@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
 import { sessionCookie } from '../../api/odoo';
 import type { Account } from '../../auth/oauth';
 import { useSession } from '../../auth/session';
@@ -10,6 +9,7 @@ import { downloadForOpening } from '../chat/files';
 import type { Action, WindowAction } from './api';
 import { contextOf, plainOfHtml } from './model';
 import { recordsChanged, stash } from './stash';
+import { inform, notify } from '../../ui/dialog';
 
 export type RecordStash = { context: Record<string, unknown>; formView: number | false; wizard: boolean; title?: string };
 
@@ -82,11 +82,11 @@ export function useRunAction(programme: number) {
           recordsChanged();
           const title = typeof params.title === 'string' ? params.title : '';
           const message = typeof params.message === 'string' ? plainOfHtml(params.message) : '';
-          Alert.alert(title, message);
+          void inform({ title: title || undefined, body: message, testID: 'action-notification-dialog' });
         } else if (action.tag === 'reload' || action.tag === 'soft_reload') recordsChanged();
         else {
           recordsChanged();
-          Alert.alert('', t('records.webOnly', { name: action.name ?? action.tag }));
+          notify(t('records.webOnly', { name: action.name ?? action.tag }));
         }
         return;
       }

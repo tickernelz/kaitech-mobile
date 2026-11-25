@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Overlay } from '../../ui/Overlay';
 import { Pressable } from '../../ui/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../theme';
@@ -40,7 +41,7 @@ export function MoreSheet({
     .map((group) => (said ? { ...group, actions: group.actions.filter((action) => `${action.label} ${action.detail ?? ''}`.toLowerCase().includes(said)) } : group))
     .filter((group) => group.actions.length);
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable
         style={[styles.scrim, typing && { justifyContent: 'flex-start', paddingTop: Math.max(insets.top, space.lg) }, { backgroundColor: colors.scrim }]}
         onPress={onClose}
@@ -109,7 +110,7 @@ export function MoreSheet({
           </ScrollView>
         </Pressable>
       </Pressable>
-    </Modal>
+    </Overlay>
   );
 }
 

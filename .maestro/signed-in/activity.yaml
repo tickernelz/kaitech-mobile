@@ -167,7 +167,7 @@ onFlowStart:
 - tapOn:
     id: activity-cancel
 - tapOn:
-    text: (?i)(cancel activity|batalkan aktivitas)
+    id: activity-cancel-dialog-confirm
 - extendedWaitUntil:
     notVisible:
       text: ${output.second}

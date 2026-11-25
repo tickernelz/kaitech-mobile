@@ -1,0 +1,117 @@
+appId: io.kaitech.mobile
+name: Kaitech dialogs in the current system theme - a destructive confirm closed by the back button, the camera card before the system prompt, and the snackbar
+tags:
+  - signed-in
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp:
+    permissions:
+      all: allow
+      camera: deny
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- runFlow: ../shared/no-ring.yaml
+- tapOn:
+    id: open-settings
+- extendedWaitUntil:
+    visible:
+      id: settings
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: settings-sign-out
+- tapOn:
+    id: settings-sign-out
+- extendedWaitUntil:
+    visible:
+      id: sign-out-dialog
+    timeout: 10000
+- assertVisible:
+    id: sign-out-dialog-confirm
+- assertNotVisible:
+    id: android:id/button1
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: ${THEME}-d1-confirm-destructive
+- back
+- extendedWaitUntil:
+    notVisible:
+      id: sign-out-dialog
+    timeout: 10000
+- assertVisible:
+    id: settings
+- scrollUntilVisible:
+    element:
+      id: settings-profile
+    direction: UP
+- tapOn:
+    id: settings-profile
+- extendedWaitUntil:
+    visible:
+      id: profile-photo-camera
+    timeout: 30000
+- tapOn:
+    id: profile-photo-camera
+- extendedWaitUntil:
+    visible:
+      id: permission-camera-dialog
+    timeout: 10000
+- assertNotVisible:
+    id: com.android.permissioncontroller:id/permission_deny_button
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: ${THEME}-d2-permission-card
+- tapOn:
+    id: permission-camera-dialog-cancel
+- extendedWaitUntil:
+    notVisible:
+      id: permission-camera-dialog
+    timeout: 10000
+- assertNotVisible:
+    id: com.android.permissioncontroller:id/permission_deny_button
+- tapOn:
+    id: settings-back
+- extendedWaitUntil:
+    visible:
+      id: settings-close
+    timeout: 10000
+- tapOn:
+    id: settings-close
+- extendedWaitUntil:
+    visible:
+      id: tab-button-chat
+    timeout: 30000
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      id: conversation-.*
+    timeout: 30000
+- tapOn:
+    id: conversation-.*
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: composer-mic
+    timeout: 30000
+- tapOn:
+    id: composer-mic
+- extendedWaitUntil:
+    visible:
+      id: snackbar
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: ${THEME}-d3-snackbar

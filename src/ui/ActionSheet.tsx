@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Overlay } from './Overlay';
 import { Pressable } from './Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../theme';
@@ -88,7 +89,7 @@ export function ActionSheet({
     );
   }
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={page ? () => setPage(null) : onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible transparent animationType="fade" onRequestClose={page ? () => setPage(null) : onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('row.close')}>
         <Pressable
           style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]}
@@ -98,7 +99,7 @@ export function ActionSheet({
           {content}
         </Pressable>
       </Pressable>
-    </Modal>
+    </Overlay>
   );
 }
 

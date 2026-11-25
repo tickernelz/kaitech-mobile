@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TextInput, View } from 'react-native';
 import { radius, space, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
 import { Sheet, SheetItem } from '../../../../ui/Sheet';
@@ -14,6 +14,7 @@ import type { Attachment, Message } from '../../types';
 import { useChatFormat } from '../format';
 import { useOpenAttachment } from '../useOpenAttachment';
 import { failureText } from '../actions/failure';
+import { confirm } from '../../../../ui/dialog';
 
 function useLoad<T>(load: (channelId: number) => Promise<Result<T>>, channelId: number) {
   const [result, setResult] = useState<Result<T> | null>(null);
@@ -86,23 +87,16 @@ export function StarredSheet({ onClose, onOpen }: { onClose: () => void; onOpen:
       live = false;
     };
   }, []);
-  const clear = () =>
-    Alert.alert(t('starredList.clearTitle'), t('starredList.clearBody'), [
-      { text: t('act.cancel'), style: 'cancel' },
-      {
-        text: t('starredList.confirm'),
-        style: 'destructive',
-        onPress: () => {
-          setBusy(true);
-          setFailure(null);
-          void unstarAll().then((next) => {
-            setBusy(false);
-            if (next.ok) setResult({ ok: true, value: [] });
-            else setFailure(failureText(t, next));
-          });
-        },
-      },
-    ]);
+  const clear = async () => {
+    const go = await confirm({ title: t('starredList.clearTitle'), body: t('starredList.clearBody'), cancel: t('act.cancel'), confirm: t('starredList.confirm'), danger: true, icon: 'star', testID: 'starred-clear-dialog' });
+    if (!go) return;
+    setBusy(true);
+    setFailure(null);
+    const next = await unstarAll();
+    setBusy(false);
+    if (next.ok) setResult({ ok: true, value: [] });
+    else setFailure(failureText(t, next));
+  };
   const conversations = useChat((state) => state.conversations);
   const names = useMemo(() => new Map(conversations.map((conversation) => [conversation.id, conversation.name])), [conversations]);
   const any = result?.ok === true && result.value.length > 0;

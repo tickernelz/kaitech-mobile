@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 import { space, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
 import { Sheet, SheetItem } from '../../../../ui/Sheet';
@@ -9,6 +9,7 @@ import type { Person, Result } from '../../messageActions';
 import { invitable, invite, membersOf, setRole, type Member } from '../../threadActions';
 import { failureText } from '../actions/failure';
 import { PersonChips, PersonSearch } from '../actions/PersonSearch';
+import { choose } from '../../../../ui/dialog';
 
 const roles = ['owner', 'admin', 'member'] as const;
 
@@ -20,18 +21,20 @@ export function MembersSheet({ channelId, manages, canInvite, onClose, onNotice 
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(() => void membersOf(channelId).then(setResult), [channelId]);
   useEffect(load, [load]);
-  const changeRole = (member: Member) => {
-    Alert.alert(member.name, t('members.roleTitle'), [
-      ...roles.filter((role) => role !== member.role).map((role) => ({
-        text: t(`members.role.${role}`),
-        onPress: () =>
-          void setRole(channelId, member.memberId, role).then((next) => {
-            setError(next.ok ? null : failureText(t, next));
-            if (next.ok) load();
-          }),
-      })),
-      { text: t('act.cancel'), style: 'cancel' as const },
-    ]);
+  const changeRole = async (member: Member) => {
+    const role = await choose({
+      title: member.name,
+      body: t('members.roleTitle'),
+      cancel: t('act.cancel'),
+      icon: 'people',
+      testID: 'member-role-dialog',
+      choices: roles.filter((candidate) => candidate !== member.role).map((candidate) => ({ key: candidate, label: t(`members.role.${candidate}`), tone: 'plain' as const })),
+    });
+    const picked = roles.find((candidate) => candidate === role);
+    if (!picked) return;
+    const next = await setRole(channelId, member.memberId, picked);
+    setError(next.ok ? null : failureText(t, next));
+    if (next.ok) load();
   };
   if (inviting) return <InviteSheet channelId={channelId} onClose={() => setInviting(false)} onDone={(text) => { setInviting(false); onNotice(text); load(); }} />;
   return (

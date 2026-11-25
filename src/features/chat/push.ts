@@ -9,6 +9,7 @@ import { ChatClient } from './api';
 import { chatClient, getChat } from './chat';
 import { forgetMessages, mirrorHidden } from './notify';
 import { previewKey, registeredKey, syncPreview, syncPushToken } from './pushAccount';
+import { askPermission } from '../../ui/permission';
 
 export const channelId = 'messages';
 const askedKey = 'chat.pushAsked';
@@ -102,8 +103,7 @@ export async function askForPushOnce(accountId: string) {
   Storage.setItemSync(askedKey, '1');
   try {
     await ensureChannel();
-    const permission = await Notifications.requestPermissionsAsync();
-    if (permission.granted) await register(accountId);
+    if (await askPermission('notifications', Notifications.getPermissionsAsync, Notifications.requestPermissionsAsync, { settings: false })) await register(accountId);
   } catch {
     return;
   }

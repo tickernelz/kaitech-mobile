@@ -1,5 +1,5 @@
 import { createElement } from 'react';
-import { Alert } from 'react-native';
+import { View } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import '../src/i18n';
 
@@ -30,8 +30,10 @@ jest.mock('react-native-keyboard-controller', () => ({
 }));
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
+const mockRequestCamera = jest.fn(async () => ({ granted: false, canAskAgain: true }));
 jest.mock('expo-image-picker', () => ({
-  requestCameraPermissionsAsync: jest.fn(async () => ({ granted: false, canAskAgain: false })),
+  getCameraPermissionsAsync: jest.fn(async () => ({ granted: false, canAskAgain: true })),
+  requestCameraPermissionsAsync: () => mockRequestCamera(),
   launchCameraAsync: jest.fn(),
   launchImageLibraryAsync: jest.fn(),
 }));
@@ -54,11 +56,12 @@ jest.mock('../src/features/chat/ui/useVoiceHold', () => ({
 jest.mock('../src/features/chat/ui/composer/Panel', () => ({ ComposerPanel: () => null }));
 
 const { Composer } = require('../src/features/chat/ui/Composer') as typeof import('../src/features/chat/ui/Composer');
+const { DialogLayer } = require('../src/ui/Dialog') as typeof import('../src/ui/Dialog');
 
 const hidden = { includeHiddenElements: true };
 
 async function show() {
-  await render(createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent: jest.fn() }));
+  await render(createElement(View, null, createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent: jest.fn() }), createElement(DialogLayer, { root: true })));
 }
 
 function visible(testID: string): boolean {
@@ -115,13 +118,14 @@ describe('adaptive composer', () => {
     expect(visible('composer-mic')).toBe(true);
   });
 
-  it('stages nothing and offers settings when the camera is refused', async () => {
-    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+  it('explains the camera in the Kaitech card first and stages nothing when the user declines', async () => {
     await show();
     await fireEvent.press(screen.getByTestId('composer-camera'));
-    expect(alert).toHaveBeenCalled();
+    expect(await screen.findByTestId('permission-camera-dialog-title')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('permission-camera-dialog-cancel'));
+    expect(mockRequestCamera).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('staged-file')).toBeNull();
     expect(visible('composer-mic')).toBe(true);
-    alert.mockRestore();
   });
 
   it('turns the locked recording into cancel and send controls', async () => {
