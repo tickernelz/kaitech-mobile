@@ -1,7 +1,8 @@
+import { recordingIdOf } from '../call/recordingLink';
 import { isCallNotice } from './odoo';
 import { blocksShape, bodyShape, sourceBlocks } from './markdown';
 import type { Delivered } from './chat';
-import type { Message, Pending } from './types';
+import type { Attachment, Message, Pending } from './types';
 
 export type Row =
   | { kind: 'day'; key: string; date: number }
@@ -44,8 +45,20 @@ export function buildRows(
   return rows;
 }
 
+function attachmentKind(attachment: Attachment): string {
+  if (recordingIdOf(attachment.url) !== null) return 'recording';
+  if (attachment.voice || attachment.mimetype.startsWith('audio/')) return 'voice';
+  if (attachment.mimetype.startsWith('image/')) return 'image';
+  return 'file';
+}
+
 export function rowType(row: Row): string {
-  if (row.kind === 'message') return `message-${bodyShape(row.message.body)}`;
-  if (row.kind === 'pending' && !row.pending.files.length) return `message-${blocksShape(sourceBlocks(row.pending.text, false))}`;
+  if (row.kind === 'message') {
+    const { message } = row;
+    if (message.type === 'notification') return isCallNotice(message) ? 'call-notice' : 'notice';
+    if (message.attachments.length) return `media-${attachmentKind(message.attachments[0])}`;
+    return `message-${bodyShape(message.body)}`;
+  }
+  if (row.kind === 'pending') return row.pending.files.length ? 'pending-media' : `message-${blocksShape(sourceBlocks(row.pending.text, false))}`;
   return row.kind;
 }

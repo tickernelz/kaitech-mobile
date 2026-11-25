@@ -19,7 +19,6 @@ export type Recording = {
 export type Playback = { recording: Recording; url: string | null };
 
 const states: RecordingState[] = ['recording', 'ending', 'done', 'failed', 'deleted'];
-const playPath = /^\/kaitech_mobile\/call\/recordings\/(\d+)\/play$/;
 
 type Raw = Record<string, unknown>;
 
@@ -51,10 +50,6 @@ export function recordingFrom(value: unknown): Recording | null {
   };
 }
 
-export function recordingIdOf(url: string | null | undefined): number | null {
-  const match = url ? playPath.exec(url) : null;
-  return match ? Number(match[1]) : null;
-}
 
 export async function startRecording(account: Account, channelId: number): Promise<Recording | null> {
   const answer = await bearer<{ recording?: unknown }>(account, '/kaitech_mobile/call/recording/start', { method: 'POST', body: { channel_id: channelId } });

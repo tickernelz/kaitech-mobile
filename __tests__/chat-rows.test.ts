@@ -15,6 +15,23 @@ function pending(key: string, text: string, createdAt: number, extra: Partial<Pe
 
 const shape = (rows: Row[]) => rows.map((row) => `${row.key}:${rowType(row)}`);
 
+describe('thread row types', () => {
+  it('separates notices and attachments from text so recycled cells keep their shape', () => {
+    const call = message(1, noon, { type: 'notification', body: '<div data-oe-type="call">x</div>' });
+    const note = message(2, noon, { type: 'notification', body: '<p>joined</p>' });
+    const voice = message(3, noon, { attachments: [{ id: 1, name: 'v.m4a', mimetype: 'audio/mp4', size: 1, voice: true, accessToken: null, checksum: null, url: null }] });
+    const picture = message(4, noon, { attachments: [{ id: 2, name: 'p.jpg', mimetype: 'image/jpeg', size: 1, voice: false, accessToken: null, checksum: null, url: null }] });
+    const text = message(5, noon);
+    expect([call, note, voice, picture, text].map((item) => rowType({ kind: 'message', key: String(item.id), message: item, showAuthor: true }))).toEqual([
+      'call-notice',
+      'notice',
+      'media-voice',
+      'media-image',
+      'message-plain',
+    ]);
+  });
+});
+
 describe('thread rows across a send', () => {
   const history = [message(10, noon - day), message(11, noon - day + 60000)];
 
@@ -45,6 +62,6 @@ describe('thread rows across a send', () => {
   it('gives a send with files its own row type', () => {
     const file = { key: 'f', uri: 'x', name: 'a.pdf', mimetype: 'application/pdf', size: 1, voice: false, durationMs: null, attachmentId: null, ownershipToken: null };
     const rows = buildRows(history, [pending('k2', '', noon - day + 120000, { files: [file] })], [], sameDay);
-    expect(shape(rows).at(-1)).toBe('p-k2:pending');
+    expect(shape(rows).at(-1)).toBe('p-k2:pending-media');
   });
 });

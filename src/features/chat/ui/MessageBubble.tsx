@@ -17,7 +17,7 @@ import { RichText } from './RichText';
 import { useCookie } from './useCookie';
 import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
-import { recordingIdOf } from '../../call/recording';
+import { recordingIdOf } from '../../call/recordingLink';
 import { RecordingCard } from '../../call/ui/RecordingCard';
 import { callState, startCall } from '../../call/call';
 import { conversationById, getChat } from '../chat';
