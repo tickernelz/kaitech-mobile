@@ -135,6 +135,11 @@ onFlowComplete:
           notVisible:
             id: undo-bar
           timeout: 15000
+      - extendedWaitUntil:
+          visible:
+            id: chat-archive-open
+          timeout: 20000
+          optional: true
       - scrollUntilVisible:
           element:
             id: chat-archive-open
