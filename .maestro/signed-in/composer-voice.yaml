@@ -79,7 +79,7 @@ onFlowStart:
     id: voice-draft-play
 - extendedWaitUntil:
     visible:
-      text: 0:0[1-9] / 0:0[1-9]
+      text: '[0-9]+:[0-5][0-9] / [0-9]+:[0-5][0-9]'
     timeout: 15000
 - runFlow:
     file: ../shared/screenshot.yaml
@@ -116,16 +116,16 @@ onFlowStart:
     visible:
       text: (Recording discarded|Rekaman dibuang)
     timeout: 5000
-- runFlow:
-    file: ../shared/screenshot.yaml
-    env:
-      SCREEN: v4-discarded
 - tapOn:
-    text: (Undo|Urungkan)
+    id: undo-action
 - extendedWaitUntil:
     visible:
       id: voice-paused
     timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: v4-undone
 - tapOn:
     id: voice-discard
 - extendedWaitUntil:

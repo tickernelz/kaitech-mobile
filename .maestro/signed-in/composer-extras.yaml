@@ -68,6 +68,12 @@ onFlowStart:
     visible:
       id: composer-panel
     timeout: 10000
+- tapOn:
+    id: panel-tab-emoji
+- extendedWaitUntil:
+    visible:
+      id: emoji-search
+    timeout: 10000
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
@@ -101,7 +107,8 @@ onFlowStart:
       id: gif-cell-0
     timeout: 20000
 - assertVisible:
-    id: panel-attribution
+    id: gif-search
+    text: .*KLIPY.*
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
