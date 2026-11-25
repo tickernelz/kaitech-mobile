@@ -9,7 +9,7 @@ export const openedRoot = 'chat-opened';
 const indexName = 'media.json';
 const saveDelayMs = 400;
 
-type Book = { entries: Map<string, MediaMeta>; timer: ReturnType<typeof setTimeout> | null };
+type Book = { entries: Map<string, MediaMeta>; timer: ReturnType<typeof setTimeout> | null; ready: Promise<void> };
 
 const books = new Map<string, Book>();
 const epochs = new Map<string, number>();
@@ -35,23 +35,52 @@ function indexFile(accountId: string): File {
   return new File(Paths.cache, openedRoot, accountFolderName(accountId), indexName);
 }
 
+async function readIndex(accountId: string): Promise<Record<string, MediaMeta>> {
+  try {
+    const file = indexFile(accountId);
+    if (!file.exists) return {};
+    const raw: unknown = JSON.parse(await file.text());
+    if (!raw || typeof raw !== 'object') return {};
+    return Object.fromEntries(Object.entries(raw).filter(([, value]) => value && typeof value === 'object')) as Record<string, MediaMeta>;
+  } catch {
+    return {};
+  }
+}
+
 function bookOf(accountId: string): Book {
   const known = books.get(accountId);
   if (known) return known;
-  const book: Book = { entries: new Map(), timer: null };
+  const book: Book = { entries: new Map(), timer: null, ready: Promise.resolve() };
+  books.set(accountId, book);
+  book.ready = readIndex(accountId).then((stored) => {
+    if (books.get(accountId) !== book) return;
+    const fresh = Object.entries(stored).filter(([key]) => !book.entries.has(key));
+    for (const [key, value] of fresh) book.entries.set(key, value);
+    for (const [key] of fresh) listeners.get(listenerKey(accountId, key))?.forEach((listener) => listener());
+  });
+  return book;
+}
+
+export function metaReady(accountId: string): Promise<void> {
+  return bookOf(accountId).ready;
+}
+
+export function discardLate(accountId: string, epoch: number, relative: string): boolean {
+  if (epoch === epochOf(accountId)) return false;
   try {
-    const file = indexFile(accountId);
-    if (file.exists) {
-      const raw: unknown = JSON.parse(file.textSync());
-      if (raw && typeof raw === 'object') {
-        for (const [key, value] of Object.entries(raw)) if (value && typeof value === 'object') book.entries.set(key, value as MediaMeta);
-      }
+    let entry: File | Directory = cacheFile(relative);
+    if (entry.exists) entry.delete();
+    const account = new Directory(Paths.cache, openedRoot, accountFolderName(accountId)).uri;
+    entry = entry.parentDirectory;
+    while (entry.uri.startsWith(account) && entry.exists && entry.list().length === 0) {
+      const parent: Directory = entry.parentDirectory;
+      entry.delete();
+      entry = parent;
     }
   } catch {
-    book.entries.clear();
+    return true;
   }
-  books.set(accountId, book);
-  return book;
+  return true;
 }
 
 function persist(accountId: string, book: Book) {

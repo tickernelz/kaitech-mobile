@@ -1,7 +1,7 @@
 import { onAccountForgotten } from '../../../auth/session';
 import { fetchFile } from './download';
 import { mediaKind } from './kind';
-import { cacheFile, cachedMeta, epochOf, previewPath, rememberMeta } from './meta';
+import { cacheFile, cachedMeta, discardLate, epochOf, metaReady, previewPath, rememberMeta } from './meta';
 import { nativeMedia } from './native';
 import { downloadUrl, serverPdfThumbnail, streamUrl } from './urls';
 import type { Attachment } from '../types';
@@ -53,6 +53,7 @@ export async function describePdf(accountId: string, attachment: Attachment, uri
   if (!media) return;
   const relative = previewPath(accountId, attachment, 'page-1.jpg');
   const out = await media.renderPdfPage(uri, 0, previewWidth, cacheFile(relative).uri);
+  if (discardLate(accountId, epoch, relative)) return;
   rememberMeta(accountId, attachment, { pages: out.pages, width: out.width, height: out.height, preview: relative }, epoch);
 }
 
@@ -61,6 +62,7 @@ async function describeVideo(context: PreviewContext, attachment: Attachment, ep
   if (!media) return;
   const relative = previewPath(context.accountId, attachment, 'frame.jpg');
   const out = await media.videoFrame(streamUrl(context.origin, attachment), context.headers, previewWidth, cacheFile(relative).uri);
+  if (discardLate(context.accountId, epoch, relative)) return;
   rememberMeta(context.accountId, attachment, { width: out.width, height: out.height, ...(out.durationMs > 0 ? { durationMs: out.durationMs } : {}), preview: relative }, epoch);
 }
 
@@ -68,11 +70,12 @@ export function wantPreview(context: PreviewContext, attachment: Attachment) {
   const kind = previewWanted(attachment, context.origin);
   if (!kind || !nativeMedia()) return;
   const id = `${context.accountId}|${attachment.id}|${attachment.checksum ?? ''}`;
-  if (asked.has(id) || hasPreview(context.accountId, attachment)) return;
+  if (asked.has(id)) return;
   asked.add(id);
   const epoch = epochOf(context.accountId);
   queue.push(async () => {
-    if (epoch !== epochOf(context.accountId)) return;
+    await metaReady(context.accountId);
+    if (epoch !== epochOf(context.accountId) || hasPreview(context.accountId, attachment)) return;
     try {
       if (kind === 'video') {
         await describeVideo(context, attachment, epoch);

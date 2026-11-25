@@ -21,8 +21,17 @@ jest.mock('expo-file-system', () => {
     constructor(...parts: unknown[]) {
       this.path = join(parts);
     }
+    get uri() {
+      return `file:///${this.path}`;
+    }
+    get parentDirectory() {
+      return new Directory(this.path.split('/').slice(0, -1).join('/'));
+    }
     get exists() {
       return [...mockFiles.keys()].some((key) => key.startsWith(`${this.path}/`));
+    }
+    list() {
+      return [...mockFiles.keys()].filter((key) => key.startsWith(`${this.path}/`));
     }
     create() {
       return undefined;
@@ -49,6 +58,9 @@ jest.mock('expo-file-system', () => {
       return new Directory(this.path.split('/').slice(0, -1).join('/'));
     }
     textSync() {
+      return mockFiles.get(this.path) ?? '';
+    }
+    async text() {
       return mockFiles.get(this.path) ?? '';
     }
     writeSync(text: string) {
@@ -261,6 +273,40 @@ describe('making previews', () => {
     await flush();
     expect(mockNative.videoFrame).toHaveBeenCalledTimes(2);
     expect(cachedMeta('A', video)).toBeUndefined();
+  });
+
+  it('leaves no file behind for an account forgotten while its frame was being read', async () => {
+    const video = attachment(14, 'late.mp4', 'video/mp4');
+    let finish: () => void = () => undefined;
+    mockNative.videoFrame.mockImplementationOnce(
+      (_url: string, _headers: Record<string, string>, _width: number, target: string) =>
+        new Promise((resolve) => {
+          finish = () => {
+            mockFiles.set(target.replace(/^file:\/+/, ''), 'jpeg');
+            resolve({ width: 480, height: 270, durationMs: 1000 });
+          };
+        }),
+    );
+    wantPreview(context, video);
+    await flush();
+    expect(mockNative.videoFrame).toHaveBeenCalledTimes(1);
+    forgetFiles('A');
+    finish();
+    await flush();
+    expect(cachedMeta('A', video)).toBeUndefined();
+    expect([...mockFiles.keys()].filter((path) => path.startsWith('cache/chat-opened/A/'))).toEqual([]);
+  });
+
+  it('reads the remembered previews of an account from disk without making them again', async () => {
+    const video = attachment(15, 'seen.mp4', 'video/mp4');
+    forgetMeta('A');
+    mockFiles.set('cache/chat-opened/A/15-c15/.preview/frame.jpg', 'jpeg');
+    mockFiles.set('cache/chat-opened/A/media.json', JSON.stringify({ '15-c15': { width: 320, height: 180, durationMs: 5000, preview: 'A/15-c15/.preview/frame.jpg' } }));
+    wantPreview(context, video);
+    await flush();
+    await flush();
+    expect(mockNative.videoFrame).not.toHaveBeenCalled();
+    expect(cachedMeta('A', video)).toMatchObject({ durationMs: 5000 });
   });
 
   it('downloads a small PDF to draw its first page and count pages, but never a large one or one the server already drew', async () => {

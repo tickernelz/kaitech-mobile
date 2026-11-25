@@ -9,7 +9,7 @@ import { Icon, type IconName } from '../../../../ui/icons';
 import { Pressable } from '../../../../ui/Pressable';
 import { Text } from '../../../../ui/Text';
 import { cancelFile, DownloadCancelled, useFileStatus } from '../../media/download';
-import { cacheFile, epochOf, previewPath, rememberMeta, useMediaMeta } from '../../media/meta';
+import { cacheFile, discardLate, epochOf, previewPath, rememberMeta, useMediaMeta } from '../../media/meta';
 import { nativeMedia } from '../../media/native';
 import { previewWidth } from '../../media/preview';
 import { pdfSession, type PdfSession } from '../../media/viewer';
@@ -30,8 +30,10 @@ async function openPdf(session: PdfSession, uri: string): Promise<Opened> {
   const media = nativeMedia();
   if (!media) throw new Error('unavailable');
   const epoch = epochOf(session.accountId);
-  const first = await media.renderPdfPage(uri, 0, previewWidth, cacheFile(previewPath(session.accountId, session.attachment, 'page-1.jpg')).uri);
-  rememberMeta(session.accountId, session.attachment, { pages: first.pages, width: first.width, height: first.height, preview: previewPath(session.accountId, session.attachment, 'page-1.jpg') }, epoch);
+  const relative = previewPath(session.accountId, session.attachment, 'page-1.jpg');
+  const first = await media.renderPdfPage(uri, 0, previewWidth, cacheFile(relative).uri);
+  if (discardLate(session.accountId, epoch, relative)) throw new Error('forgotten');
+  rememberMeta(session.accountId, session.attachment, { pages: first.pages, width: first.width, height: first.height, preview: relative }, epoch);
   return { uri, pages: first.pages, ratio: first.height / first.width };
 }
 
@@ -46,16 +48,18 @@ const PdfPage = memo(function PdfPage({ session, source, page, width, ratio }: {
   useEffect(() => {
     if (shown) return;
     let live = true;
+    const epoch = epochOf(session.accountId);
     void nativeMedia()
       ?.renderPdfPage(source, page, target, cacheFile(relative).uri)
       .then((out) => {
+        if (discardLate(session.accountId, epoch, relative)) return;
         if (live) setShown({ uri: cacheFile(relative).uri, ratio: out.height / out.width });
       })
       .catch(() => undefined);
     return () => {
       live = false;
     };
-  }, [shown, source, page, target, relative]);
+  }, [shown, source, page, target, relative, session.accountId]);
   const height = Math.round(width * (shown?.ratio ?? ratio));
   return (
     <View style={{ width, height, marginBottom: pageGap, backgroundColor: colors.onStage }} testID={`pdf-page-${page + 1}`}>
