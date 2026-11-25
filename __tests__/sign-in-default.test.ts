@@ -44,7 +44,6 @@ jest.mock('expo-secure-store', () => ({
   deleteItemAsync: async () => undefined,
 }));
 jest.mock('expo-web-browser', () => ({ openAuthSessionAsync: (...args: unknown[]) => mockOpen(...args) }));
-jest.mock('react-native-keyboard-controller', () => ({ KeyboardAvoidingView: jest.requireActual('react-native').View }));
 jest.mock('../src/auth/pkce', () => ({ createPkce: async () => ({ verifier: 'v', challenge: 'c', state: 's' }) }));
 jest.mock('../src/auth/session', () => ({ addAccount: jest.fn() }));
 

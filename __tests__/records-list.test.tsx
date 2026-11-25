@@ -31,7 +31,6 @@ jest.mock('react-native-reanimated', () => {
 });
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 jest.mock('expo-web-browser', () => ({ openBrowserAsync: jest.fn() }));
-jest.mock('react-native-keyboard-controller', () => ({ KeyboardAvoidingView: jest.requireActual('react-native').View }));
 jest.mock('../src/features/chat/files', () => ({ downloadForOpening: jest.fn() }));
 jest.mock('../src/auth/session', () => ({ useSession: () => ({ active: account }), onAccountForgotten: () => () => undefined }));
 jest.mock('../src/features/records/api', () => ({
