@@ -51,6 +51,10 @@ Chat, Discovery, MoM and Activity share one top app bar on Android and iOS: a 64
 
 Every pull to refresh goes through `Refresh`, a `RefreshControl` in the Kaitech primary colour whose `progressViewOffset` (48 dp) starts the Android indicator 8 dp inside the list instead of one 40 dp diameter above it, so the circle is whole at every pull depth and never covers the bar. iOS draws its spinner in the space the pull opens inside the list. ESLint refuses `RefreshControl` imported from `react-native` outside `src/ui/Refresh.tsx` and `onRefresh` on a list or scroll view.
 
+## Bottom and top insets (`src/ui/insets.ts`)
+
+Padding that clears the gesture pill, the three-button navigation bar or the status bar comes from `useBottomInset(gap, keyboardVisible)` and `useTopInset(gap)`: the system inset plus the component's own gap (8 dp under the chat composer, 16 dp under sheets), never the larger of the two, so content keeps its gap above the pill and the buttons (ZHA-7854). While the keyboard is up the bottom inset is dropped, because the keyboard already covers the navigation bar and a `KeyboardAvoidingView` already lifts the sheet by the keyboard's full height. Screens built on `Screen` get the inset from `SafeAreaView` and a 16 dp gap under scrolling content. The Material tab bar and the undo bar already add their gap to the inset; the iOS tab bar below iOS 26 keeps its items on the home indicator edge like UIKit.
+
 ## iOS 26+: Liquid Glass (`*.ios.tsx`)
 
 On iOS 26 and later the app takes the system Liquid Glass look for navigation and floating controls while colour, type and icons stay Kaitech (ZHA-7469). Content (bubbles, cards, lists, backgrounds) stays opaque. iOS below 26 and Android keep their own look.
