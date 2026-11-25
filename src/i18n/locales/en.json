@@ -65,6 +65,7 @@
     "faceId": "Face ID",
     "touchId": "Touch ID",
     "biometric": "biometrics",
+    "passcode": "the device screen lock",
     "unavailable": "Set up a screen lock on this device first."
   },
   "tabs": {

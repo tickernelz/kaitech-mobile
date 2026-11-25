@@ -65,6 +65,7 @@
     "faceId": "Face ID",
     "touchId": "Touch ID",
     "biometric": "biometrik",
+    "passcode": "kunci layar perangkat",
     "unavailable": "Atur kunci layar perangkat dulu."
   },
   "tabs": {
