@@ -29,7 +29,7 @@ inputs:
     description: A Maestro flow whose frame statistics (gfxinfo) are saved as scroll-gfxinfo.txt; its <name>-ready.yaml runs first to reach the starting screen. Empty skips it.
     default: ''
   motion-flow:
-    description: A Maestro flow recorded on screen and checked frame by frame with scripts/frame-flicker.mjs (motion.mp4, motion-flicker.json, motion-gfxinfo.txt); its <name>-ready.yaml runs first and must leave the thread-list on screen. Empty skips it.
+    description: Path prefix of three Maestro flows; <prefix>-ready.yaml opens a thread, then <prefix>-send.yaml and <prefix>-fling.yaml are each recorded on screen and checked frame by frame with scripts/frame-flicker.mjs (motion-<phase>-flicker.json, motion-<phase>-gfxinfo.txt). Empty skips it.
     default: ''
   layout-check:
     description: true runs scripts/e2e-layout.mjs after the flows, on the signed-in tabs, and saves layout.txt with layout-* and pull-* screenshots.

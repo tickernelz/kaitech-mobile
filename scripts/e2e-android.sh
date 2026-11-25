@@ -264,25 +264,28 @@ if [ -n "${E2E_SCROLL_FLOW:-}" ]; then
 fi
 
 if [ -n "${E2E_MOTION_FLOW:-}" ]; then
-  "${run[@]}" test "${E2E_MOTION_FLOW%.yaml}-ready.yaml" "${signed_in[@]}" --format junit --output "$out/junit-motion-ready.xml" --test-output-dir "$out/maestro/motion-ready" || status=$?
+  "${run[@]}" test "$E2E_MOTION_FLOW-ready.yaml" "${signed_in[@]}" --format junit --output "$out/junit-motion-ready.xml" --test-output-dir "$out/maestro/motion-ready" || status=$?
   adb shell uiautomator dump /sdcard/motion.xml > /dev/null 2>&1
   box="$(adb shell cat /sdcard/motion.xml | tr -d '\r' | grep -oE 'resource-id="thread-list"[^>]*bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"' | grep -oE '\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]' | head -1 | sed 's/\]\[/,/; s/[][]//g')"
-  adb shell dumpsys gfxinfo io.kaitech.mobile reset > /dev/null
-  adb shell screenrecord --bit-rate 8000000 --time-limit 120 /sdcard/motion.mp4 &
-  motion_recorder=$!
-  sleep 1
-  "${run[@]}" test "$E2E_MOTION_FLOW" "${signed_in[@]}" --format junit --output "$out/junit-motion.xml" --test-output-dir "$out/maestro/motion" || status=$?
-  adb shell pkill -INT screenrecord || true
-  wait "$motion_recorder" || true
-  sleep 2
-  adb shell dumpsys gfxinfo io.kaitech.mobile | tr -d '\r' | sed -n '/^Total frames rendered/,/^99th percentile/p' > "$out/motion-gfxinfo.txt"
-  adb pull /sdcard/motion.mp4 "$out/motion.mp4" > /dev/null
   if [ -z "$box" ]; then
     echo "::error::thread-list bounds not found for the motion recording"
     status=1
-  else
-    node scripts/frame-flicker.mjs "$out/motion.mp4" "$box" --out "$out/motion-flicker.json" --max-flicker "${E2E_MAX_FLICKER:-0}" | tee "$out/motion-flicker.txt" || status=1
   fi
+  for phase in send fling; do
+    adb shell dumpsys gfxinfo io.kaitech.mobile reset > /dev/null
+    adb shell screenrecord --bit-rate 8000000 --time-limit 170 "/sdcard/motion-$phase.mp4" &
+    motion_recorder=$!
+    sleep 1
+    "${run[@]}" test "$E2E_MOTION_FLOW-$phase.yaml" "${signed_in[@]}" --format junit --output "$out/junit-motion-$phase.xml" --test-output-dir "$out/maestro/motion-$phase" || status=$?
+    adb shell pkill -INT screenrecord || true
+    wait "$motion_recorder" || true
+    sleep 2
+    adb shell dumpsys gfxinfo io.kaitech.mobile | tr -d '\r' | sed -n '/^Total frames rendered/,/^99th percentile/p' > "$out/motion-$phase-gfxinfo.txt"
+    adb pull "/sdcard/motion-$phase.mp4" "$out/motion-$phase.mp4" > /dev/null
+    if [ -n "$box" ]; then
+      node scripts/frame-flicker.mjs "$out/motion-$phase.mp4" "$box" --out "$out/motion-$phase-flicker.json" --max-flicker "${E2E_MAX_FLICKER:-0}" | tee "$out/motion-$phase-flicker.txt" || status=1
+    fi
+  done
 fi
 
 if [ "${E2E_LAYOUT_CHECK:-}" = 1 ]; then
