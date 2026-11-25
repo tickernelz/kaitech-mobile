@@ -109,6 +109,7 @@ runs:
         target: google_apis
         profile: ${{ steps.device.outputs.profile }}
         disable-animations: true
+        ram-size: 4096M
         force-avd-creation: true
         emulator-options: -no-window -no-snapshot -wipe-data -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '' }} -no-boot-anim -camera-back none -camera-front ${{ inputs.call-peer == 'true' && 'emulated' || 'none' }}
         script: for o in ${{ inputs.orientations }}; do runs=0; [ "$o" = portrait ] && runs="$PORTRAIT_COLD_START_RUNS"; COLD_START_RUNS="$runs" bash scripts/e2e-android.sh "${{ inputs.apk-dir }}" "e2e-output/${{ inputs.output-prefix }}${{ inputs.size }}-$o-${{ inputs.locale }}" ${{ inputs.locale }} ${{ inputs.size }} "$o" || status=1; done; exit "${status:-0}"
