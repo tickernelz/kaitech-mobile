@@ -155,10 +155,8 @@ function Frame({
       style={[
         styles.bubble,
         mine ? styles.mine : styles.theirs,
-        {
-          backgroundColor: mine ? colors.select : colors.surface,
-          borderColor: failed ? colors.danger : mine ? colors.select : colors.line,
-        },
+        mine && !failed ? styles.plain : { borderColor: failed ? colors.danger : colors.line },
+        { backgroundColor: mine ? colors.select : colors.surface },
       ]}>
       {children}
     </Pressable>
@@ -470,6 +468,7 @@ const styles = StyleSheet.create({
   wrapTheirs: { alignItems: 'flex-start' },
   bubble: { maxWidth: bubbleMaxWidth, minWidth: 88, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   mine: { borderBottomRightRadius: radius.sm },
+  plain: { borderWidth: 0 },
   theirs: { borderBottomLeftRadius: radius.sm },
   quoteBox: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
