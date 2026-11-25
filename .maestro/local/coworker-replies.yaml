@@ -33,7 +33,6 @@ name: Coworker quick replies - a kt-block reply is drawn as buttons and a tap se
     visible:
       id: coworker-reply
     timeout: 600000
-- runFlow: ../shared/dismiss-keyboard.yaml
 - scrollUntilVisible:
     element:
       id: kt-reply-0
