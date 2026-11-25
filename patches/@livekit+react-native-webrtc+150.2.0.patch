@@ -1,0 +1,40 @@
+diff --git a/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCModule.java b/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCModule.java
+index c8aaa3b..a4cf757 100644
+--- a/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCModule.java
++++ b/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCModule.java
+@@ -495,6 +495,22 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
+         return null;
+     }
+ 
++    VideoTrack getVideoTrackForRenderer(String streamReactTag, VideoTrack streamTrack) {
++        if (localStreams.containsKey(streamReactTag)) {
++            return streamTrack;
++        }
++
++        for (int i = 0, size = mPeerConnectionObservers.size(); i < size; i++) {
++            PeerConnectionObserver pco = mPeerConnectionObservers.valueAt(i);
++            if (pco.remoteStreams.containsKey(streamReactTag)) {
++                MediaStreamTrack track = pco.remoteTracks.get(streamTrack.id());
++                return track instanceof VideoTrack ? (VideoTrack) track : null;
++            }
++        }
++
++        return null;
++    }
++
+     public MediaStreamTrack getTrack(int pcId, String trackId) {
+         if (pcId == -1) {
+             return getLocalTrack(trackId);
+diff --git a/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCView.java b/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCView.java
+index 3f13b5d..7c0ced9 100644
+--- a/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCView.java
++++ b/node_modules/@livekit/react-native-webrtc/android/src/main/java/io/livekit/reactnative/webrtc/WebRTCView.java
+@@ -240,7 +240,7 @@ public class WebRTCView extends ViewGroup {
+                 VideoTrack videoTrack = null;
+                 List<VideoTrack> videoTracks = stream.videoTracks;
+                 if (!videoTracks.isEmpty()) {
+-                    videoTrack = videoTracks.get(0);
++                    videoTrack = module.getVideoTrackForRenderer(streamURL, videoTracks.get(0));
+                 }
+ 
+                 if (videoTrack == null) {
