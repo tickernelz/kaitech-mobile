@@ -114,9 +114,10 @@
     "closeSheet": "Close",
     "attachTitle": "Attach",
     "source": {
+      "photos": "Gallery",
       "camera": "Camera",
-      "photos": "Photos & videos",
-      "files": "Document"
+      "files": "Document",
+      "audio": "Audio"
     },
     "micBusy": "The microphone is in use by a meeting recording or a call.",
     "uploading": "Uploading {{name}}",
@@ -169,7 +170,8 @@
       "device": "The audio device changed. Recording paused.",
       "restored": "Your unsent voice message is still here."
     },
-    "cameraHint": "Hold to open the gallery"
+    "cameraHint": "Hold to open the gallery",
+    "pickerNote": "Photos and videos are picked with the system photo picker. Kaitech does not ask for access to your whole gallery."
   },
   "voice": {
     "play": "Play voice message",

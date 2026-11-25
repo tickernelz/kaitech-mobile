@@ -43,7 +43,8 @@ jest.mock('expo-image-picker', () => ({
   launchCameraAsync: jest.fn(),
   launchImageLibraryAsync: jest.fn(),
 }));
-jest.mock('expo-document-picker', () => ({ getDocumentAsync: jest.fn() }));
+const mockDocuments = jest.fn(async (_options: unknown) => ({ canceled: true, assets: [] }));
+jest.mock('expo-document-picker', () => ({ getDocumentAsync: (options: unknown) => mockDocuments(options) }));
 jest.mock('../src/api/odoo', () => ({ route: jest.fn(), rpc: jest.fn(), ApiError: class extends Error {}, onSessionOpened: jest.fn() }));
 jest.mock('../src/auth/session', () => ({ onAccountForgotten: jest.fn(), useSession: () => ({ active: null }) }));
 jest.mock('../src/features/chat/chat', () => ({
@@ -179,6 +180,16 @@ describe('adaptive composer', () => {
     expect(screen.getByTestId('voice-interrupted-call')).toBeTruthy();
     expect(screen.getByTestId('voice-draft-play')).toBeTruthy();
     expect(visible('composer-send-voice')).toBe(true);
+  });
+
+  it('opens the attach sheet with gallery, camera, document and audio, and audio picks only audio files', async () => {
+    await show();
+    await fireEvent.press(screen.getByTestId('composer-attach'));
+    for (const source of ['photos', 'camera', 'files', 'audio']) expect(screen.getByTestId(`attach-${source}`)).toBeTruthy();
+    expect(screen.getByText('Photos and videos are picked with the system photo picker. Kaitech does not ask for access to your whole gallery.')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('attach-audio'));
+    expect(mockDocuments).toHaveBeenCalledWith(expect.objectContaining({ type: 'audio/*', multiple: true }));
+    expect(screen.queryByTestId('staged-file')).toBeNull();
   });
 
   it('switches the field button between the panel and the keyboard', async () => {

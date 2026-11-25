@@ -37,7 +37,8 @@ import { photoFrom } from '../../people/photo';
 import { notePhotoList } from '../../people/photos';
 import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
-import { AttachSheet, StagedFile, type Extra } from './MediaControls';
+import { StagedFile } from './MediaControls';
+import { AttachSheet, type Extra } from './composer/AttachSheet';
 import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 
 type Staged = Outgoing['files'][number];

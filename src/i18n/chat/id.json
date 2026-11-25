@@ -114,9 +114,10 @@
     "closeSheet": "Tutup",
     "attachTitle": "Lampirkan",
     "source": {
+      "photos": "Galeri",
       "camera": "Kamera",
-      "photos": "Foto & video",
-      "files": "Dokumen"
+      "files": "Dokumen",
+      "audio": "Audio"
     },
     "micBusy": "Mikrofon sedang dipakai rekaman rapat atau panggilan.",
     "uploading": "Mengunggah {{name}}",
@@ -169,7 +170,8 @@
       "device": "Perangkat audio berubah. Rekaman dijeda.",
       "restored": "Pesan suara yang belum terkirim masih ada."
     },
-    "cameraHint": "Tahan untuk membuka galeri"
+    "cameraHint": "Tahan untuk membuka galeri",
+    "pickerNote": "Foto dan video dipilih lewat pemilih foto sistem. Kaitech tidak meminta akses ke seluruh galeri."
   },
   "voice": {
     "play": "Putar pesan suara",
