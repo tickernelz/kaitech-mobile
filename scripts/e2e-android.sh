@@ -278,6 +278,23 @@ if [ -n "$audio_log" ]; then
     -e "${head}ReactNativeJS *: .*[Rr]ecord" \
     -e "${head}ActivityManager *: .*(AudioRecordingService|ANR in io\.kaitech\.mobile|Process io\.kaitech\.mobile )" \
     "$audio_log" > "$out/audio.txt" || true
+  if [ "$status" != 0 ]; then
+    secrets=()
+    for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
+      [ -n "$secret" ] && secrets+=(-e "$secret")
+    done
+    {
+      grep -aE \
+        -e "${head}ActivityTaskManager *: (START|Displayed)" \
+        -e "${head}ActivityManager *: .*(Start proc|has died|Killing|ANR in|Force stopping).*(com\.android\.chrome|io\.kaitech\.mobile)" \
+        -e "${head}WindowManager *: .*(Changing focus|Not Responding)" \
+        -e "${head}AndroidRuntime *: " \
+        -e "^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [WEF] (chromium|cr_[A-Za-z]+) *: " \
+        "$audio_log" || true
+      echo "activities at the end:"
+      adb shell dumpsys activity activities | tr -d '\r' | grep -E 'Task\{|Hist +#|ResumedActivity' || true
+    } | sed -E 's#(https?://[^ ?}]*)\?[^ }]*#\1?<query>#g' | grep -avF "${secrets[@]}" > "$out/signin.txt" || true
+  fi
   rm -f "$audio_log"
 fi
 if [ -z "${E2E_LOGIN:-}" ]; then
@@ -305,7 +322,7 @@ node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$l
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name scroll-gfxinfo.txt ! -name layout.txt ! -name call-peer.json ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name signin.txt ! -name scroll-gfxinfo.txt ! -name layout.txt ! -name call-peer.json ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD"; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2
