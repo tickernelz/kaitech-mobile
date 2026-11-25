@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Modal, StyleSheet, View } from 'react-native';
+import { Image, Modal, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';
@@ -91,12 +91,16 @@ export function MicButton({ voice, hidden, testID = 'composer-mic' }: { voice: R
   );
 }
 
-export function StagedFile({ name, mimetype, onRemove }: { name: string; mimetype: string; onRemove: () => void }) {
+export function StagedFile({ name, mimetype, uri, onRemove }: { name: string; mimetype: string; uri?: string; onRemove: () => void }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   return (
-    <View style={[styles.stagedFile, { backgroundColor: colors.surface2 }]}>
-      <Icon name={mimetype.startsWith('image/') ? 'image' : 'file'} size={20} color={colors.inkSoft} />
+    <View style={[styles.stagedFile, { backgroundColor: colors.surface2 }]} testID="staged-file">
+      {uri && mimetype.startsWith('image/') ? (
+        <Image source={{ uri }} style={styles.thumb} accessibilityIgnoresInvertColors testID="staged-thumb" />
+      ) : (
+        <Icon name={mimetype.startsWith('image/') ? 'image' : mimetype.startsWith('video/') ? 'video' : 'file'} size={20} color={colors.inkSoft} />
+      )}
       <Text variant="footnote" numberOfLines={1} style={styles.stagedName}>
         {name}
       </Text>
@@ -134,6 +138,7 @@ const styles = StyleSheet.create({
   recordButton: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' },
   stagedFile: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.sm, minHeight: 40, borderRadius: radius.md, maxWidth: 240 },
   stagedName: { flexShrink: 1 },
+  thumb: { width: 32, height: 32, borderRadius: radius.sm },
   progress: { gap: space.xs, minWidth: 160 },
   track: { height: 4, borderRadius: 2, overflow: 'hidden' },
   fill: { height: 4 },

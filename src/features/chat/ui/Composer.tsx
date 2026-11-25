@@ -443,6 +443,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
               key={file.uri}
               name={file.name}
               mimetype={file.mimetype}
+              uri={file.uri}
               onRemove={() => {
                 dropFile(file.uri);
                 setFiles((current) => current.filter((_, position) => position !== index));
