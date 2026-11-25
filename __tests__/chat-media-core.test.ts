@@ -144,16 +144,16 @@ describe('which preview a chat file gets', () => {
 });
 
 describe('media details sent by the server', () => {
-  it('reads the size, length, page count and thumbnail of each attachment, and leaves media out when the server sends none', () => {
+  it('reads the size, page count and thumbnail of each attachment, and leaves media out when the server sends none', () => {
     const [plain, video, pdf] = attachmentFromStore({
       'ir.attachment': [
         { id: 1, name: 'a.jpg', mimetype: 'image/jpeg', file_size: 10 },
-        { id: 2, name: 'b.mp4', mimetype: 'video/mp4', kaitech_mobile_width: 1920, kaitech_mobile_height: 1080, kaitech_mobile_duration_ms: 61000 },
+        { id: 2, name: 'b.jpg', mimetype: 'image/jpeg', kaitech_mobile_width: 1920, kaitech_mobile_height: 1080, kaitech_mobile_pages: 0 },
         { id: 3, name: 'c.pdf', mimetype: 'application/pdf', kaitech_mobile_pages: 4, has_thumbnail: true, thumbnail_access_token: 'tok' },
       ],
     }).sort((a, b) => a.id - b.id);
     expect(plain.media).toBeUndefined();
-    expect(video.media).toEqual({ width: 1920, height: 1080, durationMs: 61000 });
+    expect(video.media).toEqual({ width: 1920, height: 1080 });
     expect(pdf.media).toEqual({ pages: 4, thumbnail: { token: 'tok' } });
   });
 });
@@ -220,9 +220,9 @@ describe('downloading a chat file', () => {
 
 describe('remembered media details', () => {
   it('prefers what the server says and fills the rest from what this phone measured', () => {
-    const shown = attachment(5, 'v.mp4', 'video/mp4', { media: { durationMs: 1000 } });
+    const shown = attachment(5, 'p.jpg', 'image/jpeg', { media: { width: 1000, height: 750 } });
     rememberMeta('A', shown, { width: 640, height: 360, durationMs: 999, preview: 'A/5-c5/.preview/frame.jpg' });
-    expect(resolveMeta(shown, cachedMeta('A', shown))).toEqual({ width: 640, height: 360, durationMs: 1000, pages: undefined, preview: 'A/5-c5/.preview/frame.jpg' });
+    expect(resolveMeta(shown, cachedMeta('A', shown))).toEqual({ width: 1000, height: 750, durationMs: 999, pages: undefined, preview: 'A/5-c5/.preview/frame.jpg' });
     expect(cachedMeta('B', shown)).toBeUndefined();
   });
 

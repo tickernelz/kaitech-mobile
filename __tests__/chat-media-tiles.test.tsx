@@ -8,6 +8,7 @@ const mockFetch = jest.fn(async () => ({ uri: 'file:///cache/x' }));
 const mockCancel = jest.fn();
 const mockPush = jest.fn();
 const mockPreview = jest.fn();
+const mockMeasured = new Map<number, { width?: number; height?: number; durationMs?: number }>();
 
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 jest.mock('expo-router', () => ({ router: { push: (...args: unknown[]) => mockPush(...args) } }));
@@ -20,7 +21,7 @@ jest.mock('../src/features/chat/ui/useCookie', () => ({ useCookie: () => ({ Cook
 jest.mock('../src/features/chat/media/preview', () => ({ wantPreview: (...args: unknown[]) => mockPreview(...args) }));
 jest.mock('../src/features/chat/media/meta', () => {
   const actual = jest.requireActual('../src/features/chat/media/meta');
-  return { ...actual, useMediaMeta: (_: string, attachment: Attachment) => actual.resolveMeta(attachment, undefined), rememberMeta: jest.fn() };
+  return { ...actual, useMediaMeta: (_: string, attachment: Attachment) => actual.resolveMeta(attachment, mockMeasured.get(attachment.id)), rememberMeta: jest.fn() };
 });
 jest.mock('../src/features/chat/media/download', () => ({
   ...jest.requireActual('../src/features/chat/media/download'),
@@ -75,7 +76,8 @@ describe('a photo in the chat', () => {
 
 describe('a video in the chat', () => {
   it('shows its length with a play button, asks for a preview frame, and plays in the viewer on tap', async () => {
-    const clip = attachment(4, 'clip.mp4', 'video/mp4', { media: { width: 1920, height: 1080, durationMs: 61000 } });
+    const clip = attachment(4, 'clip.mp4', 'video/mp4');
+    mockMeasured.set(4, { width: 1920, height: 1080, durationMs: 61000 });
     await show(clip, [clip]);
     expect(screen.getByTestId('video-duration')).toHaveTextContent('1:01');
     expect(mockPreview).toHaveBeenCalledWith({ accountId: 'A', origin: 'https://lab0', headers: { Cookie: 'session_id=a' } }, clip);

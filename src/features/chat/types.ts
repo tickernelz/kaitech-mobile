@@ -42,7 +42,7 @@ export type Attachment = {
   media?: ServerMedia;
 };
 
-export type ServerMedia = { width?: number; height?: number; durationMs?: number; pages?: number; thumbnail?: { token: string | null } };
+export type ServerMedia = { width?: number; height?: number; pages?: number; thumbnail?: { token: string | null } };
 
 export type Reaction = { content: string; count: number; mine: boolean; people?: string[] };
 

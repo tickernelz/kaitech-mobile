@@ -99,7 +99,7 @@ export function resolveMeta(attachment: Attachment, cached: MediaMeta | undefine
   return {
     width: server?.width ?? cached?.width,
     height: server?.height ?? cached?.height,
-    durationMs: server?.durationMs ?? cached?.durationMs,
+    durationMs: cached?.durationMs,
     pages: server?.pages ?? cached?.pages,
     preview: cached?.preview,
   };

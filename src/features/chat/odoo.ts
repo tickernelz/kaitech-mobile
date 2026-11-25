@@ -117,7 +117,6 @@ function serverMedia(value: Raw): ServerMedia | undefined {
   const media: ServerMedia = {
     width: positive(value.kaitech_mobile_width),
     height: positive(value.kaitech_mobile_height),
-    durationMs: positive(value.kaitech_mobile_duration_ms),
     pages: positive(value.kaitech_mobile_pages),
     thumbnail: value.has_thumbnail === true ? { token: text(value.thumbnail_access_token) || null } : undefined,
   };
