@@ -281,7 +281,7 @@ export function ThreadView({
         );
       }
       if (item.kind === 'pending') {
-        return <PendingBubble pending={item.pending} offline={!online} onRetry={(key) => void retrySend(key)} onDiscard={(key) => void discardSend(key)} />;
+        return <PendingBubble pending={item.pending} offline={!online} origin={origin} onRetry={(key) => void retrySend(key)} onDiscard={(key) => void discardSend(key)} />;
       }
       const message = item.message;
       const mine = message.authorId === partnerId;

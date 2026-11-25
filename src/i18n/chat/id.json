@@ -138,7 +138,14 @@
     },
     "editing": "Mengedit pesan",
     "cancelEdit": "Batalkan edit",
-    "saveEdit": "Simpan perubahan"
+    "saveEdit": "Simpan perubahan",
+    "camera": "Ambil foto atau video",
+    "sendVoice": "Kirim pesan suara",
+    "cancelVoice": "Batal",
+    "slideToLock": "Geser ke atas untuk mengunci rekaman",
+    "showKeyboard": "Tampilkan keyboard",
+    "openPanel": "Emoji, stiker, dan GIF",
+    "recordFailed": "Pesan suara gagal direkam. Coba lagi."
   },
   "permissions": {
     "cameraTitle": "Akses kamera tidak aktif",
@@ -398,10 +405,6 @@
     "cancelled": "Pesan terjadwal dihapus"
   },
   "extras": {
-    "emoji": "Emoji",
-    "gif": "GIF",
-    "gifSearch": "Cari GIF",
-    "gifSend": "Kirim GIF ini",
     "canned": "Balasan siap pakai",
     "later": "Kirim nanti",
     "laterEmpty": "Tulis pesan atau lampirkan berkas dulu.",
@@ -489,5 +492,21 @@
     "clearTitle": "Hapus semua bintang?",
     "clearBody": "Semua pesan berbintang kehilangan bintangnya. Pesannya tetap ada.",
     "confirm": "Hapus bintang"
+  },
+  "panel": {
+    "emoji": "Emoji",
+    "sticker": "Stiker",
+    "gif": "GIF",
+    "backspace": "Hapus",
+    "gifSearch": "Cari GIF",
+    "stickerSearch": "Cari stiker",
+    "none": "Tidak ada hasil",
+    "noStickers": "Belum ada stiker di sini",
+    "recent": "Stiker terakhir",
+    "providerStickers": "Cari stiker"
+  },
+  "rich": {
+    "sticker": "Stiker",
+    "gif": "GIF"
   }
 }

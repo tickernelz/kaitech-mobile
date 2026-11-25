@@ -6,7 +6,6 @@ export type ChatFeatures = {
   canMakeTask: boolean;
   readByAdmin: boolean;
   channelAdmin: boolean;
-  gif: boolean;
   agentPartnerIds: number[];
   coworkerPartnerId: number | null;
   translateAuto: boolean;
@@ -22,7 +21,6 @@ export const noFeatures: ChatFeatures = {
   canMakeTask: false,
   readByAdmin: false,
   channelAdmin: false,
-  gif: false,
   agentPartnerIds: [],
   coworkerPartnerId: null,
   translateAuto: false,
@@ -72,7 +70,6 @@ export function featuresFromSession(info: unknown): ChatFeatures {
     canMakeTask: globals.kaitech_chat_can_make_task === true,
     readByAdmin: globals.kaitech_chat_read_by_admin === true,
     channelAdmin: globals.kaitech_chat_channel_admin === true,
-    gif: globals.hasGifPickerFeature === true || isAdmin,
     agentPartnerIds: Array.isArray(globals.kaitech_chat_agent_partner_ids) ? globals.kaitech_chat_agent_partner_ids.map(idOf).filter((item): item is number => item !== null) : [],
     coworkerPartnerId: idOf(globals.kaitech_chat_coworker_partner_id),
     translateAuto: globals.kaitech_chat_translate_auto === true,

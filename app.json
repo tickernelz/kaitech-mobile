@@ -55,6 +55,7 @@
         }
       ],
       "./plugins/with-livekit-gradle",
+      "./plugins/with-animated-webp",
       [
         "@livekit/react-native-expo-plugin",
         {

@@ -13,6 +13,7 @@ import type { Attachment, Message, Pending, PendingFile } from '../types';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { UploadProgress } from './MediaControls';
+import { RichMedia, richLabel } from './RichMedia';
 import { RichText } from './RichText';
 import { useCookie } from './useCookie';
 import { useOpenAttachment } from './useOpenAttachment';
@@ -126,6 +127,7 @@ function Frame({
   label,
   testID,
   failed,
+  bare,
 }: {
   mine: boolean;
   children: ReactNode;
@@ -133,6 +135,7 @@ function Frame({
   label: string;
   testID?: string;
   failed?: boolean;
+  bare?: boolean;
 }) {
   const { colors } = useTheme();
   return (
@@ -147,10 +150,12 @@ function Frame({
       style={[
         styles.bubble,
         mine ? styles.mine : styles.theirs,
-        {
-          backgroundColor: mine ? colors.select : colors.surface,
-          borderColor: failed ? colors.danger : mine ? colors.select : colors.line,
-        },
+        bare
+          ? [styles.bare, failed && { borderColor: colors.danger }]
+          : {
+              backgroundColor: mine ? colors.select : colors.surface,
+              borderColor: failed ? colors.danger : mine ? colors.select : colors.line,
+            },
       ]}>
       {children}
     </Pressable>
@@ -213,7 +218,8 @@ export const MessageBubble = memo(function MessageBubble({
   const blocks = removed ? [] : bodyBlocks(shownBody);
   const notification = message.type === 'notification';
   const time = clock(message.date);
-  const text = bodyPreview(message.body);
+  const rich = removed ? undefined : message.rich;
+  const text = rich ? richLabel(t, rich) : bodyPreview(message.body);
   if (isCallNotice(message)) {
     const call = message.call;
     const label = [t(call?.ongoing ? 'thread.callOngoing' : 'thread.call'), call && !call.ongoing ? t('thread.callMinutes', { count: Math.max(1, call.minutes) }) : null, time].filter(Boolean).join(' · ');
@@ -270,7 +276,7 @@ export const MessageBubble = memo(function MessageBubble({
     .join(', ');
   const body = (
     <>
-      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label}>
+      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} bare={rich !== undefined && 'sticker' in rich && !quote}>
         {(showAuthor || (agent && agentTag)) && !mine ? (
           <View style={styles.authorRow}>
             {showAuthor ? (
@@ -290,7 +296,9 @@ export const MessageBubble = memo(function MessageBubble({
         ) : null}
         <QuoteBlock quote={quote} mine={mine} onPress={message.parentId ? () => onQuotePress(message.parentId as number) : undefined} />
         <Attachments attachments={message.attachments} origin={origin} mine={mine} />
-        {agent && !removed && !message.translated ? (
+        {rich ? (
+          <RichMedia rich={rich} origin={origin} testID={`rich-${message.id}`} />
+        ) : agent && !removed && !message.translated ? (
           <AgentSaid store={agent} messageId={message.id}>
             {blocks.length ? <RichText blocks={blocks} color={colors.ink} tint={colors.surface2} /> : null}
           </AgentSaid>
@@ -400,11 +408,13 @@ function PendingFileRow({ file }: { file: PendingFile }) {
 export const PendingBubble = memo(function PendingBubble({
   pending,
   offline,
+  origin,
   onRetry,
   onDiscard,
 }: {
   pending: Pending;
   offline: boolean;
+  origin: string;
   onRetry: (key: string) => void;
   onDiscard: (key: string) => void;
 }) {
@@ -412,10 +422,11 @@ export const PendingBubble = memo(function PendingBubble({
   const { colors } = useTheme();
   const failed = pending.state === 'failed';
   const status = failed ? t('thread.failed') : offline && pending.state === 'queued' ? t('thread.queued') : t('thread.waiting');
-  const label = [pending.text, status].filter(Boolean).join(', ');
+  const label = [pending.rich ? richLabel(t, pending.rich) : pending.text, status].filter(Boolean).join(', ');
   return (
     <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`}>
-      <Frame mine label={label} failed={failed}>
+      <Frame mine label={label} failed={failed} bare={pending.rich !== undefined && 'sticker' in pending.rich}>
+        {pending.rich ? <RichMedia rich={pending.rich} origin={origin} testID="pending-rich" /> : null}
         {pending.files.map((file) => (
           <PendingFileRow key={file.key} file={file} />
         ))}
@@ -458,6 +469,7 @@ const styles = StyleSheet.create({
   wrapMine: { alignItems: 'flex-end' },
   wrapTheirs: { alignItems: 'flex-start' },
   bubble: { maxWidth: bubbleMaxWidth, minWidth: 88, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
+  bare: { backgroundColor: 'transparent', borderColor: 'transparent', paddingHorizontal: 0, minWidth: 0 },
   mine: { borderBottomRightRadius: radius.sm },
   theirs: { borderBottomLeftRadius: radius.sm },
   quoteBox: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },

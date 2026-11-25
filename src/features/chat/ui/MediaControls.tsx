@@ -8,7 +8,8 @@ import { attachSources, type AttachSource } from './attach';
 import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
 import { SheetItem } from '../../../ui/Sheet';
-import { cancelDistance, type Recording, type useVoiceHold } from './useVoiceHold';
+import { cancelDistance } from './composer/gesture';
+import type { Recording, useVoiceHold } from './useVoiceHold';
 
 export type Extra = { key: string; icon: IconName; label: string; detail?: string; disabled?: boolean; onPress: () => void };
 
@@ -44,18 +45,29 @@ export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible
   );
 }
 
-export function RecordingStrip({ recording }: { recording: Recording }) {
+export function RecordingStrip({ recording, onCancel }: { recording: Recording; onCancel?: () => void }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const { duration } = useChatFormat();
   const cancelling = recording.offset < -cancelDistance;
   return (
-    <View style={styles.recording} accessibilityLiveRegion="polite" testID="voice-recording">
+    <View style={styles.recording} accessibilityLiveRegion="polite" testID={recording.locked ? 'voice-recording-locked' : 'voice-recording'}>
       <View style={[styles.dot, { backgroundColor: colors.danger }]} />
       <Text variant="headline">{duration(recording.elapsed)}</Text>
-      <Text variant="callout" tone={cancelling ? 'dangerInk' : 'inkSoft'} style={[styles.flex, { transform: [{ translateX: recording.offset / 3 }] }]} numberOfLines={1}>
-        {cancelling ? t('composer.releaseToCancel') : t('composer.slideToCancel')}
-      </Text>
+      {recording.locked && onCancel ? (
+        <View style={styles.flex}>
+          <Pressable accessibilityRole="button" onPress={onCancel} style={styles.cancel} testID="voice-cancel">
+            <Icon name="trash" size={20} color={colors.dangerInk} />
+            <Text variant="callout" tone="dangerInk">
+              {t('composer.cancelVoice')}
+            </Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Text variant="callout" tone={cancelling ? 'dangerInk' : 'inkSoft'} style={[styles.flex, { transform: [{ translateX: recording.offset / 3 }] }]} numberOfLines={1}>
+          {cancelling ? t('composer.releaseToCancel') : t('composer.slideToCancel')}
+        </Text>
+      )}
     </View>
   );
 }
@@ -114,7 +126,8 @@ export function UploadProgress({ name, sent, testID }: { name: string; sent: num
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   centerText: { textAlign: 'center' },
-  recording: { flex: 1, flexDirection: 'row', alignItems: 'center', minHeight: 64, paddingLeft: space.md, gap: space.md },
+  recording: { flex: 1, flexDirection: 'row', alignItems: 'center', minHeight: 44, paddingLeft: space.md, gap: space.md },
+  cancel: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: space.xs, minHeight: 44, paddingHorizontal: space.md },
   dot: { width: 10, height: 10, borderRadius: 5 },
   round: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   hidden: { width: 0, height: 44, overflow: 'hidden', opacity: 0 },

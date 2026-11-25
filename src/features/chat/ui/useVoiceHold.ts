@@ -10,11 +10,11 @@ import { meetingRecording } from '../../../audio/meeting';
 import { adoptFile, dropFile } from '../files';
 import { stopVoice } from '../voicePlayer';
 import { askForSettings } from './attach';
+import { dragTo, releaseOf, type Drag } from './composer/gesture';
 
-export type Recording = { started: number; elapsed: number; offset: number };
+export type Recording = { started: number; elapsed: number; offset: number; lift: number; locked: boolean };
 export type Voice = { uri: string; name: string; mimetype: string; size: number; voice: true; durationMs: number };
 
-export const cancelDistance = 96;
 const shortestVoiceMs = 800;
 const now = () => Date.now();
 
@@ -30,6 +30,7 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
   useEffect(() => {
     recorded.current = onRecorded;
   }, [onRecorded]);
+  const failed = () => Alert.alert('', t('composer.recordFailed'));
 
   const startRecording = async () => {
     if (meetingRecording()) {
@@ -54,7 +55,7 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
       throw error;
     }
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const started = { started: now(), elapsed: 0, offset: 0 };
+    const started = { started: now(), elapsed: 0, offset: 0, lift: 0, locked: touch.current.locked };
     recordingRef.current = started;
     setRecording(started);
   };
@@ -95,27 +96,39 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
   };
 
   const starting = useRef<Promise<void> | null>(null);
-  const touch = useRef({ x: 0, dx: 0 });
-  const hold = {
-    onTouchStart: (event: GestureResponderEvent) => {
-      touch.current = { x: event.nativeEvent.pageX, dx: 0 };
-      starting.current = startRecording().finally(() => {
+  const touch = useRef<Drag>({ x: 0, y: 0, dx: 0, dy: 0, locked: false });
+  const begin = (drag: Drag) => {
+    touch.current = drag;
+    starting.current = startRecording()
+      .catch(() => {
+        touch.current = { ...touch.current, locked: false };
+        failed();
+      })
+      .finally(() => {
         starting.current = null;
       });
-    },
+  };
+  const after = (work: () => Promise<void>) =>
+    void (starting.current ?? Promise.resolve()).then(work).catch(failed);
+  const hold = {
+    onTouchStart: (event: GestureResponderEvent) => begin({ x: event.nativeEvent.pageX, y: event.nativeEvent.pageY, dx: 0, dy: 0, locked: false }),
     onTouchMove: (event: GestureResponderEvent) => {
-      const dx = Math.min(0, event.nativeEvent.pageX - touch.current.x);
-      touch.current.dx = dx;
-      setRecording((current) => (current ? { ...current, offset: dx } : current));
+      const before = touch.current;
+      const next = dragTo(before, event.nativeEvent.pageX, event.nativeEvent.pageY);
+      touch.current = next;
+      if (next.locked && !before.locked) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setRecording((current) => (current ? { ...current, offset: next.dx, lift: next.dy, locked: next.locked } : current));
     },
     onTouchEnd: () => {
-      const cancel = touch.current.dx < -cancelDistance;
-      void (starting.current ?? Promise.resolve()).then(() => finishRecording(cancel));
+      const release = releaseOf(touch.current);
+      if (release !== 'keep') after(() => finishRecording(release === 'cancel'));
     },
     onTouchCancel: () => {
-      void (starting.current ?? Promise.resolve()).then(() => finishRecording(true));
+      if (!touch.current.locked) after(() => finishRecording(true));
     },
   };
+  const startLocked = () => begin({ x: 0, y: 0, dx: 0, dy: 0, locked: true });
+  const stop = (cancel: boolean) => after(() => finishRecording(cancel));
 
   const finishing = useRef(finishRecording);
   useEffect(() => {
@@ -128,5 +141,5 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
     [],
   );
 
-  return { recording, hold };
+  return { recording, hold, startLocked, stop };
 }

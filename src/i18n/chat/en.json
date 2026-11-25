@@ -138,7 +138,14 @@
     },
     "editing": "Editing message",
     "cancelEdit": "Cancel editing",
-    "saveEdit": "Save changes"
+    "saveEdit": "Save changes",
+    "camera": "Take a photo or video",
+    "sendVoice": "Send voice message",
+    "cancelVoice": "Cancel",
+    "slideToLock": "Slide up to lock recording",
+    "showKeyboard": "Show keyboard",
+    "openPanel": "Emoji, stickers and GIFs",
+    "recordFailed": "Couldn't record the voice message. Try again."
   },
   "permissions": {
     "cameraTitle": "Camera access is off",
@@ -398,10 +405,6 @@
     "cancelled": "Scheduled message deleted"
   },
   "extras": {
-    "emoji": "Emoji",
-    "gif": "GIF",
-    "gifSearch": "Search GIFs",
-    "gifSend": "Send this GIF",
     "canned": "Canned responses",
     "later": "Send later",
     "laterEmpty": "Write a message or attach a file first.",
@@ -489,5 +492,21 @@
     "clearTitle": "Remove all stars?",
     "clearBody": "Every starred message loses its star. The messages stay.",
     "confirm": "Remove stars"
+  },
+  "panel": {
+    "emoji": "Emoji",
+    "sticker": "Stickers",
+    "gif": "GIFs",
+    "backspace": "Delete",
+    "gifSearch": "Search GIFs",
+    "stickerSearch": "Search stickers",
+    "none": "Nothing found",
+    "noStickers": "No stickers here yet",
+    "recent": "Recent stickers",
+    "providerStickers": "Search stickers"
+  },
+  "rich": {
+    "sticker": "Sticker",
+    "gif": "GIF"
   }
 }
