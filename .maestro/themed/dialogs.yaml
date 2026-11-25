@@ -1,5 +1,5 @@
 appId: io.kaitech.mobile
-name: Kaitech dialogs in the current system theme - a destructive confirm closed by the back button, the camera card before the system prompt, and the snackbar
+name: Kaitech dialogs in the current system theme - a destructive confirm closed by the back button, the camera card before the system prompt, and the snackbar after the microphone card
 tags:
   - signed-in
 onFlowStart:
@@ -9,6 +9,7 @@ onFlowStart:
     permissions:
       all: allow
       camera: deny
+      microphone: deny
 - extendedWaitUntil:
     visible:
       id: (welcome-sign-in|tab-chat)
@@ -107,6 +108,14 @@ onFlowStart:
     timeout: 30000
 - tapOn:
     id: composer-mic
+- extendedWaitUntil:
+    visible:
+      id: permission-microphone-dialog-confirm
+    timeout: 10000
+- tapOn:
+    id: permission-microphone-dialog-confirm
+- tapOn:
+    text: (While using the app|Saat aplikasi digunakan|Allow|Izinkan)
 - extendedWaitUntil:
     visible:
       id: snackbar
