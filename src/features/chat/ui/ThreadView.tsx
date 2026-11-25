@@ -2,7 +2,7 @@ import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import * as Clipboard from 'expo-clipboard';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Linking, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,6 +42,7 @@ import { NotifySheet } from './NotifySheet';
 import { router } from 'expo-router';
 import { ChatBackground } from '../../appearance/ChatBackground';
 import { usePartnerStatus } from '../../people/statuses';
+import { confirm, inform } from '../../../ui/dialog';
 
 type Row =
   | { kind: 'day'; key: string; date: number }
@@ -267,10 +268,9 @@ export function ThreadView({
         });
         return;
       case 'delete':
-        Alert.alert(t('act.deleteTitle'), t('act.deleteBody'), [
-          { text: t('act.cancel'), style: 'cancel' },
-          { text: t('actions.delete'), style: 'destructive', onPress: () => void removeMessage(message).then((result) => report(result)) },
-        ]);
+        void confirm({ title: t('act.deleteTitle'), body: t('act.deleteBody'), cancel: t('act.cancel'), confirm: t('actions.delete'), danger: true, icon: 'trash', testID: 'message-delete-dialog' }).then(async (go) => {
+          if (go) report(await removeMessage(message));
+        });
         return;
       default:
         setSheet({ kind: action, message });
@@ -352,7 +352,7 @@ export function ThreadView({
         ? t(`thread.members.${type === 'group' ? 'group' : 'channel'}`, { count: thread.info.memberCount })
         : t(`thread.kind.${type === 'group' ? 'group' : 'channel'}`);
   const shownStatus = !typing.length && twoPeople && status ? status : null;
-  const readStatus = shownStatus ? () => Alert.alert(name, shownStatus) : undefined;
+  const readStatus = shownStatus ? () => void inform({ title: name, body: shownStatus, testID: 'thread-status-dialog' }) : undefined;
 
   const parentId = thread.info?.parentId ?? null;
   const back = twoPane ? (parentId ? () => onOpenChannel(parentId) : undefined) : onBack;

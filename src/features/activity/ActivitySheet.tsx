@@ -2,7 +2,7 @@ import { File } from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useSession } from '../../auth/session';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
@@ -16,6 +16,7 @@ import { DateGrid } from './DateGrid';
 import { useDueLabel } from './due';
 import { iconOfCategory } from './icons';
 import { attach, cancel, edit, markDone, markDoneAndNext, snooze, type Activity, type NextStep, type Snooze } from './odoo';
+import { confirm } from '../../ui/dialog';
 
 export const documentMaxBytes = coworkerFallbackBytes;
 
@@ -98,11 +99,10 @@ export function ActivitySheet({
   const moveTo = () =>
     active && run(() => edit(active, activity.id, { typeId: activity.typeId, summary: activity.summary, note: activity.note, deadline: date, userId: activity.userId }));
 
-  const confirmCancel = () =>
-    Alert.alert('', t('activities.cancelConfirm'), [
-      { text: t('activities.keep'), style: 'cancel' },
-      { text: t('activities.cancel'), style: 'destructive', onPress: () => void (active && run(() => cancel(active, activity.id))) },
-    ]);
+  const confirmCancel = async () => {
+    const go = await confirm({ body: t('activities.cancelConfirm'), cancel: t('activities.keep'), confirm: t('activities.cancel'), danger: true, icon: 'close', testID: 'activity-cancel-dialog' });
+    if (go && active) void run(() => cancel(active, activity.id));
+  };
 
   return (
     <Sheet title={activity.summary || activity.typeName} detail={[activity.modelName, activity.resName].filter(Boolean).join(' · ')} onClose={onClose} testID="activity-sheet">

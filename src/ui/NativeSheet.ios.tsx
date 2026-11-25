@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { FormSheet } from 'react-native-screens/experimental';
 import { space } from '../theme';
+import { DialogLayer } from './Dialog';
 
 type Presentation = { open: boolean; onDismiss: () => void; onNativeDismiss: () => void };
 
@@ -27,6 +28,7 @@ export function NativeSheet({ presentation, children, testID }: { presentation: 
       onNativeDismiss={presentation.onNativeDismiss}>
       <View accessibilityViewIsModal style={[styles.content, { maxHeight: height * 0.88 }]} testID={testID}>
         {children}
+        <DialogLayer />
       </View>
     </FormSheet>
   );

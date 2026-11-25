@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Modal, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Overlay } from '../../../ui/Overlay';
 import { Pressable } from '../../../ui/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';
@@ -17,7 +18,7 @@ export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible={visible} transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button">
         <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} accessibilityViewIsModal onPress={() => undefined}>
           <Text variant="title" accessibilityRole="header">
@@ -40,7 +41,7 @@ export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible
           ))}
         </Pressable>
       </Pressable>
-    </Modal>
+    </Overlay>
   );
 }
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Overlay } from './Overlay';
 import { Pressable } from './Pressable';
 import { useTranslation } from 'react-i18next';
 import { useKeyboardState } from 'react-native-keyboard-controller';
@@ -69,7 +70,7 @@ export function Sheet({
     );
   }
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable
         style={[styles.scrim, { backgroundColor: colors.scrim, paddingBottom: keyboard }]}
         onPress={onClose}
@@ -85,7 +86,7 @@ export function Sheet({
           {foot}
         </Pressable>
       </Pressable>
-    </Modal>
+    </Overlay>
   );
 }
 

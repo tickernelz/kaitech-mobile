@@ -15,8 +15,7 @@ name: Sign out everywhere signs this phone out too and asks to sign in again
 - tapOn:
     id: devices-revoke-all
 - tapOn:
-    text: (Sign out everywhere|Keluar di semua perangkat)
-    index: -1
+    id: devices-revoke-all-dialog-confirm
 - extendedWaitUntil:
     visible:
       id: (identity-password|expired)

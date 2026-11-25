@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { markExpired, useSession } from '../../auth/session';
 import { changePassword, openPasswordChange } from '../../features/account/security';
 import { useIdentity } from '../../features/account/useIdentity';
@@ -10,6 +10,7 @@ import { space } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
+import { inform } from '../../ui/dialog';
 
 export default function PasswordSettings() {
   const { t } = useTranslation();
@@ -33,9 +34,7 @@ export default function PasswordSettings() {
       if (changed) {
         setPassword('');
         setConfirmation('');
-        Alert.alert(t('security.password.done'), t('security.password.signInAgain'), [{ text: t('security.password.ok'), onPress: () => markExpired(active.id) }], {
-          cancelable: false,
-        });
+        void inform({ title: t('security.password.done'), body: t('security.password.signInAgain'), ok: t('security.password.ok'), icon: 'lock', testID: 'password-changed-dialog' }).then(() => markExpired(active.id));
       }
     } catch (error) {
       setFailed(errorText(error));

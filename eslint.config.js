@@ -2,6 +2,29 @@ const { defineConfig } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
 const i18next = require('eslint-plugin-i18next');
 
+const systemUi = [
+  { importNames: ['RefreshControl'], message: 'Use Refresh from src/ui/Refresh: its offset keeps the Android pull indicator whole inside the list.', owner: 'src/ui/Refresh.tsx' },
+  { importNames: ['Alert'], message: 'Use confirm, inform, choose, prompt or notify from src/ui/dialog: they draw the Kaitech dialog and snackbar instead of the system alert.' },
+  { importNames: ['ActionSheetIOS'], message: 'Use ActionSheet from src/ui/ActionSheet or choose from src/ui/dialog instead of the system action sheet.' },
+  { importNames: ['ToastAndroid'], message: 'Use notify from src/ui/dialog instead of the system toast.' },
+  { importNames: ['Modal'], message: 'Use Overlay from src/ui/Overlay: it carries the dialog layer, so a dialog opened inside shows above it on iOS.', owner: ['src/ui/Overlay.tsx', 'src/ui/Dialog.tsx'] },
+];
+
+const ownersOf = (entry) => [entry.owner ?? []].flat();
+
+const restrictSystemUi = (file) => ({
+  'no-restricted-imports': [
+    'error',
+    {
+      paths: systemUi
+        .filter((entry) => !ownersOf(entry).includes(file))
+        .map(({ importNames, message }) => ({ name: 'react-native', importNames, message })),
+    },
+  ],
+});
+
+const systemUiOwners = [...new Set(systemUi.flatMap(ownersOf))];
+
 module.exports = defineConfig([
   expoConfig,
   {
@@ -31,22 +54,10 @@ module.exports = defineConfig([
   },
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/ui/Refresh.tsx'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: 'react-native',
-              importNames: ['RefreshControl'],
-              message: 'Use Refresh from src/ui/Refresh: its offset keeps the Android pull indicator whole inside the list.',
-            },
-          ],
-        },
-      ],
-    },
+    ignores: systemUiOwners,
+    rules: restrictSystemUi(null),
   },
+  ...systemUiOwners.map((file) => ({ files: [file], rules: restrictSystemUi(file) })),
   {
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/**/*.android.{ts,tsx}', 'src/layout/MaterialTabs.tsx', 'src/ui/MaterialHost.tsx'],

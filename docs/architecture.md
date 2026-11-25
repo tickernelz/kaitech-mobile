@@ -62,6 +62,20 @@ On iOS 26 and later the app takes the system Liquid Glass look for navigation an
 
 NativeTabs, expo-glass-effect and the native form sheet need a development or CI build; Expo Go does not carry them.
 
+## Dialogs, snackbar and permission cards (`src/ui/dialog.ts`, `src/ui/Dialog.tsx`, `src/ui/permission.ts`)
+
+The app draws every dialog itself, the same on Android and iOS, in the Kaitech colours of the current light or dark theme (ZHA-7789). `src/ui/dialog.ts` holds the calls: `confirm` (a destructive variant with `danger: true` paints the confirm button red), `inform` (one button), `choose` (several choices plus Cancel), `prompt` (a text field; `required` keeps the confirm button off while it is empty) and `notify`, a one-line message in the snackbar at the bottom (the same bar as Undo, testID `snackbar`). Each returns a promise, so the code that deletes, signs out or calls the server runs only after the answer. The Android back button, a tap outside the card and Cancel all answer no. Dialogs queue and show one at a time; they wait while the app lock is on.
+
+A dialog is drawn by the topmost dialog layer: the root layout, every native modal route (settings, person, add account, call, recording), every `Overlay` (the only allowed wrapper of React Native `Modal`) and the iOS native form sheet each mount one. On iOS a modal can only be presented from the screen on top, so this keeps a dialog asked from inside a sheet or a settings page visible; on Android the dialog is its own window either way.
+
+TestIDs: the `testID` given to a dialog names the card, with `<testID>-title`, `-body`, `-input`, `-backdrop`, `-modal` and `-<choice>` (`-confirm`, `-cancel`, `-ok`, or the key given to `choose`). Every dialog in the app ends in `-dialog`, for example `sign-out-dialog-confirm`.
+
+`eslint.config.js` rejects `Alert`, `ActionSheetIOS`, `ToastAndroid` and `Modal` from `react-native` in `src/` (only `Overlay.tsx` and `Dialog.tsx` import `Modal`).
+
+Permission cards: `askPermission` shows a card that says what the camera, microphone or notifications are used for before the system prompt, so the system prompt only appears after Continue. When the system will not ask again, the card offers Settings instead, unless the screen shows its own notice (calls, MoM recording setup, notifications).
+
+Still drawn by the system, because the app cannot restyle them: the permission prompts themselves (camera, microphone, notifications; the app asks for no location), the photo, camera and file pickers (`expo-image-picker`, `expo-document-picker`), the share sheet (`expo-sharing`, `Share`), the biometric prompt of the app lock (`expo-local-authentication`), the screen capture consent of screen sharing, and the browser tab used to sign in. On iOS 26 and later the sheets keep the system form sheet container (see iOS 26+: Liquid Glass); their content is the app's.
+
 ## Row actions (`src/ui/RowActions.tsx`)
 
 Every list row (Chat conversations, Coworker conversations, Programmes, evidence, findings, Activities, MoM meetings, Search results) is wrapped in `RowActions`. A long press opens the More sheet with a short vibration; swiping right opens light actions (mark as read or unread, pin, rename, copy, share), swiping left opens archive, delete, or leave plus More. TalkBack gets every sheet action as a custom action on that row, and a More button appears at the end of the row when it has keyboard focus. Archive, remove from list, leave, and deleting a Coworker conversation disappear from the screen at once with an Undo snackbar; the server call is only sent after 5 seconds, on behalf of the account that asked for it. Deleting a MoM recording uses the server's conditions: only the uploader, by typing the title and the password.
