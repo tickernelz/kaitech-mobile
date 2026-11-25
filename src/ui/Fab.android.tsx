@@ -1,28 +1,23 @@
-import { FloatingActionButton, RNHostView } from '@expo/ui/jetpack-compose';
-import { semantics, testID as tag } from '@expo/ui/jetpack-compose/modifiers';
 import { StyleSheet } from 'react-native';
 import { space, useTheme } from '../theme';
 import { Icon, type IconName } from './icons';
-import { MaterialHost } from './MaterialHost';
+import { Pressable } from './Pressable';
 
 export function Fab({ icon, label, onPress, testID }: { icon: IconName; label: string; onPress: () => void; testID?: string }) {
   const { material } = useTheme();
   return (
-    <MaterialHost matchContents style={styles.fab}>
-      <FloatingActionButton
-        containerColor={material.primary}
-        onClick={onPress}
-        modifiers={[...(testID ? [tag(testID)] : []), semantics({ contentDescription: label })]}>
-        <FloatingActionButton.Icon>
-          <RNHostView matchContents>
-            <Icon name={icon} color={material.onPrimary} />
-          </RNHostView>
-        </FloatingActionButton.Icon>
-      </FloatingActionButton>
-    </MaterialHost>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      android_ripple={{ color: `${material.onPrimary}1A`, foreground: true }}
+      style={[styles.fab, { backgroundColor: material.primary }]}
+      testID={testID}>
+      <Icon name={icon} color={material.onPrimary} />
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  fab: { position: 'absolute', right: space.lg, bottom: space.lg },
+  fab: { position: 'absolute', right: space.lg, bottom: space.lg, width: 56, height: 56, borderRadius: 16, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', elevation: 6 },
 });

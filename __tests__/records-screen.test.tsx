@@ -1,9 +1,9 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
 import * as api from '../src/features/records/api';
 import { RecordScreen } from '../src/features/records/RecordScreen';
 import { unstash } from '../src/features/records/stash';
 import type { RecordStash } from '../src/features/records/useRunAction';
+import { DialogLayer } from '../src/ui/Dialog';
 
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined } }));
 
@@ -75,12 +75,17 @@ it('shows the buttons the web shows for the state and calls the method on the re
 
 it('refuses to save a new record until the required fields the web requires are filled', async () => {
   mocked.onchange.mockResolvedValue({ value: { state: 'draft' } });
-  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-  const view = await render(<RecordScreen programme={1} model="ck.x" rid={null} />);
+  const view = await render(
+    <>
+      <RecordScreen programme={1} model="ck.x" rid={null} />
+      <DialogLayer root />
+    </>,
+  );
   await fireEvent.press(await view.findByTestId('record-save'));
-  await waitFor(() => expect(alert).toHaveBeenCalledWith(expect.any(String), 'Note'));
+  expect((await view.findByTestId('record-required-dialog-body')).props.children).toBe('Note');
   expect(mocked.saveRecord).not.toHaveBeenCalled();
-  alert.mockRestore();
+  await fireEvent.press(view.getByTestId('record-required-dialog-ok'));
+  await waitFor(() => expect(view.queryByTestId('record-required-dialog')).toBeNull());
 });
 
 it('opens a wizard from an action button with the record as its active_id, as the web does', async () => {
@@ -99,16 +104,40 @@ it('opens a wizard from an action button with the record as its active_id, as th
   expect(held?.context).toMatchObject({ default_source_id: 7, active_id: 7, active_ids: [7], active_model: 'ck.x' });
 });
 
+it('asks the button confirm text in our dialog and calls the server only after confirm', async () => {
+  const asking = arch.replace('string="Submit For Review"', 'string="Submit For Review" confirm="Send it to review?"');
+  mocked.getViews.mockResolvedValue({ views: { form: { arch: asking, id: 1 } }, models: { 'ck.x': { fields } } });
+  mocked.readRecord.mockResolvedValue({ id: 7, name: 'Plan', state: 'draft', note: 'n', display_name: 'Plan' });
+  mocked.callButton.mockResolvedValue(false);
+  const view = await render(
+    <>
+      <RecordScreen programme={1} model="ck.x" rid={7} />
+      <DialogLayer root />
+    </>,
+  );
+  await fireEvent.press(await view.findByTestId('button-action_submit'));
+  expect(await view.findByTestId('record-button-dialog-body')).toHaveTextContent('Send it to review?');
+  await fireEvent.press(view.getByTestId('record-button-dialog-cancel'));
+  await waitFor(() => expect(view.queryByTestId('record-button-dialog')).toBeNull());
+  expect(mocked.callButton).not.toHaveBeenCalled();
+  await fireEvent.press(view.getByTestId('button-action_submit'));
+  await fireEvent.press(await view.findByTestId('record-button-dialog-confirm'));
+  await waitFor(() => expect(mocked.callButton).toHaveBeenCalledWith(account, 'ck.x', 'action_submit', [7], expect.objectContaining({ active_id: 7 })));
+});
+
 it('shows the server reason when a button is refused and keeps the record as it was', async () => {
   const { ApiError } = jest.requireActual('../src/api/odoo');
   mocked.readRecord.mockResolvedValue({ id: 7, name: 'Plan', state: 'draft', note: 'n', display_name: 'Plan' });
   mocked.callButton.mockRejectedValue(new ApiError('refused', 200, 'Only the programme lead can submit.'));
-  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-  const view = await render(<RecordScreen programme={1} model="ck.x" rid={7} />);
+  const view = await render(
+    <>
+      <RecordScreen programme={1} model="ck.x" rid={7} />
+      <DialogLayer root />
+    </>,
+  );
   await fireEvent.press(await view.findByTestId('button-action_submit'));
-  await waitFor(() => expect(alert).toHaveBeenCalledWith('', 'Only the programme lead can submit.'));
+  expect(await view.findByTestId('snackbar')).toHaveTextContent('Only the programme lead can submit.');
   expect(view.getByText('Submit For Review')).toBeTruthy();
-  alert.mockRestore();
 });
 
 const unreadableArch = `<form><header>

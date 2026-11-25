@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 import { invalidate, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { Button } from '../../ui/Button';
@@ -12,6 +12,7 @@ import { Card, StateView, useErrorText } from '../discovery/ui';
 import { makeKey, mcpKeys, offeredProgrammes, revokeKey, type KeyShown } from './admin';
 import { Scroll } from './assistParts';
 import { SmallButton } from './parts';
+import { confirm, notify } from '../../ui/dialog';
 
 export function McpKeysScreen() {
   const { t } = useTranslation();
@@ -20,24 +21,16 @@ export function McpKeysScreen() {
   const keys = useResource('mom.admin.keys', mcpKeys);
   const [making, setMaking] = useState(false);
   const [shown, setShown] = useState<KeyShown | null>(null);
-  const revoke = (id: number, name: string) =>
-    Alert.alert(t('mom.admin.keys.revokeTitle'), name, [
-      { text: t('mom.recorder.cancel'), style: 'cancel' },
-      {
-        text: t('mom.admin.keys.revoke'),
-        style: 'destructive',
-        onPress: () =>
-          void (async () => {
-            if (!active) return;
-            try {
-              await revokeKey(active, id);
-              invalidate(`${active.id}:mom.admin.keys`);
-            } catch (error) {
-              Alert.alert('', errorText(error));
-            }
-          })(),
-      },
-    ]);
+  const revoke = async (id: number, name: string) => {
+    const go = await confirm({ title: t('mom.admin.keys.revokeTitle'), body: name, cancel: t('mom.recorder.cancel'), confirm: t('mom.admin.keys.revoke'), danger: true, icon: 'lock', testID: 'mcp-key-revoke-dialog' });
+    if (!go || !active) return;
+    try {
+      await revokeKey(active, id);
+      invalidate(`${active.id}:mom.admin.keys`);
+    } catch (error) {
+      notify(errorText(error));
+    }
+  };
   if (shown) return <Shown shown={shown} onDone={() => setShown(null)} />;
   if (making) return <MakeKey onMade={(next) => {
           setMaking(false);

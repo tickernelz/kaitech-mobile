@@ -39,6 +39,16 @@ onFlowStart:
     id: setup-start
 - extendedWaitUntil:
     visible:
+      id: permission-microphone-dialog
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: p0-mic-card
+- tapOn:
+    id: permission-microphone-dialog-confirm
+- extendedWaitUntil:
+    visible:
       text: (While using the app|Saat aplikasi digunakan)
     timeout: 20000
 - runFlow:
@@ -52,9 +62,16 @@ onFlowStart:
     commands:
       - extendedWaitUntil:
           visible:
-            id: (recorder-time|com.android.permissioncontroller:id/.*)
+            id: (recorder-time|permission-notifications-dialog|com.android.permissioncontroller:id/.*)
           timeout: 10000
           optional: true
+      - runFlow:
+          when:
+            visible:
+              id: permission-notifications-dialog
+          commands:
+            - tapOn:
+                id: permission-notifications-dialog-confirm
       - runFlow:
           when:
             visible:
@@ -75,8 +92,7 @@ onFlowStart:
 - tapOn:
     id: recorder-discard
 - tapOn:
-    text: (?i)(discard|buang).*
-    index: -1
+    id: recorder-discard-dialog-confirm
 - extendedWaitUntil:
     visible:
       id: mom-record

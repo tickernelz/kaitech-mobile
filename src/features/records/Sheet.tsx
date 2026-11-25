@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Overlay } from '../../ui/Overlay';
 import { Pressable } from '../../ui/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../theme';
@@ -14,7 +15,7 @@ export function Sheet({ title, items, onClose, children, testID }: { title?: str
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('records.close')}>
         <Pressable
           style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]}
@@ -55,7 +56,7 @@ export function Sheet({ title, items, onClose, children, testID }: { title?: str
           ) : null}
         </Pressable>
       </Pressable>
-    </Modal>
+    </Overlay>
   );
 }
 

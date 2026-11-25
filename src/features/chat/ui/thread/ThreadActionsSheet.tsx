@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
 import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { hasFeature, type ChatFeatures } from '../../features';
 import type { ChannelInfo } from '../../odoo';
@@ -12,6 +11,7 @@ import { FilesSheet, PinnedSheet, SearchSheet, ThreadsSheet } from './ListSheets
 import { MembersSheet } from './MembersSheet';
 import { RenameSheet } from './RenameSheet';
 import { ScheduledSheet } from './ScheduledSheet';
+import { confirm } from '../../../../ui/dialog';
 
 type Panel = 'menu' | 'pinned' | 'search' | 'files' | 'threads' | 'members' | 'rename' | 'scheduled' | 'meeting';
 
@@ -74,35 +74,29 @@ export function ThreadActionsSheet({
     close();
     work();
   };
-  const confirmLeave = () => {
+  const confirmLeave = async () => {
     close();
-    Alert.alert(type === 'chat' ? t('threadActions.hideTitle') : t('threadActions.leaveTitle', { name }), type === 'chat' ? t('threadActions.hideBody') : t('threadActions.leaveBody'), [
-      { text: t('act.cancel'), style: 'cancel' },
-      {
-        text: type === 'chat' ? t('threadActions.hide') : t('threadActions.leave'),
-        style: 'destructive',
-        onPress: () =>
-          void leave(channelId, type).then((next) => {
-            if (next.ok) onLeft();
-            else onNotice(failureText(t, next));
-          }),
-      },
-    ]);
+    const go = await confirm({
+      title: type === 'chat' ? t('threadActions.hideTitle') : t('threadActions.leaveTitle', { name }),
+      body: type === 'chat' ? t('threadActions.hideBody') : t('threadActions.leaveBody'),
+      cancel: t('act.cancel'),
+      confirm: type === 'chat' ? t('threadActions.hide') : t('threadActions.leave'),
+      danger: true,
+      icon: type === 'chat' ? 'archive' : 'leave',
+      testID: 'thread-leave-dialog',
+    });
+    if (!go) return;
+    const next = await leave(channelId, type);
+    if (next.ok) onLeft();
+    else onNotice(failureText(t, next));
   };
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     close();
-    Alert.alert(t('threadActions.deleteTitle'), t('threadActions.deleteBody'), [
-      { text: t('act.cancel'), style: 'cancel' },
-      {
-        text: t('threadActions.delete'),
-        style: 'destructive',
-        onPress: () =>
-          void deleteThread(channelId).then((next) => {
-            if (next.ok) onLeft();
-            else onNotice(failureText(t, next));
-          }),
-      },
-    ]);
+    const go = await confirm({ title: t('threadActions.deleteTitle'), body: t('threadActions.deleteBody'), cancel: t('act.cancel'), confirm: t('threadActions.delete'), danger: true, icon: 'trash', testID: 'thread-delete-dialog' });
+    if (!go) return;
+    const next = await deleteThread(channelId);
+    if (next.ok) onLeft();
+    else onNotice(failureText(t, next));
   };
   if (panel === 'pinned') return <PinnedSheet channelId={channelId} onClose={close} onOpen={(message) => { close(); onJump(message); }} />;
   if (panel === 'search') return <SearchSheet channelId={channelId} onClose={close} onOpen={(message) => { close(); onJump(message); }} />;

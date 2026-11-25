@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { AccessibilityInfo } from 'react-native';
 
-export type UndoState = { id: number; label: string; failed: boolean } | null;
+export type UndoState = { id: number; label: string; failed: boolean; notice: boolean } | null;
 
 type Pending = { id: number; revert: () => void; commit: () => Promise<boolean>; timer: ReturnType<typeof setTimeout> };
 
@@ -47,10 +47,20 @@ async function settle(item: Pending) {
 
 export function showFailure(label: string, id = nextId++) {
   if (hideTimer) clearTimeout(hideTimer);
-  show({ id, label, failed: true });
+  show({ id, label, failed: true, notice: false });
   hideTimer = setTimeout(() => {
     if (shown?.id === id) show(null);
   }, failureShownMs);
+}
+
+export function showNotice(label: string) {
+  if (hideTimer) clearTimeout(hideTimer);
+  primeUndoWindow();
+  const id = nextId++;
+  show({ id, label, failed: false, notice: true });
+  hideTimer = setTimeout(() => {
+    if (shown?.id === id) show(null);
+  }, windowMs);
 }
 
 export function deferUndoable({ label, apply, revert, commit }: { label: string; apply: () => void; revert: () => void; commit: () => Promise<boolean> }): number {
@@ -65,7 +75,7 @@ export function deferUndoable({ label, apply, revert, commit }: { label: string;
   apply();
   const item: Pending = { id, revert, commit, timer: setTimeout(() => void settle(item), windowMs) };
   pending = item;
-  show({ id, label, failed: false });
+  show({ id, label, failed: false, notice: false });
   return id;
 }
 

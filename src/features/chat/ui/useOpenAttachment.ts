@@ -1,11 +1,11 @@
 import * as Sharing from 'expo-sharing';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
 import { chatClient } from '../chat';
 import { downloadForOpening } from '../files';
 import { attachmentUrl } from '../odoo';
 import type { Attachment } from '../types';
+import { confirm, notify } from '../../../ui/dialog';
 
 export function useOpenAttachment() {
   const { t } = useTranslation('chat');
@@ -26,7 +26,7 @@ export function useOpenAttachment() {
         );
         await then(file);
       } catch {
-        Alert.alert('', t('errors.network'));
+        notify(t('errors.network'));
       } finally {
         setOpening(null);
       }
@@ -36,7 +36,7 @@ export function useOpenAttachment() {
   const handOver = useCallback(
     async (attachment: Attachment, uri: string) => {
       if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert('', t('thread.cannotShare'));
+        notify(t('thread.cannotShare'));
         return;
       }
       await Sharing.shareAsync(uri, { mimeType: attachment.mimetype || undefined, dialogTitle: attachment.name });
@@ -48,11 +48,8 @@ export function useOpenAttachment() {
       fetched(attachment, async (file) => {
         const mimeType = attachment.mimetype || undefined;
         if (await file.canPreview({ mimeType })) await file.preview({ mimeType, title: attachment.name });
-        else
-          Alert.alert('', t('thread.cannotOpen', { name: attachment.name }), [
-            { text: t('thread.close'), style: 'cancel' },
-            { text: t('thread.shareInstead'), onPress: () => void handOver(attachment, file.uri) },
-          ]);
+        else if (await confirm({ body: t('thread.cannotOpen', { name: attachment.name }), cancel: t('thread.close'), confirm: t('thread.shareInstead'), icon: 'share', testID: 'attachment-share-instead-dialog' }))
+          await handOver(attachment, file.uri);
       }),
     [fetched, handOver, t],
   );

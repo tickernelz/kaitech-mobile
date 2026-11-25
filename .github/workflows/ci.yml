@@ -110,7 +110,7 @@ jobs:
       - uses: ./.github/actions/setup-maestro
       - name: Maestro flow syntax
         run: |
-          maestro --version
+          maestro --version > /dev/null
           find .maestro -name '*.yaml' ! -name config.yaml -print0 | xargs -0 -n1 -P "$(nproc)" maestro check-syntax
 
   unit:

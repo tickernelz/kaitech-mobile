@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Image, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 import { useSession } from '../../auth/session';
 import { errorCode } from '../../features/chat/api';
 import { Avatar } from '../../features/chat/ui/Avatar';
@@ -12,6 +12,7 @@ import { Button } from '../../ui/Button';
 import { IconButton } from '../../ui/IconButton';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
+import { confirm } from '../../ui/dialog';
 
 const photoSize = 128;
 const knownErrors = ['name_invalid', 'status_too_long', 'status_invalid', 'photo_type_unsupported', 'photo_too_large', 'photo_invalid', 'network'];
@@ -58,11 +59,10 @@ export default function ProfileSettings() {
       .then((uri) => uri && setStaged(uri))
       .catch(() => setError(t('profile.errors.photo_invalid')));
 
-  const confirmRemove = () =>
-    Alert.alert('', t('profile.removeTitle'), [
-      { text: t('profile.cancel'), style: 'cancel' },
-      { text: t('profile.remove'), style: 'destructive', onPress: () => void run(() => removeProfilePhoto(active)) },
-    ]);
+  const confirmRemove = async () => {
+    const go = await confirm({ body: t('profile.removeTitle'), cancel: t('profile.cancel'), confirm: t('profile.remove'), danger: true, icon: 'trash', testID: 'profile-photo-remove-dialog' });
+    if (go) void run(() => removeProfilePhoto(active));
+  };
 
   return (
     <SettingsPage title={t('settings.profile')} testID="settings-profile-screen">

@@ -1,7 +1,7 @@
 import * as Device from 'expo-device';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { deletePasskey, passkeys, renamePasskey, type Passkey } from '../../features/account/security';
@@ -17,6 +17,7 @@ import { Sheet, SheetItem } from '../../ui/Sheet';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 import { parseServerDate } from '../../features/discovery/dates';
+import { confirm } from '../../ui/dialog';
 
 export default function PasskeySettings() {
   const { t } = useTranslation();
@@ -46,11 +47,10 @@ export default function PasskeySettings() {
     }
   };
 
-  const remove = (key: Passkey) =>
-    Alert.alert('', t('security.passkeys.deleteConfirm', { name: key.name }), [
-      { text: t('settings.cancel'), style: 'cancel' },
-      { text: t('security.passkeys.delete'), style: 'destructive', onPress: () => void guard(() => identity.run(() => deletePasskey(active, key.id), () => true)) },
-    ]);
+  const remove = async (key: Passkey) => {
+    const go = await confirm({ body: t('security.passkeys.deleteConfirm', { name: key.name }), cancel: t('settings.cancel'), confirm: t('security.passkeys.delete'), danger: true, icon: 'trash', testID: 'passkey-delete-dialog' });
+    if (go) await guard(() => identity.run(() => deletePasskey(active, key.id), () => true));
+  };
 
   const add = (label: string) => {
     setAdding(null);

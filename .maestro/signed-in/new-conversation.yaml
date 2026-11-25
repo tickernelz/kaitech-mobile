@@ -147,7 +147,7 @@ onFlowStart:
 - tapOn:
     id: thread-action-leave
 - tapOn:
-    text: (?i)(leave|keluar)
+    id: thread-leave-dialog-confirm
 - extendedWaitUntil:
     visible:
       id: chat-list

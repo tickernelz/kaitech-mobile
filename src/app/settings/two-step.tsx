@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, Linking, StyleSheet, View } from 'react-native';
+import { Image, Linking, StyleSheet, View } from 'react-native';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { readMe } from '../../features/account/odoo';
@@ -13,6 +13,7 @@ import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
+import { confirm } from '../../ui/dialog';
 
 export default function TwoStepSettings() {
   const { t } = useTranslation();
@@ -56,19 +57,14 @@ export default function TwoStepSettings() {
       await me.refresh();
     });
 
-  const disable = () =>
-    Alert.alert('', t('security.totp.disableConfirm'), [
-      { text: t('settings.cancel'), style: 'cancel' },
-      {
-        text: t('security.totp.disable'),
-        style: 'destructive',
-        onPress: () =>
-          void guard(async () => {
-            await identity.run(() => disableTotp(active), () => true);
-            await me.refresh();
-          }),
-      },
-    ]);
+  const disable = async () => {
+    const go = await confirm({ body: t('security.totp.disableConfirm'), cancel: t('settings.cancel'), confirm: t('security.totp.disable'), danger: true, icon: 'lock', testID: 'totp-disable-dialog' });
+    if (!go) return;
+    await guard(async () => {
+      await identity.run(() => disableTotp(active), () => true);
+      await me.refresh();
+    });
+  };
 
   return (
     <SettingsPage title={t('security.totp.title')} testID="settings-totp-screen">

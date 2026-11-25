@@ -103,12 +103,16 @@ onFlowStart:
       id: settings-sign-out
 - tapOn:
     id: settings-sign-out
+- extendedWaitUntil:
+    visible:
+      id: sign-out-dialog
+    timeout: 10000
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: 08-sign-out-confirm
 - tapOn:
-    id: android:id/button1
+    id: sign-out-dialog-confirm
 - extendedWaitUntil:
     visible:
       id: welcome-title

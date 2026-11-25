@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { apiKeyDurations, apiKeyFrom, apiKeys, makeApiKey, openApiKey, removeApiKey, type ApiKey } from '../../features/account/security';
@@ -16,6 +16,7 @@ import { Check, Row, Section } from '../../ui/List';
 import { Sheet } from '../../ui/Sheet';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
+import { confirm } from '../../ui/dialog';
 
 export default function ApiKeySettings() {
   const { t } = useTranslation();
@@ -62,19 +63,14 @@ export default function ApiKeySettings() {
       await list.refresh();
     });
 
-  const remove = (key: ApiKey) =>
-    Alert.alert('', t('security.apiKeys.deleteConfirm', { name: key.name }), [
-      { text: t('settings.cancel'), style: 'cancel' },
-      {
-        text: t('security.apiKeys.delete'),
-        style: 'destructive',
-        onPress: () =>
-          void guard(async () => {
-            await identity.run(() => removeApiKey(active, key.id), () => true);
-            await list.refresh();
-          }),
-      },
-    ]);
+  const remove = async (key: ApiKey) => {
+    const go = await confirm({ body: t('security.apiKeys.deleteConfirm', { name: key.name }), cancel: t('settings.cancel'), confirm: t('security.apiKeys.delete'), danger: true, icon: 'trash', testID: 'api-key-delete-dialog' });
+    if (!go) return;
+    await guard(async () => {
+      await identity.run(() => removeApiKey(active, key.id), () => true);
+      await list.refresh();
+    });
+  };
 
   return (
     <SettingsPage title={t('security.apiKeys.title')} testID="settings-api-keys-screen">
