@@ -271,21 +271,32 @@ if [ -n "${E2E_MOTION_FLOW:-}" ]; then
     echo "::error::thread-list bounds not found for the motion recording"
     status=1
   fi
+  recordings="$(mktemp -d)"
+  record_limit=170
   for phase in send fling; do
     adb shell dumpsys gfxinfo io.kaitech.mobile reset > /dev/null
-    adb shell screenrecord --bit-rate 8000000 --time-limit 170 "/sdcard/motion-$phase.mp4" &
+    adb shell screenrecord --bit-rate 8000000 --time-limit "$record_limit" "/sdcard/motion-$phase.mp4" &
     motion_recorder=$!
     sleep 1
+    started=$SECONDS
     "${run[@]}" test "$E2E_MOTION_FLOW-$phase.yaml" "${signed_in[@]}" --format junit --output "$out/junit-motion-$phase.xml" --test-output-dir "$out/maestro/motion-$phase" || status=$?
+    took=$((SECONDS - started))
     adb shell pkill -INT screenrecord || true
     wait "$motion_recorder" || true
     sleep 2
     adb shell dumpsys gfxinfo io.kaitech.mobile | tr -d '\r' | sed -n '/^Total frames rendered/,/^99th percentile/p' > "$out/motion-$phase-gfxinfo.txt"
-    adb pull "/sdcard/motion-$phase.mp4" "$out/motion-$phase.mp4" > /dev/null
+    adb pull "/sdcard/motion-$phase.mp4" "$recordings/motion-$phase.mp4" > /dev/null
+    adb shell rm -f "/sdcard/motion-$phase.mp4"
+    echo "flow took $took s, recording limit $record_limit s" > "$out/motion-$phase-flicker.txt"
+    if [ "$took" -ge $((record_limit - 1)) ]; then
+      echo "::error::the $phase flow ran $took s, longer than the $record_limit s recording; its end was not checked" | tee -a "$out/motion-$phase-flicker.txt"
+      status=1
+    fi
     if [ -n "$box" ]; then
-      node scripts/frame-flicker.mjs "$out/motion-$phase.mp4" "$box" --out "$out/motion-$phase-flicker.json" --max-flicker "${E2E_MAX_FLICKER:-0}" | tee "$out/motion-$phase-flicker.txt" || status=1
+      node scripts/frame-flicker.mjs "$recordings/motion-$phase.mp4" "$box" --out "$out/motion-$phase-flicker.json" --max-flicker "${E2E_MAX_FLICKER:-0}" | tee -a "$out/motion-$phase-flicker.txt" || status=1
     fi
   done
+  rm -rf "$recordings"
 fi
 
 if [ "${E2E_LAYOUT_CHECK:-}" = 1 ]; then
@@ -375,7 +386,7 @@ node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$l
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"
   find "$out/maestro" -path '*/screenshots/*.png' ! -name '*runFlow*' ! -iname '*email*' ! -iname '*password*' ! -iname '*sandi*' ! -iname '*sign*in*' ! -iname '*masuk*' ! -iname '*login*' -exec cp {} "$out/failures/" \;
-  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name signin.txt ! -name scroll-gfxinfo.txt ! -name 'motion-*' ! -name layout.txt ! -name call-peer.json ! -name 'call-peers-*.json' ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
+  find "$out" -mindepth 1 -maxdepth 1 ! -name 'junit*.xml' ! -name locale.txt ! -name display.txt ! -name installed.txt ! -name audio.txt ! -name signin.txt ! -name scroll-gfxinfo.txt ! -name 'motion-*-flicker.json' ! -name 'motion-*-flicker.txt' ! -name 'motion-*-gfxinfo.txt' ! -name layout.txt ! -name call-peer.json ! -name 'call-peers-*.json' ! -name call-logcat.txt ! -name devices-pruned.txt ! -name screenshots ! -name failures -exec rm -rf {} +
   for secret in "$E2E_LOGIN" "$E2E_PASSWORD" "$E2E_WEB_LOGIN" "$E2E_WEB_PASSWORD" ${E2E_SECOND_PEER_LOGIN:+"$E2E_SECOND_PEER_LOGIN"} ${E2E_SECOND_PEER_PASSWORD:+"$E2E_SECOND_PEER_PASSWORD"}; do
     if grep -rqF -- "$secret" "$out" || find "$out" | grep -F -- "$secret" > /dev/null; then
       echo "a test account value is in the E2E output; it was not uploaded" >&2
