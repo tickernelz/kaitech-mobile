@@ -175,7 +175,11 @@
     "play": "Play voice message",
     "pause": "Pause voice message",
     "label": "Voice message",
-    "speed": "Playback speed {{rate}} times"
+    "speed": "Playback speed {{rate}} times",
+    "position": "Voice message position",
+    "unplayed": "Not played yet",
+    "openChat": "Open the chat with {{name}}",
+    "close": "Stop and close the player"
   },
   "actions": {
     "reply": "Reply",

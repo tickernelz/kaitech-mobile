@@ -18,6 +18,7 @@ import { RichText } from './RichText';
 import { useCookie } from './useCookie';
 import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
+import type { VoiceMeta } from '../voicePlayer';
 import { recordingIdOf } from '../../call/recording';
 import { RecordingCard } from '../../call/ui/RecordingCard';
 import { callState, startCall } from '../../call/call';
@@ -98,7 +99,7 @@ function Picture({ attachment, origin }: { attachment: Attachment; origin: strin
   );
 }
 
-export function Attachments({ attachments, origin, mine }: { attachments: Attachment[]; origin: string; mine: boolean }) {
+export function Attachments({ attachments, origin, mine, meta }: { attachments: Attachment[]; origin: string; mine: boolean; meta?: VoiceMeta }) {
   if (!attachments.length) return null;
   return (
     <View style={styles.attachments}>
@@ -107,7 +108,7 @@ export function Attachments({ attachments, origin, mine }: { attachments: Attach
         return recordingId !== null ? (
           <RecordingCard key={attachment.id} recordingId={recordingId} mine={mine} />
         ) : attachment.voice || attachment.mimetype.startsWith('audio/') ? (
-          <VoiceNote key={attachment.id} id={`a${attachment.id}`} uri={attachmentUrl(origin, attachment)} mine={mine} seed={attachment.id} />
+          <VoiceNote key={attachment.id} id={`a${attachment.id}`} uri={attachmentUrl(origin, attachment)} mine={mine} seed={attachment.id} meta={meta} />
         ) : attachment.mimetype.startsWith('image/') ? (
           <Picture key={attachment.id} attachment={attachment} origin={origin} />
         ) : (
@@ -293,7 +294,7 @@ export const MessageBubble = memo(function MessageBubble({
           </View>
         ) : null}
         <QuoteBlock quote={quote} mine={mine} onPress={message.parentId ? () => onQuotePress(message.parentId as number) : undefined} />
-        <Attachments attachments={message.attachments} origin={origin} mine={mine} />
+        <Attachments attachments={message.attachments} origin={origin} mine={mine} meta={{ title: message.author, channelId: message.channelId, messageId: message.id }} />
         {rich ? (
           <RichMedia rich={rich} origin={origin} testID={`rich-${message.id}`} />
         ) : agent && !removed && !message.translated ? (

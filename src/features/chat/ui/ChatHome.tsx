@@ -13,6 +13,7 @@ import { focusedMessage, selectChannel, selectedChannel, useSelectedChannel } fr
 import { ConversationList } from './ConversationList';
 import { NewConversationSheet } from './list/NewConversationSheet';
 import { ThreadView } from './ThreadView';
+import { VoiceMiniBar } from './VoiceNote';
 
 function toId(value: string | string[] | undefined): number | null {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -70,6 +71,7 @@ export function ChatHome() {
       <Panes
         list={
           <View style={styles.fill}>
+            <VoiceMiniBar />
             <ConversationList selectedId={expanded ? selected : null} onOpen={open} />
             <Fab icon="edit" label={t('newChat.title')} onPress={() => setCreating(true)} testID="chat-new" />
           </View>

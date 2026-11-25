@@ -175,7 +175,11 @@
     "play": "Putar pesan suara",
     "pause": "Jeda pesan suara",
     "label": "Pesan suara",
-    "speed": "Kecepatan putar {{rate}} kali"
+    "speed": "Kecepatan putar {{rate}} kali",
+    "position": "Posisi pesan suara",
+    "unplayed": "Belum diputar",
+    "openChat": "Buka chat dengan {{name}}",
+    "close": "Hentikan dan tutup pemutar"
   },
   "actions": {
     "reply": "Balas",
