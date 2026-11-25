@@ -58,13 +58,17 @@ const input = JSON.parse(await new Promise((resolve) => {
   process.stdin.on('end', () => resolve(data));
 }));
 const Yoga = await loadYoga();
-const tagged = [];
-const root = build(Yoga, input.tree, tagged);
-root.calculateLayout(input.width, undefined, Direction.LTR);
-const boxes = {};
-for (const [id, node] of tagged) {
-  let left = 0;
-  for (let at = node; at; at = at.getParent()) left += at.getComputedLeft();
-  boxes[id] = { left, width: node.getComputedWidth() };
-}
-process.stdout.write(JSON.stringify(boxes));
+const results = input.map(({ width, tree }) => {
+  const tagged = [];
+  const root = build(Yoga, tree, tagged);
+  root.calculateLayout(width, undefined, Direction.LTR);
+  const boxes = {};
+  for (const [id, node] of tagged) {
+    let left = 0;
+    for (let at = node; at; at = at.getParent()) left += at.getComputedLeft();
+    boxes[id] = { left, width: node.getComputedWidth() };
+  }
+  root.freeRecursive();
+  return boxes;
+});
+process.stdout.write(JSON.stringify(results));

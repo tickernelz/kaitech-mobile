@@ -41,97 +41,123 @@ function spec(node: ReactTestRendererJSON): Spec {
   return { style, testID, children: (node.children ?? []).filter((child): child is ReactTestRendererJSON => typeof child !== 'string').map(spec) };
 }
 
-function layout(element: ReactElement, width: number): Record<string, { left: number; width: number }> {
-  let tree: ReturnType<typeof create> | undefined;
+type Box = { left: number; width: number; right: number };
+type Scene = { element: ReactElement; width: number; testID: string };
+
+function tree(element: ReactElement): Spec {
+  let rendered: ReturnType<typeof create> | undefined;
   act(() => {
-    tree = create(element);
+    rendered = create(element);
   });
-  const json = tree?.toJSON();
+  const json = rendered?.toJSON();
   const roots = (Array.isArray(json) ? json : [json]).filter((node): node is ReactTestRendererJSON => !!node);
-  const input = JSON.stringify({ width, tree: { style: {}, children: roots.map(spec) } });
-  const output = execFileSync(process.execPath, [join(__dirname, 'fixtures', 'yoga-layout.mjs')], { input, encoding: 'utf8' });
-  return JSON.parse(output);
+  return { style: {}, children: roots.map(spec) };
+}
+
+function measure(scenes: Record<string, Scene>): Record<string, Box> {
+  const names = Object.keys(scenes);
+  const input = JSON.stringify(names.map((name) => ({ width: scenes[name].width, tree: tree(scenes[name].element) })));
+  const output = JSON.parse(execFileSync(process.execPath, [join(__dirname, 'fixtures', 'yoga-layout.mjs')], { input, encoding: 'utf8' })) as Record<string, { left: number; width: number }>[];
+  return Object.fromEntries(
+    names.map((name, index) => {
+      const box = output[index][scenes[name].testID];
+      return [name, { ...box, right: scenes[name].width - box.left - box.width }];
+    }),
+  );
 }
 
 function message(id: number, body: string): Message {
   return { id, channelId: 7, authorId: 40, author: 'Rina Kusuma', body, date: Date.UTC(2026, 10, 25, 3, 0), type: 'comment', attachments: [], parentId: null, reactions: [] };
 }
 
-function bubble(id: number, body: string, mine: boolean, width: number, face: AuthorFace = 'none') {
-  const box = layout(
-    <MessageBubble
-      message={message(id, body)}
-      mine={mine}
-      showAuthor={face === 'show'}
-      face={face}
-      readState={mine ? 'sent' : null}
-      quote={null}
-      origin="https://lab0.example"
-      hasThread={false}
-      onLongPress={() => undefined}
-      onQuotePress={() => undefined}
-      onReact={() => undefined}
-      onOpenThread={() => undefined}
-    />,
+function bubble(id: number, body: string, mine: boolean, width: number, face: AuthorFace = 'none'): Scene {
+  return {
     width,
-  )['bubble-' + id];
-  return { ...box, right: width - box.left - box.width };
+    testID: 'bubble-' + id,
+    element: (
+      <MessageBubble
+        message={message(id, body)}
+        mine={mine}
+        showAuthor={face === 'show'}
+        face={face}
+        readState={mine ? 'sent' : null}
+        quote={null}
+        origin="https://lab0.example"
+        hasThread={false}
+        onLongPress={() => undefined}
+        onQuotePress={() => undefined}
+        onReact={() => undefined}
+        onOpenThread={() => undefined}
+      />
+    ),
+  };
+}
+
+function pending(state: 'sending' | 'failed'): Scene {
+  const item: Pending = { key: 'k-' + state, accountId: 'a', channelId: 7, text: long, parentId: null, mentions: [], files: [], createdAt: 0, attempts: 1, state, error: null };
+  return { width: phone, testID: 'bubble-pending', element: <PendingBubble pending={item} offline={false} onRetry={() => undefined} onDiscard={() => undefined} /> };
 }
 
 const lane = (width: number) => Math.min(width, 720 + 2 * gutter) - 2 * gutter;
 
+let box: Record<string, Box>;
+
+beforeAll(() => {
+  box = measure({
+    mineLong: bubble(1, long, true, phone),
+    theirsLong: bubble(2, long, false, phone),
+    mineShort: bubble(1, short, true, phone),
+    theirsShort: bubble(2, short, false, phone),
+    groupShown: bubble(2, long, false, phone, 'show'),
+    groupSpaced: bubble(3, long, false, phone, 'space'),
+    groupShort: bubble(4, short, false, phone, 'show'),
+    sending: pending('sending'),
+    failed: pending('failed'),
+    tabletMine: bubble(1, long.repeat(3), true, tablet),
+    tabletTheirs: bubble(2, long.repeat(3), false, tablet),
+  });
+});
+
 describe('message bubble width', () => {
   it('keeps a long message of mine to 80% of the lane, on the right, leaving the left side open', () => {
-    const mine = bubble(1, long, true, phone);
-    expect(mine.width).toBeLessThanOrEqual(Math.ceil(lane(phone) * 0.8));
-    expect(mine.right).toBe(gutter);
-    expect(mine.left).toBeGreaterThanOrEqual(gutter + Math.floor(lane(phone) * 0.2));
+    expect(box.mineLong.width).toBeLessThanOrEqual(Math.ceil(lane(phone) * 0.8));
+    expect(box.mineLong.right).toBe(gutter);
+    expect(box.mineLong.left).toBeGreaterThanOrEqual(gutter + Math.floor(lane(phone) * 0.2));
   });
 
   it('caps mine and theirs at the same width in a direct chat, theirs on the left', () => {
-    const mine = bubble(1, long, true, phone);
-    const theirs = bubble(2, long, false, phone);
-    expect(theirs.width).toBe(mine.width);
-    expect(theirs.left).toBe(gutter);
-    expect(theirs.right).toBeGreaterThanOrEqual(gutter + Math.floor(lane(phone) * 0.2));
+    expect(box.theirsLong.width).toBe(box.mineLong.width);
+    expect(box.theirsLong.left).toBe(gutter);
+    expect(box.theirsLong.right).toBeGreaterThanOrEqual(gutter + Math.floor(lane(phone) * 0.2));
   });
 
   it('sizes a short message to its text on both sides', () => {
-    const mine = bubble(1, short, true, phone);
-    const theirs = bubble(2, short, false, phone);
-    expect(mine.width).toBeLessThan(lane(phone) / 2);
-    expect(theirs.width).toBeLessThan(lane(phone) / 2);
-    expect(mine.right).toBe(gutter);
-    expect(theirs.left).toBe(gutter);
+    expect(box.mineShort.width).toBeLessThan(lane(phone) / 2);
+    expect(box.theirsShort.width).toBeLessThan(lane(phone) / 2);
+    expect(box.mineShort.right).toBe(gutter);
+    expect(box.theirsShort.left).toBe(gutter);
   });
 
   it('keeps a group sender bubble beside the avatar under 80% of the space it can use', () => {
-    const shown = bubble(2, long, false, phone, 'show');
-    const spaced = bubble(3, long, false, phone, 'space');
-    expect(shown.left).toBeGreaterThan(gutter);
-    expect(shown.width).toBeLessThanOrEqual(Math.ceil((phone - shown.left - gutter) * 0.8));
-    expect(spaced.left).toBe(shown.left);
-    expect(spaced.width).toBe(shown.width);
-    expect(bubble(4, short, false, phone, 'show').width).toBeLessThan(lane(phone) / 2);
+    const { groupShown, groupSpaced, groupShort } = box;
+    expect(groupShown.left).toBeGreaterThan(gutter);
+    expect(groupShown.width).toBeLessThanOrEqual(Math.ceil((phone - groupShown.left - gutter) * 0.8));
+    expect(groupSpaced.left).toBe(groupShown.left);
+    expect(groupSpaced.width).toBe(groupShown.width);
+    expect(groupShort.width).toBeLessThan(lane(phone) / 2);
   });
 
   it('keeps a message still sending or failed to the same width as a sent one', () => {
-    const sent = bubble(1, long, true, phone);
-    for (const state of ['sending', 'failed'] as const) {
-      const pending: Pending = { key: 'k-' + state, accountId: 'a', channelId: 7, text: long, parentId: null, mentions: [], files: [], createdAt: 0, attempts: 1, state, error: null };
-      const tree = layout(<PendingBubble pending={pending} offline={false} onRetry={() => undefined} onDiscard={() => undefined} />, phone);
-      const box = tree['bubble-pending'];
-      expect(box.width).toBe(sent.width);
-      expect(phone - box.left - box.width).toBe(gutter);
+    for (const state of [box.sending, box.failed]) {
+      expect(state.width).toBe(box.mineLong.width);
+      expect(state.right).toBe(gutter);
     }
   });
 
   it('centres the lane on a wide screen so a bubble never grows past 576dp', () => {
-    const mine = bubble(1, long.repeat(3), true, tablet);
-    const theirs = bubble(2, long.repeat(3), false, tablet);
-    expect(mine.width).toBe(576);
-    expect(theirs.width).toBe(576);
-    expect(theirs.left).toBe(Math.round((tablet - 720) / 2));
-    expect(mine.right).toBe(Math.round((tablet - 720) / 2));
+    expect(box.tabletMine.width).toBe(576);
+    expect(box.tabletTheirs.width).toBe(576);
+    expect(box.tabletTheirs.left).toBe(Math.round((tablet - 720) / 2));
+    expect(box.tabletMine.right).toBe(Math.round((tablet - 720) / 2));
   });
 });
