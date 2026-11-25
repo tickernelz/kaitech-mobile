@@ -518,12 +518,55 @@
     "sticker": "Stickers",
     "gif": "GIFs",
     "backspace": "Delete",
-    "gifSearch": "Search GIFs",
-    "stickerSearch": "Search stickers",
+    "gifSearch": "Search KLIPY",
+    "stickerSearch": "Search KLIPY",
     "none": "Nothing found",
     "noStickers": "No stickers here yet",
-    "recent": "Recent stickers",
-    "providerStickers": "Search stickers"
+    "recent": "Recent",
+    "providerStickers": "Search stickers",
+    "closePreview": "Close preview",
+    "closeTones": "Close skin tones",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites",
+    "favorites": "Favorites",
+    "full": "Full height",
+    "half": "Half height",
+    "handle": "Panel height",
+    "kaitechStickers": "Kaitech stickers",
+    "noEmoji": "No emoji for \"{{query}}\".",
+    "openSettings": "Open settings",
+    "retry": "Try again",
+    "searchGif": "Search \"{{query}}\" in GIFs",
+    "skinHint": "Hold to pick a skin tone",
+    "trending": "Trending",
+    "tone0": "Default yellow",
+    "tone1": "Light skin tone",
+    "tone2": "Medium-light skin tone",
+    "tone3": "Medium skin tone",
+    "tone4": "Medium-dark skin tone",
+    "tone5": "Dark skin tone",
+    "state": {
+      "offline": {
+        "title": "You're offline",
+        "body": "GIFs need a connection. Emoji and saved stickers still work."
+      },
+      "unavailable": {
+        "title": "GIFs aren't turned on",
+        "body": "An admin needs to add the KLIPY key in Chat settings on lab0. Emoji and stickers still work."
+      },
+      "server": {
+        "title": "GIFs couldn't load",
+        "body": "The server didn't answer (code {{code}}). Try again in a moment."
+      },
+      "emptySearch": {
+        "title": "Nothing for \"{{query}}\"",
+        "body": "Try a shorter word."
+      },
+      "noStickers": {
+        "title": "No stickers yet",
+        "body": "An admin can add packs in Chat settings."
+      }
+    }
   },
   "rich": {
     "sticker": "Sticker",

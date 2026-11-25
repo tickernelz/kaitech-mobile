@@ -518,12 +518,55 @@
     "sticker": "Stiker",
     "gif": "GIF",
     "backspace": "Hapus",
-    "gifSearch": "Cari GIF",
-    "stickerSearch": "Cari stiker",
+    "gifSearch": "Search KLIPY",
+    "stickerSearch": "Search KLIPY",
     "none": "Tidak ada hasil",
     "noStickers": "Belum ada stiker di sini",
-    "recent": "Stiker terakhir",
-    "providerStickers": "Cari stiker"
+    "recent": "Terakhir",
+    "providerStickers": "Cari stiker",
+    "closePreview": "Tutup pratinjau",
+    "closeTones": "Tutup pilihan warna kulit",
+    "favorite": "Tambah ke favorit",
+    "unfavorite": "Hapus dari favorit",
+    "favorites": "Favorit",
+    "full": "Tinggi penuh",
+    "half": "Setengah tinggi",
+    "handle": "Tinggi panel",
+    "kaitechStickers": "Stiker Kaitech",
+    "noEmoji": "Tidak ada emoji untuk \"{{query}}\".",
+    "openSettings": "Buka pengaturan",
+    "retry": "Coba lagi",
+    "searchGif": "Cari \"{{query}}\" di GIF",
+    "skinHint": "Tahan untuk memilih warna kulit",
+    "trending": "Populer",
+    "tone0": "Kuning bawaan",
+    "tone1": "Warna kulit terang",
+    "tone2": "Warna kulit agak terang",
+    "tone3": "Warna kulit sedang",
+    "tone4": "Warna kulit agak gelap",
+    "tone5": "Warna kulit gelap",
+    "state": {
+      "offline": {
+        "title": "Kamu sedang luring",
+        "body": "GIF butuh koneksi. Emoji dan stiker yang tersimpan tetap bisa dipakai."
+      },
+      "unavailable": {
+        "title": "GIF belum diaktifkan",
+        "body": "Admin perlu memasang kunci KLIPY di Pengaturan Chat lab0. Emoji dan stiker tetap bisa dipakai."
+      },
+      "server": {
+        "title": "GIF tidak bisa dimuat",
+        "body": "Server tidak menjawab (kode {{code}}). Coba lagi sebentar lagi."
+      },
+      "emptySearch": {
+        "title": "Tidak ada hasil untuk \"{{query}}\"",
+        "body": "Coba kata yang lebih pendek."
+      },
+      "noStickers": {
+        "title": "Belum ada stiker",
+        "body": "Admin bisa menambah paket di Pengaturan Chat."
+      }
+    }
   },
   "rich": {
     "sticker": "Stiker",

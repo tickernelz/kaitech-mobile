@@ -1,14 +1,14 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BackHandler, Platform, ScrollView, StyleSheet, TextInput, View, type TextInputSelectionChangeEvent } from 'react-native';
-import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import { BackHandler, Platform, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type TextInputSelectionChangeEvent } from 'react-native';
+import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { Pressable } from '../../../ui/Pressable';
 import { KeyboardController, useKeyboardState, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
-import { duration, easing } from '../../../theme/motion';
+import { duration, easing, spring } from '../../../theme/motion';
 import { FloatingSurface } from '../../../ui/FloatingSurface';
 import { useSurface } from '../../../ui/glass';
 import { Text } from '../../../ui/Text';
@@ -21,6 +21,7 @@ import { useVoiceRecorder, type Voice } from './composer/useVoiceRecorder';
 import { DiscardAnimation, InterruptionBanner, VoiceRow, voiceRowPhase } from './composer/VoiceBar';
 import { useScreenReader } from '../../call/ui/useAutoHide';
 import { ComposerPanel } from './composer/Panel';
+import { halfPanelHeight, searchPanelHeight } from './composer/panel/logic';
 import { SendLaterSheet } from './composer/SendLaterSheet';
 import { clearDraft, readDraft, writeDraft } from '../drafts';
 import { dropFile } from '../files';
@@ -41,11 +42,9 @@ import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 
 type Staged = Outgoing['files'][number];
 
-export type ComposerHandle = { reply(message: Message): void; edit(message: Message): void; restore(body: string, partnerIds: number[]): void; focus(): void };
+export type ComposerHandle = { reply(message: Message): void; edit(message: Message): void; restore(body: string, partnerIds: number[]): void; focus(): void; closePanel(): void };
 
 const now = () => Date.now();
-const defaultPanelHeight = 300;
-const searchPanelHeight = 240;
 const clock = () => performance.now();
 
 export function mentionQuery(text: string, cursor: number): { start: number; query: string } | null {
@@ -97,7 +96,10 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const [extra, setExtra] = useState<'later' | null>(null);
   const [panel, setPanel] = useState(false);
   const [searching, setSearching] = useState(false);
-  const [panelHeight, setPanelHeight] = useState(defaultPanelHeight);
+  const [panelHeight, setPanelHeight] = useState(() => halfPanelHeight(0));
+  const [full, setFull] = useState(false);
+  const { height: windowHeight } = useWindowDimensions();
+  const closeRef = useRef<() => void>(() => undefined);
   const keyboardHeight = useKeyboardState((state) => state.height);
   const origin = useChat((state) => state.origin);
   const [laterBusy, setLaterBusy] = useState(false);
@@ -111,6 +113,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const parent = parentId ? messages.find((message) => message.id === parentId) : null;
 
   useImperativeHandle(ref, () => ({
+    closePanel: () => closeRef.current(),
     reply: (message) => {
       setParentId(message.id);
       input.current?.focus();
@@ -330,23 +333,41 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const open = useSharedValue(0);
   const reopening = useRef(false);
   const openPanel = () => {
-    if (keyboardHeight > 0) setPanelHeight(keyboardHeight);
+    setPanelHeight(halfPanelHeight(keyboardHeight));
+    setFull(false);
     reopening.current = false;
     setPanel(true);
-    open.set(keyboardVisible || reduceMotion ? 1 : withTiming(1, { duration: duration.base, easing: easing.standard }));
+    open.set(keyboardVisible || reduceMotion ? 1 : withTiming(1, { duration: duration.slow, easing: easing.expo }));
     void KeyboardController.dismiss();
   };
   const closePanel = useCallback(() => {
     setSearching(false);
+    setFull(false);
     open.set(
       reduceMotion
         ? 0
-        : withTiming(0, { duration: duration.base, easing: easing.standard }, (done) => {
+        : withTiming(0, { duration: duration.base, easing: easing.exit }, (done) => {
           if (done) scheduleOnRN(setPanel, false);
         }),
     );
     if (reduceMotion) setPanel(false);
   }, [open, reduceMotion]);
+  useEffect(() => {
+    closeRef.current = closePanel;
+  }, [closePanel]);
+  const sizePanel = useCallback(
+    (next: 'full' | 'half' | 'close') => {
+      if (next === 'close') closePanel();
+      else setFull(next === 'full');
+    },
+    [closePanel],
+  );
+  const fullHeight = Math.max(halfPanelHeight(keyboardHeight) + 80, Math.round(windowHeight * 0.6));
+  const target = searching ? searchPanelHeight : full ? fullHeight : panelHeight;
+  const grown = useSharedValue(target);
+  useEffect(() => {
+    grown.set(reduceMotion ? withTiming(target, { duration: duration.quick }) : withSpring(target, spring.spatial));
+  }, [grown, reduceMotion, target]);
   const showKeyboard = () => {
     reopening.current = true;
     setSearching(false);
@@ -366,9 +387,8 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     });
     return () => back.remove();
   }, [closePanel, panel]);
-  const searchHeight = Math.min(panelHeight, searchPanelHeight);
   const panelStyle = useAnimatedStyle(() => ({
-    height: open.get() * (searching ? searchHeight : Math.max(0, panelHeight + keyboard.height.get())),
+    height: open.get() * (searching ? grown.get() : Math.max(0, grown.get() + keyboard.height.get())),
   }));
   const backspace = () => {
     const next = deleteBefore(text, cursor);
@@ -520,9 +540,12 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
       {markup.showBar && !voicePhase ? <FormatBar onApply={markup.apply} onHide={markup.hide} /> : null}
       {panel ? (
         <Animated.View style={[styles.panelClip, panelStyle]}>
-          <View style={{ height: searching ? searchHeight : panelHeight }}>
+          <View style={{ height: target }}>
             <ComposerPanel
               origin={origin}
+              full={full}
+              searching={searching}
+              onSize={sizePanel}
               onEmoji={(emoji) => insertAtCursor(emoji)}
               onBackspace={backspace}
               onSticker={(sticker: Sticker) => sendRich({ sticker })}

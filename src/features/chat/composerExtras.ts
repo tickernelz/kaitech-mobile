@@ -3,7 +3,7 @@ import { chatClient, newKey } from './chat';
 import { composeBody, mentionsInText } from './html';
 import { run, odooDatetime } from './messageActions';
 import { gifFrom, stickerFrom } from './rich';
-import type { GifMedia, Mention, PendingFile, Sticker } from './types';
+import type { GifMedia, Media, Mention, PendingFile, Sticker } from './types';
 
 export function cannedQuery(text: string, cursor: number): { start: number; query: string } | null {
   const before = text.slice(0, cursor);
@@ -120,6 +120,29 @@ export function shelfOf(raw: { packs?: unknown[]; recent?: unknown[]; favorites?
     .map((stickerId) => byId.get(stickerId))
     .filter((sticker): sticker is Sticker => sticker !== undefined);
   return { packs, recent, favorites: numbers(raw?.favorites) };
+}
+
+export type GifCategory = { name: string; query: string; preview: Media | null };
+
+export function gifCategories() {
+  return run(async (account): Promise<{ categories: GifCategory[]; attribution: Attribution | null }> => {
+    const raw = await route<RawPage & { categories?: unknown[] }>(account, '/kaitech_chat/gif/categories', {});
+    const categories: GifCategory[] = [];
+    for (const item of raw?.categories ?? []) {
+      if (!item || typeof item !== 'object') continue;
+      const entry = item as { name?: unknown; query?: unknown; preview?: { url?: unknown; width?: unknown; height?: unknown } };
+      if (typeof entry.name !== 'string' || typeof entry.query !== 'string' || !entry.query) continue;
+      const preview = entry.preview && typeof entry.preview.url === 'string' ? { url: entry.preview.url, width: Number(entry.preview.width) || 1, height: Number(entry.preview.height) || 1 } : null;
+      categories.push({ name: entry.name, query: entry.query, preview });
+    }
+    return { categories, attribution: attributionOf(raw) };
+  });
+}
+
+export function setStickerFavorite(stickerId: number, favorite: boolean) {
+  return run(async (account) => {
+    await route(account, '/kaitech_chat/sticker/favorite', { sticker_id: stickerId, favorite });
+  });
 }
 
 export function sendLater(input: { channelId: number; text: string; mentions: Mention[]; files: Omit<PendingFile, 'key' | 'attachmentId' | 'ownershipToken'>[]; when: number }) {
