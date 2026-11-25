@@ -223,15 +223,36 @@ async function checkBubbles(sent) {
   }
   if (!row) return failures.push(`bubbles: conversation-${channel} never showed in the chat list`);
   adb('shell', 'input', 'tap', String((row.left + row.right) >> 1), String((row.top + row.bottom) >> 1));
-  let screen;
-  for (let attempt = 0; attempt < 30; attempt++) {
+  let list;
+  for (let attempt = 0; attempt < 30 && !list; attempt++) {
     sleep(1000);
-    screen = dump();
-    if (sent.every((one) => find(screen, `bubble-${one.id}`))) break;
+    list = find(dump(), 'thread-list');
   }
-  const list = find(screen, 'thread-list');
-  const absent = sent.filter((one) => !find(screen, `bubble-${one.id}`)).map((one) => one.key);
-  if (!list || absent.length) return failures.push(`bubbles: ${list ? `no bubble for ${absent.join(', ')}` : 'no thread-list'}`);
+  if (!list) return failures.push('bubbles: no thread-list');
+  sleep(2000);
+  const seen = new Map();
+  for (let round = 0; round < 12 && seen.size < sent.length; round++) {
+    const screen = dump();
+    let found = false;
+    for (const one of sent) {
+      const node = find(screen, `bubble-${one.id}`);
+      if (node && !seen.has(one.key) && node.top >= list.top && node.bottom <= list.bottom) {
+        seen.set(one.key, node);
+        found = true;
+      }
+    }
+    if (found) screenshot('layout-bubbles');
+    if (seen.size === sent.length) break;
+    const x = String((list.left + list.right) >> 1);
+    const [from, to] = round < 6 ? [0.7, 0.3] : [0.3, 0.7];
+    adb('shell', 'input', 'swipe', x, String(Math.round(list.top + (list.bottom - list.top) * from)), x, String(Math.round(list.top + (list.bottom - list.top) * to)), '600');
+    sleep(1200);
+  }
+  const absent = sent.filter((one) => !seen.has(one.key)).map((one) => one.key);
+  if (absent.length) {
+    screenshot('layout-bubbles-missing');
+    return failures.push(`bubbles: no whole bubble for ${absent.join(', ')} after 6 screens towards the newest and 6 towards the oldest`);
+  }
   const gutter = 16 * scale;
   const laneWidth = Math.min(list.right - list.left, (readableWidthDp + 32) * scale) - 2 * gutter;
   const laneLeft = (list.left + list.right - laneWidth) / 2;
@@ -239,7 +260,7 @@ async function checkBubbles(sent) {
   const cap = laneWidth * 0.8;
   lines.push(`bubbles: lane ${Math.round(laneLeft)}-${Math.round(laneRight)}px ${dp(laneWidth)}dp, cap ${dp(cap)}dp`);
   for (const one of sent) {
-    const node = find(screen, `bubble-${one.id}`);
+    const node = seen.get(one.key);
     const width = node.right - node.left;
     const gap = one.mine ? laneRight - node.right : node.left - laneLeft;
     lines.push(`bubbles: ${one.key} ${box(node)} ${dp(width)}dp, ${Math.round((width / laneWidth) * 100)}% of the lane, ${dp(gap)}dp from its side`);
@@ -248,7 +269,6 @@ async function checkBubbles(sent) {
     if (!one.long && width >= Math.min(cap - 16 * scale, laneWidth * 0.6)) failures.push(`bubbles: ${one.key} is ${dp(width)}dp, not sized to its text`);
     if (one.long && width < laneWidth * 0.6) failures.push(`bubbles: ${one.key} is ${dp(width)}dp, so the text did not wrap at the cap`);
   }
-  screenshot('layout-bubbles');
   adb('shell', 'input', 'keyevent', 'KEYCODE_BACK');
   sleep(1500);
 }
