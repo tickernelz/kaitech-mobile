@@ -8,6 +8,9 @@ const changed = 28;
 const jumpAt = 0.01;
 const settledAt = 0.003;
 const windowMs = 350;
+const slowShift = 16;
+const bright = 225;
+const blankShare = 0.25;
 
 function fail(message) {
   console.error(message);
@@ -92,6 +95,7 @@ for (let index = 1; index < count - 1; index++) {
   const jump = steps[index - 1].residual;
   if (jump < jumpAt) continue;
   for (let later = index + 1; later < count && (times[later] - times[index]) * 1000 <= windowMs; later++) {
+    if (Math.abs(steps[later - 1].dy) > slowShift || Math.abs(steps[index - 1].dy) > slowShift) break;
     if (aligned(index - 1, later).residual <= Math.min(settledAt, jump / 4)) {
       flicker.push({ frame: index, back: later, atMs: Math.round(times[index] * 1000), lastedMs: Math.round((times[later] - times[index]) * 1000), changed: Number(jump.toFixed(4)) });
       index = later;
@@ -100,8 +104,21 @@ for (let index = 1; index < count - 1; index++) {
   }
 }
 
-const result = { video, box, frames: count, unexplained: steps.filter((step) => step.residual >= jumpAt).length, flicker: flicker.length, flickerAt: flicker };
+function emptyShare(frame) {
+  let run = 0;
+  let longest = 0;
+  for (let y = 0; y < height; y++) {
+    let lit = 0;
+    for (let x = 0; x < width && lit <= 2; x++) if (frame[y * width + x] > bright) lit++;
+    run = lit > 2 ? 0 : run + 1;
+    longest = Math.max(longest, run);
+  }
+  return longest / height;
+}
+const blank = frames.filter((frame) => emptyShare(frame) >= blankShare).length;
+
+const result = { video, box, frames: count, unexplained: steps.filter((step) => step.residual >= jumpAt).length, flicker: flicker.length, flickerAt: flicker, blank };
 if (out) writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`);
-console.log(`${video}: ${count} frames, ${result.unexplained} frames changed beyond scrolling, ${flicker.length} flicker (limit ${maxFlicker})`);
+console.log(`${video}: ${count} frames, ${result.unexplained} frames changed beyond scrolling, ${flicker.length} flicker (limit ${maxFlicker}), ${blank} frames with a quarter of the list empty`);
 for (const item of flicker) console.log(`  flicker at ${item.atMs} ms for ${item.lastedMs} ms, ${(item.changed * 100).toFixed(1)}% of the list changed and came back`);
 if (flicker.length > maxFlicker) process.exit(1);
