@@ -1594,5 +1594,32 @@
     "email": "Email",
     "phone": "Phone",
     "viewProfile": "View profile on the web"
+  },
+  "dialog": {
+    "cancel": "Cancel",
+    "ok": "OK"
+  },
+  "permission": {
+    "continue": "Continue",
+    "notNow": "Not now",
+    "openSettings": "Open Settings",
+    "camera": {
+      "title": "Use the camera",
+      "body": "The camera takes the photos and videos you send, your profile photo and your video in calls. Your phone asks for permission next.",
+      "blockedTitle": "Camera access is off",
+      "blockedBody": "Allow camera access for Kaitech in Settings, then try again."
+    },
+    "microphone": {
+      "title": "Use the microphone",
+      "body": "The microphone records voice messages, meetings and your voice in calls. Your phone asks for permission next.",
+      "blockedTitle": "Microphone access is off",
+      "blockedBody": "Allow microphone access for Kaitech in Settings, then try again."
+    },
+    "notifications": {
+      "title": "Turn on notifications",
+      "body": "New messages, calls and a running recording show up in your notifications. Your phone asks for permission next.",
+      "blockedTitle": "Notifications are off",
+      "blockedBody": "Allow notifications for Kaitech in Settings."
+    }
   }
 }

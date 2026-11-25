@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { invalidate, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
@@ -11,6 +11,7 @@ import { Header } from '../discovery/Header';
 import { StateView, useErrorText } from '../discovery/ui';
 import { Scroll } from './assistParts';
 import { fileUnderDepartment, meetingRecordings, recordingHistory, setClientDepartments, type MeetingRecordings, type RecordingCard } from './records';
+import { notify } from '../../ui/dialog';
 
 export function RecordingHistoryScreen({ recording }: { recording: number }) {
   const { t } = useTranslation();
@@ -69,7 +70,7 @@ function Departments({ board, card, meeting }: { board: MeetingRecordings; card:
       await work();
       invalidate(`${active.id}:mom.`);
     } catch (error) {
-      Alert.alert('', errorText(error));
+      notify(errorText(error));
     } finally {
       setBusy('');
     }

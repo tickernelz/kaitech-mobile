@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../layout/windowClass';
@@ -25,19 +25,15 @@ import {
   useRecording,
   type Recording,
 } from './recorder';
+import { confirm } from '../../ui/dialog';
 
-function confirmStop(t: TFunction) {
-  Alert.alert(t('mom.recorder.stopTitle'), t('mom.recorder.stopBody'), [
-    { text: t('mom.recorder.cancel'), style: 'cancel' },
-    { text: t('mom.recorder.stop'), onPress: () => void stop() },
-  ]);
+async function confirmStop(t: TFunction) {
+  if (await confirm({ title: t('mom.recorder.stopTitle'), body: t('mom.recorder.stopBody'), cancel: t('mom.recorder.cancel'), confirm: t('mom.recorder.stop'), icon: 'stop', testID: 'recorder-stop-dialog' })) await stop();
 }
 
-function confirmDiscard(t: TFunction) {
-  Alert.alert(t('mom.recorder.discardTitle'), t('mom.recorder.discardBody'), [
-    { text: t('mom.recorder.cancel'), style: 'cancel' },
-    { text: t('mom.recorder.discard'), style: 'destructive', onPress: () => void discardRecording() },
-  ]);
+async function confirmDiscard(t: TFunction) {
+  const go = await confirm({ title: t('mom.recorder.discardTitle'), body: t('mom.recorder.discardBody'), cancel: t('mom.recorder.cancel'), confirm: t('mom.recorder.discard'), danger: true, icon: 'trash', testID: 'recorder-discard-dialog' });
+  if (go) await discardRecording();
 }
 
 function RoundButton({

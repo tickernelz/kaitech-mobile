@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Modal, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
+import { Overlay } from '../../ui/Overlay';
 import { Pressable } from '../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,6 +33,7 @@ import { ChoiceRow, PickRow } from './followupParts';
 import { MoreSheet } from './MoreSheet';
 import { SmallButton } from './parts';
 import { Refresh } from '../../ui/Refresh';
+import { notify } from '../../ui/dialog';
 
 type Tab = 'departments' | 'employees' | 'aliases';
 type Editing = { kind: 'department'; item: ClientDepartment | null } | { kind: 'employee'; item: ClientEmployee | null } | null;
@@ -52,7 +54,7 @@ function useOrgRun() {
       invalidate(`${active.id}:mom.clientOrg`);
       return true;
     } catch (error) {
-      Alert.alert('', errorText(error));
+      notify(errorText(error));
       return false;
     } finally {
       setBusy('');
@@ -276,7 +278,7 @@ function EditSheet({ editing, data, client, onClose }: { editing: NonNullable<Ed
       .then((ok) => ok && onClose());
   const toggle = (id: number) => setServed((list) => (list.includes(id) ? list.filter((one) => one !== id) : [...list, id]));
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <KeyboardAvoidingView behavior="padding" style={styles.fill}>
         <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
           <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="client-org-edit">
@@ -319,7 +321,7 @@ function EditSheet({ editing, data, client, onClose }: { editing: NonNullable<Ed
           </Pressable>
         </Pressable>
       </KeyboardAvoidingView>
-    </Modal>
+    </Overlay>
   );
 }
 

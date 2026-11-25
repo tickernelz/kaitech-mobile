@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
 import { useResource } from '../../api/resource';
 import { markExpired, useSession } from '../../auth/session';
 import { appDevices, devices, revokeAllDevices, revokeAppDevice, revokeDevice, type AppDevice, type Device } from '../../features/account/security';
@@ -12,6 +11,7 @@ import { RowIcon, SettingsPage } from '../../screens/SettingsPage';
 import { Button } from '../../ui/Button';
 import { Row, Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
+import { confirm } from '../../ui/dialog';
 
 const previewCount = 10;
 const pageCount = 20;
@@ -43,31 +43,32 @@ export default function DeviceSettings() {
     }
   };
 
-  const revokeApp = (device: AppDevice) =>
-    Alert.alert('', t('security.devices.revokeAppConfirm', { name: device.name || device.platform }), [
-      { text: t('settings.cancel'), style: 'cancel' },
-      { text: t('security.devices.revoke'), style: 'destructive', onPress: () => void guard(() => revokeAppDevice(active, device.id)) },
-    ]);
+  const revoke = (body: string, testID: string) => confirm({ body, cancel: t('settings.cancel'), confirm: t('security.devices.revoke'), danger: true, icon: 'leave', testID });
 
-  const revokeBrowser = (device: Device) =>
-    Alert.alert('', t('security.devices.revokeConfirm', { name: titleOf(device) }), [
-      { text: t('settings.cancel'), style: 'cancel' },
-      { text: t('security.devices.revoke'), style: 'destructive', onPress: () => void guard(() => identity.run(() => revokeDevice(active, device.id), () => true)) },
-    ]);
+  const revokeApp = async (device: AppDevice) => {
+    if (await revoke(t('security.devices.revokeAppConfirm', { name: device.name || device.platform }), 'device-revoke-app-dialog')) await guard(() => revokeAppDevice(active, device.id));
+  };
 
-  const revokeAll = () =>
-    Alert.alert(t('security.devices.revokeAll'), t('security.devices.revokeAllConfirm'), [
-      { text: t('settings.cancel'), style: 'cancel' },
-      {
-        text: t('security.devices.revokeAll'),
-        style: 'destructive',
-        onPress: () =>
-          void guard(async () => {
-            const done = await identity.run(() => revokeAllDevices(active), () => true);
-            if (done) markExpired(active.id);
-          }),
-      },
-    ]);
+  const revokeBrowser = async (device: Device) => {
+    if (await revoke(t('security.devices.revokeConfirm', { name: titleOf(device) }), 'device-revoke-dialog')) await guard(() => identity.run(() => revokeDevice(active, device.id), () => true));
+  };
+
+  const revokeAll = async () => {
+    const go = await confirm({
+      title: t('security.devices.revokeAll'),
+      body: t('security.devices.revokeAllConfirm'),
+      cancel: t('settings.cancel'),
+      confirm: t('security.devices.revokeAll'),
+      danger: true,
+      icon: 'leave',
+      testID: 'devices-revoke-all-dialog',
+    });
+    if (!go) return;
+    await guard(async () => {
+      const done = await identity.run(() => revokeAllDevices(active), () => true);
+      if (done) markExpired(active.id);
+    });
+  };
 
   const others = (apps.data ?? []).filter((device) => !device.current);
   const shownApps = (apps.data ?? []).slice(0, appCount);
