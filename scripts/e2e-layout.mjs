@@ -191,7 +191,8 @@ function checkComposer() {
   const composer = find(dump(), 'composer');
   if (!composer) return failures.push('composer: no composer under the thread');
   const navBar = adb('shell', 'dumpsys', 'window', 'displays').match(/type=navigationBars frame=\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/);
-  if (!navBar || Number(navBar[2]) >= Number(navBar[4])) return lines.push('composer: no navigation bar inset on this screen');
+  if (!navBar) return failures.push('composer: no navigationBars frame in dumpsys window displays');
+  if (Number(navBar[2]) >= Number(navBar[4])) return lines.push('composer: the navigation bar has no height on this screen');
   const navTop = Number(navBar[2]);
   const bottoms = [...walk(composer)].filter((node) => node.bottom > node.top && node.right > node.left).map((node) => node.bottom);
   if (!bottoms.length) return failures.push('composer: the composer has no visible control');
