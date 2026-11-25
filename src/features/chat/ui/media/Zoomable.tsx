@@ -5,6 +5,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 const maxScale = 5;
 const doubleTapScale = 2.5;
+const tapSlop = 10;
 
 export function Zoomable({
   width,
@@ -79,6 +80,7 @@ export function Zoomable({
   });
   const doubleTap = useTapGesture({
     numberOfTaps: 2,
+    maxDistance: tapSlop,
     onDeactivate: (event) => {
       'worklet';
       if (event.canceled) return;
@@ -91,6 +93,7 @@ export function Zoomable({
   });
   const singleTap = useTapGesture({
     numberOfTaps: 1,
+    maxDistance: tapSlop,
     requireToFail: doubleTap,
     onDeactivate: (event) => {
       'worklet';
