@@ -8,13 +8,15 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
+import { useReduceMotion } from '../../../theme/reduceMotion';
 import { Text } from '../../../ui/Text';
-import { chatClient, loadWorks, refreshConversations, conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat, type Delivered } from '../chat';
+import { chatClient, loadWorks, refreshConversations, conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat } from '../chat';
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
-import { bodyPreview, bodyShape } from '../markdown';
-import { isCallNotice, readersOf, readState } from '../odoo';
-import type { Message, Pending } from '../types';
+import { bodyPreview } from '../markdown';
+import { readersOf, readState } from '../odoo';
+import { buildRows, rowType, type Row } from '../rows';
+import type { Message } from '../types';
 import { CallButton } from '../../call/ui/CallButton';
 import { Avatar } from './Avatar';
 import { Composer, type ComposerHandle } from './Composer';
@@ -43,35 +45,11 @@ import { router } from 'expo-router';
 import { ChatBackground } from '../../appearance/ChatBackground';
 import { usePartnerStatus } from '../../people/statuses';
 
-type Row =
-  | { kind: 'day'; key: string; date: number }
-  | { kind: 'message'; key: string; message: Message; showAuthor: boolean }
-  | { kind: 'pending'; key: string; pending: Pending };
-
-const groupGapMs = 5 * 60 * 1000;
 const noticeMs = 4000;
+const drawDistance = 1000;
 const noLinks: string[] = [];
 
 type SheetKind = 'emoji' | 'forward' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers';
-
-export function buildRows(messages: Message[], pending: Pending[], delivered: Delivered[], sameDay: (a: number, b: number) => boolean): Row[] {
-  const rows: Row[] = [];
-  let previous: Message | null = null;
-  for (const message of messages) {
-    if (previous && isCallNotice(previous) && isCallNotice(message) && sameDay(previous.date, message.date)) continue;
-    if (!previous || !sameDay(previous.date, message.date)) rows.push({ kind: 'day', key: `day-${message.id}`, date: message.date });
-    const continues = previous && previous.authorId === message.authorId && message.date - previous.date < groupGapMs && sameDay(previous.date, message.date) && previous.type !== 'notification';
-    rows.push({ kind: 'message', key: `m-${message.id}`, message, showAuthor: !continues });
-    previous = message;
-  }
-  for (const item of delivered) rows.push({ kind: 'pending', key: `p-${item.key}`, pending: { ...item.pending, state: 'sending' } });
-  for (const item of pending) rows.push({ kind: 'pending', key: `p-${item.key}`, pending: item });
-  return rows;
-}
-
-export function rowType(row: Row): string {
-  return row.kind === 'message' ? `message-${bodyShape(row.message.body)}` : row.kind;
-}
 
 export function ThreadView({
   channelId,
@@ -101,8 +79,10 @@ export function ThreadView({
   const conversation = useChat((state) => conversationById(state, channelId));
   const allPending = useChat((state) => state.pending);
   const allDelivered = useChat((state) => state.delivered);
+  const sent = useChat((state) => state.sent);
   const online = useChat((state) => state.online);
   const list = useRef<FlashListRef<Row>>(null);
+  const reduceMotion = useReduceMotion();
   const composer = useRef<ComposerHandle>(null);
   const [acting, setActing] = useState<Message | null>(null);
   const [actingAt, setActingAt] = useState(0);
@@ -143,7 +123,7 @@ export function ThreadView({
 
   const pending = useMemo(() => allPending.filter((item) => item.channelId === channelId), [allPending, channelId]);
   const delivered = useMemo(() => allDelivered.filter((item) => item.pending.channelId === channelId), [allDelivered, channelId]);
-  const rows = useMemo(() => buildRows(thread.messages, pending, delivered, sameDay), [thread.messages, pending, delivered, sameDay]);
+  const rows = useMemo(() => buildRows(thread.messages, pending, delivered, sameDay, sent), [thread.messages, pending, delivered, sameDay, sent]);
   const subThreads = useMemo(
     () => Object.entries(thread.subChannels).map(([messageId, id]) => ({ id, name: bodyPreview(thread.messages.find((message) => message.id === Number(messageId))?.body ?? '') || `#${id}` })),
     [thread.messages, thread.subChannels],
@@ -160,11 +140,11 @@ export function ThreadView({
         if (!found) return;
         requestAnimationFrame(() => {
           const index = buildRows(threadOf(getChat(), channelId).messages, [], [], sameDay).findIndex((row) => row.kind === 'message' && row.message.id === messageId);
-          if (index >= 0) void list.current?.scrollToIndex({ index, animated: true, viewPosition: 0.4 });
+          if (index >= 0) void list.current?.scrollToIndex({ index, animated: !reduceMotion, viewPosition: 0.4 });
         });
       });
     },
-    [channelId, sameDay],
+    [channelId, reduceMotion, sameDay],
   );
 
   useEffect(() => {
@@ -192,15 +172,21 @@ export function ThreadView({
     [scrollTo],
   );
 
-  const quoteOf = useCallback(
-    (message: Message): Quote => {
-      if (!message.parentId) return null;
+  const quotes = useMemo(() => {
+    const out = new Map<number, Quote>();
+    for (const message of thread.messages) {
+      if (!message.parentId || out.has(message.parentId)) continue;
       const parent = byId.get(message.parentId);
-      if (!parent) return { author: '', authorId: null, text: t('thread.olderMessage') };
-      return { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) };
-    },
-    [byId, partnerId, t],
-  );
+      out.set(
+        message.parentId,
+        parent
+          ? { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) }
+          : { author: '', authorId: null, text: t('thread.olderMessage') },
+      );
+    }
+    return out;
+  }, [byId, partnerId, t, thread.messages]);
+  const quoteOf = useCallback((message: Message): Quote => (message.parentId ? (quotes.get(message.parentId) ?? null) : null), [quotes]);
 
   const openSub = useCallback(
     async (message: Message) => {
@@ -223,6 +209,10 @@ export function ThreadView({
     },
     [t],
   );
+  const reactTo = useCallback((message: Message, content: string) => void react(message, content), [react]);
+  const openSubOf = useCallback((message: Message) => void openSub(message), [openSub]);
+  const retry = useCallback((key: string) => void retrySend(key), []);
+  const discard = useCallback((key: string) => void discardSend(key), []);
 
   const report = useCallback((result: Result<unknown>, done?: string) => {
     if (!result.ok) setNotice(failureText(t, result));
@@ -277,9 +267,11 @@ export function ThreadView({
     }
   };
 
+  const atBottom = useRef(true);
   const onSent = useCallback(() => {
-    requestAnimationFrame(() => void list.current?.scrollToEnd({ animated: true }));
-  }, []);
+    if (atBottom.current) return;
+    requestAnimationFrame(() => void list.current?.scrollToEnd({ animated: !reduceMotion }));
+  }, [reduceMotion]);
 
   useEffect(() => {
     for (const item of pending) {
@@ -301,7 +293,7 @@ export function ThreadView({
         );
       }
       if (item.kind === 'pending') {
-        return <PendingBubble pending={item.pending} offline={!online} onRetry={(key) => void retrySend(key)} onDiscard={(key) => void discardSend(key)} />;
+        return <PendingBubble pending={item.pending} offline={!online} onRetry={retry} onDiscard={discard} />;
       }
       const message = item.message;
       const mine = message.authorId === partnerId;
@@ -321,8 +313,8 @@ export function ThreadView({
             hasThread={!!thread.subChannels[message.id]}
             onLongPress={startActing}
             onQuotePress={jumpTo}
-            onReact={(target, content) => void react(target, content)}
-            onOpenThread={(target) => void openSub(target)}
+            onReact={reactTo}
+            onOpenThread={openSubOf}
             agent={fromAgent ? agentStore : null}
             agentTag={lookOn}
           />
@@ -340,7 +332,7 @@ export function ThreadView({
         </View>
       );
     },
-    [agentIds, agentStore, agentsOn, cardsOn, lookOn, colors, dayLabel, highlight, jumpTo, online, openRecord, openSub, origin, partnerId, quoteOf, react, recordStore, startActing, thread.members, thread.subChannels, twoPeople, type],
+    [agentIds, agentStore, agentsOn, cardsOn, lookOn, colors, dayLabel, discard, highlight, jumpTo, online, openRecord, openSubOf, origin, partnerId, quoteOf, reactTo, recordStore, retry, startActing, thread.members, thread.subChannels, twoPeople, type],
   );
 
   const typing = thread.typing;
@@ -439,7 +431,7 @@ export function ThreadView({
             getItemType={rowType}
             renderItem={renderItem}
             initialScrollIndex={initialIndex}
-            maintainVisibleContentPosition={{ startRenderingFromBottom: true, autoscrollToBottomThreshold: 0.2, animateAutoScrollToBottom: true }}
+            maintainVisibleContentPosition={{ startRenderingFromBottom: true, autoscrollToBottomThreshold: 0.2, animateAutoScrollToBottom: !reduceMotion }}
             onStartReached={() => void loadOlder(channelId)}
             onStartReachedThreshold={0.6}
             onEndReached={thread.hasNewer ? () => void fetchNewer(channelId) : undefined}
@@ -447,12 +439,13 @@ export function ThreadView({
               if (!accountId) return;
               const first = viewableItems.find((entry) => entry.item?.kind === 'message');
               const last = viewableItems[viewableItems.length - 1];
-              const atBottom = !last || last.index === null || last.index >= rows.length - 2;
-              writeAnchor(accountId, channelId, atBottom || !first || first.item?.kind !== 'message' ? null : first.item.message.id);
+              atBottom.current = !last || last.index === null || last.index >= rows.length - 2;
+              writeAnchor(accountId, channelId, atBottom.current || !first || first.item?.kind !== 'message' ? null : first.item.message.id);
               watchVisible(viewableItems.flatMap((entry) => (entry.item?.kind === 'message' ? [entry.item.message] : [])));
             }}
             ListHeaderComponent={thread.loadingOlder ? <ActivityIndicator style={styles.older} color={colors.primary} /> : null}
             ListEmptyComponent={empty}
+            drawDistance={drawDistance}
             contentContainerStyle={styles.content}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"

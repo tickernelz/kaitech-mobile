@@ -30,6 +30,14 @@ export const faceSize = 32;
 
 export const bubbleMaxWidth = Math.round(readableWidth * 0.8);
 
+const labels = new WeakMap<Message, { key: string; label: string }>();
+
+function remember(message: Message, key: string, parts: (string | null | undefined | false)[]): string {
+  const label = parts.filter(Boolean).join(', ');
+  labels.set(message, { key, label });
+  return label;
+}
+
 function ShareButton({ name, onPress, raised }: { name: string; onPress: () => void; raised?: boolean }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
@@ -205,7 +213,7 @@ export const MessageBubble = memo(function MessageBubble({
   agent?: CardStore<number, AgentCard> | null;
   agentTag?: boolean;
 }) {
-  const { t } = useTranslation('chat');
+  const { t, i18n } = useTranslation('chat');
   const { colors } = useTheme();
   const { clock } = useChatFormat();
   const removed = isRemoved(message);
@@ -255,19 +263,22 @@ export const MessageBubble = memo(function MessageBubble({
       </View>
     );
   }
-  const label = [
-    mine ? t('thread.you') : message.author,
-    removed ? t('thread.removed') : text,
-    message.attachments.length ? t('list.files', { count: message.attachments.length }) : '',
-    message.edited && !removed ? t('thread.edited') : '',
-    message.urgent ? t('thread.urgent') : '',
-    message.pinnedAt ? t('thread.pinned') : '',
-    message.starred ? t('thread.starred') : '',
-    time,
-    readState === 'read' ? t('thread.read') : readState === 'sent' ? t('thread.sent') : '',
-  ]
-    .filter(Boolean)
-    .join(', ');
+  const labelKey = `${i18n.language}|${mine}|${readState}|${time}`;
+  const known = labels.get(message);
+  const label =
+    known?.key === labelKey
+      ? known.label
+      : remember(message, labelKey, [
+          mine ? t('thread.you') : message.author,
+          removed ? t('thread.removed') : text,
+          message.attachments.length ? t('list.files', { count: message.attachments.length }) : '',
+          message.edited && !removed ? t('thread.edited') : '',
+          message.urgent ? t('thread.urgent') : '',
+          message.pinnedAt ? t('thread.pinned') : '',
+          message.starred ? t('thread.starred') : '',
+          time,
+          readState === 'read' ? t('thread.read') : readState === 'sent' ? t('thread.sent') : '',
+        ]);
   const body = (
     <>
       <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label}>
