@@ -7,6 +7,7 @@ const mockSend = jest.fn(async () => 'key');
 const mockSendVoice = jest.fn();
 const mockDiscard = jest.fn();
 const mockStartLocked = jest.fn();
+const mockKeyboard = { isVisible: false, height: 0 };
 let mockVoiceState: { phase: string; locked?: boolean; reason?: string | null } = { phase: 'idle' };
 
 jest.mock('react-native-reanimated', () => {
@@ -23,7 +24,15 @@ jest.mock('react-native-reanimated', () => {
     withDelay: (_delay: number, value: unknown) => value,
     interpolate: (value: number, input: number[], output: number[]) => output[0] + ((value - input[0]) / (input[1] - input[0])) * (output[1] - output[0]),
     useReducedMotion: () => true,
-    useSharedValue: (value: unknown) => ({ get: () => value, set: () => undefined }),
+    useSharedValue: (value: unknown) => {
+      const { useRef } = jest.requireActual('react');
+      const ref = useRef(null);
+      if (!ref.current) {
+        let current = value;
+        ref.current = { get: () => current, set: (next: unknown) => (current = next) };
+      }
+      return ref.current;
+    },
     useAnimatedStyle: (style: () => object) => style(),
     withTiming: (value: unknown) => value,
   };
@@ -31,7 +40,7 @@ jest.mock('react-native-reanimated', () => {
 jest.mock('react-native-worklets', () => ({ scheduleOnRN: (fn: (...args: unknown[]) => void, ...args: unknown[]) => fn(...args) }));
 jest.mock('react-native-keyboard-controller', () => ({
   KeyboardController: { dismiss: jest.fn(async () => undefined) },
-  useKeyboardState: (select: (state: { isVisible: boolean; height: number }) => unknown) => select({ isVisible: false, height: 0 }),
+  useKeyboardState: (select: (state: { isVisible: boolean; height: number }) => unknown) => select(mockKeyboard),
   useReanimatedKeyboardAnimation: () => ({ height: { get: () => 0 }, progress: { get: () => 0 } }),
 }));
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() }));
@@ -107,6 +116,7 @@ function visible(testID: string): boolean {
 
 beforeEach(() => {
   mockVoiceState = { phase: 'idle' };
+  mockKeyboard.isVisible = false;
   mockSend.mockClear();
 });
 
@@ -198,5 +208,17 @@ describe('adaptive composer', () => {
     await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
     expect(screen.getByTestId('composer-keyboard')).toBeTruthy();
     expect(screen.getByLabelText('Show keyboard')).toBeTruthy();
+  });
+
+  it('closes the panel when the message field is tapped while the emoji search already holds the keyboard', async () => {
+    await show();
+    await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
+    expect(screen.getByTestId('composer-keyboard')).toBeTruthy();
+    mockKeyboard.isVisible = true;
+    await screen.rerender(createElement(View, null, createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent: jest.fn() }), createElement(DialogLayer, { root: true })));
+    expect(screen.getByTestId('composer-keyboard')).toBeTruthy();
+    await fireEvent(screen.getByTestId('composer-input'), 'focus');
+    expect(screen.queryByTestId('composer-keyboard')).toBeNull();
+    expect(screen.getByTestId('composer-panel-toggle')).toBeTruthy();
   });
 });

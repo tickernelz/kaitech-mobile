@@ -507,7 +507,12 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
                   markup.inputProps.onSelectionChange(event);
                 }}
                 onFocus={() => {
-                  if (panel) reopening.current = true;
+                  if (panel && keyboardVisible) {
+                    reopening.current = false;
+                    setSearching(false);
+                    open.set(0);
+                    setPanel(false);
+                  } else if (panel) reopening.current = true;
                   markup.inputProps.onFocus();
                 }}
                 onBlur={markup.inputProps.onBlur}
