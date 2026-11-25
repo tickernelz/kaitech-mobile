@@ -127,6 +127,35 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: m5-group-peer-screen
+- repeat:
+    times: 6
+    commands:
+      - runScript:
+          file: ../scripts/call-peer-command.js
+          env:
+            PEER_PORT: ${GROUP_PEER_2}
+            PEER_ACTION: command
+            CAMERA: '-'
+            SHARE: 'off'
+      - extendedWaitUntil:
+          notVisible:
+            id: call-screen-share
+          timeout: 30000
+      - runScript:
+          file: ../scripts/call-peer-command.js
+          env:
+            PEER_PORT: ${GROUP_PEER_2}
+            PEER_ACTION: command
+            CAMERA: '-'
+            SHARE: 'on'
+      - extendedWaitUntil:
+          visible:
+            id: call-screen-share
+          timeout: 30000
+      - extendedWaitUntil:
+          visible:
+            text: .*'s screen
+          timeout: 15000
 - runScript:
     file: ../scripts/call-peer-command.js
     env:
