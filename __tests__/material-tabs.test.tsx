@@ -1,8 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-type MockModifier = { testID?: string; description?: string };
-
 const mockSwitch = jest.fn();
 let mockFocused = 'index';
 let mockPending = 0;
@@ -16,40 +14,6 @@ jest.mock('expo-router/ui', () => {
     TabTrigger: () => null,
     TabSlot: () => <View testID="tab-slot" />,
     useTabTrigger: ({ name }: { name: string }) => ({ trigger: { isFocused: name === mockFocused }, switchTab: mockSwitch }),
-  };
-});
-
-jest.mock('@expo/ui/jetpack-compose/modifiers', () => ({
-  testID: (tag: string) => ({ testID: tag }),
-  semantics: (config: { contentDescription?: string }) => ({ description: config.contentDescription }),
-}));
-
-jest.mock('@expo/ui/jetpack-compose', () => {
-  const { Pressable, Text, View } = require('react-native');
-  const tagOf = (modifiers?: MockModifier[]) => modifiers?.find((m) => m.testID)?.testID;
-  const describedBy = (modifiers?: MockModifier[]) => modifiers?.find((m) => m.description)?.description;
-  const Slot = ({ children }: { children: unknown }) => <View>{children}</View>;
-  const NavigationBarItem = ({ children, selected, onClick, modifiers }: { children: unknown; selected: boolean; onClick: () => void; modifiers?: MockModifier[] }) => (
-    <Pressable testID={tagOf(modifiers)} accessibilityState={{ selected }} onPress={onClick}>
-      {children}
-    </Pressable>
-  );
-  NavigationBarItem.Icon = Slot;
-  NavigationBarItem.Label = Slot;
-  const BadgedBox = Slot as typeof Slot & { Badge: typeof Slot };
-  BadgedBox.Badge = Slot;
-  return {
-    Host: ({ children }: { children: unknown }) => <View testID="material-host">{children}</View>,
-    NavigationBar: ({ children }: { children: unknown }) => <View testID="navigation-bar">{children}</View>,
-    NavigationBarItem,
-    BadgedBox,
-    Badge: ({ children, modifiers }: { children: unknown; modifiers?: MockModifier[] }) => (
-      <View testID={tagOf(modifiers)} accessibilityLabel={describedBy(modifiers)}>
-        {children}
-      </View>
-    ),
-    RNHostView: Slot,
-    Text: ({ children }: { children: unknown }) => <Text>{children}</Text>,
   };
 });
 
