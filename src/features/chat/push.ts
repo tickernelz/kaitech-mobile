@@ -6,6 +6,7 @@ import { getSession, onAccountForgotten } from '../../auth/session';
 import i18n from '../../i18n';
 import { lockEnabled, onLockChange } from '../../lock/lock';
 import { ChatClient } from './api';
+import { isViewingConversation } from '../discovery/viewing';
 import { chatClient, getChat } from './chat';
 import { forgetMessages, mirrorHidden } from './notify';
 import { previewKey, registeredKey, syncPreview, syncPushToken } from './pushAccount';
@@ -54,7 +55,9 @@ Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
     const data = notification.request.content.data as Record<string, unknown> | undefined;
     const target = Number(data?.res_id);
-    const open = data?.model === 'discuss.channel' && getChat().openChannels.includes(target);
+    const open =
+      (data?.model === 'discuss.channel' && getChat().openChannels.includes(target)) ||
+      (data?.model === 'ck.conversation' && data?.type === 'discovery_answer' && isViewingConversation(target));
     return { shouldShowBanner: !open, shouldShowList: !open, shouldPlaySound: !open, shouldSetBadge: false };
   },
 });

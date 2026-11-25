@@ -28,6 +28,7 @@ import { sourceBlocks } from '../chat/markdown';
 import { FormatBar, FormatToggle, useMarkup } from '../chat/ui/FormatBar';
 import { RichText } from '../chat/ui/RichText';
 import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
+import { viewConversation } from './viewing';
 import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread';
 import { IconButton } from '../../ui/IconButton';
 import { StateView, useErrorText } from './ui';
@@ -234,6 +235,7 @@ export function CoworkerThread({
       [...staged, ...abandoned.flatMap((entry) => entry.files)].forEach((file) => dropFile(file.uri));
     };
   }, []);
+  useFocusEffect(useCallback(() => (conversation ? viewConversation(conversation) : undefined), [conversation]));
   const thread = useTranscript(conversation);
   const programmePanel = useResource(`discovery.panel.${programme}`, (signedIn) => panel(signedIn, programme));
   const list = useRef<FlatList<Entry | Pending | Card>>(null);

@@ -1,0 +1,12 @@
+{
+  "name": "kaitech-refresh",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Keeps the hidden Android pull-to-refresh indicator from taking taps meant for the list",
+  "main": "src/index.ts",
+  "files": [
+    "android",
+    "src",
+    "expo-module.config.json"
+  ]
+}
