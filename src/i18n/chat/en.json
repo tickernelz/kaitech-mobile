@@ -140,14 +140,6 @@
     "cancelEdit": "Cancel editing",
     "saveEdit": "Save changes"
   },
-  "permissions": {
-    "cameraTitle": "Camera access is off",
-    "cameraBody": "Allow camera access in Settings to take photos.",
-    "microphoneTitle": "Microphone access is off",
-    "microphoneBody": "Allow microphone access in Settings to record voice messages.",
-    "cancel": "Not now",
-    "openSettings": "Open Settings"
-  },
   "voice": {
     "play": "Play voice message",
     "pause": "Pause voice message",

@@ -241,7 +241,7 @@ jobs:
           locale: ${{ matrix.locale }}
           orientations: portrait
           flows: .maestro/signed-in/rows-chat.yaml .maestro/signed-in/rows-discovery.yaml .maestro/signed-in/rows-mom.yaml
-          themed-flows: .maestro/themed/tour.yaml
+          themed-flows: .maestro/themed/tour.yaml .maestro/themed/dialogs.yaml
           scroll-flow: .maestro/themed/scroll.yaml
           layout-check: 'true'
           runner: ${{ vars.E2E_RUNNER_ROWS || 'maestro' }}

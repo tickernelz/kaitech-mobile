@@ -1,3 +1,11 @@
 import { RecorderScreen } from '../../features/mom/RecorderScreen';
+import { DialogLayer } from '../../ui/Dialog';
 
-export default RecorderScreen;
+export default function RecordRoute() {
+  return (
+    <>
+      <RecorderScreen />
+      <DialogLayer />
+    </>
+  );
+}

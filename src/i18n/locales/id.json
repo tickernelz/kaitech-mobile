@@ -1594,5 +1594,32 @@
     "email": "Email",
     "phone": "Telepon",
     "viewProfile": "Lihat profil di web"
+  },
+  "dialog": {
+    "cancel": "Batal",
+    "ok": "Oke"
+  },
+  "permission": {
+    "continue": "Lanjut",
+    "notNow": "Nanti saja",
+    "openSettings": "Buka Pengaturan",
+    "camera": {
+      "title": "Pakai kamera",
+      "body": "Kamera dipakai untuk foto dan video yang dikirim, foto profil, dan video saat panggilan. Setelah ini HP akan meminta izin.",
+      "blockedTitle": "Akses kamera tidak aktif",
+      "blockedBody": "Izinkan akses kamera untuk Kaitech di Pengaturan, lalu coba lagi."
+    },
+    "microphone": {
+      "title": "Pakai mikrofon",
+      "body": "Mikrofon dipakai untuk merekam pesan suara, rapat, dan suara saat panggilan. Setelah ini HP akan meminta izin.",
+      "blockedTitle": "Akses mikrofon tidak aktif",
+      "blockedBody": "Izinkan akses mikrofon untuk Kaitech di Pengaturan, lalu coba lagi."
+    },
+    "notifications": {
+      "title": "Nyalakan notifikasi",
+      "body": "Pesan baru, panggilan, dan rekaman yang sedang berjalan tampil di notifikasi. Setelah ini HP akan meminta izin.",
+      "blockedTitle": "Notifikasi tidak aktif",
+      "blockedBody": "Izinkan notifikasi untuk Kaitech di Pengaturan."
+    }
   }
 }

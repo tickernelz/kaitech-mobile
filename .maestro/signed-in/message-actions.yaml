@@ -443,7 +443,7 @@ onFlowComplete:
       - tapOn:
           id: action-delete
 - tapOn:
-    text: (DELETE|Delete|HAPUS|Hapus)
+    id: message-delete-dialog-confirm
 - extendedWaitUntil:
     visible:
       text: (This message was deleted|Pesan ini sudah dihapus)

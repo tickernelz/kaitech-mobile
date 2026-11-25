@@ -1,15 +1,16 @@
-import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from 'expo-audio';
+import { getRecordingPermissionsAsync, RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync } from 'expo-audio';
 import AudioModule from 'expo-audio/build/AudioModule';
 import type { AudioRecorder } from 'expo-audio/build/AudioModule.types';
 import { createRecordingOptions } from 'expo-audio/build/utils/options';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, type GestureResponderEvent } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 import { meetingRecording } from '../../../audio/meeting';
 import { adoptFile, dropFile } from '../files';
 import { stopVoice } from '../voicePlayer';
-import { askForSettings } from './attach';
+import { notify } from '../../../ui/dialog';
+import { askPermission } from '../../../ui/permission';
 
 export type Recording = { started: number; elapsed: number; offset: number };
 export type Voice = { uri: string; name: string; mimetype: string; size: number; voice: true; durationMs: number };
@@ -33,12 +34,11 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
 
   const startRecording = async () => {
     if (meetingRecording()) {
-      Alert.alert('', t('composer.micBusy'));
+      notify(t('composer.micBusy'));
       return;
     }
-    const permission = await requestRecordingPermissionsAsync();
-    if (!permission.granted) {
-      if (!permission.canAskAgain) askForSettings(t, 'microphone');
+    if (!(await getRecordingPermissionsAsync()).granted) {
+      await askPermission('microphone', getRecordingPermissionsAsync, requestRecordingPermissionsAsync);
       return;
     }
     stopVoice();
@@ -85,7 +85,7 @@ export function useVoiceHold(onRecorded: (voice: Voice) => void) {
     if (!uri) return;
     if (cancel || elapsed < shortestVoiceMs) {
       dropFile(uri);
-      if (!cancel) Alert.alert('', t('composer.holdToRecord'));
+      if (!cancel) notify(t('composer.holdToRecord'));
       return;
     }
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

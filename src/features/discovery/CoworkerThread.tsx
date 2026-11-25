@@ -3,7 +3,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-import { ActivityIndicator, Alert, AppState, FlatList, Keyboard, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, AppState, FlatList, Keyboard, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { update, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
@@ -30,9 +30,11 @@ import { sourceBlocks } from '../chat/markdown';
 import { FormatBar, FormatToggle, useMarkup } from '../chat/ui/FormatBar';
 import { RichText } from '../chat/ui/RichText';
 import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
+import { viewConversation } from './viewing';
 import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread';
 import { IconButton } from '../../ui/IconButton';
 import { StateView, useErrorText } from './ui';
+import { notify } from '../../ui/dialog';
 
 const bottomSlack = 48;
 const pollMs = 2500;
@@ -235,6 +237,7 @@ export function CoworkerThread({
       [...staged, ...abandoned.flatMap((entry) => entry.files)].forEach((file) => dropFile(file.uri));
     };
   }, []);
+  useFocusEffect(useCallback(() => (conversation ? viewConversation(conversation) : undefined), [conversation]));
   const thread = useTranscript(conversation);
   const programmePanel = useResource(`discovery.panel.${programme}`, (signedIn) => panel(signedIn, programme));
   const list = useRef<FlatList<Entry | Pending | Card>>(null);
@@ -297,7 +300,7 @@ export function CoworkerThread({
     const staged = await pickAttachments(source, chatT, maxBytes, size);
     const { kept, refused } = withinBudget(held.current.files, staged, maxBytes);
     refused.forEach((file) => dropFile(file.uri));
-    if (refused.length) Alert.alert('', chatT('composer.tooMuch', { count: refused.length, names: refused.map((file) => file.name).join(', '), limit: size(maxBytes) }));
+    if (refused.length) notify(chatT('composer.tooMuch', { count: refused.length, names: refused.map((file) => file.name).join(', '), limit: size(maxBytes) }));
     if (kept.length) setFiles((current) => [...current, ...kept]);
   };
 

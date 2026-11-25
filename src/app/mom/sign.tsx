@@ -1,11 +1,17 @@
 import { useLocalSearchParams } from 'expo-router';
 import { idParam } from '../../features/discovery/params';
 import { SignScreen } from '../../features/mom/SignScreen';
+import { DialogLayer } from '../../ui/Dialog';
 
 export default function SignRoute() {
   const params = useLocalSearchParams<{ programme: string; meeting: string }>();
   const programme = idParam(params.programme);
   const meeting = idParam(params.meeting);
   if (!programme || !meeting) return null;
-  return <SignScreen programme={programme} meeting={meeting} />;
+  return (
+    <>
+      <SignScreen programme={programme} meeting={meeting} />
+      <DialogLayer />
+    </>
+  );
 }

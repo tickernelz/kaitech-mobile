@@ -3,11 +3,11 @@ import * as Sharing from 'expo-sharing';
 import type { TFunction } from 'i18next';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
 import { chatClient } from '../chat';
 import { DownloadCancelled, fetchFile, type FileKey } from '../media/download';
 import { downloadUrl } from '../media/urls';
 import type { Attachment } from '../types';
+import { confirm, notify } from '../../../ui/dialog';
 
 export function fileName(attachment: Attachment): string {
   return attachment.name || `file-${attachment.id}`;
@@ -26,7 +26,7 @@ export async function fetchAttachment(attachment: Attachment): Promise<File | nu
 
 export async function shareFile(attachment: Attachment, uri: string, t: TFunction<'chat'>) {
   if (!(await Sharing.isAvailableAsync())) {
-    Alert.alert('', t('thread.cannotShare'));
+    notify(t('thread.cannotShare'));
     return;
   }
   await Sharing.shareAsync(uri, { mimeType: attachment.mimetype || undefined, dialogTitle: attachment.name });
@@ -38,10 +38,8 @@ export async function presentFile(attachment: Attachment, file: File, t: TFuncti
     await file.preview({ mimeType, title: attachment.name });
     return;
   }
-  Alert.alert('', t('thread.cannotOpen', { name: attachment.name }), [
-    { text: t('thread.close'), style: 'cancel' },
-    { text: t('thread.shareInstead'), onPress: () => void shareFile(attachment, file.uri, t) },
-  ]);
+  if (await confirm({ body: t('thread.cannotOpen', { name: attachment.name }), cancel: t('thread.close'), confirm: t('thread.shareInstead'), icon: 'share', testID: 'attachment-share-instead-dialog' }))
+    await shareFile(attachment, file.uri, t);
 }
 
 export function useOpenAttachment() {
@@ -52,7 +50,7 @@ export function useOpenAttachment() {
         const file = await fetchAttachment(attachment);
         if (file) await then(file);
       } catch (error) {
-        if (!quiet && !(error instanceof DownloadCancelled)) Alert.alert('', t('errors.network'));
+        if (!quiet && !(error instanceof DownloadCancelled)) notify(t('errors.network'));
       }
     },
     [t],

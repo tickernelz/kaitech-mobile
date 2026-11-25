@@ -1,5 +1,5 @@
 appId: io.kaitech.mobile
-name: One call - answer the web peer camera call as voice, follow the peer camera, camera refused then allowed, share the screen, hang up, call again without a camera prompt
+name: One call - answer the web peer camera call as voice, follow the peer camera, the camera card then camera refused then allowed, share the screen, hang up, call again without a camera prompt
 tags:
   - signed-in
   - call
@@ -101,6 +101,16 @@ onFlowStart:
     id: call-camera
 - extendedWaitUntil:
     visible:
+      id: permission-camera-dialog
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: u3-camera-card
+- tapOn:
+    id: permission-camera-dialog-confirm
+- extendedWaitUntil:
+    visible:
       id: com.android.permissioncontroller:id/permission_deny_button
     timeout: 15000
 - waitForAnimationToEnd
@@ -118,6 +128,17 @@ onFlowStart:
       SCREEN: u4-camera-refused
 - tapOn:
     id: call-camera
+- extendedWaitUntil:
+    visible:
+      id: (permission-camera-dialog|com.android.permissioncontroller:id/permission_allow_foreground_only_button|call-flip)
+    timeout: 15000
+- runFlow:
+    when:
+      visible:
+        id: permission-camera-dialog
+    commands:
+      - tapOn:
+          id: permission-camera-dialog-confirm
 - extendedWaitUntil:
     visible:
       id: (com.android.permissioncontroller:id/permission_allow_foreground_only_button|call-flip)

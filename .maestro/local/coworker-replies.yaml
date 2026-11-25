@@ -31,15 +31,25 @@ name: Coworker quick replies - a kt-block reply is drawn as buttons and a tap se
     id: coworker-send
 - extendedWaitUntil:
     visible:
-      id: kt-reply-0
+      id: coworker-reply
     timeout: 600000
+- scrollUntilVisible:
+    element:
+      id: kt-reply-0
+    direction: DOWN
+    timeout: 60000
 - assertNotVisible:
     text: .*"replies".*
 - takeScreenshot: r1-replies
+- copyTextFrom:
+    id: kt-reply-0
+- evalScript: ${output.reply = maestro.copiedText}
 - tapOn:
     id: kt-reply-0
 - extendedWaitUntil:
     visible:
-      id: coworker-working
+      text: ${output.reply}
+      below:
+        id: kt-reply-0
     timeout: 30000
 - takeScreenshot: r2-reply-sent

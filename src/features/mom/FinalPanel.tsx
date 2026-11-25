@@ -2,7 +2,7 @@ import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { sessionCookie } from '../../api/odoo';
 import { invalidate, useResource } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
@@ -20,6 +20,7 @@ import { Text } from '../../ui/Text';
 import { Card, Chip, StateView, useErrorText } from '../discovery/ui';
 import { finalMinutes, type FinalView } from './api';
 import { Refresh } from '../../ui/Refresh';
+import { confirm, notify } from '../../ui/dialog';
 
 export function finalKey(meeting: number) {
   return `mom.final.${meeting}`;
@@ -139,7 +140,7 @@ function useFinalActions(programme: number, view: FinalView) {
       invalidate(`${active.id}:${finalKey(view.meetingId)}`);
       invalidate(`${active.id}:mom.board`);
     } catch (error) {
-      Alert.alert('', errorText(error));
+      notify(errorText(error));
     } finally {
       setBusy('');
     }
@@ -187,16 +188,22 @@ function useFinalActions(programme: number, view: FinalView) {
     },
   ];
   const step = nextStep(view);
-  const confirm = (key: 'finalize' | 'distribute' | 'distributeRest', work: (account: Account) => Promise<unknown>) =>
-    Alert.alert(t(`mom.finalTools.step.${key}Title`), t(`mom.finalTools.step.${key}Body`), [
-      { text: t('mom.recorder.cancel'), style: 'cancel' },
-      { text: t(`mom.finalTools.step.${key}`), onPress: () => void run(key, work) },
-    ]);
+  const askStep = async (key: 'finalize' | 'distribute' | 'distributeRest', work: (account: Account) => Promise<unknown>) => {
+    const go = await confirm({
+      title: t(`mom.finalTools.step.${key}Title`),
+      body: t(`mom.finalTools.step.${key}Body`),
+      cancel: t('mom.recorder.cancel'),
+      confirm: t(`mom.finalTools.step.${key}`),
+      icon: key === 'finalize' ? 'sign' : 'share',
+      testID: 'final-step-dialog',
+    });
+    if (go) void run(key, work);
+  };
   const stepPress =
     step === 'finalize'
-      ? () => confirm('finalize', (account) => finalize(account, view.documentId))
+      ? () => void askStep('finalize', (account) => finalize(account, view.documentId))
       : step === 'distribute' || step === 'distributeRest'
-        ? () => confirm(step, (account) => distribute(account, view.documentId))
+        ? () => void askStep(step, (account) => distribute(account, view.documentId))
         : undefined;
   return { groups, busy, step, stepPress };
 }
