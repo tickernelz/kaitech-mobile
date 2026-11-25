@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { onAccountForgotten } from '../../../auth/session';
 import { recordingIdOf } from '../../call/recording';
 import type { Attachment, Message } from '../types';
 import { isVisual } from './kind';
@@ -45,3 +46,5 @@ export function forgetViewer(accountId: string) {
   if (viewer?.accountId === accountId) viewer = null;
   if (pdf?.accountId === accountId) pdf = null;
 }
+
+onAccountForgotten(forgetViewer);

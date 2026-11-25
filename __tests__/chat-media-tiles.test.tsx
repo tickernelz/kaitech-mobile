@@ -12,7 +12,7 @@ const mockMeasured = new Map<number, { width?: number; height?: number; duration
 
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 jest.mock('expo-router', () => ({ router: { push: (...args: unknown[]) => mockPush(...args) } }));
-jest.mock('expo', () => ({ ...jest.requireActual('expo'), requireOptionalNativeModule: (name: string) => (name === 'KaitechMedia' ? {} : null) }));
+jest.mock('../src/features/chat/media/native', () => ({ nativeMedia: () => ({}) }));
 jest.mock('../src/features/chat/chat', () => ({
   useChat: (select: (state: { accountId: string }) => unknown) => select({ accountId: 'A' }),
   chatClient: () => ({ account: { id: 'A' }, origin: 'https://lab0', cookieHeaders: async () => ({ Cookie: 'session_id=a' }) }),

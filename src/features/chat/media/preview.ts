@@ -1,3 +1,4 @@
+import { onAccountForgotten } from '../../../auth/session';
 import { fetchFile } from './download';
 import { mediaKind } from './kind';
 import { cacheFile, cachedMeta, epochOf, previewPath, rememberMeta } from './meta';
@@ -89,3 +90,5 @@ export function forgetPreviews(accountId: string) {
   const prefix = `${accountId}|`;
   for (const id of [...asked]) if (id.startsWith(prefix)) asked.delete(id);
 }
+
+onAccountForgotten(forgetPreviews);

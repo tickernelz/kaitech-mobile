@@ -86,8 +86,9 @@ jest.mock('expo-file-system', () => {
   }
   return { Directory, File, DownloadTask, Paths: { cache: { path: 'cache' }, document: { path: 'doc' } } };
 });
-jest.mock('expo', () => ({ ...jest.requireActual('expo'), requireOptionalNativeModule: (name: string) => (name === 'KaitechMedia' ? mockNative : null) }));
+jest.mock('../src/features/chat/media/native', () => ({ nativeMedia: () => mockNative }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
+jest.mock('../src/auth/session', () => ({ onAccountForgotten: () => () => undefined }));
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 
 const mockNative = {

@@ -1,4 +1,4 @@
-import { requireOptionalNativeModule } from 'expo';
+import { requireOptionalNativeModule } from 'expo-modules-core';
 
 type NativeMedia = {
   renderPdfPage(source: string, page: number, width: number, target: string): Promise<{ width: number; height: number; pages: number }>;
