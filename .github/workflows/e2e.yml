@@ -347,6 +347,7 @@ jobs:
           orientations: ${{ matrix.orientations }}
           flows: .maestro/signed-in/message-actions.yaml .maestro/signed-in/thread-actions.yaml .maestro/signed-in/composer-extras.yaml .maestro/signed-in/composer-voice.yaml .maestro/signed-in/new-conversation.yaml
           runner: maestro
+          audio: 'true'
 
   android-call:
     name: android call
