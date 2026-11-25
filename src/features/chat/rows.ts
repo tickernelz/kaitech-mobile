@@ -23,7 +23,13 @@ export function buildRows(
   let lastDate: number | null = null;
   let previous: Message | null = null;
   for (const message of messages) {
-    if (previous && isCallNotice(previous) && isCallNotice(message) && sameDay(previous.date, message.date)) continue;
+    if (previous && isCallNotice(previous) && isCallNotice(message) && sameDay(previous.date, message.date)) {
+      const shown = rows[rows.length - 1];
+      if (shown.kind === 'message') rows[rows.length - 1] = { ...shown, key: `m-${message.id}`, message };
+      previous = message;
+      lastDate = message.date;
+      continue;
+    }
     const sendKey = sent[message.id];
     const key = sendKey ? `p-${sendKey}` : `m-${message.id}`;
     if (sendKey) shown.add(sendKey);
