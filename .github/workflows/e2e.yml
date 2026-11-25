@@ -369,12 +369,18 @@ jobs:
       E2E_PEER: ${{ vars.KAITECH_E2E_CALL_PEER }}
       E2E_PROGRAMME: ${{ vars.KAITECH_E2E_PROGRAMME }}
       E2E_SEARCH: ${{ vars.KAITECH_E2E_SEARCH }}
+      E2E_GROUP_CALL_ID: ${{ matrix.many && vars.KAITECH_E2E_GROUP_CALL_ID || '' }}
+      E2E_GROUP_CALL_NAME: ${{ vars.KAITECH_E2E_GROUP_CALL_NAME }}
+      E2E_CHANNEL_CALL_ID: ${{ vars.KAITECH_E2E_CHANNEL_CALL_ID }}
+      E2E_CHANNEL_CALL_NAME: ${{ vars.KAITECH_E2E_CHANNEL_CALL_NAME }}
+      E2E_SECOND_PEER_LOGIN: ${{ matrix.many && secrets.KAITECH_E2E_WEB_LOGIN_1 || '' }}
+      E2E_SECOND_PEER_PASSWORD: ${{ matrix.many && secrets.KAITECH_E2E_WEB_PASSWORD_1 || '' }}
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
         include:
-          - { size: phone, locale: en-US }
+          - { size: phone, locale: en-US, many: group-channel }
           - { size: phone, locale: id-ID }
           - { size: tablet, locale: en-US }
           - { size: tablet, locale: id-ID }

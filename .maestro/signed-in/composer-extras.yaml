@@ -149,8 +149,11 @@ onFlowStart:
                 file: ../shared/screenshot.yaml
                 env:
                   SCREEN: c3-urgent-none
-            - tapOn:
-                point: 50%,5%
+            - pressKey: back
+            - extendedWaitUntil:
+                notVisible:
+                  id: extra-urgent
+                timeout: 10000
       - runFlow:
           when:
             visible:
