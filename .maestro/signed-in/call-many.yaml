@@ -123,6 +123,11 @@ onFlowStart:
     timeout: 15000
 - assertVisible:
     id: call-screen-share-people
+- extendedWaitUntil:
+    visible:
+      id: e2e-pause
+    timeout: 3000
+    optional: true
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
@@ -156,10 +161,15 @@ onFlowStart:
           visible:
             text: .*'s screen
           timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: e2e-pause
+    timeout: 3000
+    optional: true
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
-      SCREEN: m6-group-peer-screen-again
+      SCREEN: m5-group-peer-screen-again
 - runScript:
     file: ../scripts/call-peer-command.js
     env:

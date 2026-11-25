@@ -347,7 +347,7 @@ else
 fi
 node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
 if [ "${E2E_CALL_PEER:-}" = 1 ] && [ -n "${E2E_GROUP_CALL_ID:-}" ]; then
-  node scripts/check-screen-share.mjs "$out"/screenshots/m5-group-peer-screen-*.png "$out"/screenshots/m6-group-peer-screen-again-*.png || status=1
+  node scripts/check-screen-share.mjs "$out"/screenshots/m5-group-peer-screen-*.png || status=1
 fi
 
 if [ -n "${E2E_LOGIN:-}" ]; then
