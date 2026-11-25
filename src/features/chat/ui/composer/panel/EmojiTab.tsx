@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Overlay } from '../../../../../ui/Overlay';
 import { radius, space, useTheme } from '../../../../../theme';
-import { Icon, iconNames, type IconName } from '../../../../../ui/icons';
+import { Icon, type IconName } from '../../../../../ui/icons';
 import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
 import { noteEmoji, recentEmoji, rememberSkin, searchEmoji, skinFor, skinTones, supportsSkin, withSkin } from '../../../emoji/emoji';
@@ -18,7 +18,7 @@ const cellSize = 46;
 const headerHeight = 32;
 const holdMs = 420;
 
-const sectionGlyphs: Record<EmojiSection, string> = {
+const sectionIcons: Record<EmojiSection, IconName> = {
   recent: 'clock',
   smileys: 'catSmileys',
   people: 'catPeople',
@@ -28,8 +28,7 @@ const sectionGlyphs: Record<EmojiSection, string> = {
   activities: 'catActivities',
   objects: 'catObjects',
   symbols: 'catSymbols',
-  flags: 'flag',
-} as Record<EmojiSection, string>;
+};
 
 export function EmojiTab({
   onPick,
@@ -152,7 +151,6 @@ export function EmojiTab({
           <View style={styles.categories} accessibilityRole="tablist">
             {sections.map((section, index) => {
               const selected = section === shown;
-              const glyph = sectionGlyphs[section];
               return (
                 <Pressable
                   key={section}
@@ -165,13 +163,7 @@ export function EmojiTab({
                   }}
                   style={[styles.category, selected && { backgroundColor: colors.select }]}
                   testID={`emoji-tab-${section}`}>
-                  {(iconNames as string[]).includes(glyph) ? (
-                    <Icon name={glyph as IconName} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
-                  ) : (
-                    <Text variant="label" tone={selected ? 'selectInk' : 'inkSoft'} numberOfLines={1}>
-                      {t(`emoji.category.${section}`).slice(0, 3)}
-                    </Text>
-                  )}
+                  <Icon name={sectionIcons[section]} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
                 </Pressable>
               );
             })}

@@ -3,18 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { radius, space, useTheme } from '../../../../../theme';
-import { Icon, iconNames, type IconName } from '../../../../../ui/icons';
+import { Icon, type IconName } from '../../../../../ui/icons';
 import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
 import type { PanelProblem } from './logic';
 
-const problemIcons: Record<PanelProblem, string> = { offline: 'cloudOff', unavailable: 'gif', server: 'alert', emptySearch: 'search', noStickers: 'sticker' };
+const problemIcons: Record<PanelProblem, IconName> = { offline: 'cloudOff', unavailable: 'gif', server: 'alert', emptySearch: 'search', noStickers: 'sticker' };
 
 export function PanelState({ problem, query, code, admin, onRetry, onSettings }: { problem: PanelProblem; query?: string; code?: string; admin?: boolean; onRetry?: () => void; onSettings?: () => void }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
-  const glyph = problemIcons[problem];
-  const icon = ((iconNames as string[]).includes(glyph) ? glyph : problem === 'unavailable' ? 'image' : 'alert') as IconName;
+  const icon = problemIcons[problem];
   const danger = problem === 'server';
   return (
     <View style={styles.state} accessibilityLiveRegion="polite" testID={`panel-state-${problem}`}>

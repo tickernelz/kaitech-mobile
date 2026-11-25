@@ -72,7 +72,7 @@ export function StickerTab({
               {cover ? (
                 <Image source={{ uri: cover.source === 'pack' ? richUrl(origin, cover.poster) : cover.poster, ...(cookie && cover.source === 'pack' ? { headers: cookie } : {}) }} cachePolicy="disk" style={styles.cover} accessible={false} />
               ) : (
-                <Icon name={section.key === 'favorites' ? 'star' : 'clock'} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
+                <Icon name={section.key === 'favorites' ? 'favorite' : 'clock'} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
               )}
             </Pressable>
           );

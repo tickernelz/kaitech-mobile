@@ -4,9 +4,8 @@ import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 import Animated, { FadeIn, useReducedMotion, withTiming } from 'react-native-reanimated';
 import { radius, space, useTheme } from '../../../../theme';
 import { duration } from '../../../../theme/motion';
-import { Icon, iconNames, type IconName } from '../../../../ui/icons';
+import { Icon, type IconName } from '../../../../ui/icons';
 import { Pressable } from '../../../../ui/Pressable';
-import { Text } from '../../../../ui/Text';
 import { stickerShelf, type StickerShelf } from '../../composerExtras';
 import type { Result } from '../../messageActions';
 import type { GifMedia, Sticker } from '../../types';
@@ -15,7 +14,7 @@ import { GifTab } from './panel/GifTab';
 import { StickerTab } from './panel/StickerTab';
 import { lastPanelTab, panelTabs, rememberPanelTab, handleOutcome, type PanelTab } from './panel/logic';
 
-const tabGlyphs: Record<PanelTab, string> = { emoji: 'emoji', sticker: 'sticker', gif: 'gif' };
+const tabIcons: Record<PanelTab, IconName> = { emoji: 'emoji', sticker: 'sticker', gif: 'gif' };
 function tabEnter() {
   'worklet';
   return {
@@ -119,7 +118,6 @@ export function ComposerPanel({
         <View style={[styles.tabs, { borderTopColor: colors.line }]} accessibilityRole="tablist">
           {panelTabs.map((key) => {
             const selected = key === tab;
-            const glyph = tabGlyphs[key];
             return (
               <Pressable
                 key={key}
@@ -129,13 +127,7 @@ export function ComposerPanel({
                 onPress={() => choose(key)}
                 style={[styles.tab, selected && { backgroundColor: colors.select }]}
                 testID={`panel-tab-${key}`}>
-                {(iconNames as string[]).includes(glyph) ? (
-                  <Icon name={glyph as IconName} variant={selected ? 'fill' : 'line'} color={selected ? colors.selectInk : colors.inkSoft} />
-                ) : (
-                  <Text variant="footnote" style={[styles.gifTab, { color: selected ? colors.selectInk : colors.inkSoft }]}>
-                    GIF
-                  </Text>
-                )}
+                <Icon name={tabIcons[key]} variant={selected ? 'fill' : 'line'} color={selected ? colors.selectInk : colors.inkSoft} />
               </Pressable>
             );
           })}
@@ -152,5 +144,4 @@ const styles = StyleSheet.create({
   content: { flex: 1, paddingHorizontal: space.sm, gap: space.xs },
   tabs: { flexDirection: 'row', justifyContent: 'center', gap: space.lg, borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: space.xs },
   tab: { minWidth: 64, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  gifTab: { fontWeight: '700', letterSpacing: 0.5 },
 });

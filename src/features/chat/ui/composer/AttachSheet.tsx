@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 import { radius, space, useTheme } from '../../../../theme';
 import { duration, easing } from '../../../../theme/motion';
-import { Icon, iconNames, type IconName } from '../../../../ui/icons';
+import { Icon, type IconName } from '../../../../ui/icons';
 import { Overlay } from '../../../../ui/Overlay';
 import { Pressable } from '../../../../ui/Pressable';
 import { SheetItem } from '../../../../ui/Sheet';
@@ -15,8 +15,7 @@ import { attachSources, type AttachSource } from '../attach';
 
 export type Extra = { key: string; icon: IconName; label: string; detail?: string; disabled?: boolean; onPress: () => void };
 
-const sourceGlyphs: Record<AttachSource, string> = { photos: 'image', camera: 'camera', files: 'file', audio: 'audioFile' };
-const fallbackGlyphs: Record<AttachSource, IconName> = { photos: 'image', camera: 'photo', files: 'file', audio: 'mic' };
+const sourceIcons: Record<AttachSource, IconName> = { photos: 'image', camera: 'camera', files: 'file', audio: 'audioFile' };
 
 export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[] }) {
   const { t } = useTranslation('chat');
@@ -50,8 +49,7 @@ export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible
           <View style={[styles.handle, { backgroundColor: colors.lineStrong }]} />
           <View style={styles.grid}>
             {attachSources.map((source) => {
-              const glyph = sourceGlyphs[source];
-              const icon = ((iconNames as string[]).includes(glyph) ? glyph : fallbackGlyphs[source]) as IconName;
+              const icon = sourceIcons[source];
               return (
                 <Pressable key={source} accessibilityRole="button" accessibilityLabel={t(`composer.source.${source}`)} onPress={() => onPick(source)} style={styles.item} testID={`attach-${source}`}>
                   <View style={[styles.circle, { backgroundColor: colors.surface2 }]}>

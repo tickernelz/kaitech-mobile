@@ -5,6 +5,7 @@ import Animated, { interpolate, useAnimatedStyle, useReducedMotion, useSharedVal
 import { radius, space, useTheme } from '../../../../theme';
 import { duration, easing, spring } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
+import { lockShackleDrop } from '../../../../ui/icons/glyphs';
 import { Pressable } from '../../../../ui/Pressable';
 import { Text } from '../../../../ui/Text';
 import { isHeld } from '../../voice/machine';
@@ -14,6 +15,7 @@ import type { VoiceRecorder } from './useVoiceRecorder';
 export const buttonSize = 44;
 export const heldSize = 72;
 export const controlGap = space.xs;
+const lockIcon = 20;
 
 export function useToward(target: number, ms: number = duration.base, curve = easing.standard) {
   const reduce = useReducedMotion();
@@ -100,7 +102,7 @@ export function CameraSlot({ shown, onPress, onLongPress }: { shown: boolean; on
   return (
     <Animated.View style={[styles.cameraSlot, slot]} pointerEvents={shown ? 'auto' : 'none'} importantForAccessibility={shown ? 'auto' : 'no-hide-descendants'}>
       <Pressable accessibilityRole="button" accessibilityLabel={t('composer.camera')} accessibilityHint={t('composer.cameraHint')} onPress={onPress} onLongPress={onLongPress} delayLongPress={420} style={styles.round} testID="composer-camera">
-        <Icon name="photo" color={colors.inkSoft} />
+        <Icon name="camera" color={colors.inkSoft} />
       </Pressable>
     </Animated.View>
   );
@@ -139,7 +141,7 @@ export function LockPill({ voice }: { voice: VoiceRecorder }) {
     opacity: open.get(),
     transform: [{ translateY: interpolate(open.get(), [0, 1], [24, 0]) + Math.max(dy.get(), -lockDistance) * 0.5 }, { scale: interpolate(open.get(), [0, 1], [0.6, 1]) }],
   }));
-  const shackle = useAnimatedStyle(() => ({ transform: [{ translateY: interpolate(Math.max(dy.get(), -lockDistance), [-lockDistance, 0], [0, -3]) }] }));
+  const shackle = useAnimatedStyle(() => ({ transform: [{ translateY: interpolate(Math.max(dy.get(), -lockDistance), [-lockDistance, 0], [0, -lockShackleDrop * (lockIcon / 24)]) }] }));
   const chevron = useAnimatedStyle(() => ({ transform: [{ translateY: pulse.get() }], opacity: interpolate(Math.max(dy.get(), -lockDistance), [-lockDistance, 0], [0, 1]) }));
   return (
     <Animated.View
@@ -148,9 +150,12 @@ export function LockPill({ voice }: { voice: VoiceRecorder }) {
       importantForAccessibility={shown ? 'auto' : 'no-hide-descendants'}
       style={[styles.lockPill, { backgroundColor: colors.surface, borderColor: colors.line }, !dark && styles.lift, pill]}
       testID={shown ? 'voice-lock-pill' : undefined}>
-      <Animated.View style={shackle}>
-        <Icon name="lock" size={20} color={colors.inkSoft} />
-      </Animated.View>
+      <View style={styles.lockStack}>
+        <Icon name="lockOpen" size={lockIcon} color={colors.inkSoft} />
+        <Animated.View style={[StyleSheet.absoluteFill, shackle]}>
+          <Icon name="lockShackle" size={lockIcon} color={colors.inkSoft} />
+        </Animated.View>
+      </View>
       <Animated.View style={chevron}>
         <Icon name="chevronUp" size={16} color={colors.inkFaint} />
       </Animated.View>
@@ -185,6 +190,7 @@ const styles = StyleSheet.create({
   cameraSlot: { height: buttonSize, overflow: 'hidden', alignItems: 'flex-start' },
   fieldButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: -space.sm },
   lockPill: { position: 'absolute', right: 0, bottom: buttonSize + 40, width: buttonSize, height: 100, paddingVertical: space.md, borderRadius: buttonSize / 2, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', gap: space.xs },
+  lockStack: { width: lockIcon, height: lockIcon },
   lift: { shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   hint: { position: 'absolute', right: 0, bottom: buttonSize + space.sm, maxWidth: 280, paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
 });

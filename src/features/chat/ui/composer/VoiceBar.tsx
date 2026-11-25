@@ -6,6 +6,7 @@ import Svg, { Path } from 'react-native-svg';
 import { radius, space, useTheme } from '../../../../theme';
 import { duration as motion, easing } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
+import { trashLidHinge } from '../../../../ui/icons/glyphs';
 import { Pressable } from '../../../../ui/Pressable';
 import { Text } from '../../../../ui/Text';
 import { bucketsOf } from '../../voice/levels';
@@ -22,6 +23,7 @@ const barWidth = 3;
 const barMin = 3;
 const barMax = 32;
 const seekStepMs = 5000;
+const trashIcon = 24;
 
 export function voiceRowPhase(voice: VoiceRecorder): 'held' | 'locked' | 'paused' | null {
   const state = voice.state;
@@ -98,7 +100,7 @@ function HeldRow({ voice }: { voice: VoiceRecorder }) {
     <Animated.View style={styles.row} testID="voice-recording">
       <Timer clock={voice.clock} />
       <Animated.View style={[styles.slide, hint]}>
-        <Icon name="back" size={16} color={colors.inkSoft} />
+        <Icon name="chevronLeft" size={18} color={colors.inkSoft} />
         <Text variant="callout" tone="inkSoft" numberOfLines={1}>
           {t('composer.slideToCancel')}
         </Text>
@@ -152,7 +154,7 @@ function PausedRow({ voice, channelId }: { voice: VoiceRecorder; channelId: numb
     <Animated.View style={styles.row} testID="voice-paused">
       <RoundAction icon="trash" label={t('composer.discardVoice')} color={colors.dangerInk} onPress={voice.discard} testID="voice-discard" />
       <DraftBox voice={voice} channelId={channelId} />
-      <RoundAction icon="mic" label={t('composer.resumeVoice')} color={colors.dangerInk} onPress={voice.resume} testID="voice-resume" />
+      <RoundAction icon="micResume" label={t('composer.resumeVoice')} color={colors.dangerInk} onPress={voice.resume} testID="voice-resume" />
     </Animated.View>
   );
 }
@@ -252,6 +254,12 @@ export function DiscardAnimation({ onDone }: { onDone: () => void }) {
     return () => clearTimeout(timer);
   }, [fly, onDone, reduce, rise]);
   const trash = useAnimatedStyle(() => ({ opacity: rise.get(), transform: [{ translateY: interpolate(rise.get(), [0, 1], [24, 0]) }] }));
+  const lid = useAnimatedStyle(() => {
+    const angle = interpolate(fly.get(), [0, 0.15, 0.85, 1], [0, -38, -38, 0]);
+    const hingeX = (trashLidHinge.x - 12) * (trashIcon / 24);
+    const hingeY = (trashLidHinge.y - 12) * (trashIcon / 24);
+    return { transform: [{ translateX: hingeX }, { translateY: hingeY }, { rotate: `${angle}deg` }, { translateX: -hingeX }, { translateY: -hingeY }] };
+  });
   const dot = useAnimatedStyle(() => {
     const progress = fly.get();
     return {
@@ -261,8 +269,11 @@ export function DiscardAnimation({ onDone }: { onDone: () => void }) {
   });
   return (
     <View pointerEvents="none" style={styles.discard} testID="voice-discard-animation">
-      <Animated.View style={trash}>
-        <Icon name="trash" color={colors.dangerInk} />
+      <Animated.View style={[styles.trash, trash]}>
+        <Icon name="trashBody" size={trashIcon} color={colors.dangerInk} />
+        <Animated.View style={[StyleSheet.absoluteFill, lid]}>
+          <Icon name="trashLid" size={trashIcon} color={colors.dangerInk} />
+        </Animated.View>
       </Animated.View>
       <Animated.View style={[styles.flyingDot, { backgroundColor: colors.danger }, dot]} />
     </View>
@@ -284,6 +295,7 @@ const styles = StyleSheet.create({
   draft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: buttonSize, borderRadius: buttonSize / 2, paddingLeft: 4, paddingRight: space.md },
   play: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   banner: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.sm },
+  trash: { width: trashIcon, height: trashIcon },
   discard: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 120, justifyContent: 'center', paddingLeft: space.sm },
   flyingDot: { position: 'absolute', left: space.sm + 7, width: 10, height: 10, borderRadius: 5 },
 });
