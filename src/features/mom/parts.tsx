@@ -1,6 +1,6 @@
 import { useCallback, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { useLanguage } from '../../i18n';
 import { intlLocale } from '../../i18n/language';
@@ -13,6 +13,7 @@ import type { MeetingRow } from './api';
 import { clock, useRecorderClock, type Recording } from './recorder';
 import { isPending, sentBytes, type Upload } from './upload';
 import { discard, dismiss, retry } from './uploads';
+import { confirm } from '../../ui/dialog';
 
 export function useMomFormat() {
   const { language } = useLanguage();
@@ -195,11 +196,10 @@ export function UploadCard({ upload }: { upload: Upload }) {
     failed: t('mom.upload.failed', { reason }),
     done: t('mom.upload.done'),
   }[upload.state];
-  const confirmDiscard = () =>
-    Alert.alert(t('mom.upload.discardTitle'), t('mom.upload.discardBody'), [
-      { text: t('mom.upload.cancel'), style: 'cancel' },
-      { text: t('mom.upload.discard'), style: 'destructive', onPress: () => void discard(upload.key) },
-    ]);
+  const confirmDiscard = async () => {
+    const go = await confirm({ title: t('mom.upload.discardTitle'), body: t('mom.upload.discardBody'), cancel: t('mom.upload.cancel'), confirm: t('mom.upload.discard'), danger: true, icon: 'trash', testID: 'upload-discard-dialog' });
+    if (go) void discard(upload.key);
+  };
   return (
     <View style={[styles.upload, { backgroundColor: colors.surface, borderColor: colors.line }]} testID={`upload-${upload.state}`}>
       <View style={styles.uploadTop}>

@@ -1,12 +1,10 @@
 import * as Audio from 'expo-audio';
 import * as ImagePicker from 'expo-image-picker';
+import { askPermission } from '../../ui/permission';
 
 export async function ensureMicrophone(): Promise<boolean> {
   try {
-    const current = await Audio.getRecordingPermissionsAsync();
-    if (current.granted) return true;
-    const asked = await Audio.requestRecordingPermissionsAsync();
-    return asked.granted;
+    return await askPermission('microphone', Audio.getRecordingPermissionsAsync, Audio.requestRecordingPermissionsAsync, { settings: false });
   } catch {
     return false;
   }
@@ -14,10 +12,7 @@ export async function ensureMicrophone(): Promise<boolean> {
 
 export async function ensureCamera(): Promise<boolean> {
   try {
-    const current = await ImagePicker.getCameraPermissionsAsync();
-    if (current.granted) return true;
-    const asked = await ImagePicker.requestCameraPermissionsAsync();
-    return asked.granted;
+    return await askPermission('camera', ImagePicker.getCameraPermissionsAsync, ImagePicker.requestCameraPermissionsAsync, { settings: false });
   } catch {
     return false;
   }

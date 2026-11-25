@@ -46,7 +46,7 @@ name: Sign another Kaitech app device of this account out from Devices
 - tapOn:
     id: app-device-${TARGET}
 - tapOn:
-    text: (Sign out|Keluarkan)
+    id: device-revoke-app-dialog-confirm
 - extendedWaitUntil:
     notVisible:
       id: app-device-${TARGET}

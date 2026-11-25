@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
@@ -48,6 +48,7 @@ import { Sheet, type SheetItem } from './Sheet';
 import { recordsChanged, stash, unstash, useRecordsGeneration } from './stash';
 import { openReport, useRunAction, type ListStash, type RecordStash } from './useRunAction';
 import { compileForm, type ButtonSpec, type FieldSpec, type FormSpec, type TextSpec } from './views';
+import { confirm, inform } from '../../ui/dialog';
 
 type Loaded = { form: FormSpec; fields: Fields; spec: Spec };
 
@@ -164,7 +165,7 @@ export function RecordScreen({ programme, model, rid, stashKey }: { programme: n
     try {
       const result = await onchange(account, model, id, onchangeValues(next, fields), [field.name], loaded.spec, context);
       setDraft((current) => mergeOnchange(current ?? next, result.value, fields));
-      if (result.warning?.message) Alert.alert(result.warning.title ?? '', result.warning.message);
+      if (result.warning?.message) void inform({ title: result.warning.title || undefined, body: result.warning.message, icon: 'alert', testID: 'record-warning-dialog' });
     } catch (failure) {
       fail(failure);
     }
@@ -192,7 +193,7 @@ export function RecordScreen({ programme, model, rid, stashKey }: { programme: n
     if (!draft) return id;
     const absent = missing();
     if (absent.length) {
-      Alert.alert(t('records.required'), absent.join(', '));
+      void inform({ title: t('records.required'), body: absent.join(', '), icon: 'alert', testID: 'record-required-dialog' });
       return null;
     }
     const writable = (name: string) =>
@@ -234,28 +235,21 @@ export function RecordScreen({ programme, model, rid, stashKey }: { programme: n
         setBusy(null);
       }
     };
-    if (button.confirm) Alert.alert('', button.confirm, [{ text: t('records.cancel'), style: 'cancel' }, { text: t('records.confirm'), onPress: () => void go() }]);
-    else await go();
+    if (!button.confirm) await go();
+    else if (await confirm({ body: button.confirm, cancel: t('records.cancel'), confirm: t('records.confirm'), testID: 'record-button-dialog' })) await go();
   };
 
-  const remove = () => {
+  const remove = async () => {
     if (!account || !id) return;
-    Alert.alert('', t('records.removeAsk'), [
-      { text: t('records.cancel'), style: 'cancel' },
-      {
-        text: t('records.delete'),
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await unlinkRecord(account, model, id);
-            recordsChanged();
-            router.back();
-          } catch (failure) {
-            fail(failure);
-          }
-        },
-      },
-    ]);
+    const go = await confirm({ body: t('records.removeAsk'), cancel: t('records.cancel'), confirm: t('records.delete'), danger: true, icon: 'trash', testID: 'record-delete-dialog' });
+    if (!go) return;
+    try {
+      await unlinkRecord(account, model, id);
+      recordsChanged();
+      router.back();
+    } catch (failure) {
+      fail(failure);
+    }
   };
 
   const openRelated = (field: FieldSpec) => {

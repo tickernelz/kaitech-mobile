@@ -1,5 +1,6 @@
 import {
   AudioQuality,
+  getRecordingPermissionsAsync,
   IOSOutputFormat,
   requestNotificationPermissionsAsync,
   requestRecordingPermissionsAsync,
@@ -8,6 +9,7 @@ import {
   type RecordingStatus,
 } from 'expo-audio';
 import AudioModule from 'expo-audio/build/AudioModule';
+import * as Notifications from 'expo-notifications';
 import type { AudioRecorder } from 'expo-audio/build/AudioModule.types';
 import { createRecordingOptions } from 'expo-audio/build/utils/options';
 import * as Crypto from 'expo-crypto';
@@ -18,6 +20,7 @@ import { setMeetingRecording } from '../../audio/meeting';
 import { onAccountForgotten } from '../../auth/session';
 import type { MeetingChoice } from './upload';
 import { documentPath, enqueue, localFile, recordingPrefix } from './uploads';
+import { askPermission } from '../../ui/permission';
 
 export const bitRate = 64_000;
 
@@ -163,9 +166,8 @@ function onStatus(status: RecordingStatus) {
 
 export async function start(setup: Setup): Promise<StartResult> {
   if (current) return 'busy';
-  const permission = await requestRecordingPermissionsAsync();
-  if (!permission.granted) return 'denied';
-  if (Platform.OS === 'android') await requestNotificationPermissionsAsync().catch(() => undefined);
+  if (!(await askPermission('microphone', getRecordingPermissionsAsync, requestRecordingPermissionsAsync, { settings: false }))) return 'denied';
+  if (Platform.OS === 'android') await askPermission('notifications', Notifications.getPermissionsAsync, requestNotificationPermissionsAsync, { settings: false }).catch(() => false);
   try {
     await setAudioModeAsync({
       allowsRecording: true,

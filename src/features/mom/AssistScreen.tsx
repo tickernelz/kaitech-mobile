@@ -1,7 +1,7 @@
 import * as DocumentPicker from 'expo-document-picker';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '../../api/odoo';
 import { invalidate, useResource } from '../../api/resource';
@@ -37,6 +37,7 @@ import { MoreSheet } from './MoreSheet';
 import { SmallButton } from './parts';
 import { assistKey, Scroll, useAssistRun, usePoll } from './assistParts';
 import { SolusiPanel } from './SolusiPanel';
+import { choose, confirm, notify } from '../../ui/dialog';
 
 export function AssistScreen({ part, meeting }: { part: AssistPart; meeting: number }) {
   const { t } = useTranslation();
@@ -72,11 +73,19 @@ function NotesForm({ data, meeting, refreshing, onRefresh }: { data: ManualNotes
       invalidate(`${active.id}:${assistKey('notes', meeting)}`);
     } catch (error) {
       if (error instanceof ApiError && error.code === 'refused' && seen) {
-        Alert.alert(t('mom.assist.notes.conflictTitle'), error.detail?.trim() || t('mom.assist.notes.conflictBody'), [
-          { text: t('mom.assist.notes.useTheirs'), onPress: onRefresh },
-          { text: t('mom.assist.notes.keepMine'), onPress: () => void save(null) },
-        ]);
-      } else Alert.alert('', errorText(error));
+        void choose({
+          title: t('mom.assist.notes.conflictTitle'),
+          body: error.detail?.trim() || t('mom.assist.notes.conflictBody'),
+          testID: 'notes-conflict-dialog',
+          choices: [
+            { key: 'theirs', label: t('mom.assist.notes.useTheirs'), tone: 'plain' },
+            { key: 'mine', label: t('mom.assist.notes.keepMine'), tone: 'primary' },
+          ],
+        }).then((picked) => {
+          if (picked === 'theirs') onRefresh();
+          if (picked === 'mine') void save(null);
+        });
+      } else notify(errorText(error));
     } finally {
       setSaving(false);
     }
@@ -86,7 +95,7 @@ function NotesForm({ data, meeting, refreshing, onRefresh }: { data: ManualNotes
     const file = picked.canceled ? null : picked.assets[0];
     if (!file) return;
     if (data.maxBytes && (file.size ?? 0) > data.maxBytes) {
-      Alert.alert('', t('mom.assist.notes.tooBig', { mb: Math.round(data.maxBytes / 1048576) }));
+      notify(t('mom.assist.notes.tooBig', { mb: Math.round(data.maxBytes / 1048576) }));
       return;
     }
     await action.run('attach', async (account) =>
@@ -206,10 +215,9 @@ function TaskCard({ task, data, meeting }: { task: DraftTask; data: TasksOvervie
               kind="danger"
               label={t('mom.assist.tasks.drop')}
               onPress={() =>
-                Alert.alert(t('mom.assist.tasks.dropTitle'), task.name, [
-                  { text: t('mom.recorder.cancel'), style: 'cancel' },
-                  { text: t('mom.assist.tasks.drop'), style: 'destructive', onPress: () => void action.run('drop', (account) => dropTask(account, task.id)) },
-                ])
+                void confirm({ title: t('mom.assist.tasks.dropTitle'), body: task.name, cancel: t('mom.recorder.cancel'), confirm: t('mom.assist.tasks.drop'), danger: true, icon: 'trash', testID: 'task-drop-dialog' }).then(async (go) => {
+                  if (go) await action.run('drop', (account) => dropTask(account, task.id));
+                })
               }
               style={styles.flex}
               testID={`task-drop-${task.id}`}

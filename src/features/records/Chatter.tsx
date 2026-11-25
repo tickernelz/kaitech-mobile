@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { ApiError } from '../../api/odoo';
 import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
@@ -13,12 +13,13 @@ import { parseServerDate } from '../discovery/dates';
 import { Segmented, useErrorText } from '../discovery/ui';
 import { messages, postNote, type Message } from './api';
 import { plainOfHtml } from './model';
+import { notify } from '../../ui/dialog';
 
 export function useFailureAlert() {
   const errorText = useErrorText();
   return useCallback(
     (error: unknown) => {
-      Alert.alert('', error instanceof ApiError && error.detail ? error.detail : errorText(error));
+      notify(error instanceof ApiError && error.detail ? error.detail : errorText(error));
     },
     [errorText],
   );
