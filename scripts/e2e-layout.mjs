@@ -193,10 +193,10 @@ async function checkBubbles() {
   const stamp = `Layout ${Date.now().toString(36)}`;
   const filler = 'the delivery for this order left the main warehouse this morning, please check it at receiving and report any shortfall or damaged packing';
   const sent = [
-    { key: 'mine short', mine: true, long: false, body: `${stamp} mine` },
-    { key: 'theirs short', mine: false, long: false, body: `${stamp} theirs` },
-    { key: 'mine long', mine: true, long: true, body: `${stamp} mine, ${filler}` },
-    { key: 'theirs long', mine: false, long: true, body: `${stamp} theirs, ${filler}` },
+    { key: 'mine short', mine: true, long: false, body: `${stamp} mine short` },
+    { key: 'theirs short', mine: false, long: false, body: `${stamp} theirs short` },
+    { key: 'mine long', mine: true, long: true, body: `${stamp} mine long, ${filler}` },
+    { key: 'theirs long', mine: false, long: true, body: `${stamp} theirs long, ${filler}` },
   ];
   const phone = await signIn(process.env.E2E_LOGIN, process.env.E2E_PASSWORD);
   const peer = await signIn(process.env.E2E_WEB_LOGIN, process.env.E2E_WEB_PASSWORD);
@@ -255,7 +255,10 @@ async function checkBubbles() {
 try {
   await checkBubbles();
 } catch (error) {
-  failures.push(`bubbles: ${error.message}`);
+  const focus = adb('shell', 'dumpsys', 'window').match(/mCurrentFocus=\S+ \S+ (\S+)/)?.[1] ?? 'unknown';
+  const running = adb('shell', 'pidof io.kaitech.mobile || true').trim() ? 'running' : 'not running';
+  failures.push(`bubbles: ${error.message} (focus ${focus}, app ${running})`);
+  screenshot('layout-bubbles-failed');
 }
 
 lines.push(...failures.map((failure) => `FAIL ${failure}`));
