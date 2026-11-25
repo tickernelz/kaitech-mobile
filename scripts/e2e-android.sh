@@ -131,7 +131,7 @@ adb shell am set-debug-app --persistent com.android.chrome
 if adb shell pm path io.kaitech.mobile 2>/dev/null | grep -q '^package:'; then
   adb uninstall io.kaitech.mobile
 fi
-adb logcat -G 16M > /dev/null 2>&1 || true
+adb logcat -b main,system,crash,events -G 16M > /dev/null 2>&1 || true
 adb logcat -c
 adb install -r "$apk"
 adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' | head -2 | tee "$out/installed.txt"
@@ -217,11 +217,14 @@ fi
 transport_log="$out/transport.txt"
 : > "$transport_log"
 watch_transport() {
-  while adb wait-for-disconnect 2> /dev/null; do
+  local code
+  while :; do
+    adb wait-for-disconnect 2> /dev/null || { code=$?; break; }
     echo "$(date -u +%H:%M:%S.%3N) emulator-5554 left the adb server" >> "$transport_log"
-    adb wait-for-device 2> /dev/null || return
+    adb wait-for-device 2> /dev/null || { code=$?; break; }
     echo "$(date -u +%H:%M:%S.%3N) emulator-5554 back as $(adb get-state 2>&1)" >> "$transport_log"
   done
+  echo "$(date -u +%H:%M:%S.%3N) transport watcher stopped: adb exit $code" >> "$transport_log"
 }
 watch_transport &
 transport_watcher=$!
@@ -312,9 +315,10 @@ fi
 release_server
 
 sleep 2
-pkill -P "$transport_watcher" 2> /dev/null || true
+mapfile -t watcher_adb < <(pgrep -P "$transport_watcher" || true)
 kill "$transport_watcher" 2> /dev/null || true
 wait "$transport_watcher" 2> /dev/null || true
+[ "${#watcher_adb[@]}" -eq 0 ] || kill "${watcher_adb[@]}" 2> /dev/null || true
 secrets=()
 for secret in "${E2E_LOGIN:-}" "${E2E_PASSWORD:-}" "${E2E_WEB_LOGIN:-}" "${E2E_WEB_PASSWORD:-}" ${E2E_SECOND_PEER_LOGIN:+"$E2E_SECOND_PEER_LOGIN"} ${E2E_SECOND_PEER_PASSWORD:+"$E2E_SECOND_PEER_PASSWORD"}; do
   [ -n "$secret" ] && secrets+=(-e "$secret")
