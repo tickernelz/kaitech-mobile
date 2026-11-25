@@ -180,6 +180,11 @@ export function useVoiceRecorder({ accountId, channelId, tapMode, onSend }: { ac
     notify(text);
   };
 
+  const abandon = async (made: NonNullable<typeof recorder.current>) => {
+    await made.stop().catch(() => undefined);
+    if (made.uri) new File(made.uri).delete();
+  };
+
   const start = async (mine: number) => {
     if (meetingRecording() || callBusy()) {
       fail(t('composer.micBusy'));
@@ -199,16 +204,21 @@ export function useVoiceRecorder({ accountId, channelId, tapMode, onSend }: { ac
     const made = recorder.current ?? new AudioModule.AudioRecorder(voiceOptions);
     recorder.current = made;
     await made.prepareToRecordAsync();
-    if (mine !== session.current) return;
+    if (mine !== session.current) {
+      await abandon(made);
+      return;
+    }
     made.record();
     const deadline = now() + startTimeoutMs;
     while (!made.getStatus().isRecording) {
-      if (now() > deadline) throw new Error('startTimeout');
+      if (now() > deadline) {
+        await abandon(made);
+        throw new Error('startTimeout');
+      }
       await sleep(20);
     }
     if (mine !== session.current) {
-      await made.stop();
-      if (made.uri) new File(made.uri).delete();
+      await abandon(made);
       return;
     }
     dispatch({ type: 'live' });
@@ -302,6 +312,7 @@ export function useVoiceRecorder({ accountId, channelId, tapMode, onSend }: { ac
     if (current.phase === 'pressing' && !current.locked) {
       session.current++;
       dispatch({ type: 'release' });
+      setHint(true);
       return;
     }
     if (current.phase !== 'recording' || current.locked) return;

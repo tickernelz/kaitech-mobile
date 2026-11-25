@@ -10,6 +10,7 @@ const mockMeeting = { on: false };
 let mockFreeBytes = 10 * 1024 * 1024 * 1024;
 let mockRecorder: { isRecording: boolean; uri: string | null; durationMillis: number; metering: number; prepared: number } | null = null;
 let mockSerial = 0;
+let mockPrepareGate: Promise<void> | null = null;
 
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }, getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 jest.mock('expo-file-system', () => {
@@ -91,7 +92,11 @@ jest.mock('expo-audio/build/AudioModule', () => ({
       constructor() {
         mockRecorder = this;
       }
+      ready = false;
       async prepareToRecordAsync() {
+        if (this.ready) throw new Error('AudioRecorderAlreadyPrepared');
+        this.ready = true;
+        if (mockPrepareGate) await mockPrepareGate;
         this.prepared++;
       }
       record() {
@@ -105,6 +110,7 @@ jest.mock('expo-audio/build/AudioModule', () => ({
       }
       async stop() {
         this.isRecording = false;
+        this.ready = false;
       }
       release() {
         return undefined;
@@ -192,6 +198,7 @@ beforeEach(() => {
   mockMeeting.on = false;
   mockFreeBytes = 10 * 1024 * 1024 * 1024;
   mockRecorder = null;
+  mockPrepareGate = null;
 });
 
 afterEach(() => {
@@ -224,6 +231,28 @@ describe('voice recorder', () => {
     expect(result.current.state.phase).toBe('idle');
     await advance(2800);
     expect(result.current.hint).toBe(false);
+  });
+
+  it('shows the hint for a tap released before the microphone is live, and the next hold still records', async () => {
+    const { result, onSend } = await mount();
+    let open = () => undefined as void;
+    mockPrepareGate = new Promise<void>((resolve) => (open = resolve));
+    await act(async () => result.current.hold.onTouchStart(touch()));
+    expect(result.current.state.phase).toBe('pressing');
+    await act(async () => result.current.hold.onTouchEnd());
+    mockPrepareGate = null;
+    open();
+    await flush();
+    expect(result.current.state.phase).toBe('idle');
+    expect(result.current.hint).toBe(true);
+    expect(mockRecorder!.isRecording).toBe(false);
+    await press(result);
+    expect(result.current.state).toEqual({ phase: 'recording', locked: false });
+    expect(mockNotify).not.toHaveBeenCalled();
+    mockRecorder!.durationMillis = 1500;
+    await act(async () => result.current.hold.onTouchEnd());
+    await flush();
+    expect(onSend).toHaveBeenCalledTimes(1);
   });
 
   it('pauses instead of sending when the app goes to the background, and keeps the draft on disk', async () => {
