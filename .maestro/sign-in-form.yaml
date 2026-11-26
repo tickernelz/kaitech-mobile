@@ -46,10 +46,15 @@ onFlowStart:
             id: welcome-error
             text: "${APP_LANGUAGE === 'id' ? 'Masuk dibatalkan.' : 'Sign-in was cancelled.'}"
           timeout: 30000
-- tapOn:
-    id: welcome-other-server
-- assertVisible:
-    id: sign-in-server
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn:
+          id: welcome-other-server
+      - extendedWaitUntil:
+          visible:
+            id: sign-in-server
+          timeout: 10000
 - runFlow:
     file: shared/screenshot.yaml
     env:
