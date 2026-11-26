@@ -19,6 +19,8 @@ import { Icon } from '../../ui/icons';
 import { MicButton, RecordingStrip, StagedFile, UploadProgress } from '../chat/ui/MediaControls';
 import { AttachSheet } from '../chat/ui/composer/AttachSheet';
 import { Attachments } from '../chat/ui/MessageBubble';
+import { GalleryContext } from '../chat/ui/media/gallery';
+import { galleryItems } from '../chat/media/viewer';
 import { useVoiceHold, type Voice } from '../chat/ui/useVoiceHold';
 import { ask, cards as readCards, panel, transcript, type Card, type Cursor, type Document, type TranscriptItem } from './api';
 import { DecisionCard } from './DecisionCard';
@@ -324,6 +326,9 @@ export function CoworkerThread({
   };
 
   const entries = useMemo(() => entriesOf(thread.items), [thread.items]);
+  const shownItems = useRef(thread.items);
+  shownItems.current = thread.items;
+  const gallery = useCallback(() => galleryItems(shownItems.current.flatMap((item) => chatAttachments(item.attachments))), []);
   const data: (Entry | Pending | Card)[] = [...entries, ...shownPending, ...(threadCards.data ?? [])];
 
   const onAnswered = (next: Card) => {
@@ -402,6 +407,7 @@ export function CoworkerThread({
       ) : (
         <ThreadContext.Provider value={threadContext}>
         <ItemsContext.Provider value={thread.items}>
+        <GalleryContext.Provider value={gallery}>
         <FlatList
           ref={list}
           data={data}
@@ -427,6 +433,7 @@ export function CoworkerThread({
             ) : undefined
           }
         />
+        </GalleryContext.Provider>
         </ItemsContext.Provider>
         </ThreadContext.Provider>
       )}

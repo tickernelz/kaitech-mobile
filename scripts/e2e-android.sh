@@ -138,6 +138,11 @@ fi
 adb logcat -b main,system,crash,events -G 16M > /dev/null 2>&1 || true
 adb logcat -c
 adb install -r "$apk"
+for asset in .maestro/assets/device/*; do
+  [ -f "$asset" ] || continue
+  adb push "$asset" "/sdcard/Download/$(basename "$asset")" > /dev/null
+  adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file:///sdcard/Download/$(basename "$asset")" > /dev/null
+done
 adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' | head -2 | tee "$out/installed.txt"
 
 activity="$(adb shell cmd package resolve-activity --brief io.kaitech.mobile | tr -d '\r' | tail -1)"

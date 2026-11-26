@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
@@ -38,7 +38,8 @@ export const KtGallery = memo(function KtGallery({ block, place }: { block: Gall
   const numbers = useNumbers();
   const { origin } = useThread();
   const cookie = useCookie();
-  const { open, opening } = useOpenAttachment();
+  const { open } = useOpenAttachment();
+  const [opening, setOpening] = useState<number | null>(null);
   const files = place?.reads?.files ?? {};
   return (
     <View style={shared.gap} testID="kt-gallery">
@@ -71,7 +72,10 @@ export const KtGallery = memo(function KtGallery({ block, place }: { block: Gall
                 accessibilityRole={file.picture ? 'imagebutton' : 'button'}
                 accessibilityLabel={t('discovery.block.gallery.open', { name })}
                 accessibilityState={{ busy: opening === item.attachment }}
-                onPress={() => void open(attachment)}
+                onPress={() => {
+                  setOpening(item.attachment);
+                  void open(attachment).finally(() => setOpening(null));
+                }}
                 testID={`kt-gallery-${index}`}
                 style={[styles.tile, { backgroundColor: colors.surface2, borderColor: colors.line }]}>
                 {file.picture ? (

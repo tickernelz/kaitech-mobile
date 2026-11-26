@@ -538,7 +538,7 @@ export function stopChat() {
 
 onAccountForgotten((id) => {
   if (state.accountId === id) stopChat();
-  clearOpenedFiles();
+  clearOpenedFiles(id);
   void forgetChatAccount(id, { pendingFor, dropFile, forgetDrafts, forgetAccount });
 });
 

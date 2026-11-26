@@ -81,6 +81,7 @@ export const glyphs = {
   speaker: {
     parts: [body('M4 9h3.5L12 5v14l-4.5-4H4Z'), line('M15.5 9.5a3.5 3.5 0 0 1 0 5'), line('M18 7a7 7 0 0 1 0 10')],
   },
+  speakerOff: { parts: [body('M4 9h3.5L12 5v14l-4.5-4H4Z'), fullSlash] },
   screenShare: { parts: [body(tile(3, 4, 21, 16)), line('M12 16v4M8 20h8'), cut('M12 13V8M9 10.5l3-3 3 3')] },
   pip: { parts: [body(tile(3, 5, 21, 19)), cutDot(tile(12, 12, 18, 16, 1))] },
   people: { parts: peopleParts },
@@ -161,6 +162,8 @@ export const glyphs = {
   minus: { parts: [line('M5 12h14')] },
   zoomIn: { parts: [line(circle(10.5, 10.5, 7)), line('M15.5 15.5 21 21'), line('M7.5 10.5h6M10.5 7.5v6')] },
   zoomOut: { parts: [line(circle(10.5, 10.5, 7)), line('M15.5 15.5 21 21'), line('M7.5 10.5h6')] },
+  slides: { parts: [body(tile(3, 4, 21, 16)), cut('M7 12.5l3-3 2.5 2.5L17 7.5'), line('M12 16v4.5M8 20.5h8')] },
+  zip: { parts: [body(page), cut(fold), cut('M11 6h2M11 9h2M11 12h2'), cutDot(tile(10, 14.5, 14, 18.5, 1))] },
   table: { parts: [body(tile(3, 4, 21, 20)), cut('M3 9.5h18M3 14.5h18M9 9.5V20')] },
   pinOff: { parts: [...pinParts, fullSlash] },
   archive: { parts: [...archiveParts, line('M10 12.5h4')] },

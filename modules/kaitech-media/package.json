@@ -1,0 +1,13 @@
+{
+  "name": "kaitech-media",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PDF page and video frame previews for Kaitech chat",
+  "main": "src/index.ts",
+  "files": [
+    "android",
+    "ios",
+    "src",
+    "expo-module.config.json"
+  ]
+}
