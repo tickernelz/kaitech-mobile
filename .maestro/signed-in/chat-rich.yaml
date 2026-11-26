@@ -97,7 +97,10 @@ onFlowStart:
       SCREEN: r2-poll-voted
 - tapOn:
     id: poll-[0-9]+-votes
-    index: -1
+    childOf:
+      id: poll-[0-9]+
+      containsDescendants:
+        - text: ${RUN + ' poll'}
 - extendedWaitUntil:
     visible:
       id: poll-votes
@@ -110,12 +113,18 @@ onFlowStart:
     id: poll-votes-close
 - tapOn:
     id: poll-[0-9]+-close
-    index: -1
+    childOf:
+      id: poll-[0-9]+
+      containsDescendants:
+        - text: ${RUN + ' poll'}
 - tapOn:
     id: poll-close-dialog-confirm
 - extendedWaitUntil:
-    notVisible:
-      id: poll-[0-9]+-close
+    visible:
+      id: poll-[0-9]+
+      containsDescendants:
+        - text: ${RUN + ' poll'}
+        - text: (Poll closed|Polling ditutup)
     timeout: 15000
 - setLocation:
     latitude: -6.175392
@@ -212,9 +221,10 @@ onFlowStart:
           timeout: 15000
       - tapOn:
           text: (Allow|Izinkan)
-- extendedWaitUntil:
-    visible:
+- scrollUntilVisible:
+    element:
       id: location-[0-9]+-stop
+    direction: DOWN
     timeout: 30000
 - runFlow:
     file: ../shared/screenshot.yaml
