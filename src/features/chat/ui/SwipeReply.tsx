@@ -1,7 +1,7 @@
 import { useCallback, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
-import Animated, { interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { interpolate, useAnimatedStyle, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { radius, space, useTheme } from '../../../theme';
 import { haptic } from '../../../ui/haptic';
@@ -22,8 +22,22 @@ export function replyPull(translationX: number): number {
   return Math.min(replyMax, replyReach + (pulled - replyReach) * 0.3);
 }
 
-export function SwipeReply({ message, onReply, children }: { message: Message; onReply: (message: Message) => void; children: ReactNode }) {
+function ReplyHint({ x, testID }: { x: SharedValue<number>; testID: string }) {
   const { colors } = useTheme();
+  const style = useAnimatedStyle(() => {
+    const pulled = x.get();
+    return { opacity: interpolate(pulled, [0, replyReach], [0, 1], 'clamp'), transform: [{ translateX: -pulled }, { scale: interpolate(pulled, [0, replyReach], [0.6, 1], 'clamp') }] };
+  });
+  return (
+    <Animated.View pointerEvents="none" style={[styles.hint, style]} testID={testID}>
+      <View style={[styles.disc, { backgroundColor: colors.surface2 }]}>
+        <Icon name="reply" size={18} color={colors.inkSoft} />
+      </View>
+    </Animated.View>
+  );
+}
+
+export function SwipeReply({ message, onReply, children }: { message: Message; onReply: (message: Message) => void; children: ReactNode }) {
   const x = useSharedValue(0);
   const armed = useSharedValue(false);
   const [dragged, setDragged] = useState(false);
@@ -55,25 +69,18 @@ export function SwipeReply({ message, onReply, children }: { message: Message; o
       if (fire) scheduleOnRN(reply);
     },
   });
-  const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }));
-  const iconStyle = useAnimatedStyle(() => ({ opacity: interpolate(x.get(), [0, replyReach], [0, 1], 'clamp'), transform: [{ scale: interpolate(x.get(), [0, replyReach], [0.6, 1], 'clamp') }] }));
+  const style = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }] }));
   return (
     <GestureDetector gesture={pan}>
-      <View>
-        {dragged ? (
-          <Animated.View pointerEvents="none" style={[styles.icon, iconStyle]} testID={`message-${message.id}-reply-hint`}>
-            <View style={[styles.disc, { backgroundColor: colors.surface2 }]}>
-              <Icon name="reply" size={18} color={colors.inkSoft} />
-            </View>
-          </Animated.View>
-        ) : null}
-        <Animated.View style={rowStyle}>{children}</Animated.View>
-      </View>
+      <Animated.View style={style}>
+        {dragged ? <ReplyHint x={x} testID={`message-${message.id}-reply-hint`} /> : null}
+        {children}
+      </Animated.View>
     </GestureDetector>
   );
 }
 
 const styles = StyleSheet.create({
-  icon: { position: 'absolute', left: space.md, top: 0, bottom: 0, justifyContent: 'center' },
+  hint: { position: 'absolute', left: space.md, top: 0, bottom: 0, justifyContent: 'center', zIndex: 1 },
   disc: { width: 32, height: 32, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
 });
