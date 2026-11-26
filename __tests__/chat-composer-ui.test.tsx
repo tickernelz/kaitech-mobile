@@ -223,6 +223,18 @@ describe('adaptive composer', () => {
     expect(StyleSheet.flatten(box.props.style).height).toBeCloseTo(320 + 48.8 + 4);
   });
 
+  it('does not count a format bar that is no longer on screen when the panel opens', async () => {
+    mockKeyboard.isVisible = true;
+    mockKeyboard.height = 320;
+    await show();
+    await fireEvent(screen.getByTestId('composer-input'), 'focus');
+    await fireEvent(screen.getByTestId('format-bar'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 48.8 } } });
+    await fireEvent.press(screen.getByTestId('format-hide'));
+    expect(screen.queryByTestId('format-bar')).toBeNull();
+    await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
+    expect(StyleSheet.flatten(screen.getByTestId('composer-panel-box', hidden).props.style).height).toBe(320);
+  });
+
   it('closes the panel when the message field is tapped while the emoji search already holds the keyboard', async () => {
     await show();
     await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
