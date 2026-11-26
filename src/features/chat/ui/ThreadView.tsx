@@ -31,6 +31,7 @@ import { messageOptions } from '../messageOptions';
 import { hasFeature } from '../features';
 import { markUnreadFrom, messageLink, removeMessage, setPinned, toggleStar, toggleTranslation, type Result } from '../messageActions';
 import { failureText } from './actions/failure';
+import { setStickerFavorite } from '../composerExtras';
 import { EmojiPicker } from './EmojiPicker';
 import { ActivitySheet } from './actions/ActivitySheet';
 import { ForwardSheet } from './actions/ForwardSheet';
@@ -44,6 +45,8 @@ import { MessageCards, useAgentCards, useRecordCards } from './coworker/Cards';
 import { WorkBar, WorkSheet } from './coworker/Work';
 import { linksOfMessage, type RecordCard } from '../coworker';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
+import { setShownMessages } from './visible';
+import { richLabel } from './RichMedia';
 import { GalleryContext } from './media/gallery';
 import { galleryOfMessages } from '../media/viewer';
 import { NotifySheet } from './NotifySheet';
@@ -139,6 +142,7 @@ export function ThreadView({
   const [highlight, setHighlight] = useState<number | null>(focusMessage ?? null);
 
   useEffect(() => openThread(channelId), [channelId]);
+  useEffect(() => () => setShownMessages([]), [channelId]);
 
   const pending = useMemo(() => allPending.filter((item) => item.channelId === channelId), [allPending, channelId]);
   const delivered = useMemo(() => allDelivered.filter((item) => item.pending.channelId === channelId), [allDelivered, channelId]);
@@ -200,7 +204,7 @@ export function ThreadView({
       out.set(
         message.parentId,
         parent
-          ? { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) }
+          ? { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: parent.rich ? richLabel(t, parent.rich) : bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) }
           : { author: '', authorId: null, text: t('thread.olderMessage') },
       );
     }
@@ -253,6 +257,9 @@ export function ThreadView({
         return;
       case 'link':
         void Clipboard.setStringAsync(messageLink(origin, message)).then(() => setNotice(t('act.linkCopied')));
+        return;
+      case 'sticker':
+        if (message.rich && 'sticker' in message.rich) void setStickerFavorite(message.rich.sticker.id as number, true).then((result) => setNotice(result.ok ? t('act.stickerSaved') : failureText(t, result)));
         return;
       case 'thread':
         void openSub(message);
@@ -470,7 +477,9 @@ export function ThreadView({
               const last = viewableItems[viewableItems.length - 1];
               atBottom.current = !last || last.index === null || last.index >= rows.length - 2;
               writeAnchor(accountId, channelId, atBottom.current || !first || first.item?.kind !== 'message' ? null : first.item.message.id);
-              watchVisible(viewableItems.flatMap((entry) => (entry.item?.kind === 'message' ? [entry.item.message] : [])));
+              const shown = viewableItems.flatMap((entry) => (entry.item?.kind === 'message' ? [entry.item.message] : []));
+              watchVisible(shown);
+              setShownMessages(shown.map((message) => message.id));
             }}
             ListHeaderComponent={thread.loadingOlder ? <ActivityIndicator style={styles.older} color={colors.primary} /> : null}
             ListEmptyComponent={empty}

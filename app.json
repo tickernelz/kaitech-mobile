@@ -154,6 +154,17 @@
           "enableRemoteNotifications": false
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Kaitech uses your location only when you send a place or share your live location in a chat.",
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": true,
+          "motionUsagePermission": false,
+          "locationFullAccuracyPermission": false
+        }
+      ],
       "expo-background-task",
       "./plugins/meeting-recording.js",
       "./plugins/with-native-sheets"
