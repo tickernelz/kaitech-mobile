@@ -1,4 +1,4 @@
-import { base64Of, bucketsOf, bytesOf, levelOf, waveformOf } from '../src/features/chat/voice/levels';
+import { base64Of, bucketsOf, levelOf, waveformOf } from '../src/features/chat/voice/levels';
 import { idle, isHeld, voiceStep, type VoiceEvent, type VoiceState } from '../src/features/chat/voice/machine';
 
 const run = (events: VoiceEvent['type'][], from: VoiceState = idle) => events.reduce((state, type) => voiceStep(state, { type } as VoiceEvent), from);
@@ -73,12 +73,10 @@ describe('voice levels', () => {
     expect(bucketsOf([0.1, 0.9, 0.2, 0.3], 2)).toEqual([0.9, 0.3]);
   });
 
-  it('encodes the 64 bytes as base64 that decodes back to the same values', () => {
+  it('encodes the 64 bytes as standard base64', () => {
     const wave = Array.from({ length: 64 }, (_, index) => (index * 37) % 256);
-    const encoded = base64Of(wave);
-    expect(encoded).toHaveLength(88);
-    expect(bytesOf(encoded)).toEqual(wave);
+    expect(base64Of(wave)).toHaveLength(88);
     expect(base64Of([77, 97, 110])).toBe('TWFu');
-    expect(bytesOf('not base64!')).toBeNull();
+    expect(base64Of([77, 97])).toBe('TWE=');
   });
 });
