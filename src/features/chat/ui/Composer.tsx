@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Platform, ScrollView, StyleSheet, TextInput, View, type TextInputSelectionChangeEvent } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { useKeyboardState } from 'react-native-keyboard-controller';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { FloatingSurface } from '../../../ui/FloatingSurface';
@@ -32,6 +31,7 @@ import { Icon, type IconName } from '../../../ui/icons';
 import { AttachSheet, MicButton, RecordingStrip, StagedFile, type Extra } from './MediaControls';
 import { useVoiceHold, type Voice } from './useVoiceHold';
 import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
+import { useBottomInset } from '../../../ui/insets';
 
 type Staged = Outgoing['files'][number];
 
@@ -71,8 +71,8 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
 ) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardState((state) => state.isVisible);
+  const bottom = useBottomInset(space.sm, keyboardVisible);
   const { windowClass } = useWindowClass();
   const { size } = useChatFormat();
   const maxBytes = useUploadLimit(chatClient()?.account, 'chat');
@@ -300,7 +300,6 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
 
   const canSend = (text.trim().length > 0 || files.length > 0) && !recording;
   const glass = useSurface() === 'glass';
-  const bottom = keyboardVisible ? space.sm : Math.max(insets.bottom, space.sm);
 
   return (
     <View style={[styles.container, glass ? styles.bare : { borderTopColor: colors.line }, { backgroundColor: colors.canvas, paddingBottom: bottom }]} testID="composer">

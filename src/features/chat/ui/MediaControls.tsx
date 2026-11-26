@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Overlay } from '../../../ui/Overlay';
 import { Pressable } from '../../../ui/Pressable';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { attachSources, type AttachSource } from './attach';
@@ -10,17 +9,18 @@ import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
 import { SheetItem } from '../../../ui/Sheet';
 import { cancelDistance, type Recording, type useVoiceHold } from './useVoiceHold';
+import { useBottomInset } from '../../../ui/insets';
 
 export type Extra = { key: string; icon: IconName; label: string; detail?: string; disabled?: boolean; onPress: () => void };
 
 export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[] }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomInset = useBottomInset(space.lg);
   return (
     <Overlay visible={visible} transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button">
-        <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} accessibilityViewIsModal onPress={() => undefined}>
+        <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }]} accessibilityViewIsModal onPress={() => undefined}>
           <Text variant="title" accessibilityRole="header">
             {t('composer.attachTitle')}
           </Text>
