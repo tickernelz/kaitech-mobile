@@ -331,7 +331,7 @@ function onNotifications(notifications: Notification[]) {
       const own = ownSend(payload.temporary_id, messages);
       if (own) set({ sent: { ...state.sent, [own.messageId]: own.key } });
       upsertMessages(channelId, messages);
-      if (own) void confirmSend(own.key);
+      if (own) void confirmSend(own.key, own.messageId);
       const known = touchConversation(channelId, messages[messages.length - 1]);
       if (!known) void refreshConversations();
       if (active && state.openChannels.includes(channelId)) scheduleRead(channelId);
@@ -821,9 +821,10 @@ function ownSend(temporaryId: unknown, messages: Message[]): { key: string; mess
   return { key: temporaryId, messageId: Math.max(...mine.map((message) => message.id)) };
 }
 
-async function confirmSend(key: string) {
+async function confirmSend(key: string, messageId: number) {
   const confirmed = await outbox?.confirm(key);
   confirmed?.files.forEach((file) => dropFile(file.uri));
+  if (confirmed) deliveredListeners.forEach((listener) => listener({ pending: confirmed, messageId, data: null }));
 }
 
 export async function discardSend(key: string) {
