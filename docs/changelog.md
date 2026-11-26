@@ -2,6 +2,25 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.6.1 - 2026-11-26
+
+### Changed
+
+- Android: the tab bar and the floating action button are drawn in React Native instead of Jetpack Compose (`@expo/ui` removed), which brings cold start on the Meizu Mblu 21 back to about 1.2 s from about 1.5 s (#99, ZHA-7439).
+- E2E: Android phone cells get a 4 GB emulator and record when adb loses the emulator; Maestro's driver port is pinned below the Android ephemeral range (#111, #117, ZHA-7851). Sign-in runs through a fresh Chrome (#113, ZHA-7882). The Coworker flows ask a real question instead of the text "undefined" (#114, ZHA-7439).
+- E2E: the layout check fails when the chat composer ends less than 8 dp above the navigation bar; the merge gate is the required CI checks, the reviewer's approval and the changed journey on a physical phone (#109, ZHA-7854; #116, ZHA-7546).
+
+### Fixed
+
+- Bottom sheets, the chat composer and the MoM sheets keep their gap above the gesture pill and the three-button navigation bar instead of sitting on it, and add no extra space while the keyboard is open (#109, ZHA-7854).
+- Android: the footer of sign-in and other form screens stays above the keyboard (#71, ZHA-7546).
+- Chat: the thread no longer flickers when a message is sent or when the list is flung fast (#104, ZHA-7803).
+- Calls: the app no longer crashes when a peer stops sharing their screen in a call (#105, ZHA-7832).
+
+### Known gaps
+
+- iOS below 26: the tab bar keeps its items on the home indicator edge, like UIKit; not checked on an iPhone (ZHA-7854).
+- iOS: dialogs on screens that need a signed-in account are not yet proven on the simulator; that waits for iOS sign-in in CI (ZHA-7277, follow-up ZHA-7797).
 ## 0.6.0 - 2026-11-25
 
 ### Added
