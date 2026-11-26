@@ -42,7 +42,7 @@ hold_server "${GITHUB_RUN_ID:-local} call $size-$orientation-$locale"
 node scripts/call-peer.mjs start > "$out/peer-start.json"
 
 status=0
-maestro --device "$serial" test .maestro/signed-in/call.yaml \
+maestro --device "$serial" --driver-host-port 7001 test .maestro/signed-in/call.yaml \
   -e SERVER="$SERVER" -e LOGIN="$LOGIN" -e PASSWORD="$PASSWORD" -e PEER="$PEER" \
   -e APP_LANGUAGE="$language" -e DEVICE_SIZE="$size" -e ORIENTATION="$orientation" \
   --format junit --output "$out/junit.xml" --test-output-dir "$out/maestro" || status=$?

@@ -85,7 +85,7 @@ if [ "$runner" = auto ]; then
   if [ "$rotation" = 0 ]; then runner=maestro-runner; else runner=maestro; fi
 fi
 case "$runner" in
-  maestro) run=(maestro ${ANDROID_SERIAL:+--device "$ANDROID_SERIAL"}) ;;
+  maestro) run=(maestro ${ANDROID_SERIAL:+--device "$ANDROID_SERIAL"} --driver-host-port 7001) ;;
   maestro-runner) run=(maestro-runner --no-ansi --platform android --driver devicelab ${ANDROID_SERIAL:+--device "$ANDROID_SERIAL"}) ;;
 esac
 rotation_state() { adb shell dumpsys window displays | tr -d '\r' | grep -oE '(mUserRotationMode|mUserRotation|mRotation|mCurrentAppOrientation|mLastOrientation)=[A-Z_0-9]+' | sort -u | tr '\n' ' '; echo; }
