@@ -2,6 +2,21 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.8.0 - 2026-11-26
+
+### Added
+
+- Chat: photos, videos, PDFs and other files preview like WhatsApp. A photo tile keeps its real shape and opens a full-screen viewer with pinch and double-tap zoom; a video shows its first frame, length and a play button and starts playing at once in the viewer; a PDF card shows its first page, page count and size and opens an in-app reader; other files show an icon per kind with a download control (progress with cancel, retry after a failure, share when done). The viewer swipes across every picture and video of the conversation, shares, and saves to the gallery. The same applies to threads, groups, channels and Coworker replies (#102, ZHA-7804).
+
+### Changed
+
+- Downloaded media, previews and their sizes are kept per account under the app cache and removed when the account is forgotten (#102, ZHA-7804).
+- E2E: `signed-in/chat-media.yaml` sends a photo, a video, a PDF and a document and checks every preview, the video playing, the swipe, the PDF reader and the document download, inside the message it sent and after clearing a leftover voice draft; it passed on the Meizu Mblu 21 (#102, ZHA-7804).
+
+### Known gaps
+
+- iOS: the media viewer, video playback and PDF reader compile in the IPA job but have not run on an iPhone or the simulator (ZHA-7804).
+
 ## 0.7.1 - 2026-11-26
 
 Ships everything listed under 0.7.0, which was not published.
