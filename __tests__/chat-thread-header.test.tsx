@@ -11,6 +11,7 @@ jest.mock('../src/features/call/ui/CallButton', () => {
   return { CallButton: () => createElement(View, { style: { width: 44, height: 44, marginLeft: 4 }, testID: 'call-start' }) };
 });
 require('../src/i18n');
+import { render, screen } from '@testing-library/react-native';
 import { measure, type Scene } from './fixtures/measure';
 import { ThreadHeader, type ThreadHeaderProps } from '../src/features/chat/ui/thread/ThreadHeader';
 
@@ -56,7 +57,6 @@ describe('thread header title room', () => {
   });
 
   it('lets the title wrap to two lines under large text and keeps one line otherwise', async () => {
-    const { render, screen } = require('@testing-library/react-native') as typeof import('@testing-library/react-native');
     await render(header(phone, { largeText: true }).element);
     expect(screen.getByTestId('thread-title').props.numberOfLines).toBe(2);
     await render(header(phone).element);
