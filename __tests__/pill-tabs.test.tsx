@@ -10,21 +10,27 @@ let mockPending = 0;
 let mockWindow: 'compact' | 'medium' | 'expanded' = 'compact';
 let mockKeyboard = false;
 let mockReduceMotion = false;
+let mockSeeThrough = true;
 
 jest.mock('react-native-reanimated', () => {
   const { View } = require('react-native');
   const chain = (): unknown => new Proxy(() => undefined, { get: () => chain(), apply: () => chain() });
   return {
     __esModule: true,
-    default: { View },
+    default: { View, Text: require('react-native').Text },
     Easing: chain(),
     useSharedValue: (initial: unknown) => {
-      let value = initial;
-      return { get: () => value, set: (next: unknown) => (value = next) };
+      const kept = require('react').useRef(null);
+      if (!kept.current) {
+        let value = initial;
+        kept.current = { get: () => value, set: (next: unknown) => (value = next) };
+      }
+      return kept.current;
     },
     useAnimatedStyle: (style: () => object) => style(),
     withSpring: (value: unknown) => mockSpring(value),
     withTiming: (value: unknown) => value,
+    interpolateColor: (_: number, __: number[], colors: string[]) => colors[1],
   };
 });
 jest.mock('expo-router/ui', () => {
@@ -48,9 +54,11 @@ jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync:
 jest.mock('../src/features/activity/useActivityOverview', () => ({ usePendingActivities: () => mockPending }));
 jest.mock('../src/layout/windowClass', () => ({ useWindowClass: () => ({ windowClass: mockWindow }) }));
 jest.mock('../src/theme/reduceMotion', () => ({ useReduceMotion: () => mockReduceMotion }));
+jest.mock('../src/ui/glass', () => ({ useSeeThrough: () => mockSeeThrough }));
 
 require('../src/i18n');
 const { PillTabs } = require('../src/layout/PillTabs') as typeof import('../src/layout/PillTabs');
+const { PillBar: MaterialPill } = require('../src/layout/PillBar.android') as typeof import('../src/layout/PillBar.android');
 const { glyphLeft, labelRoom, openness, pillCover, pillPadding, pillSlots, pillWidth, slotLeft, useTabBarSpace } = require('../src/layout/tabBar') as typeof import('../src/layout/tabBar');
 
 const metrics = { frame: { x: 0, y: 0, width: 411, height: 914 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
@@ -75,9 +83,12 @@ beforeEach(() => {
   mockWindow = 'compact';
   mockKeyboard = false;
   mockReduceMotion = false;
+  mockSeeThrough = true;
 });
 
-describe('floating pill tab bar', () => {
+const flat = (testID: string) => Object.assign({}, ...[screen.getByTestId(testID, hidden).props.style].flat(3).filter(Boolean));
+
+describe('floating pill tab bar (shared behaviour, iOS below 26 look)', () => {
   test('a phone gets the floating pill with the current tab selected and its label on one line', async () => {
     await render(tree());
     expect(screen.getByTestId('navigation-bar')).toBeTruthy();
@@ -99,13 +110,20 @@ describe('floating pill tab bar', () => {
     expect(mockSelection).not.toHaveBeenCalled();
   });
 
-  test('the selected slot is the wide one, so the open pill sits under the selected tab', async () => {
+  test('iOS gives every tab an equal slot with its label under the icon, like the system bar', async () => {
     mockFocused = 'mom';
     await render(tree());
-    const width = (name: string) => Object.assign({}, ...screen.getByTestId(`tab-button-${name}`).props.style.filter(Boolean)).width;
-    expect(width('mom')).toBeGreaterThan(width('chat'));
-    expect(width('chat')).toBe(width('discovery'));
-    expect(width('activity')).toBe(width('discovery'));
+    const widths = ['chat', 'discovery', 'mom', 'activity'].map((name) => flat(`tab-button-${name}`).width);
+    expect(new Set(widths).size).toBe(1);
+    for (const name of ['chat', 'discovery', 'mom', 'activity']) expect(screen.getByTestId(`tab-label-${name}`, hidden)).toBeTruthy();
+  });
+
+  test('the capsule is slightly see-through, and solid when Reduce Transparency or Increase Contrast is on', async () => {
+    const view = await render(tree());
+    expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}D1$/i);
+    mockSeeThrough = false;
+    await act(async () => view.rerender(tree()));
+    expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}$/i);
   });
 
   test('the highlight springs to a newly selected tab', async () => {
@@ -180,6 +198,59 @@ describe('floating pill tab bar', () => {
     expect(screen.getByTestId('tab-badge-activity')).toBeTruthy();
     await act(async () => fireEvent.press(screen.getByTestId('tab-button-discovery')));
     expect(mockSwitch).toHaveBeenCalledWith('discovery', {});
+  });
+});
+
+describe('Android Material 3 Expressive pill', () => {
+  function material() {
+    return (
+      <SafeAreaProvider initialMetrics={metrics}>
+        <MaterialPill />
+      </SafeAreaProvider>
+    );
+  }
+
+  test('the selected tab opens into the wide slot with its label beside the icon; the others stay narrow', async () => {
+    mockFocused = 'mom';
+    await render(material());
+    const width = (name: string) => flat(`tab-button-${name}`).width;
+    expect(width('mom')).toBeGreaterThan(width('chat'));
+    expect(width('chat')).toBe(width('discovery'));
+    expect(width('activity')).toBe(width('discovery'));
+    expect(selected('mom')).toBe(true);
+  });
+
+  test('pressing a tab morphs the indicator corners and the indicator springs to the new tab', async () => {
+    const view = await render(material());
+    const resting = flat('tab-highlight').borderRadius;
+    mockSpring.mockClear();
+    await act(async () => fireEvent(screen.getByTestId('tab-button-activity'), 'pressIn'));
+    expect(mockSpring).toHaveBeenCalledWith(1);
+    await act(async () => view.rerender(material()));
+    expect(flat('tab-highlight').borderRadius).toBeLessThan(resting);
+    await act(async () => fireEvent.press(screen.getByTestId('tab-button-activity')));
+    expect(mockSwitch).toHaveBeenCalledWith('activity', {});
+    mockFocused = 'activity';
+    await act(async () => view.rerender(material()));
+    expect(mockSpring).toHaveBeenCalledWith(3);
+  });
+
+  test('the tonal capsule is see-through without a shadow, and solid with its elevation when legibility settings ask for it', async () => {
+    const view = await render(material());
+    expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}EB$/i);
+    expect(flat('navigation-bar').elevation).toBeUndefined();
+    mockSeeThrough = false;
+    await act(async () => view.rerender(material()));
+    expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(flat('navigation-bar').elevation).toBe(3);
+  });
+
+  test('pending activities show the badge and the keyboard hides the bar from touches', async () => {
+    mockPending = 7;
+    mockKeyboard = true;
+    await render(material());
+    expect(screen.getByText('7', hidden)).toBeTruthy();
+    expect(screen.getByTestId('tab-bar').props.pointerEvents).toBe('none');
   });
 });
 

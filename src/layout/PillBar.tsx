@@ -1,176 +1,76 @@
-import * as Haptics from 'expo-haptics';
-import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { useKeyboardState } from 'react-native-keyboard-controller';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming, type SharedValue } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePendingActivities } from '../features/activity/useActivityOverview';
-import { radius, space, useTheme } from '../theme';
-import { duration, easing, spring } from '../theme/motion';
-import { useReduceMotion } from '../theme/reduceMotion';
+import { StyleSheet, View } from 'react-native';
+import Animated, { interpolateColor, useAnimatedStyle } from 'react-native-reanimated';
+import { radius, useTheme, type Colors } from '../theme';
 import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
-import { Text } from '../ui/Text';
-import { glyphLeft, labelRoom, openness, pillCover, pillHeight, pillPadding, pillSlots, pillWidth } from './tabBar';
-import { badgeText, tabIcons, tabs, type TabName } from './tabs';
-import { useTab } from './useTab';
+import { PillBadge } from './PillBadge';
+import { openness, pillHeight, pillPadding } from './tabBar';
+import { tabIcons } from './tabs';
+import { usePillBar, type PillBarState, type PillTab } from './usePillBar';
 
-type Ink = { highlight: string; active: string; idle: string; badge: string; onBadge: string };
-
-type Motion = { position: SharedValue<number>; pressed: SharedValue<number>; pressScale: SharedValue<number>; wide: number; narrow: number; still: boolean };
-
-function tick() {
-  const done = Platform.OS === 'android' ? Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Virtual_Key) : Haptics.selectionAsync();
-  void done.catch(() => undefined);
-}
-
-function Badge({ ink }: { ink: Ink }) {
-  const count = usePendingActivities();
-  const text = badgeText(count);
-  const reduceMotion = useReduceMotion();
-  const scale = useSharedValue(1);
-  const shown = useRef(text);
-  useEffect(() => {
-    const before = shown.current;
-    shown.current = text;
-    if (!text || text === before || reduceMotion) return;
-    scale.set(before ? 1.25 : 0.4);
-    scale.set(withSpring(1, spring.spatialFast));
-  }, [text, reduceMotion, scale]);
-  const pop = useAnimatedStyle(() => ({ transform: [{ scale: scale.get() }] }));
-  if (!text) return null;
-  return (
-    <Animated.View style={[styles.badge, { backgroundColor: ink.badge }, pop]} testID="tab-badge-activity">
-      <Text variant="label" maxFontSizeMultiplier={1.2} style={[styles.badgeText, { color: ink.onBadge }]}>
-        {text}
-      </Text>
-    </Animated.View>
-  );
-}
-
-function Glyph({ name, index, ink, motion }: { name: TabName; index: number; ink: Ink; motion: Motion }) {
-  const { t } = useTranslation();
-  const label = useSharedValue(0);
-  const { position, pressed, pressScale, wide, narrow } = motion;
-  const place = useAnimatedStyle(() => {
-    const squeeze = pressed.get() === index ? 1 - 0.08 * pressScale.get() : 1;
-    return { transform: [{ translateX: glyphLeft(index, position.get(), wide, narrow, label.get()) }, { scale: squeeze }] };
-  });
+function Glyph({ tab, bar, colors, slot }: { tab: PillTab; bar: PillBarState; colors: Colors; slot: number }) {
+  const { index } = tab;
+  const { position, pressed, pressScale } = bar;
+  const place = useAnimatedStyle(() => ({ transform: [{ translateX: index * slot }, { scale: pressed.get() === index ? 1 - 0.08 * pressScale.get() : 1 }] }));
   const fill = useAnimatedStyle(() => ({ opacity: openness(index, position.get()) }));
   const line = useAnimatedStyle(() => ({ opacity: 1 - openness(index, position.get()) }));
-  const words = useAnimatedStyle(() => ({ opacity: Math.min(1, Math.max(0, (openness(index, position.get()) - 0.5) * 2)) }));
+  const ink = useAnimatedStyle(() => ({ color: interpolateColor(openness(index, position.get()), [0, 1], [colors.inkSoft, colors.selectInk]) }));
   return (
-    <Animated.View style={[styles.glyph, place]}>
+    <Animated.View style={[styles.glyph, { width: slot }, place]}>
       <View style={styles.icon}>
         <Animated.View style={[StyleSheet.absoluteFill, line]}>
-          <Icon name={tabIcons[name]} color={ink.idle} />
+          <Icon name={tabIcons[tab.name]} color={colors.inkSoft} />
         </Animated.View>
         <Animated.View style={[StyleSheet.absoluteFill, fill]}>
-          <Icon name={tabIcons[name]} color={ink.active} variant="fill" />
+          <Icon name={tabIcons[tab.name]} color={colors.selectInk} variant="fill" />
         </Animated.View>
-        {name === 'activity' ? <Badge ink={ink} /> : null}
+        {tab.name === 'activity' ? <PillBadge text={bar.badge} fill={colors.danger} ink={colors.onPrimary} edge={colors.surface} reduceMotion={bar.reduceMotion} style={styles.badge} /> : null}
       </View>
-      <Animated.View style={words}>
-        <Text
-          variant="label"
-          numberOfLines={1}
-          maxFontSizeMultiplier={1.3}
-          onLayout={(event) => {
-            label.set(event.nativeEvent.layout.width);
-          }}
-          style={[styles.label, { color: ink.active, maxWidth: labelRoom(wide) }]}
-          testID={`tab-label-${name}`}>
-          {t(`tabs.${name}`)}
-        </Text>
-      </Animated.View>
+      <Animated.Text numberOfLines={1} maxFontSizeMultiplier={1.2} style={[styles.label, ink]} testID={`tab-label-${tab.name}`}>
+        {tab.label}
+      </Animated.Text>
     </Animated.View>
-  );
-}
-
-function Slot({ name, index, width, motion, tab }: { name: TabName; index: number; width: number; motion: Motion; tab: ReturnType<typeof useTab> }) {
-  const { t } = useTranslation();
-  const { material } = useTheme();
-  const { focused, open } = tab;
-  const count = usePendingActivities();
-  const [keyboardFocus, setKeyboardFocus] = useState(false);
-  const pending = name === 'activity' && badgeText(count) ? `, ${t('activities.pending', { count })}` : '';
-  return (
-    <Pressable
-      onPress={() => {
-        if (open()) tick();
-      }}
-      onPressIn={() => {
-        if (motion.still) return;
-        motion.pressed.set(index);
-        motion.pressScale.set(withSpring(1, spring.effectsFast));
-      }}
-      onPressOut={() => {
-        if (motion.still) return;
-        motion.pressScale.set(withSpring(0, spring.effects));
-      }}
-      onFocus={() => setKeyboardFocus(true)}
-      onBlur={() => setKeyboardFocus(false)}
-      accessibilityRole="tab"
-      accessibilityState={{ selected: focused }}
-      accessibilityLabel={`${t(`tabs.${name}`)}${pending}`}
-      testID={`tab-button-${name}`}
-      style={[styles.slot, { width }, keyboardFocus && { borderColor: material.secondary, borderWidth: 3 }]}
-    />
   );
 }
 
 export function PillBar() {
-  const byName: Record<TabName, ReturnType<typeof useTab>> = { chat: useTab('chat'), discovery: useTab('discovery'), mom: useTab('mom'), activity: useTab('activity') };
-  const selected = tabs.findIndex((name) => byName[name].focused);
-  const { colors, material, scheme } = useTheme();
-  const insets = useSafeAreaInsets();
-  const window = useWindowDimensions();
-  const reduceMotion = useReduceMotion();
-  const keyboard = useKeyboardState((state) => state.isVisible);
-  const width = pillWidth(window.width, insets.left + insets.right);
-  const { wide, narrow } = pillSlots(width, tabs.length);
-  const position = useSharedValue(selected);
-  const pressed = useSharedValue(-1);
-  const pressScale = useSharedValue(0);
-  const hidden = useSharedValue(keyboard ? 1 : 0);
-  useEffect(() => {
-    position.set(reduceMotion ? selected : withSpring(selected, spring.spatial));
-  }, [selected, reduceMotion, position]);
-  useEffect(() => {
-    const target = keyboard ? 1 : 0;
-    hidden.set(reduceMotion ? target : withTiming(target, { duration: keyboard ? duration.quick : duration.base, easing: keyboard ? easing.exit : easing.standard }));
-  }, [keyboard, reduceMotion, hidden]);
-  const cover = pillCover(insets.bottom);
+  const { colors, scheme } = useTheme();
+  const bar = usePillBar();
+  const { position, pressScale, hidden, cover, width, seeThrough } = bar;
+  const slot = (width - 2 * pillPadding) / bar.items.length;
   const lift = useAnimatedStyle(() => ({ opacity: 1 - hidden.get(), transform: [{ translateY: hidden.get() * cover }] }));
-  const glide = useAnimatedStyle(() => {
-    const between = position.get() - Math.floor(position.get());
-    return { opacity: Math.min(1, Math.max(0, position.get() + 1)), transform: [{ translateX: position.get() * narrow }, { scaleX: 1 + 0.06 * Math.sin(Math.PI * between) }] };
+  const lens = useAnimatedStyle(() => {
+    const travel = Math.sin(Math.PI * (position.get() - Math.floor(position.get())));
+    const grow = 1 + 0.06 * travel + 0.05 * pressScale.get();
+    return { opacity: Math.min(1, Math.max(0, position.get() + 1)), transform: [{ translateX: position.get() * slot }, { scaleX: grow }, { scaleY: grow }] };
   });
-  const ios = Platform.OS === 'ios';
-  const ink: Ink = {
-    highlight: ios ? colors.primary : material.secondaryContainer,
-    active: ios ? colors.onPrimary : material.onSecondaryContainer,
-    idle: material.onSurfaceVariant,
-    badge: material.error,
-    onBadge: material.onError,
-  };
-  const motion: Motion = { position, pressed, pressScale, wide, narrow, still: reduceMotion };
-  const lifted = scheme === 'light' ? styles.shadowLight : styles.shadowDark;
   return (
-    <Animated.View pointerEvents={keyboard ? 'none' : 'box-none'} testID="tab-bar" style={[styles.wrap, { bottom: insets.bottom + space.sm, paddingLeft: insets.left, paddingRight: insets.right }, lift]}>
+    <Animated.View
+      pointerEvents={bar.keyboard ? 'none' : 'box-none'}
+      testID="tab-bar"
+      style={[styles.wrap, { bottom: bar.bottom, paddingLeft: bar.sideInsets.left, paddingRight: bar.sideInsets.right }, lift]}>
       <View
         accessibilityRole="tablist"
-        style={[styles.capsule, lifted, { width, backgroundColor: material.surfaceContainer, borderColor: material.outlineVariant }]}
+        style={[styles.capsule, scheme === 'dark' ? styles.shadowDark : styles.shadowLight, { width, borderColor: colors.line, backgroundColor: seeThrough ? `${colors.surface}D1` : colors.surface }]}
         testID="navigation-bar">
         <View style={styles.track} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <Animated.View style={[styles.highlight, { width: wide, backgroundColor: ink.highlight }, glide]} testID="tab-highlight" />
-          {tabs.map((name, index) => (
-            <Glyph key={name} name={name} index={index} ink={ink} motion={motion} />
+          <Animated.View style={[styles.lens, { width: slot, backgroundColor: colors.select }, lens]} testID="tab-highlight" />
+          {bar.items.map((tab) => (
+            <Glyph key={tab.name} tab={tab} bar={bar} colors={colors} slot={slot} />
           ))}
         </View>
-        {tabs.map((name, index) => (
-          <Slot key={name} name={name} index={index} width={index === selected ? wide : narrow} motion={motion} tab={byName[name]} />
+        {bar.items.map((tab) => (
+          <Pressable
+            key={tab.name}
+            onPress={tab.press}
+            onPressIn={tab.pressIn}
+            onPressOut={tab.pressOut}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: tab.focused }}
+            accessibilityLabel={tab.spoken}
+            testID={`tab-button-${tab.name}`}
+            style={[styles.slot, { width: slot }]}
+          />
         ))}
       </View>
     </Animated.View>
@@ -180,14 +80,13 @@ export function PillBar() {
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   capsule: { height: pillHeight, padding: pillPadding, borderRadius: radius.pill, flexDirection: 'row', borderWidth: StyleSheet.hairlineWidth },
-  shadowLight: { elevation: 3, shadowColor: '#000000', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
-  shadowDark: { elevation: 3, shadowColor: '#000000', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+  shadowLight: { shadowColor: '#000000', shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
+  shadowDark: { shadowColor: '#000000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   track: { position: 'absolute', top: pillPadding, left: pillPadding, right: pillPadding, bottom: pillPadding },
-  highlight: { position: 'absolute', top: 0, bottom: 0, left: 0, borderRadius: radius.pill },
-  glyph: { position: 'absolute', top: 0, bottom: 0, left: 0, flexDirection: 'row', alignItems: 'center' },
+  lens: { position: 'absolute', top: 0, bottom: 0, left: 0, borderRadius: radius.pill },
+  glyph: { position: 'absolute', top: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', gap: 2 },
   icon: { width: 24, height: 24 },
-  label: { marginLeft: space.sm },
-  slot: { height: pillHeight - 2 * pillPadding, borderRadius: radius.pill, overflow: 'hidden' },
-  badge: { position: 'absolute', top: -6, left: 14, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  badgeText: { fontSize: 10, lineHeight: 12 },
+  label: { fontSize: 10, lineHeight: 12, fontWeight: '600', maxWidth: '100%', paddingHorizontal: 4 },
+  slot: { height: pillHeight - 2 * pillPadding, borderRadius: radius.pill },
+  badge: { top: -6, left: 14 },
 });
