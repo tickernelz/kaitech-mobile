@@ -1,4 +1,5 @@
 import { openDatabaseSync, type SQLiteDatabase } from 'expo-sqlite';
+import { fromCache, toCache, type Cached } from './rich';
 import type { Conversation, Message, Pending } from './types';
 
 const keepPerChannel = 200;
@@ -54,16 +55,16 @@ export async function dropConversation(account: string, id: number) {
 }
 
 export function cachedMessages(account: string, channel: number): Message[] {
-  return parse<Message>(
+  return parse<Cached<Message>>(
     db().getAllSync<{ json: string }>('SELECT json FROM (SELECT id, json FROM messages WHERE account = ? AND channel = ? ORDER BY id DESC LIMIT ?) ORDER BY id', [account, channel, keepPerChannel]),
-  );
+  ).map((raw) => fromCache<Message>(raw));
 }
 
 export async function storeMessages(account: string, channel: number, messages: Message[]) {
   if (!messages.length) return;
   await db().withTransactionAsync(async () => {
     for (const message of messages) {
-      await db().runAsync('INSERT OR REPLACE INTO messages (account, channel, id, json) VALUES (?, ?, ?, ?)', [account, channel, message.id, JSON.stringify(message)]);
+      await db().runAsync('INSERT OR REPLACE INTO messages (account, channel, id, json) VALUES (?, ?, ?, ?)', [account, channel, message.id, JSON.stringify(toCache(message))]);
     }
     await db().runAsync(
       'DELETE FROM messages WHERE account = ? AND channel = ? AND id < (SELECT MIN(id) FROM (SELECT id FROM messages WHERE account = ? AND channel = ? ORDER BY id DESC LIMIT ?))',
@@ -73,7 +74,7 @@ export async function storeMessages(account: string, channel: number, messages: 
 }
 
 export function pendingFor(account: string): Pending[] {
-  return parse<Pending>(db().getAllSync<{ json: string }>('SELECT json FROM outbox WHERE account = ? ORDER BY created', [account]));
+  return parse<Cached<Pending>>(db().getAllSync<{ json: string }>('SELECT json FROM outbox WHERE account = ? ORDER BY created', [account])).map((raw) => fromCache<Pending>(raw));
 }
 
 export function allPendingFileUris(): string[] {
@@ -81,7 +82,7 @@ export function allPendingFileUris(): string[] {
 }
 
 export async function savePending(item: Pending) {
-  await db().runAsync('INSERT OR REPLACE INTO outbox (key, account, created, json) VALUES (?, ?, ?, ?)', [item.key, item.accountId, item.createdAt, JSON.stringify(item)]);
+  await db().runAsync('INSERT OR REPLACE INTO outbox (key, account, created, json) VALUES (?, ?, ?, ?)', [item.key, item.accountId, item.createdAt, JSON.stringify(toCache(item))]);
 }
 
 export async function removePending(key: string) {

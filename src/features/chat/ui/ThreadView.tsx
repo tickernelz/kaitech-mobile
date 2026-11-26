@@ -7,7 +7,7 @@ import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { readableWidth } from '../../../layout/windowClass';
+import { readableWidth, useLargeText } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { useReduceMotion } from '../../../theme/reduceMotion';
 import { Text } from '../../../ui/Text';
@@ -32,6 +32,7 @@ import { messageOptions } from '../messageOptions';
 import { hasFeature } from '../features';
 import { markUnreadFrom, messageLink, removeMessage, setPinned, toggleStar, toggleTranslation, type Result } from '../messageActions';
 import { failureText } from './actions/failure';
+import { setStickerFavorite } from '../composerExtras';
 import { EmojiPicker } from './EmojiPicker';
 import { ActivitySheet } from './actions/ActivitySheet';
 import { ForwardSheet } from './actions/ForwardSheet';
@@ -45,6 +46,8 @@ import { MessageCards, useAgentCards, useRecordCards } from './coworker/Cards';
 import { WorkBar, WorkSheet } from './coworker/Work';
 import { linksOfMessage, type RecordCard } from '../coworker';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
+import { setShownMessages } from './visible';
+import { richLabel } from './RichMedia';
 import { GalleryContext } from './media/gallery';
 import { galleryOfMessages } from '../media/viewer';
 import { NotifySheet } from './NotifySheet';
@@ -76,6 +79,7 @@ export function ThreadView({
 }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
+  const largeText = useLargeText();
   const [notifying, setNotifying] = useState(false);
   const [threadMenu, setThreadMenu] = useState(false);
   const [workSheet, setWorkSheet] = useState(false);
@@ -139,6 +143,7 @@ export function ThreadView({
   const [highlight, setHighlight] = useState<number | null>(focusMessage ?? null);
 
   useEffect(() => openThread(channelId), [channelId]);
+  useEffect(() => () => setShownMessages([]), [channelId]);
 
   const pending = useMemo(() => allPending.filter((item) => item.channelId === channelId), [allPending, channelId]);
   const delivered = useMemo(() => allDelivered.filter((item) => item.pending.channelId === channelId), [allDelivered, channelId]);
@@ -200,7 +205,7 @@ export function ThreadView({
       out.set(
         message.parentId,
         parent
-          ? { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) }
+          ? { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: parent.rich ? richLabel(t, parent.rich) : bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) }
           : { author: '', authorId: null, text: t('thread.olderMessage') },
       );
     }
@@ -253,6 +258,9 @@ export function ThreadView({
         return;
       case 'link':
         void Clipboard.setStringAsync(messageLink(origin, message)).then(() => setNotice(t('act.linkCopied')));
+        return;
+      case 'sticker':
+        if (message.rich && 'sticker' in message.rich) void setStickerFavorite(message.rich.sticker.id as number, true).then((result) => setNotice(result.ok ? t('act.stickerSaved') : failureText(t, result)));
         return;
       case 'thread':
         void openSub(message);
@@ -373,7 +381,7 @@ export function ThreadView({
   const parentId = thread.info?.parentId ?? null;
   const back = twoPane ? (parentId ? () => onOpenChannel(parentId) : undefined) : onBack;
   const header = (
-    <View style={[styles.header, { borderBottomColor: colors.line }]}>
+    <View style={[styles.header, largeText && styles.headerTight, { borderBottomColor: colors.line }]}>
       {!back ? null : (
         <Pressable accessibilityRole="button" accessibilityLabel={t('thread.back')} onPress={back} hitSlop={8} style={styles.headerButton} testID="thread-back">
           <Icon name="back" color={colors.ink} />
@@ -396,7 +404,7 @@ export function ThreadView({
         />
       </Pressable>
       <Pressable style={styles.heading} accessible={false} disabled={!readStatus} onPress={readStatus} testID="thread-heading">
-        <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
+        <Text variant="headline" numberOfLines={largeText ? 2 : 1} accessibilityRole="header" testID="thread-title">
           {name}
         </Text>
         <Text
@@ -471,7 +479,9 @@ export function ThreadView({
               const last = viewableItems[viewableItems.length - 1];
               atBottom.current = !last || last.index === null || last.index >= rows.length - 2;
               writeAnchor(accountId, channelId, atBottom.current || !first || first.item?.kind !== 'message' ? null : first.item.message.id);
-              watchVisible(viewableItems.flatMap((entry) => (entry.item?.kind === 'message' ? [entry.item.message] : [])));
+              const shown = viewableItems.flatMap((entry) => (entry.item?.kind === 'message' ? [entry.item.message] : []));
+              watchVisible(shown);
+              setShownMessages(shown.map((message) => message.id));
             }}
             ListHeaderComponent={thread.loadingOlder ? <ActivityIndicator style={styles.older} color={colors.primary} /> : null}
             ListEmptyComponent={empty}
@@ -568,6 +578,7 @@ const styles = StyleSheet.create({
   heading: { flex: 1, minHeight: touchTarget, justifyContent: 'center' },
   center: { textAlign: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md, paddingVertical: space.sm, borderBottomWidth: StyleSheet.hairlineWidth, minHeight: 60 },
+  headerTight: { gap: space.xs },
   headerButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   content: { paddingVertical: space.md },
   day: { alignItems: 'center', paddingVertical: space.sm },

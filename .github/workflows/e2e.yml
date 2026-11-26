@@ -345,7 +345,7 @@ jobs:
           size: ${{ matrix.size }}
           locale: ${{ matrix.locale }}
           orientations: ${{ matrix.orientations }}
-          flows: .maestro/signed-in/message-actions.yaml .maestro/signed-in/thread-actions.yaml .maestro/signed-in/composer-extras.yaml .maestro/signed-in/composer-voice.yaml .maestro/signed-in/new-conversation.yaml .maestro/signed-in/chat-media.yaml
+          flows: .maestro/signed-in/message-actions.yaml .maestro/signed-in/thread-actions.yaml .maestro/signed-in/composer-extras.yaml .maestro/signed-in/composer-voice.yaml .maestro/signed-in/new-conversation.yaml .maestro/signed-in/chat-media.yaml .maestro/signed-in/chat-rich.yaml
           motion-flow: ${{ matrix.size == 'phone' && '.maestro/signed-in/chat-motion' || '' }}
           runner: maestro
           audio: 'true'

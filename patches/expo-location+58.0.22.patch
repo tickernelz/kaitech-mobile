@@ -1,0 +1,20 @@
+diff --git a/node_modules/expo-location/android/src/main/java/expo/modules/location/services/LocationTaskService.kt b/node_modules/expo-location/android/src/main/java/expo/modules/location/services/LocationTaskService.kt
+index 8f13054..34b2c78 100644
+--- a/node_modules/expo-location/android/src/main/java/expo/modules/location/services/LocationTaskService.kt
++++ b/node_modules/expo-location/android/src/main/java/expo/modules/location/services/LocationTaskService.kt
+@@ -103,6 +103,15 @@ class LocationTaskService : Service() {
+       }
+       val contentIntent = PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_UPDATE_CURRENT or mutableFlag)
+       builder.setContentIntent(contentIntent)
++      val stopTitle = serviceOptions.getString("stopActionTitle")
++      val stopUrl = serviceOptions.getString("stopActionUrl")
++      if (stopTitle != null && stopUrl != null) {
++        val stopIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(stopUrl))
++          .setComponent(it.component)
++          .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
++        val stopPending = PendingIntent.getActivity(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
++        builder.addAction(Notification.Action.Builder(null, stopTitle, stopPending).build())
++      }
+     }
+ 
+     val iconsResId = try {

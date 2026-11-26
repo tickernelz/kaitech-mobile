@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Panes } from '../../../layout/Panes';
 import { useWindowClass } from '../../../layout/windowClass';
 import { space, useTheme } from '../../../theme';
-import { Fab } from '../../../ui/Fab';
 import { Text } from '../../../ui/Text';
 import { Wordmark } from '../../../ui/Wordmark';
 import { focusedMessage, selectChannel, selectedChannel, useSelectedChannel } from '../selection';
@@ -72,8 +71,7 @@ export function ChatHome() {
         list={
           <View style={styles.fill}>
             <VoiceMiniBar />
-            <ConversationList selectedId={expanded ? selected : null} onOpen={open} />
-            <Fab icon="edit" label={t('newChat.title')} onPress={() => setCreating(true)} testID="chat-new" />
+            <ConversationList selectedId={expanded ? selected : null} onOpen={open} onNew={() => setCreating(true)} />
           </View>
         }
         detail={detail}

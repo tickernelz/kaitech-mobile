@@ -2,6 +2,7 @@ import { randomUUID } from 'expo-crypto';
 import { addNetworkStateListener, getNetworkStateAsync } from 'expo-network';
 import { useSyncExternalStore } from 'react';
 import { AppState } from 'react-native';
+import { isOnline } from '../../api/network';
 import type { Account } from '../../auth/oauth';
 import { onAccountForgotten } from '../../auth/session';
 import { ChatClient, errorCode, sendErrorFrom } from './api';
@@ -183,8 +184,16 @@ function notePeople(store: unknown) {
   noteStatuses(state.accountId, store);
 }
 
+const deliveredListeners = new Set<(sent: Sent) => void>();
+
+export function onDelivered(listener: (sent: Sent) => void): () => void {
+  deliveredListeners.add(listener);
+  return () => deliveredListeners.delete(listener);
+}
+
 function delivered(sent: Sent) {
   const { pending } = sent;
+  deliveredListeners.forEach((listener) => listener(sent));
   notePeople(sent.data);
   const urgentLeft = urgentLeftFrom(sent.data);
   if (urgentLeft !== null) setFeatures({ urgentLeft });
@@ -323,7 +332,7 @@ function onNotifications(notifications: Notification[]) {
       const own = ownSend(payload.temporary_id, messages);
       if (own) set({ sent: { ...state.sent, [own.messageId]: own.key } });
       upsertMessages(channelId, messages);
-      if (own) void confirmSend(own.key);
+      if (own) void confirmSend(own.key, own.messageId);
       const known = touchConversation(channelId, messages[messages.length - 1]);
       if (!known) void refreshConversations();
       if (active && state.openChannels.includes(channelId)) scheduleRead(channelId);
@@ -500,7 +509,7 @@ export function startChat(account: Account) {
   void refreshConversations();
   void flush();
   const network = addNetworkStateListener((network) => {
-    const online = network.isConnected !== false && network.isInternetReachable !== false;
+    const online = isOnline(network);
     const wasOnline = state.online;
     set({ online });
     if (online !== wasOnline) realtime?.reconnectNow();
@@ -509,7 +518,7 @@ export function startChat(account: Account) {
       void refreshConversations();
     }
   });
-  void getNetworkStateAsync().then((network) => set({ online: network.isConnected !== false && network.isInternetReachable !== false }));
+  void getNetworkStateAsync().then((network) => set({ online: isOnline(network) }));
   const stopPresence = onPresenceChange((next) => {
     const nowActive = userInApp(next);
     if (nowActive === active) return;
@@ -813,9 +822,10 @@ function ownSend(temporaryId: unknown, messages: Message[]): { key: string; mess
   return { key: temporaryId, messageId: Math.max(...mine.map((message) => message.id)) };
 }
 
-async function confirmSend(key: string) {
+async function confirmSend(key: string, messageId: number) {
   const confirmed = await outbox?.confirm(key);
   confirmed?.files.forEach((file) => dropFile(file.uri));
+  if (confirmed) deliveredListeners.forEach((listener) => listener({ pending: confirmed, messageId, data: null }));
 }
 
 export async function discardSend(key: string) {
