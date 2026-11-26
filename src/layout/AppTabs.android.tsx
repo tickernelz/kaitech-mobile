@@ -1,1 +1,1 @@
-export { MaterialTabs as AppTabs } from './MaterialTabs';
+export { PillTabs as AppTabs } from './PillTabs';

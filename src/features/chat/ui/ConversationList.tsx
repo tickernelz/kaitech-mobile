@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
+import { useTabBarSpace } from '../../../layout/tabBar';
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { useLargeText, useWindowClass } from '../../../layout/windowClass';
 import { Banner } from '../../../ui/Banner';
@@ -150,6 +151,7 @@ export function ConversationList({
 }) {
   const { t } = useTranslation(['chat', 'translation']);
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
   const { short } = useWindowClass();
   const largeText = useLargeText();
   const conversations = useChat((state) => state.conversations);
@@ -310,7 +312,7 @@ export function ConversationList({
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <Row conversation={item} selected={item.id === selectedId} pending={waiting.get(item.id) ?? 0} onOpen={onOpen} inArchive={inArchive} />}
         extraData={`${selectedId}|${pending.length}|${inArchive}`}
-        contentContainerStyle={inArchive || short ? undefined : styles.fabClearance}
+        contentContainerStyle={{ paddingBottom: tabSpace + (inArchive || short ? space.sm : fabClearance) }}
         ListHeaderComponent={inArchive ? null : header}
         ListEmptyComponent={empty}
         onEndReached={() => void (inArchive ? loadArchived(true) : loadMoreConversations())}
@@ -340,6 +342,8 @@ export function ConversationList({
   );
 }
 
+const fabClearance = 56 + space.lg * 2;
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
@@ -349,7 +353,6 @@ const styles = StyleSheet.create({
   chipBar: { marginVertical: chipBand.marginVertical },
   chips: { gap: space.sm, paddingHorizontal: space.xs, paddingVertical: chipBand.paddingVertical },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  fabClearance: { paddingBottom: 56 + space.lg * 2 },
   chip: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
   count: { minWidth: 18, minHeight: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingLeft: space.lg, minHeight: 76 },

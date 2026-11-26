@@ -6,6 +6,7 @@ import { SectionList, StyleSheet, View, type NativeScrollEvent, type NativeSynth
 import { Pressable } from '../../ui/Pressable';
 import type { Resource } from '../../api/resource';
 import { useSession } from '../../auth/session';
+import { useTabBarSpace } from '../../layout/tabBar';
 import { readableWidth } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
@@ -36,6 +37,7 @@ export function OdooActivities({
 }) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
   const router = useRouter();
   const { active } = useSession();
   const due = useDueLabel();
@@ -74,7 +76,7 @@ export function OdooActivities({
       <SectionList
         sections={sections}
         keyExtractor={(activity) => String(activity.id)}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: space.lg + tabSpace }]}
         stickySectionHeadersEnabled={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -221,7 +223,7 @@ export function OdooActivities({
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  list: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
+  list: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   head: { gap: space.md, paddingBottom: space.sm },
   filters: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.xs, rowGap: chipRowGap, ...chipBand },
   chip: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },

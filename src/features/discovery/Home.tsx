@@ -9,6 +9,7 @@ import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
 import { Panes } from '../../layout/Panes';
+import { useTabBarSpace } from '../../layout/tabBar';
 import { useWindowClass } from '../../layout/windowClass';
 import { HeaderActions } from '../../screens/HeaderActions';
 import { TopAppBar, useScrolledUnder } from '../../ui/AppBar';
@@ -156,6 +157,7 @@ function AskBar({ name, onPress }: { name: string; onPress: () => void }) {
 export function DiscoveryHome() {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
   const router = useRouter();
   const { active } = useSession();
   const { windowClass } = useWindowClass();
@@ -229,7 +231,7 @@ export function DiscoveryHome() {
       <ScrollView
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: space.xxl + tabSpace }]}
         refreshControl={<Refresh refreshing={refreshing && !!programmePanel.data} onRefresh={refresh} />}
         testID="discovery-home">
         <ConnectionBanner notice={connection.notice} onRetry={refresh} testID="discovery-connection" />
@@ -360,7 +362,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   shrink: { flexShrink: 1 },
   strong: { fontWeight: '600' },
-  content: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xxl, gap: space.lg, width: '100%', maxWidth: 720, alignSelf: 'center' },
+  content: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.lg, width: '100%', maxWidth: 720, alignSelf: 'center' },
   switch: {
     flexDirection: 'row',
     alignItems: 'center',

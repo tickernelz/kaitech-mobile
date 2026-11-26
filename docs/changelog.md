@@ -2,6 +2,19 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.10.0 - 2026-11-26
+
+### Changed
+
+- Tabs: on phones the tabs sit in a capsule that floats at the bottom of the screen, slightly see-through, with its own look per platform on the Kaitech colours. Android follows Material 3 Expressive: the selected tab opens into a wide slot with its label beside the filled icon, and the indicator stretches while it slides to the next tab and squeezes while a tab is held. iOS below 26 follows the iOS 26 system bar: equal slots with labels under the icons and a lens that slides between tabs. iOS 26 and later keep the system Liquid Glass bar. Tablets keep the side rail (#125, ZHA-7950).
+- Tabs: switching tabs gives a light haptic, the Activity badge pops when it appears or its number changes, and the incoming tab screen fades in on the background colour, so nothing flashes white. Reduce Motion turns every animation into an instant change; Reduce Transparency, Increase Contrast and Android high contrast text make the capsule solid. While the keyboard is up the capsule slides away (#125, ZHA-7950).
+- Chat, Discovery, MoM and both Activity lists end with room for the floating capsule, and the New chat button and the undo bar sit above it (#125, ZHA-7950).
+
+### Known gaps
+
+- Tabs, measured on the Meizu Mblu 21 against 0.9.0: scrolling and cold start are unchanged, and the worst frame on a tab switch drops from 46-150 ms to 34-38 ms, but each switch now animates about 65 frames instead of jumping in about 9, so about 3 more frames per switch arrive late (88-119 against 31-41 over 20 switches). Neither build meets the ZHA-7946 jank target for tab switches (#125, ZHA-7950).
+- iOS: no device. The capsule for iOS below 26 is covered only by unit tests, CI simulators run iOS 26 (the unchanged system bar), and the Liquid Glass bar behind sign-in has not been seen (ZHA-7950, ZHA-7277).
+
 ## 0.9.0 - 2026-11-26
 
 ### Added
