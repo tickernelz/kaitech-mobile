@@ -59,6 +59,14 @@ export function richUrl(origin: string, url: string): string {
   return /^https?:\/\//.test(url) ? url : `${origin.replace(/\/$/, '')}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
+export function mediaSource(origin: string, url: string | null | undefined, cookie: Record<string, string> | null): { uri: string; headers?: Record<string, string> } | null {
+  if (!url) return null;
+  const uri = richUrl(origin, url);
+  const home = origin.replace(/\/$/, '');
+  if (uri === home || uri.startsWith(`${home}/`)) return cookie ? { uri, headers: cookie } : { uri };
+  return uri.startsWith('https://') ? { uri } : null;
+}
+
 export function richMedia(rich: Rich): Media {
   if ('sticker' in rich) return { url: rich.sticker.url, width: rich.sticker.width, height: rich.sticker.height };
   return rich.gif.gif ?? rich.gif.preview ?? (rich.gif.mp4 as Media);

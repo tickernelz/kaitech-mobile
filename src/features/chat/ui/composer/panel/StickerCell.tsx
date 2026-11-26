@@ -3,16 +3,14 @@ import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { radius, useTheme } from '../../../../../theme';
 import { Pressable } from '../../../../../ui/Pressable';
-import { richUrl } from '../../../rich';
+import { mediaSource } from '../../../rich';
 import type { GifMedia, Sticker } from '../../../types';
 import { useCookie } from '../../useCookie';
 
 export const holdMs = 420;
 
 export function stickerSource(sticker: Sticker, origin: string, animated: boolean, cookie: Record<string, string> | null) {
-  const own = sticker.source === 'pack';
-  const url = animated ? sticker.url : sticker.poster;
-  return { uri: own ? richUrl(origin, url) : url, ...(own && cookie ? { headers: cookie } : {}) };
+  return mediaSource(origin, animated ? sticker.url : sticker.poster, cookie);
 }
 
 export function gifStill(gif: GifMedia) {
@@ -58,11 +56,11 @@ export const GifCell = memo(function GifCell({ gif, width, playing, label, onPre
   const { colors } = useTheme();
   const still = gifStill(gif);
   const ratio = still ? still.height / still.width : 1;
-  const source = playing && gif.gif ? gif.gif : still;
+  const source = mediaSource('', (playing && gif.gif ? gif.gif : still)?.url, null);
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={gif.title || label} onPress={onPress} onLongPress={onLongPress} delayLongPress={holdMs} style={styles.gifCell} testID={testID}>
       <View style={[styles.gif, { height: Math.round(width * ratio), backgroundColor: colors.surface2 }]}>
-        {source ? <Image source={{ uri: source.url }} recyclingKey={gif.id} autoplay={playing} cachePolicy="memory" contentFit="cover" style={styles.fill} accessible={false} /> : null}
+        {source ? <Image source={source} recyclingKey={gif.id} autoplay={playing} cachePolicy="memory" contentFit="cover" style={styles.fill} accessible={false} /> : null}
       </View>
     </Pressable>
   );

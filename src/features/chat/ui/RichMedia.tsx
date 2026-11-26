@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, View } from 'react-native';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { richMedia, richSize, richUrl } from '../rich';
+import { mediaSource, richMedia, richSize } from '../rich';
 import type { Rich } from '../types';
 import { useCookie } from './useCookie';
 
@@ -21,12 +21,11 @@ export const RichMedia = memo(function RichMedia({ rich, origin, testID }: { ric
   const cookie = useCookie();
   const media = richMedia(rich);
   const sticker = 'sticker' in rich;
-  const own = sticker && rich.sticker.source === 'pack';
   const box = richSize(media, sticker ? stickerBox : gifBox);
-  const uri = own ? richUrl(origin, media.url) : media.url;
+  const source = mediaSource(origin, media.url, cookie);
   return (
     <View style={[box, !sticker && [styles.gif, { backgroundColor: colors.surface2 }]]} accessible accessibilityRole="image" accessibilityLabel={richLabel(t, rich)} testID={testID}>
-      <Image source={{ uri, ...(own && cookie ? { headers: cookie } : {}) }} style={box} resizeMode="contain" />
+      {source ? <Image source={source} style={box} resizeMode="contain" /> : null}
       {sticker ? null : (
         <View style={[styles.badge, { backgroundColor: colors.scrim }]}>
           <Text variant="label" style={{ color: colors.onPrimary }}>

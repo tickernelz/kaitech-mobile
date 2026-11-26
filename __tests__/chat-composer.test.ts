@@ -1,7 +1,7 @@
 import { ChatClient } from '../src/features/chat/api';
 import { deleteBefore, pageOf, shelfOf } from '../src/features/chat/composerExtras';
 import { messagePatches, messagesFromStore } from '../src/features/chat/odoo';
-import { gifFrom, richOf, richPostData, stickerFrom } from '../src/features/chat/rich';
+import { gifFrom, mediaSource, richOf, richPostData, stickerFrom } from '../src/features/chat/rich';
 import { dragFrom, dragTo, releaseOf, sendModeOf, tooShort } from '../src/features/chat/ui/composer/gesture';
 
 const mockRoute = jest.fn();
@@ -149,5 +149,21 @@ describe('rich messages', () => {
     expect(shelf.packs[0].stickers.map((item) => item.id)).toEqual([5]);
     expect(shelf.recent.map((item) => item.id)).toEqual([5]);
     expect(shelfOf(null)).toEqual({ packs: [], recent: [], favorites: [] });
+  });
+});
+
+describe('media sources', () => {
+  const cookie = { Cookie: 'session_id=abc' };
+
+  it('sends the session cookie only to the account server', () => {
+    expect(mediaSource('https://lab0.kaitech.io', '/web/sticker/1', cookie)).toEqual({ uri: 'https://lab0.kaitech.io/web/sticker/1', headers: cookie });
+    expect(mediaSource('https://lab0.kaitech.io/', 'https://lab0.kaitech.io/web/sticker/2', cookie)).toEqual({ uri: 'https://lab0.kaitech.io/web/sticker/2', headers: cookie });
+    expect(mediaSource('https://lab0.kaitech.io', 'https://static.klipy.com/s/1.webp', cookie)).toEqual({ uri: 'https://static.klipy.com/s/1.webp' });
+    expect(mediaSource('https://lab0.kaitech.io', 'https://lab0.kaitech.io.evil.test/x.webp', cookie)).toEqual({ uri: 'https://lab0.kaitech.io.evil.test/x.webp' });
+  });
+
+  it('refuses plain http media from another host and loads nothing without a url', () => {
+    expect(mediaSource('https://lab0.kaitech.io', 'http://static.klipy.com/s/1.webp', cookie)).toBeNull();
+    expect(mediaSource('https://lab0.kaitech.io', undefined, cookie)).toBeNull();
   });
 });

@@ -8,6 +8,7 @@ import { duration, easing } from '../../../../../theme/motion';
 import { Overlay } from '../../../../../ui/Overlay';
 import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
+import { mediaSource } from '../../../rich';
 import type { GifMedia, Sticker } from '../../../types';
 import { useCookie } from '../../useCookie';
 import { gifStill, stickerSource } from './StickerCell';
@@ -28,7 +29,7 @@ export function MediaPreview({ item, origin, favorite, onSend, onFavorite, onClo
     open.set(reduce ? withTiming(1, { duration: duration.quick }) : withTiming(1, { duration: duration.slow, easing: easing.expo }));
   }, [item, open, reduce]);
   const style = useAnimatedStyle(() => ({ opacity: open.get(), transform: reduce ? [] : [{ scale: 0.6 + 0.4 * open.get() }] }));
-  const source = item ? ('sticker' in item ? stickerSource(item.sticker, origin, true, cookie) : { uri: (item.gif.gif ?? gifStill(item.gif))?.url }) : null;
+  const source = item ? ('sticker' in item ? stickerSource(item.sticker, origin, true, cookie) : mediaSource(origin, (item.gif.gif ?? gifStill(item.gif))?.url, null)) : null;
   const own = item && 'sticker' in item && item.sticker.source === 'pack';
   return (
     <Overlay visible={item !== null} transparent animationType="fade" onRequestClose={onClose}>

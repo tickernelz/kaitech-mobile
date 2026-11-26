@@ -9,7 +9,7 @@ import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
 import { providerStickerPage, setStickerFavorite, type StickerShelf } from '../../../composerExtras';
 import type { Result } from '../../../messageActions';
-import { richUrl } from '../../../rich';
+import { mediaSource } from '../../../rich';
 import type { Sticker } from '../../../types';
 import { useCookie } from '../../useCookie';
 import { usePaged, useVisiblePlaying } from './paging';
@@ -69,8 +69,8 @@ export function StickerTab({
               }}
               style={[styles.source, selected && { backgroundColor: colors.select }]}
               testID={`sticker-source-${section.key}`}>
-              {cover ? (
-                <Image source={{ uri: cover.source === 'pack' ? richUrl(origin, cover.poster) : cover.poster, ...(cookie && cover.source === 'pack' ? { headers: cookie } : {}) }} cachePolicy="disk" style={styles.cover} accessible={false} />
+              {cover && mediaSource(origin, cover.poster, cookie) ? (
+                <Image source={mediaSource(origin, cover.poster, cookie)} cachePolicy="disk" style={styles.cover} accessible={false} />
               ) : (
                 <Icon name={section.key === 'favorites' ? 'favorite' : 'clock'} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
               )}
