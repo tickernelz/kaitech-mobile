@@ -98,7 +98,7 @@ onFlowStart:
 - tapOn:
     id: poll-[0-9]+-votes
     childOf:
-      id: poll-[0-9]+
+      id: bubble-[0-9]+
       containsDescendants:
         - text: ${RUN + ' poll'}
 - extendedWaitUntil:
@@ -114,14 +114,14 @@ onFlowStart:
 - tapOn:
     id: poll-[0-9]+-close
     childOf:
-      id: poll-[0-9]+
+      id: bubble-[0-9]+
       containsDescendants:
         - text: ${RUN + ' poll'}
 - tapOn:
     id: poll-close-dialog-confirm
 - extendedWaitUntil:
     visible:
-      id: poll-[0-9]+
+      id: bubble-[0-9]+
       containsDescendants:
         - text: ${RUN + ' poll'}
         - text: (Poll closed|Polling ditutup)
