@@ -117,7 +117,9 @@
       "photos": "Gallery",
       "camera": "Camera",
       "files": "Document",
-      "audio": "Audio"
+      "audio": "Audio",
+      "location": "Location",
+      "poll": "Poll"
     },
     "micBusy": "The microphone is in use by a meeting recording or a call.",
     "uploading": "Uploading {{name}}",
@@ -205,7 +207,8 @@
     "meeting": "Schedule a meeting",
     "reactions": "Who reacted",
     "translate": "Translate",
-    "original": "Show original"
+    "original": "Show original",
+    "favoriteSticker": "Add to favorite stickers"
   },
   "push": {
     "channel": "Messages"
@@ -264,7 +267,8 @@
     "cancel": "Cancel",
     "failed": "That didn't work. Try again.",
     "forbidden": "You don't have access to do that.",
-    "noTranslation": "This message is already in your language."
+    "noTranslation": "This message is already in your language.",
+    "stickerSaved": "Added to your favorite stickers."
   },
   "emoji": {
     "title": "Reactions",
@@ -599,6 +603,104 @@
   },
   "rich": {
     "sticker": "Sticker",
-    "gif": "GIF"
+    "gif": "GIF",
+    "poll": "Poll",
+    "location": "Location",
+    "liveLocation": "Live location"
+  },
+  "poll": {
+    "newTitle": "New poll",
+    "question": "Question",
+    "questionPlaceholder": "Ask a question",
+    "options": "Options",
+    "optionPlaceholder": "Option {{number}}",
+    "optionLabel": "Option {{number}}",
+    "removeOption": "Remove option {{number}}",
+    "optionsLeft_one": "You can add {{count}} more option",
+    "optionsLeft_other": "You can add {{count}} more options",
+    "multiple": "Allow more than one answer",
+    "send": "Send poll",
+    "problem": {
+      "tooLong": "Keep each option to 100 characters.",
+      "duplicate": "Each option must be different.",
+      "tooMany": "A poll has at most 12 options."
+    },
+    "pickOne": "Select one",
+    "pickMany": "Select one or more",
+    "closed": "Poll closed",
+    "optionState_one": "{{label}}, {{count}} vote, {{percent}} percent",
+    "optionState_other": "{{label}}, {{count}} votes, {{percent}} percent",
+    "viewVotes_one": "View votes, {{count}} person voted",
+    "viewVotes_other": "View votes, {{count}} people voted",
+    "noVotes": "No votes yet",
+    "votesTitle": "Votes",
+    "votes_one": "{{count}} vote",
+    "votes_other": "{{count}} votes",
+    "nobody": "No votes",
+    "someone": "Someone",
+    "close": "Close poll",
+    "keepOpen": "Keep open",
+    "closeTitle": "Close this poll?",
+    "closeBody": "No one can vote after it closes. The results stay.",
+    "closedNow": "This poll is closed. Your vote wasn't counted."
+  },
+  "location": {
+    "pickTitle": "Send location",
+    "current": "Send your current location",
+    "accuracy": "Accurate to {{meters}} m",
+    "locating": "Finding your location…",
+    "thisPlace": "Send this place",
+    "pinPlace": "Pinned place",
+    "search": "Search places",
+    "noResults": "No places found for \"{{query}}\"",
+    "searchFailed": "Search didn't work. Try again.",
+    "myLocation": "Go to my location",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "attribution": "© OpenStreetMap contributors",
+    "mapLabel": "Map",
+    "unknownPlace": "Dropped pin",
+    "live": "Share live location",
+    "liveTitle": "Share live location",
+    "liveFor": "How long?",
+    "liveNote": "People in this chat see where you are until you stop or the time runs out. While it runs, Kaitech keeps sending your location with the app closed and shows a notification.",
+    "duration": {
+      "15": "15 minutes",
+      "60": "1 hour",
+      "480": "8 hours"
+    },
+    "share": "Share",
+    "liveUntil": "Live until {{time}}",
+    "liveEnded": "Live location ended",
+    "lastSeen": "Last updated {{time}}",
+    "endedBy": {
+      "stopped": "Stopped sharing",
+      "expired": "Time ran out",
+      "left": "Left the chat",
+      "deleted": "Removed"
+    },
+    "stop": "Stop sharing",
+    "stopTitle": "Stop sharing your live location?",
+    "stopBody": "People in this chat keep seeing the last place you shared.",
+    "keepSharing": "Keep sharing",
+    "openMap": "Open map",
+    "openApp": "Open in maps app",
+    "noMapsApp": "No maps app on this phone can open the place.",
+    "unavailable": "Your location isn't available. Turn on location in your phone's settings.",
+    "off": "Location is off",
+    "sharingIn_one": "Sharing your live location in {{count}} chat",
+    "sharingIn_other": "Sharing your live location in {{count}} chats",
+    "notification": {
+      "title": "Sharing live location",
+      "body": "People in your chat see where you are. Tap Stop to end it.",
+      "stop": "Stop"
+    },
+    "stopped": "Live location stopped.",
+    "stopFailed": "Couldn't stop sharing. Try again.",
+    "updateRefused": "Live location ended on the server.",
+    "you": "You",
+    "coordinates": "Coordinates {{value}}",
+    "blockedTitle": "Location access is off",
+    "blockedBody": "Allow location access for Kaitech in Settings, then try again."
   }
 }

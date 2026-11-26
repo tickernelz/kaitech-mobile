@@ -13,6 +13,7 @@ export type ThreadHeaderProps = {
   name: string;
   subtitle: string;
   typing: boolean;
+  largeText?: boolean;
   status: string | null;
   avatar: { seed: number; partnerId?: number | null; photo?: Photo | null; icon?: IconName };
   call: boolean;
@@ -22,7 +23,7 @@ export type ThreadHeaderProps = {
   onMore: () => void;
 };
 
-export function ThreadHeader({ channelId, name, subtitle, typing, status, avatar, call, onBack, onPerson, onStatus, onMore }: ThreadHeaderProps) {
+export function ThreadHeader({ channelId, name, subtitle, typing, largeText = false, status, avatar, call, onBack, onPerson, onStatus, onMore }: ThreadHeaderProps) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   return (
@@ -36,7 +37,7 @@ export function ThreadHeader({ channelId, name, subtitle, typing, status, avatar
         <Avatar name={name} seed={avatar.seed} size={40} partnerId={avatar.partnerId} photo={avatar.photo} icon={avatar.icon} />
       </Pressable>
       <Pressable style={styles.heading} accessible={false} disabled={!onStatus} onPress={onStatus} testID="thread-heading">
-        <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
+        <Text variant="headline" numberOfLines={largeText ? 2 : 1} accessibilityRole="header" testID="thread-title">
           {name}
         </Text>
         <Text

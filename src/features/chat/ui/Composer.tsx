@@ -40,6 +40,9 @@ import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
 import { StagedFile } from './MediaControls';
 import { AttachSheet, type Extra } from './composer/AttachSheet';
+import { LocationPicker } from './composer/LocationPicker';
+import { PollSheet } from './composer/PollSheet';
+import { richLabel } from './RichMedia';
 import { FormatBar, useMarkup } from './FormatBar';
 import { useBottomInset } from '../../../ui/insets';
 
@@ -95,7 +98,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const [sheet, setSheet] = useState(false);
   const [editing, setEditing] = useState<Message | null>(null);
   const [urgent, setUrgent] = useState(false);
-  const [extra, setExtra] = useState<'later' | null>(null);
+  const [extra, setExtra] = useState<'later' | 'poll' | 'location' | null>(null);
   const [panel, setPanel] = useState(false);
   const [searching, setSearching] = useState(false);
   const [panelHeight, setPanelHeight] = useState(() => halfPanelHeight(0));
@@ -471,7 +474,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
               {t('composer.replyingTo', { name: parent?.author ?? '' })}
             </Text>
             <Text variant="footnote" tone="inkSoft" numberOfLines={1}>
-              {parent ? bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) : ''}
+              {parent ? (parent.rich ? richLabel(t, parent.rich) : bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length })) : ''}
             </Text>
           </View>
           <RoundButton icon="close" label={t('composer.cancelReply')} onPress={() => setParentId(null)} />
@@ -576,7 +579,22 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           </View>
         </Animated.View>
       ) : null}
-      <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} extras={extras} />
+      <AttachSheet
+        visible={sheet}
+        onClose={() => setSheet(false)}
+        onPick={(source) => void pickFrom(source)}
+        extras={extras}
+        tools={
+          editing
+            ? []
+            : [
+                { key: 'location', icon: 'location', label: t('composer.source.location'), onPress: () => { setSheet(false); setExtra('location'); } },
+                { key: 'poll', icon: 'poll', label: t('composer.source.poll'), onPress: () => { setSheet(false); setExtra('poll'); } },
+              ]
+        }
+      />
+      {extra === 'poll' ? <PollSheet onClose={() => setExtra(null)} onSend={(poll) => { setExtra(null); sendRich({ poll }); }} /> : null}
+      {extra === 'location' ? <LocationPicker onClose={() => setExtra(null)} onSend={(location) => { setExtra(null); sendRich({ location }); }} /> : null}
       {extra === 'later' ? <SendLaterSheet busy={laterBusy} onClose={() => setExtra(null)} onPick={(when) => void scheduleAt(when)} /> : null}
     </View>
   );

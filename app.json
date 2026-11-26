@@ -2,7 +2,7 @@
   "expo": {
     "name": "Kaitech",
     "slug": "kaitech-mobile",
-    "version": "0.8.1",
+    "version": "0.9.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -152,6 +152,17 @@
           "color": "#441D65",
           "defaultChannel": "messages",
           "enableRemoteNotifications": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Kaitech uses your location only when you send a place or share your live location in a chat.",
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": true,
+          "motionUsagePermission": false,
+          "locationFullAccuracyPermission": false
         }
       ],
       "expo-background-task",
