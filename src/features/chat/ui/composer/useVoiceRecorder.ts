@@ -21,7 +21,6 @@ import { ClockStore, voiceLimitMs } from '../../voice/clock';
 import { idle, voiceStep, type Interruption, type VoiceState } from '../../voice/machine';
 import { stopVoice } from '../../voicePlayer';
 import { cancelHintDistance, dragFrom, dragTo, releaseOf, tooShort, type Drag } from './gesture';
-import { setMediaQuiet } from '../visible';
 
 export type Voice = { uri: string; name: string; mimetype: string; size: number; voice: true; durationMs: number; waveform: string | null };
 
@@ -92,10 +91,6 @@ export function useVoiceRecorder({ accountId, channelId, tapMode, onSend }: { ac
   const level = useSharedValue(0);
   const [draftUri, setDraftUri] = useState<string | null>(restoredParts[0] ?? null);
 
-  useEffect(() => {
-    if (state.phase !== 'pressing' && state.phase !== 'recording') setMediaQuiet(false);
-  }, [state.phase]);
-  useEffect(() => () => setMediaQuiet(false), []);
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
@@ -232,7 +227,6 @@ export function useVoiceRecorder({ accountId, channelId, tapMode, onSend }: { ac
   };
 
   const begin = (locked: boolean) => {
-    setMediaQuiet(true);
     const mine = ++session.current;
     dispatch({ type: locked ? 'start-locked' : 'press' });
     void serial(() =>
@@ -442,7 +436,6 @@ export function useVoiceRecorder({ accountId, channelId, tapMode, onSend }: { ac
     resume: () => {
       if (stateRef.current.phase !== 'paused') return;
       stopVoice();
-      setMediaQuiet(true);
       const mine = ++session.current;
       dispatch({ type: 'resume' });
       void serial(() =>

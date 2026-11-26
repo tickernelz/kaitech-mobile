@@ -3,7 +3,6 @@ import { AppState } from 'react-native';
 
 let shown = new Set<number>();
 let active = AppState.currentState === 'active';
-let quiet = false;
 const byMessage = new Map<number, Set<() => void>>();
 const everyone = new Set<() => void>();
 
@@ -13,12 +12,6 @@ AppState.addEventListener('change', (next) => {
   active = now;
   everyone.forEach((listener) => listener());
 });
-
-export function setMediaQuiet(next: boolean) {
-  if (next === quiet) return;
-  quiet = next;
-  everyone.forEach((listener) => listener());
-}
 
 export function setShownMessages(ids: number[]) {
   const next = new Set(ids);
@@ -43,6 +36,6 @@ function subscribe(id: number | null, listener: () => void): () => void {
 export function useOnScreen(id: number | null): boolean {
   return useSyncExternalStore(
     (listener) => subscribe(id, listener),
-    () => active && !quiet && (id === null || shown.has(id)),
+    () => active && (id === null || shown.has(id)),
   );
 }
