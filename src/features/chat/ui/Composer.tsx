@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   panelClip: { overflow: 'hidden', marginHorizontal: -space.sm },
   round: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingLeft: space.md, paddingRight: space.sm },
-  input: { flex: 1, fontSize: 16, lineHeight: 22, maxHeight: 132, paddingTop: 11, paddingBottom: 11 },
+  input: { flex: 1, fontSize: 16, lineHeight: 22, maxHeight: 132, paddingTop: 11, paddingBottom: 11, marginVertical: -StyleSheet.hairlineWidth },
   suggestions: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   suggestion: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, paddingHorizontal: space.md },
   replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.sm, paddingLeft: space.md },
