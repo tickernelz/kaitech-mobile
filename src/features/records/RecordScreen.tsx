@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
@@ -355,7 +356,7 @@ export function RecordScreen({ programme, model, rid, stashKey }: { programme: n
         subtitle={status || undefined}
         actions={!editing && moreItems.length ? <IconButton icon="more" label={t('records.more')} onPress={() => setMore(true)} testID="record-more" /> : undefined}
       />
-      <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.fill} behavior="padding" automaticOffset>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" testID={`record-${model}-${id ?? 'new'}`}>
           {status ? <Chip tone="select" label={status} /> : null}
           {primary.length || (canEdit && primary.length < 2) ? (

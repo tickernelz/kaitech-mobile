@@ -15,6 +15,7 @@ import { LockScreen } from '../lock/LockScreen';
 import { useLock } from '../lock/lock';
 import { useRecentsGuard } from '../lock/useRecentsGuard';
 import { useTheme } from '../theme';
+import { useReduceMotion } from '../theme/reduceMotion';
 import { useAppliedTheme } from '../features/appearance/appearance';
 import { DialogLayer } from '../ui/Dialog';
 import { holdDialogs } from '../ui/dialog';
@@ -24,6 +25,8 @@ SplashScreen.setOptions({ duration: 240, fade: true });
 
 export default function RootLayout() {
   const { colors } = useTheme();
+  const reduceMotion = useReduceMotion();
+  const fade = reduceMotion ? 'none' : 'fade';
   const { width, height } = useWindowDimensions();
   const session = useSession();
   const lock = useLock();
@@ -60,29 +63,29 @@ export default function RootLayout() {
       <View style={{ width, height }} importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'} pointerEvents={locked ? 'none' : 'auto'}>
         {signedIn && session.onboarded ? <CallStrip /> : null}
         <SafeAreaProvider style={styles.fill}>
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas }, ...(reduceMotion ? { animation: 'none' } : {}) }}>
           <Stack.Protected guard={signedIn && session.onboarded} redirectTo={home}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="chat/[id]" />
-            <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
-            <Stack.Screen name="recording/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
-            <Stack.Screen name="media" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
-            <Stack.Screen name="pdf" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
+            <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: fade }} />
+            <Stack.Screen name="recording/[id]" options={{ presentation: 'fullScreenModal', animation: fade }} />
+            <Stack.Screen name="media" options={{ presentation: 'fullScreenModal', animation: fade }} />
+            <Stack.Screen name="pdf" options={{ presentation: 'fullScreenModal', animation: fade }} />
             <Stack.Screen name="program" />
             <Stack.Screen name="mom" />
-            <Stack.Screen name="search" options={{ animation: 'fade' }} />
+            <Stack.Screen name="search" options={{ animation: fade }} />
             <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
             <Stack.Screen name="person/[id]" options={{ presentation: 'modal' }} />
             <Stack.Screen name="add-account" options={{ presentation: 'modal' }} />
           </Stack.Protected>
           <Stack.Protected guard={signedIn && !session.onboarded} redirectTo={home}>
-            <Stack.Screen name="setup" options={{ animation: 'fade' }} />
+            <Stack.Screen name="setup" options={{ animation: fade }} />
           </Stack.Protected>
           <Stack.Protected guard={hasAccount && session.expired} redirectTo={home}>
-            <Stack.Screen name="expired" options={{ animation: 'fade' }} />
+            <Stack.Screen name="expired" options={{ animation: fade }} />
           </Stack.Protected>
           <Stack.Protected guard={!hasAccount} redirectTo={home}>
-            <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
+            <Stack.Screen name="welcome" options={{ animation: fade }} />
             <Stack.Screen name="sign-in" />
           </Stack.Protected>
         </Stack>

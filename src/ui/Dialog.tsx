@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { AccessibilityInfo, Modal, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useKeyboardState } from 'react-native-keyboard-controller';
 import { radius, space, useTheme } from '../theme';
+import { useReduceMotion } from '../theme/reduceMotion';
 import { answerDialog, useLayerOnTop, useOpenDialog, type DialogChoice, type OpenDialog } from './dialog';
 import { Icon } from './icons';
 import { Pressable } from './Pressable';
@@ -70,11 +71,12 @@ function DialogView({ dialog }: { dialog: OpenDialog }) {
     if (node) AccessibilityInfo.sendAccessibilityEvent(node, 'focus');
   }, []);
 
+  const reduceMotion = useReduceMotion();
   const tint = dialog.danger ? { backgroundColor: colors.dangerBand, ink: colors.dangerInk } : { backgroundColor: colors.select, ink: colors.selectInk };
   const label = [dialog.title, dialog.body].filter(Boolean).join('. ');
 
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={dismiss} supportedOrientations={['portrait', 'landscape']} testID={`${id}-modal`}>
+    <Modal visible transparent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={dismiss} supportedOrientations={['portrait', 'landscape']} testID={`${id}-modal`}>
       <View style={[styles.scrim, { backgroundColor: colors.scrim, paddingBottom: keyboard }]}>
         <Pressable
           style={StyleSheet.absoluteFill}

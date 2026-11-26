@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { onAccountForgotten } from '../../../auth/session';
-import { recordingIdOf } from '../../call/recording';
+import { recordingIdOf } from '../../call/recordingLink';
 import type { Attachment, Message } from '../types';
 import { isVisual } from './kind';
 

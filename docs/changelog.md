@@ -27,6 +27,8 @@ Every release of Kaitech Mobile, newest first. Each version has one section, `##
 
 ## 0.5.3 - 2026-11-25
 
+Not published: Release run 45588646628 built and checked every asset, but its last rows check waited behind other E2E runs after an emulator disconnect and a lab0 502 on the first attempt, so it was cancelled. 0.6.0, tagged after it, shipped these changes first.
+
 ### Fixed
 
 - Chat: message bubbles are as wide as their text and at most 80% of the message lane on phones too, yours on the right and everyone else's on the left, like WhatsApp; a wrapped message used to fill the whole row because the 576 dp cap was wider than a phone. On tablets the lane stays centred at 720 dp, so the cap is still 576 dp (#103, ZHA-7809).

@@ -1,4 +1,5 @@
-import { odooDate, recordingFrom, recordingIdOf } from '../src/features/call/recording';
+import { odooDate, recordingFrom } from '../src/features/call/recording';
+import { recordingIdOf } from '../src/features/call/recordingLink';
 
 jest.mock('../src/api/odoo', () => ({ bearer: () => Promise.reject(new Error('offline')) }));
 

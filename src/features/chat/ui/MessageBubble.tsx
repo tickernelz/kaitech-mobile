@@ -17,7 +17,7 @@ import { RichText } from './RichText';
 import { MediaAttachment } from './media/Tiles';
 import { tileMax } from '../media/kind';
 import { VoiceNote } from './VoiceNote';
-import { recordingIdOf } from '../../call/recording';
+import { recordingIdOf } from '../../call/recordingLink';
 import { RecordingCard } from '../../call/ui/RecordingCard';
 import { callState, startCall } from '../../call/call';
 import { conversationById, getChat } from '../chat';
@@ -29,6 +29,14 @@ export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
 
 const mediaWidth = Math.min(tileMax.width, Math.round(readableWidth * 0.8) - 2 * space.md);
+
+const labels = new WeakMap<Message, { key: string; label: string }>();
+
+function remember(message: Message, key: string, parts: (string | null | undefined | false)[]): string {
+  const label = parts.filter(Boolean).join(', ');
+  labels.set(message, { key, label });
+  return label;
+}
 
 export function Attachments({ attachments, origin, mine }: { attachments: Attachment[]; origin: string; mine: boolean }) {
   if (!attachments.length) return null;
@@ -74,10 +82,8 @@ function Frame({
       style={[
         styles.bubble,
         mine ? styles.mine : styles.theirs,
-        {
-          backgroundColor: mine ? colors.select : colors.surface,
-          borderColor: failed ? colors.danger : mine ? colors.select : colors.line,
-        },
+        mine && !failed ? styles.plain : { borderColor: failed ? colors.danger : colors.line },
+        { backgroundColor: mine ? colors.select : colors.surface },
       ]}>
       {children}
     </Pressable>
@@ -132,7 +138,7 @@ export const MessageBubble = memo(function MessageBubble({
   agent?: CardStore<number, AgentCard> | null;
   agentTag?: boolean;
 }) {
-  const { t } = useTranslation('chat');
+  const { t, i18n } = useTranslation('chat');
   const { colors } = useTheme();
   const { clock } = useChatFormat();
   const removed = isRemoved(message);
@@ -182,19 +188,22 @@ export const MessageBubble = memo(function MessageBubble({
       </View>
     );
   }
-  const label = [
-    mine ? t('thread.you') : message.author,
-    removed ? t('thread.removed') : text,
-    message.attachments.length ? t('list.files', { count: message.attachments.length }) : '',
-    message.edited && !removed ? t('thread.edited') : '',
-    message.urgent ? t('thread.urgent') : '',
-    message.pinnedAt ? t('thread.pinned') : '',
-    message.starred ? t('thread.starred') : '',
-    time,
-    readState === 'read' ? t('thread.read') : readState === 'sent' ? t('thread.sent') : '',
-  ]
-    .filter(Boolean)
-    .join(', ');
+  const labelKey = `${i18n.language}|${mine}|${readState}|${time}`;
+  const known = labels.get(message);
+  const label =
+    known?.key === labelKey
+      ? known.label
+      : remember(message, labelKey, [
+          mine ? t('thread.you') : message.author,
+          removed ? t('thread.removed') : text,
+          message.attachments.length ? t('list.files', { count: message.attachments.length }) : '',
+          message.edited && !removed ? t('thread.edited') : '',
+          message.urgent ? t('thread.urgent') : '',
+          message.pinnedAt ? t('thread.pinned') : '',
+          message.starred ? t('thread.starred') : '',
+          time,
+          readState === 'read' ? t('thread.read') : readState === 'sent' ? t('thread.sent') : '',
+        ]);
   const body = (
     <>
       <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} testID={`bubble-${message.id}`}>
@@ -386,6 +395,7 @@ const styles = StyleSheet.create({
   wrapTheirs: { alignItems: 'flex-start' },
   bubble: { maxWidth: '80%', minWidth: 88, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   mine: { borderBottomRightRadius: radius.sm },
+  plain: { borderWidth: 0 },
   theirs: { borderBottomLeftRadius: radius.sm },
   quoteBox: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
