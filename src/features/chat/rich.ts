@@ -94,11 +94,34 @@ export function placeFrom(value: unknown): Place | null {
   };
 }
 
+export function isRich(value: unknown): value is Rich {
+  if (!isRecord(value)) return false;
+  if (isRecord(value.sticker)) return typeof value.sticker.url === 'string' && (typeof value.sticker.id === 'number' || typeof value.sticker.id === 'string');
+  if (isRecord(value.gif)) return typeof value.gif.id === 'string' && !!(value.gif.gif ?? value.gif.mp4 ?? value.gif.preview);
+  if (isRecord(value.poll)) return typeof value.poll.question === 'string' && Array.isArray(value.poll.options);
+  if (isRecord(value.location)) return finite(value.location.latitude) && finite(value.location.longitude);
+  return false;
+}
+
+export type Cached<T> = Omit<T, 'rich'> & { rich?: unknown; content?: unknown };
+
+export function toCache<T extends { rich?: Rich }>(item: T): Cached<T> {
+  const { rich, ...rest } = item;
+  if (!rich) return rest;
+  return 'sticker' in rich || 'gif' in rich ? { ...rest, rich } : { ...rest, content: rich };
+}
+
+export function fromCache<T extends { rich?: Rich }>(raw: Cached<T>): T {
+  const { rich, content, ...rest } = raw;
+  const found = content ?? rich;
+  return (isRich(found) ? { ...rest, rich: found } : rest) as T;
+}
+
 export function richPreview(rich: Rich): RichPreview {
   if ('poll' in rich) return { kind: 'poll', detail: rich.poll.question };
   if ('location' in rich) return rich.location.live ? { kind: 'liveLocation', detail: '' } : { kind: 'location', detail: rich.location.name };
-  if ('sticker' in rich) return { kind: 'sticker', detail: rich.sticker.alt };
-  return { kind: 'gif', detail: rich.gif.title };
+  if ('sticker' in rich) return { kind: 'sticker', detail: rich.sticker.alt ?? '' };
+  return { kind: 'gif', detail: rich.gif?.title ?? '' };
 }
 
 export type RichKey = `rich.${RichPreview['kind']}`;
