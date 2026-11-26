@@ -98,7 +98,13 @@ describe('changeAppearance', () => {
 
 describe('applyTheme', () => {
   const { Appearance } = require('react-native') as typeof import('react-native');
-  const setColorScheme = jest.spyOn(Appearance, 'setColorScheme').mockImplementation(() => undefined);
+  let setColorScheme: jest.SpyInstance;
+
+  beforeAll(() => {
+    setColorScheme = jest.spyOn(Appearance, 'setColorScheme').mockImplementation(() => undefined);
+  });
+
+  afterAll(() => setColorScheme.mockRestore());
 
   beforeEach(() => {
     setColorScheme.mockClear();
