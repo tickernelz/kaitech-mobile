@@ -210,7 +210,8 @@
     "meeting": "Jadwalkan rapat",
     "reactions": "Siapa yang bereaksi",
     "translate": "Terjemahkan",
-    "original": "Tampilkan asli"
+    "original": "Tampilkan asli",
+    "favoriteSticker": "Tambahkan ke stiker favorit"
   },
   "push": {
     "channel": "Pesan"
@@ -269,7 +270,8 @@
     "cancel": "Batal",
     "failed": "Belum berhasil. Coba lagi.",
     "forbidden": "Anda tidak punya akses untuk itu.",
-    "noTranslation": "Pesan ini sudah dalam bahasa Anda."
+    "noTranslation": "Pesan ini sudah dalam bahasa Anda.",
+    "stickerSaved": "Ditambahkan ke stiker favoritmu."
   },
   "emoji": {
     "title": "Reaksi",

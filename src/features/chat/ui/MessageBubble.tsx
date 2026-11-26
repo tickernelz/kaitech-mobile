@@ -239,9 +239,9 @@ export const MessageBubble = memo(function MessageBubble({
         <Attachments attachments={message.attachments} origin={origin} mine={mine} meta={{ title: message.author, channelId: message.channelId, messageId: message.id }} />
         {rich ? (
           'poll' in rich ? (
-            <PollCard message={message} poll={rich.poll} mine={mine} />
+            <PollCard message={message} poll={rich.poll} mine={mine} onLongPress={() => onLongPress(message)} />
           ) : 'location' in rich ? (
-            <LocationCard message={message} place={rich.location} mine={mine} />
+            <LocationCard message={message} place={rich.location} mine={mine} onLongPress={() => onLongPress(message)} />
           ) : (
             <RichMedia rich={rich} origin={origin} messageId={message.id} testID={`rich-${message.id}`} />
           )

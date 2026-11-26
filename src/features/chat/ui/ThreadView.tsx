@@ -31,6 +31,7 @@ import { messageOptions } from '../messageOptions';
 import { hasFeature } from '../features';
 import { markUnreadFrom, messageLink, removeMessage, setPinned, toggleStar, toggleTranslation, type Result } from '../messageActions';
 import { failureText } from './actions/failure';
+import { setStickerFavorite } from '../composerExtras';
 import { EmojiPicker } from './EmojiPicker';
 import { ActivitySheet } from './actions/ActivitySheet';
 import { ForwardSheet } from './actions/ForwardSheet';
@@ -255,6 +256,9 @@ export function ThreadView({
         return;
       case 'link':
         void Clipboard.setStringAsync(messageLink(origin, message)).then(() => setNotice(t('act.linkCopied')));
+        return;
+      case 'sticker':
+        if (message.rich && 'sticker' in message.rich) void setStickerFavorite(message.rich.sticker.id as number, true).then((result) => setNotice(result.ok ? t('act.stickerSaved') : failureText(t, result)));
         return;
       case 'thread':
         void openSub(message);

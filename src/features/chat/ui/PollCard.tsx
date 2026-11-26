@@ -14,7 +14,7 @@ import { VotesSheet } from './VotesSheet';
 
 export const pollWidth = 264;
 
-export const PollCard = memo(function PollCard({ message, poll, mine, pending = false }: { message: Pick<Message, 'id' | 'channelId'>; poll: Poll; mine: boolean; pending?: boolean }) {
+export const PollCard = memo(function PollCard({ message, poll, mine, pending = false, onLongPress }: { message: Pick<Message, 'id' | 'channelId'>; poll: Poll; mine: boolean; pending?: boolean; onLongPress?: () => void }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const partnerId = useChat((state) => state.partnerId);
@@ -56,6 +56,8 @@ export const PollCard = memo(function PollCard({ message, poll, mine, pending = 
               accessibilityLabel={t('poll.optionState', { label: option.label, count: option.votes, percent })}
               disabled={locked}
               onPress={() => void pick(option.id)}
+              onLongPress={onLongPress}
+              delayLongPress={300}
               style={styles.option}
               testID={`poll-${message.id}-option-${index}`}>
               <View style={styles.optionRow}>

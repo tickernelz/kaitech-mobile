@@ -27,6 +27,18 @@ onFlowStart:
     text: ${PEER}
 - extendedWaitUntil:
     visible:
+      id: (composer-input|voice-paused)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: voice-paused
+    commands:
+      - tapOn:
+          id: voice-discard
+          waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
       id: composer-input
     timeout: 30000
 - tapOn:
@@ -108,6 +120,7 @@ onFlowStart:
 - setLocation:
     latitude: -6.175392
     longitude: 106.827153
+    optional: true
 - tapOn:
     id: composer-attach
 - extendedWaitUntil:
@@ -220,3 +233,17 @@ onFlowStart:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: r8-live-ended
+- repeat:
+    times: 2
+    commands:
+      - longPressOn:
+          id: location-[0-9]+-map
+          index: -1
+      - tapOn:
+          id: action-delete
+      - tapOn:
+          id: message-delete-dialog-confirm
+      - extendedWaitUntil:
+          visible:
+            text: (This message was deleted|Pesan ini sudah dihapus)
+          timeout: 15000

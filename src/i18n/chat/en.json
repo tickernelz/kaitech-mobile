@@ -210,7 +210,8 @@
     "meeting": "Schedule a meeting",
     "reactions": "Who reacted",
     "translate": "Translate",
-    "original": "Show original"
+    "original": "Show original",
+    "favoriteSticker": "Add to favorite stickers"
   },
   "push": {
     "channel": "Messages"
@@ -269,7 +270,8 @@
     "cancel": "Cancel",
     "failed": "That didn't work. Try again.",
     "forbidden": "You don't have access to do that.",
-    "noTranslation": "This message is already in your language."
+    "noTranslation": "This message is already in your language.",
+    "stickerSaved": "Added to your favorite stickers."
   },
   "emoji": {
     "title": "Reactions",

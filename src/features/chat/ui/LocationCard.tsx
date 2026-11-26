@@ -41,7 +41,7 @@ export async function askStop(messageId: number, t: (key: 'location.stopTitle' |
   if (!(await stopShare(account, messageId))) notify(t('location.stopFailed'));
 }
 
-export const LocationCard = memo(function LocationCard({ message, place, mine, pending = false }: { message: Pick<Message, 'id' | 'channelId'>; place: Place; mine: boolean; pending?: boolean }) {
+export const LocationCard = memo(function LocationCard({ message, place, mine, pending = false, onLongPress }: { message: Pick<Message, 'id' | 'channelId'>; place: Place; mine: boolean; pending?: boolean; onLongPress?: () => void }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const { clock } = useChatFormat();
@@ -60,7 +60,7 @@ export const LocationCard = memo(function LocationCard({ message, place, mine, p
   const open = () => router.push({ pathname: '/place', params: { channel: String(message.channelId), message: String(message.id) } });
   return (
     <View style={styles.card} testID={`location-${message.id}`}>
-      <Pressable accessibilityRole="button" accessibilityLabel={[title, detail, t('location.openMap')].join(', ')} onPress={open} disabled={pending} style={[styles.map, { backgroundColor: colors.surface2 }]} testID={`location-${message.id}-map`}>
+      <Pressable accessibilityRole="button" accessibilityLabel={[title, detail, t('location.openMap')].join(', ')} onPress={open} onLongPress={onLongPress} delayLongPress={300} disabled={pending} style={[styles.map, { backgroundColor: colors.surface2 }]} testID={`location-${message.id}-map`}>
         {source ? (
           <Image source={source} recyclingKey={`location-${message.id}`} placeholderContentFit="cover" cachePolicy="disk" transition={200} contentFit="cover" style={[styles.map, ended && styles.faded]} accessible={false} />
         ) : (

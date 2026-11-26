@@ -1,5 +1,7 @@
 import { ChatClient } from '../src/features/chat/api';
 import { distanceMeters, fromWorld, mapsAppUrl, offsetOf, tilePath, tilesFor, toWorld } from '../src/features/chat/geo';
+import { noFeatures } from '../src/features/chat/features';
+import { messageOptions } from '../src/features/chat/messageOptions';
 import { lastMessageOf, messagePatches, messagesFromStore } from '../src/features/chat/odoo';
 import { draftPlace, draftPoll, growOptions, liveRunning, placeFrom, pollFrom, pollProblem, previewText, richOf, richPostData } from '../src/features/chat/rich';
 
@@ -149,6 +151,17 @@ describe('previews', () => {
     expect(previewText(last.rich!, t)).toBe('Poll: Lunch where?');
     const [shared] = messagesFromStore({ 'mail.message': [{ id: 902, model: 'discuss.channel', res_id: 12, body: 'Live location', message_type: 'comment', kaitech_chat_kind: 'live_location', kaitech_chat_location: live }] }, 7);
     expect(previewText(lastMessageOf(shared, '').rich!, t)).toBe('Live location');
+  });
+});
+
+describe('message actions on a sticker', () => {
+  const context = { partnerId: 7, features: noFeatures, channelType: 'chat', inSubThread: false, now: 0 };
+  const sticker = (source: string, id: number | string) =>
+    messagesFromStore({ 'mail.message': [{ id: 903, model: 'discuss.channel', res_id: 12, body: 'Thumbs up', message_type: 'comment', kaitech_chat_kind: 'sticker', kaitech_chat_sticker: { source, id, url: '/s.webp', alt: 'Thumbs up' } }] }, 7)[0];
+
+  it('offers favorite for a pack sticker only, and never copy or edit', () => {
+    expect(messageOptions(sticker('pack', 5), context)).toMatchObject({ sticker: true, copy: false });
+    expect(messageOptions(sticker('provider', 'kl-1'), context).sticker).toBe(false);
   });
 });
 

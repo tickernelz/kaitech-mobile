@@ -21,6 +21,7 @@ export function messageOptions(message: Message, { partnerId, features, channelT
     emoji: !removed,
     reply: !removed,
     copy: text,
+    sticker: !removed && !!message.rich && 'sticker' in message.rich && message.rich.sticker.source === 'pack',
     forward: hasFeature(features, 'forward') && comment && !removed,
     edit: editable && !rich,
     delete: editable && !recallClosed,
