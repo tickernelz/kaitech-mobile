@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, useWindowDimensions, type ViewStyle } from 'react-native';
+import { ScrollView, StyleSheet, View, useWindowDimensions, type ViewStyle } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import { readableWidth } from '../layout/windowClass';
 import { space, useTheme } from '../theme';
@@ -35,7 +36,7 @@ export function Screen({
   );
   return (
     <SafeAreaView edges={edges} style={[styles.fill, { backgroundColor: colors.canvas }]} testID={testID}>
-      <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.fill} behavior="padding" automaticOffset>
         {body}
         {footerInside ? null : footerView}
       </KeyboardAvoidingView>

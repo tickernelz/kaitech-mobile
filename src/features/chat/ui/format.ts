@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../../i18n';
 import { intlLocale } from '../../../i18n/language';
@@ -11,23 +11,55 @@ function startOfDay(ms: number): number {
   return date.getTime();
 }
 
-export function useChatFormat() {
-  const { t } = useTranslation('chat');
-  const { language } = useLanguage();
-  const locale = intlLocale(language);
-  const formats = useMemo(
-    () => ({
+type Formats = {
+  clocks: Map<number, string>;
+  clock: Intl.DateTimeFormat;
+  weekday: Intl.DateTimeFormat;
+  weekdayLong: Intl.DateTimeFormat;
+  date: Intl.DateTimeFormat;
+  dateLong: Intl.DateTimeFormat;
+  number: Intl.NumberFormat;
+};
+
+const formatsByLocale = new Map<string, Formats>();
+
+function formatsFor(locale: string): Formats {
+  let formats = formatsByLocale.get(locale);
+  if (!formats) {
+    formats = {
+      clocks: new Map(),
       clock: new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }),
       weekday: new Intl.DateTimeFormat(locale, { weekday: 'short' }),
       weekdayLong: new Intl.DateTimeFormat(locale, { weekday: 'long' }),
       date: new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }),
       dateLong: new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
       number: new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }),
-    }),
-    [locale],
-  );
+    };
+    formatsByLocale.set(locale, formats);
+  }
+  return formats;
+}
 
-  const clock = useCallback((ms: number) => formats.clock.format(ms), [formats]);
+const minute = 60000;
+const clocksKept = 4000;
+
+function clockOf(formats: Formats, ms: number): string {
+  const at = Math.floor(ms / minute);
+  let shown = formats.clocks.get(at);
+  if (shown === undefined) {
+    if (formats.clocks.size >= clocksKept) formats.clocks.clear();
+    shown = formats.clock.format(ms);
+    formats.clocks.set(at, shown);
+  }
+  return shown;
+}
+
+export function useChatFormat() {
+  const { t } = useTranslation('chat');
+  const { language } = useLanguage();
+  const formats = formatsFor(intlLocale(language));
+
+  const clock = useCallback((ms: number) => clockOf(formats, ms), [formats]);
 
   const listTime = useCallback(
     (ms: number) => {
@@ -66,5 +98,9 @@ export function useChatFormat() {
     [formats, t],
   );
 
-  return { clock, listTime, dayLabel, duration, size, sameDay: (a: number, b: number) => startOfDay(a) === startOfDay(b) };
+  return { clock, listTime, dayLabel, duration, size, sameDay };
+}
+
+export function sameDay(a: number, b: number): boolean {
+  return startOfDay(a) === startOfDay(b);
 }

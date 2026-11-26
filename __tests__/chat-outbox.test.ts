@@ -146,6 +146,48 @@ describe('Outbox', () => {
     expect(outbox.list()).toEqual([]);
   });
 
+  it('hands the sent message over before it drops the queued row, so the thread never shows neither', async () => {
+    const events: string[] = [];
+    const transport: Transport = { upload: async () => ({ attachmentId: 1, ownershipToken: 't' }), post: async () => ({ messageId: 9, data: null }) };
+    const outbox = new Outbox(
+      transport,
+      memoryStore().store,
+      (items) => events.push(items.some((item) => item.key === 'm1') ? 'queued' : 'gone'),
+      () => events.push('sent'),
+    );
+    await outbox.add(pending('m1'));
+    await outbox.flush();
+    expect(events.indexOf('sent')).toBeGreaterThan(-1);
+    expect(events.indexOf('sent')).toBeLessThan(events.indexOf('gone'));
+  });
+
+  it('stops retrying a message the server already announced, even when the post answer is lost', async () => {
+    const { store, saved } = memoryStore();
+    let posts = 0;
+    let answer: (() => void) | null = null;
+    const transport: Transport = {
+      upload: async () => ({ attachmentId: 1, ownershipToken: 't' }),
+      post: async () => {
+        posts += 1;
+        await new Promise<void>((resolve) => {
+          answer = resolve;
+        });
+        throw new SendError('network', true);
+      },
+    };
+    const outbox = new Outbox(transport, store, () => undefined, () => undefined);
+    await outbox.add(pending('m1'));
+    const sending = outbox.flush();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect((await outbox.confirm('m1'))?.key).toBe('m1');
+    (answer as unknown as () => void)();
+    await sending;
+    await outbox.flush();
+    expect(posts).toBe(1);
+    expect(outbox.list()).toEqual([]);
+    expect(saved.size).toBe(0);
+  });
+
   it('turns a message left sending by a killed app back into queued', () => {
     const outbox = new Outbox(new FlakyServer(() => 'ok'), memoryStore().store, () => undefined, () => undefined);
     outbox.load([pending('m1', { state: 'sending', attempts: 1 })]);
