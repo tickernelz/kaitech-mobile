@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { touchTarget } from '../../../../ui/touch';
 import { StatusBar } from 'expo-status-bar';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -225,5 +226,5 @@ const styles = StyleSheet.create({
   pages: { paddingHorizontal: space.sm, paddingTop: space.sm },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
   centerText: { textAlign: 'center' },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touchTarget, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill },
 });

@@ -11,12 +11,17 @@ import { closeVoice, cycleVoiceRate, seekVoice, seekVoiceFraction, toggleVoice, 
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { useCookie } from './useCookie';
+import { reach } from '../../../ui/touch';
 
 const seedBars = 28;
 const barPitch = 5;
 const barWidth = 3;
 const waveHeight = 32;
 const seekStepMs = 5000;
+const playSize = 40;
+const rateWidth = 40;
+const rateHeight = 28;
+const rateSlop = reach(rateHeight, rateWidth);
 
 export function seededLevels(seed: number): number[] {
   let value = seed * 2654435761;
@@ -77,6 +82,7 @@ export const VoiceNote = memo(function VoiceNote({
         accessibilityRole="button"
         accessibilityLabel={playing ? t('voice.pause') : t('voice.play')}
         onPress={() => void toggleVoice(id, uri, cookie, meta)}
+        hitSlop={reach(playSize, playSize)}
         testID={`voice-toggle-${id}`}
         style={({ pressed }) => [styles.play, { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 }]}>
         <Icon name={playing ? 'pause' : 'play'} color={colors.onPrimary} />
@@ -121,7 +127,7 @@ export const VoiceNote = memo(function VoiceNote({
         </View>
       </View>
       {current ? (
-        <Pressable accessibilityRole="button" accessibilityLabel={t('voice.speed', { rate: voice.rate })} onPress={cycleVoiceRate} style={[styles.rate, { borderColor: colors.line }]} testID={`voice-rate-${id}`}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('voice.speed', { rate: voice.rate })} onPress={cycleVoiceRate} hitSlop={rateSlop} style={[styles.rate, { borderColor: colors.line }]} testID={`voice-rate-${id}`}>
           <Text variant="label">{`${voice.rate}\u00d7`}</Text>
         </Pressable>
       ) : null}
@@ -160,7 +166,7 @@ export function VoiceMiniBar({ hideFor }: { hideFor?: number | null }) {
           {duration(voice.position)}
         </Text>
       </Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel={t('voice.speed', { rate: voice.rate })} onPress={cycleVoiceRate} style={[styles.rate, { borderColor: colors.line }]} testID="voice-mini-rate">
+      <Pressable accessibilityRole="button" accessibilityLabel={t('voice.speed', { rate: voice.rate })} onPress={cycleVoiceRate} hitSlop={rateSlop} style={[styles.rate, { borderColor: colors.line }]} testID="voice-mini-rate">
         <Text variant="label">{`${voice.rate}\u00d7`}</Text>
       </Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={t('voice.close')} onPress={closeVoice} style={styles.miniButton} testID="voice-mini-close">
@@ -175,11 +181,11 @@ const styles = StyleSheet.create({
   flexShrink: { flexShrink: 1 },
   regular: { fontWeight: '400', fontVariant: ['tabular-nums'] },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minWidth: 252 },
-  play: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  play: { width: playSize, height: playSize, borderRadius: playSize / 2, alignItems: 'center', justifyContent: 'center' },
   wave: { height: waveHeight, justifyContent: 'center' },
   meta: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   unplayed: { width: 8, height: 8, borderRadius: 4 },
-  rate: { minWidth: 40, minHeight: 28, paddingHorizontal: space.xs, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  rate: { minWidth: rateWidth, minHeight: rateHeight, paddingHorizontal: space.xs, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   mini: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 44, paddingHorizontal: space.sm, borderBottomWidth: StyleSheet.hairlineWidth },
   miniButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   miniTitle: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 44 },

@@ -1,4 +1,5 @@
 import * as Clipboard from 'expo-clipboard';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { memo, useMemo, useState } from 'react';
@@ -204,7 +205,7 @@ export const KtTable = memo(function KtTable({ block, place, exportable = true, 
         </View>
       ) : null}
       {filtering && statusColumn ? (
-        <View style={shared.tools} accessibilityLabel={statusColumn.name}>
+        <View style={[shared.tools, chipBand]} accessibilityLabel={statusColumn.name}>
           {statuses.map((value) => {
             const on = !hidden.includes(value);
             return (
@@ -213,6 +214,7 @@ export const KtTable = memo(function KtTable({ block, place, exportable = true, 
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: on }}
                 onPress={() => setHidden(on ? [...hidden, value] : hidden.filter((one) => one !== value))}
+                hitSlop={chipSlop}
                 style={[styles.chip, { borderColor: on ? colors.primary : colors.line, opacity: on ? 1 : 0.55 }]}>
                 <Status tone={statusTone(statusColumn, value || null)} text={value || t('discovery.block.table.noStatus')} />
               </Pressable>
@@ -305,13 +307,13 @@ const styles = StyleSheet.create({
   grid: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
   row: { flexDirection: 'row' },
   divided: { borderTopWidth: StyleSheet.hairlineWidth },
-  head: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: space.sm, paddingVertical: space.sm, minHeight: 40 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: space.sm, paddingVertical: space.sm, minHeight: touchTarget },
   cell: { paddingHorizontal: space.sm, paddingVertical: space.sm, justifyContent: 'center' },
   textCell: { paddingHorizontal: space.sm, paddingVertical: space.sm, alignSelf: 'center' },
   end: { justifyContent: 'flex-end', alignItems: 'flex-end' },
   right: { textAlign: 'right' },
   bold: { fontWeight: '700' },
   spark: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  chip: { borderWidth: 1, borderRadius: radius.pill, padding: 2 },
+  chip: { minHeight: chipHeight, justifyContent: 'center', borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 2 },
   more: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
 });

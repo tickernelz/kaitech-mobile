@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { touchTarget } from '../../../../ui/touch';
 import { useTranslation } from 'react-i18next';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../../ui/Pressable';
@@ -127,7 +128,7 @@ function WardmoteCard({ card, onChange }: { card: Wardmote; onChange: (next: War
         </View>
       ) : null}
       {card.url ? (
-        <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(card.url)}>
+        <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(card.url)} style={styles.link}>
           <Text variant="footnote" tone="link">
             {t('cards.openIssue')}
           </Text>
@@ -184,6 +185,7 @@ export function RecordCards({ cards, onOpen }: { cards: RecordCard[]; onOpen: (c
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  link: { minHeight: touchTarget, justifyContent: 'center' },
   bold: { fontWeight: '600' },
   stack: { gap: space.xs, marginTop: space.xs },
   card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.card, padding: space.md, gap: 4, maxWidth: 420 },

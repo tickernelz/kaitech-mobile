@@ -9,6 +9,7 @@ import { Button } from '../../ui/Button';
 import { Sheet, SheetItem } from '../../ui/Sheet';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
+import { chipBand, chipHeight, chipSlop } from '../../ui/touch';
 import { useErrorText } from '../discovery/ui';
 import { DateGrid } from './DateGrid';
 import { useDueLabel } from './due';
@@ -113,7 +114,7 @@ export function ScheduleSheet({ mode, onClose, onSaved }: { mode: ScheduleMode; 
           <Text variant="label" tone="inkSoft">
             {t('activities.type')}
           </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.chips}>
             {ordered.map((type) => (
               <Choice key={type.id} label={type.name} selected={type.id === chosenType} onPress={() => pickType(type)} testID={`activity-type-${type.id}`} />
             ))}
@@ -125,7 +126,7 @@ export function ScheduleSheet({ mode, onClose, onSaved }: { mode: ScheduleMode; 
         <Text variant="label" tone="inkSoft">
           {t('activities.due')}
         </Text>
-        <View style={styles.chips}>
+        <View style={[styles.chips, styles.chipBar]}>
           {quick.map((option) => (
             <Choice key={option.key} label={option.label} selected={deadline === option.iso} onPress={() => setDeadline(option.iso)} testID={`activity-due-${option.key}`} />
           ))}
@@ -186,6 +187,7 @@ function Choice({ label, selected, onPress, testID }: { label: string; selected:
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
+      hitSlop={chipSlop}
       style={[styles.choice, { backgroundColor: selected ? colors.select : colors.surface, borderColor: selected ? colors.select : colors.line }]}
       testID={testID}>
       <Text variant="footnote" style={{ color: selected ? colors.selectInk : colors.ink }}>
@@ -197,8 +199,9 @@ function Choice({ label, selected, onPress, testID }: { label: string; selected:
 
 const styles = StyleSheet.create({
   block: { gap: space.xs, paddingVertical: space.xs },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
-  choice: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, paddingVertical: chipBand.paddingVertical },
+  chipBar: { marginVertical: chipBand.marginVertical },
+  choice: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   people: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, padding: space.sm, gap: space.xs },
   note: { minHeight: 88, textAlignVertical: 'top' },
 });

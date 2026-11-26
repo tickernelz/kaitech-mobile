@@ -18,6 +18,7 @@ import { Avatar } from './Avatar';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { RowActions } from '../../../ui/RowActions';
+import { chipBand, chipHeight, chipSlop } from '../../../ui/touch';
 import { conversationActions } from './conversationActions';
 import { refreshStarred } from '../starred';
 import { StarredSheet } from './thread/ListSheets';
@@ -213,7 +214,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
 
   const header = (
     <View style={styles.header}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityRole="tablist">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.chips} accessibilityRole="tablist">
         {filters.map((name) => {
           const on = filter === name;
           return (
@@ -223,6 +224,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
               accessibilityState={{ selected: on }}
               accessibilityLabel={name === 'unread' && unreadTotal ? `${t('list.filter.unread')}, ${unreadTotal}` : undefined}
               onPress={() => setFilter(name)}
+              hitSlop={chipSlop}
               testID={`chat-filter-${name}`}
               style={[styles.chip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}>
               <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
@@ -325,8 +327,9 @@ const styles = StyleSheet.create({
   archiveEntry: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
   strong: { fontWeight: '600' },
   header: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.sm, gap: space.md },
-  chips: { gap: space.sm, paddingHorizontal: space.xs },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  chipBar: { marginVertical: chipBand.marginVertical },
+  chips: { gap: space.sm, paddingHorizontal: space.xs, paddingVertical: chipBand.paddingVertical },
+  chip: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
   count: { minWidth: 18, height: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
   banner: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: radius.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingLeft: space.lg, minHeight: 76 },

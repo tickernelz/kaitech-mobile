@@ -44,14 +44,7 @@ export function Row({
   const content = (
     <>
       {leading}
-      <View style={styles.rowText}>
-        <Text tone={tone}>{title}</Text>
-        {detail ? (
-          <Text variant="footnote" tone="inkSoft">
-            {detail}
-          </Text>
-        ) : null}
-      </View>
+      <Lines title={title} detail={detail} tone={tone} />
       {trailing}
     </>
   );
@@ -73,6 +66,19 @@ export function Row({
       style={({ pressed }) => [styles.row, pressed ? { backgroundColor: colors.surface2 } : bind && { backgroundColor: colors.canvas }]}>
       {content}
     </Pressable>
+  );
+}
+
+function Lines({ title, detail, tone = 'ink' }: { title: string; detail?: string; tone?: 'ink' | 'dangerInk' | 'link' }) {
+  return (
+    <View style={styles.rowText}>
+      <Text tone={tone}>{title}</Text>
+      {detail ? (
+        <Text variant="footnote" tone="inkSoft">
+          {detail}
+        </Text>
+      ) : null}
+    </View>
   );
 }
 
@@ -104,22 +110,28 @@ export function ToggleRow({
 }) {
   const { colors } = useTheme();
   return (
-    <Row
-      title={title}
-      detail={detail}
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityLabel={title}
+      accessibilityHint={detail}
+      accessibilityState={{ checked: value, disabled: !!disabled }}
+      disabled={disabled}
+      android_ripple={{ color: colors.select }}
+      onPress={() => onChange(!value)}
       testID={testID}
-      trailing={
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface2 }]}>
+      <Lines title={title} detail={detail} />
+      <View pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
         <Switch
-          accessibilityLabel={title}
           value={value}
-          onValueChange={onChange}
           disabled={disabled}
           trackColor={{ true: colors.primary, false: colors.lineStrong }}
           thumbColor={colors.surface}
           ios_backgroundColor={colors.lineStrong}
+          testID={testID ? `${testID}-switch` : undefined}
         />
-      }
-    />
+      </View>
+    </Pressable>
   );
 }
 

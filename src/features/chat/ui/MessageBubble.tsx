@@ -6,6 +6,7 @@ import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
+import { reach, shortfall, touchTarget } from '../../../ui/touch';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
 import { attachmentUrl, isCallNotice, isRemoved, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
@@ -29,6 +30,9 @@ import type { AgentCard, CardStore } from '../coworker';
 
 export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
+const reactionHeight = 32;
+const reactionSlop = reach(reactionHeight, 0);
+const faceSlop = { top: 2, bottom: touchTarget - faceSize - 2, left: shortfall(faceSize), right: shortfall(faceSize) };
 
 const mediaWidth = Math.min(tileMax.width, Math.round(readableWidth * 0.8) - 2 * space.md);
 
@@ -158,7 +162,7 @@ export const MessageBubble = memo(function MessageBubble({
     const label = [t(call?.ongoing ? 'thread.callOngoing' : 'thread.call'), call && !call.ongoing ? t('thread.callMinutes', { count: Math.max(1, call.minutes) }) : null, time].filter(Boolean).join(' · ');
     return (
       <View style={styles.notice} accessible={!call?.ongoing} accessibilityLabel={label} testID={`call-notice-${message.id}`}>
-        <View style={[styles.noticePill, styles.callNotice, { backgroundColor: colors.surface2 }]}>
+        <View style={[styles.noticePill, styles.callNotice, call?.ongoing && styles.callLive, { backgroundColor: colors.surface2 }]}>
           <Icon name="phone" size={16} color={colors.inkSoft} />
           <Text variant="footnote" tone="inkSoft">
             {label}
@@ -167,7 +171,7 @@ export const MessageBubble = memo(function MessageBubble({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('thread.callJoin')}
-              hitSlop={8}
+              style={styles.join}
               onPress={() => {
                 const live = callState();
                 const busy = live.phase !== 'idle' && live.phase !== 'ended';
@@ -267,7 +271,7 @@ export const MessageBubble = memo(function MessageBubble({
         </View>
       </Frame>
       {message.reactions.length || hasThread ? (
-        <View style={[styles.under, mine ? styles.wrapMine : styles.wrapTheirs]}>
+        <View style={[styles.under, mine ? styles.wrapMine : styles.wrapTheirs]} pointerEvents="box-none">
           {message.reactions.map((reaction) => (
             <Pressable
               key={reaction.content}
@@ -275,6 +279,7 @@ export const MessageBubble = memo(function MessageBubble({
               accessibilityLabel={t('thread.reaction', { emoji: reaction.content, count: reaction.count })}
               accessibilityState={{ selected: reaction.mine }}
               onPress={() => onReact(message, reaction.content)}
+              hitSlop={reactionSlop}
               style={[styles.reaction, { backgroundColor: reaction.mine ? colors.select : colors.surface, borderColor: reaction.mine ? colors.focus : colors.line }]}>
               <Text variant="footnote">
                 {reaction.content} {reaction.count}
@@ -282,7 +287,7 @@ export const MessageBubble = memo(function MessageBubble({
             </Pressable>
           ))}
           {hasThread ? (
-            <Pressable accessibilityRole="button" onPress={() => onOpenThread(message)} style={[styles.reaction, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+            <Pressable accessibilityRole="button" onPress={() => onOpenThread(message)} hitSlop={reactionSlop} style={[styles.reaction, { backgroundColor: colors.surface, borderColor: colors.line }]}>
               <Icon name="thread" size={16} color={colors.link} />
               <Text variant="footnote" style={{ color: colors.link }}>
                 {t('thread.openSubThread')}
@@ -308,6 +313,7 @@ export const MessageBubble = memo(function MessageBubble({
           accessibilityLabel={t('thread.openPerson', { name: message.author })}
           disabled={!message.authorId}
           onPress={() => message.authorId && router.push({ pathname: '/person/[id]', params: { id: String(message.authorId), name: message.author } })}
+          hitSlop={faceSlop}
           testID={`message-${message.id}-author`}>
           <Avatar name={message.author} seed={message.authorId ?? 0} partnerId={message.authorId} size={faceSize} />
         </Pressable>
@@ -409,19 +415,21 @@ const styles = StyleSheet.create({
   mine: { borderBottomRightRadius: radius.sm },
   plain: { borderWidth: 0 },
   theirs: { borderBottomLeftRadius: radius.sm },
-  quoteBox: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
+  quoteBox: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
   file: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48, width: 260, maxWidth: '100%' },
   pendingFile: { minWidth: 200 },
   meta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
   time: { fontWeight: '400' },
   removed: { fontStyle: 'italic' },
-  under: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
-  reaction: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 32, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  under: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs - shortfall(reactionHeight), paddingVertical: shortfall(reactionHeight) },
+  reaction: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: reactionHeight, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   notice: { paddingHorizontal: space.xxl, paddingVertical: space.sm, alignItems: 'center' },
   noticePill: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.md, overflow: 'hidden' },
   callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs },
+  callLive: { minHeight: touchTarget, paddingVertical: 0 },
+  join: { minHeight: touchTarget, justifyContent: 'center' },
   withFace: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm, paddingLeft: space.sm },
   faceSpace: { width: faceSize },
   faceColumn: { flex: 1, alignItems: 'flex-start' },

@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { touchTarget } from '../../../ui/touch';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
@@ -287,7 +288,7 @@ export function CallScreen() {
             </Text>
           ) : null}
           {call.cameraBlocked && !call.cameraOn ? (
-            <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings()} testID="call-camera-blocked">
+            <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings()} style={styles.notice} testID="call-camera-blocked">
               <Text variant="footnote" tone="warnInk" accessibilityLiveRegion="polite">
                 {t('cameraBlocked.notice')}
               </Text>
@@ -354,7 +355,7 @@ function FullScreenNotice() {
   }, []);
   if (!needed) return null;
   return (
-    <Pressable accessibilityRole="button" onPress={() => void openFullScreenIntentSettings()} testID="call-fullscreen-notice">
+    <Pressable accessibilityRole="button" onPress={() => void openFullScreenIntentSettings()} style={styles.notice} testID="call-fullscreen-notice">
       <Text variant="footnote" tone="warnInk">
         {t('fullScreen.title')} — {t('fullScreen.body')}. {t('fullScreen.action')}
       </Text>
@@ -391,6 +392,7 @@ function endedKey(reason: string | null): `ended.${EndedReason}` {
 }
 
 const styles = StyleSheet.create({
+  notice: { minHeight: touchTarget, justifyContent: 'center' },
   fill: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center' },
   grid: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignContent: 'center', overflow: 'hidden' },

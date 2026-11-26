@@ -5,6 +5,7 @@ import { Pressable } from '../../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../../theme';
 import { Text } from '../../../../ui/Text';
 import { intlLocale } from '../../../../i18n/language';
+import { chipBand, chipHeight, chipSlop } from '../../../../ui/touch';
 
 const dayMs = 86400000;
 const days = 14;
@@ -28,6 +29,7 @@ function Chip({ label, selected, onPress, testID }: { label: string; selected: b
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
+      hitSlop={chipSlop}
       style={[styles.chip, { borderColor: selected ? colors.focus : colors.line, backgroundColor: selected ? colors.select : 'transparent' }]}
       testID={testID}>
       <Text variant="footnote" tone={selected ? 'selectInk' : 'ink'}>
@@ -68,14 +70,14 @@ export function WhenPicker({
       <Text variant="label" tone="inkSoft">
         {label}
       </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.row}>
         {allowNone ? <Chip label={t('when.none')} selected={value === null} onPress={() => onChange(null)} testID={testID ? `${testID}-none` : undefined} /> : null}
         {dayList.map((ms, index) => (
           <Chip key={ms} label={dayLabel(ms)} selected={day === ms} onPress={() => pickDay(ms)} testID={testID ? `${testID}-day-${index}` : undefined} />
         ))}
       </ScrollView>
       {withTime && value !== null ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.row}>
           {timesOfDay().map((minutes) => (
             <Chip key={minutes} label={clock.format(today + minutes * 60000)} selected={minute === minutes} onPress={() => pickTime(minutes)} testID={testID ? `${testID}-time-${minutes}` : undefined} />
           ))}
@@ -87,6 +89,7 @@ export function WhenPicker({
 
 const styles = StyleSheet.create({
   wrap: { gap: space.xs, paddingVertical: space.xs },
-  row: { gap: space.xs },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  row: { gap: space.xs, paddingVertical: chipBand.paddingVertical },
+  chipBar: { marginVertical: chipBand.marginVertical },
+  chip: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
 });

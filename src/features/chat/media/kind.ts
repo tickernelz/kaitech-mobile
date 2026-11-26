@@ -22,6 +22,10 @@ export function extensionOf(name: string): string {
   return found ? found[1].toUpperCase() : '';
 }
 
+export function wrappableName(name: string): string {
+  return name.replace(/([_\-.])(?=.)/g, '$1\u200B');
+}
+
 export function fileFamily(name: string, mimetype: string): FileFamily {
   const mime = mimetype.toLowerCase();
   const extension = extensionOf(name).toLowerCase();

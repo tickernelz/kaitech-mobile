@@ -1,4 +1,5 @@
 import { randomUUID } from 'expo-crypto';
+import { touchTarget } from '../../ui/touch';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -501,7 +502,7 @@ const styles = StyleSheet.create({
   bubble: { borderRadius: radius.card, paddingHorizontal: space.lg, paddingVertical: space.md, maxWidth: '88%' },
   mine: { alignSelf: 'flex-end', borderBottomRightRadius: radius.sm },
   theirs: { alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: radius.sm },
-  steps: { borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
+  steps: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   failure: { borderRadius: radius.card, padding: space.lg, gap: space.xs },
   pendingWrap: { gap: space.xs },
   status: { alignSelf: 'flex-end' },

@@ -1,4 +1,5 @@
 import { useEvent } from 'expo';
+import { touchTarget } from '../../../../ui/touch';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
   pageNotice: { position: 'absolute', alignSelf: 'center', padding: space.md, borderRadius: radius.md },
   failure: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
   centerText: { textAlign: 'center' },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touchTarget, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill },
   notice: { position: 'absolute', alignSelf: 'center', paddingHorizontal: space.lg, paddingVertical: space.md, borderRadius: radius.pill },
   state: { position: 'absolute', left: 0, bottom: 0, width: 1, height: 1 },
 });

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { reach } from '../../../../ui/touch';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 import Animated, { withTiming } from 'react-native-reanimated';
@@ -125,6 +126,7 @@ export function ComposerPanel({
                 accessibilityLabel={t(`panel.${key}`)}
                 accessibilityState={{ selected }}
                 onPress={() => choose(key)}
+                hitSlop={reach(tabHeight, tabWidth)}
                 style={[styles.tab, selected && { backgroundColor: colors.select }]}
                 testID={`panel-tab-${key}`}>
                 <Icon name={tabIcons[key]} variant={selected ? 'fill' : 'line'} color={selected ? colors.selectInk : colors.inkSoft} />
@@ -137,11 +139,14 @@ export function ComposerPanel({
   );
 }
 
+const tabWidth = 64;
+const tabHeight = 40;
+
 const styles = StyleSheet.create({
   panel: { flex: 1 },
   handleArea: { height: 16, alignItems: 'center', justifyContent: 'center' },
   handle: { width: 32, height: 4, borderRadius: radius.pill },
   content: { flex: 1, paddingHorizontal: space.sm, gap: space.xs },
   tabs: { flexDirection: 'row', justifyContent: 'center', gap: space.lg, borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: space.xs },
-  tab: { minWidth: 64, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  tab: { minWidth: tabWidth, height: tabHeight, borderRadius: tabHeight / 2, alignItems: 'center', justifyContent: 'center' },
 });

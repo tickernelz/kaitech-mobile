@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { touchTarget } from '../../../../ui/touch';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../../ui/Pressable';
@@ -103,5 +104,5 @@ export function NewConversationSheet({ onClose, onOpen }: { onClose: () => void;
 
 const styles = StyleSheet.create({
   tabs: { flexDirection: 'row', gap: space.xs, paddingBottom: space.sm },
-  tab: { flex: 1, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  tab: { flex: 1, minHeight: touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
 });

@@ -1,4 +1,5 @@
 import { FlashList } from '@shopify/flash-list';
+import { touchTarget } from '../../ui/touch';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -231,24 +232,24 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
           {query ? <IconButton icon="close" label={t('records.clear')} onPress={() => setQuery('')} testID="list-search-clear" /> : null}
         </View>
         {chosen.length || (linked && !onlyProgramme) || grouping ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.chips}>
             {linked && !onlyProgramme ? (
-              <Pressable accessibilityRole="button" onPress={() => setOnlyProgramme(true)} testID="list-chip-all">
+              <Pressable accessibilityRole="button" onPress={() => setOnlyProgramme(true)} style={styles.chipTarget} testID="list-chip-all">
                 <Chip tone="select" label={t('records.allProgrammes')} />
               </Pressable>
             ) : null}
             {grouping ? (
-              <Pressable accessibilityRole="button" accessibilityHint={t('records.removeFilter')} onPress={() => (setGroupBy(null), setPicked(null))} testID="list-chip-group">
+              <Pressable accessibilityRole="button" accessibilityHint={t('records.removeFilter')} onPress={() => (setGroupBy(null), setPicked(null))} style={styles.chipTarget} testID="list-chip-group">
                 <Chip tone="select" label={t('records.groupedBy', { name: grouping.string })} />
               </Pressable>
             ) : null}
             {picked ? (
-              <Pressable accessibilityRole="button" accessibilityHint={t('records.removeFilter')} onPress={() => setPicked(null)} testID="list-chip-picked">
+              <Pressable accessibilityRole="button" accessibilityHint={t('records.removeFilter')} onPress={() => setPicked(null)} style={styles.chipTarget} testID="list-chip-picked">
                 <Chip tone="select" label={picked.label} />
               </Pressable>
             ) : null}
             {chosen.map((filter) => (
-              <Pressable key={filter.key} accessibilityRole="button" accessibilityHint={t('records.removeFilter')} onPress={() => toggle(filter.key)} testID={`list-chip-${filter.name}`}>
+              <Pressable key={filter.key} accessibilityRole="button" accessibilityHint={t('records.removeFilter')} onPress={() => toggle(filter.key)} style={styles.chipTarget} testID={`list-chip-${filter.name}`}>
                 <Chip tone="select" label={filter.string} />
               </Pressable>
             ))}
@@ -328,7 +329,9 @@ const styles = StyleSheet.create({
   strong: { fontWeight: '600' },
   searchRow: { flexDirection: 'row', alignItems: 'flex-end', gap: space.xs },
   search: { paddingHorizontal: space.lg, paddingBottom: space.sm, gap: space.sm, width: '100%', maxWidth: 720, alignSelf: 'center' },
+  chipBar: { marginVertical: -space.sm },
   chips: { gap: space.sm },
+  chipTarget: { minHeight: touchTarget, justifyContent: 'center' },
   listContent: { paddingHorizontal: space.lg, paddingBottom: space.xxl },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 60, paddingVertical: space.md, paddingHorizontal: space.sm, borderBottomWidth: StyleSheet.hairlineWidth },
   rowText: { flex: 1, gap: 2 },
