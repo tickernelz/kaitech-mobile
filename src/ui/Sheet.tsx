@@ -4,11 +4,11 @@ import { Overlay } from './Overlay';
 import { Pressable } from './Pressable';
 import { useTranslation } from 'react-i18next';
 import { useKeyboardState } from 'react-native-keyboard-controller';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../theme';
 import { NativeSheet, useSheetPresentation } from './NativeSheet';
 import { Text } from './Text';
 import { Icon, type IconName } from './icons';
+import { useBottomInset } from './insets';
 
 export function Sheet({
   title,
@@ -29,8 +29,8 @@ export function Sheet({
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const keyboard = useKeyboardState((state) => (state.isVisible ? state.height : 0));
+  const bottomInset = useBottomInset(space.lg, keyboard > 0);
   const sheet = useSheetPresentation(onClose);
   const head = title ? (
     <View style={styles.head}>
@@ -78,7 +78,7 @@ export function Sheet({
         accessibilityLabel={t('sheet.close')}
         testID={testID ? `${testID}-backdrop` : undefined}>
         <Pressable
-          style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: keyboard ? space.lg : Math.max(insets.bottom, space.lg) }]}
+          style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }]}
           onPress={() => undefined}
           accessibilityViewIsModal
           testID={testID}>

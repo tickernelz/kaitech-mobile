@@ -6,6 +6,7 @@ import { Text } from '../../../ui/Text';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { cancelDistance, type Recording, type useVoiceHold } from './useVoiceHold';
+import { useBottomInset } from '../../../ui/insets';
 
 export function RecordingStrip({ recording }: { recording: Recording }) {
   const { t } = useTranslation('chat');

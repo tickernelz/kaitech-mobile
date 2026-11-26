@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Overlay } from '../../ui/Overlay';
 import { Pressable } from '../../ui/Pressable';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, useKeyboardState } from 'react-native-keyboard-controller';
 import { useResource } from '../../api/resource';
 import { localFile } from '../chat/files';
 import { useVoiceHold } from '../chat/ui/useVoiceHold';
@@ -33,6 +32,7 @@ import { ChoiceRow } from './followupParts';
 import { MoreSheet, type MoreAction } from './MoreSheet';
 import { SmallButton } from './parts';
 import { confirm } from '../../ui/dialog';
+import { useBottomInset } from '../../ui/insets';
 
 const approaches = ['ODOO_STANDARD', 'ODOO_CUSTOM', 'NON_ODOO'] as const;
 const efforts = ['LOW', 'MEDIUM', 'HIGH'] as const;
@@ -151,12 +151,13 @@ export function SolusiPanel({ meeting }: { meeting: number }) {
 function Sheet({ onClose, children, testID }: { onClose: () => void; children: ReactNode; testID: string }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const keyboardVisible = useKeyboardState((state) => state.isVisible);
+  const bottomInset = useBottomInset(space.lg, keyboardVisible);
   return (
     <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <KeyboardAvoidingView behavior="padding" style={styles.fill}>
         <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
-          <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID={testID}>
+          <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }]} onPress={() => undefined} accessibilityViewIsModal testID={testID}>
             <ScrollView contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled">
               {children}
             </ScrollView>

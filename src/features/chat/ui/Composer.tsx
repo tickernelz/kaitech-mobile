@@ -5,7 +5,6 @@ import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, useShare
 import { scheduleOnRN } from 'react-native-worklets';
 import { Pressable } from '../../../ui/Pressable';
 import { KeyboardController, useKeyboardState, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { duration, easing, spring, useMotion } from '../../../theme/motion';
@@ -41,6 +40,7 @@ import { Icon, type IconName } from '../../../ui/icons';
 import { StagedFile } from './MediaControls';
 import { AttachSheet, type Extra } from './composer/AttachSheet';
 import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
+import { useBottomInset } from '../../../ui/insets';
 
 type Staged = Outgoing['files'][number];
 
@@ -80,7 +80,6 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
 ) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardState((state) => state.isVisible);
   const { windowClass } = useWindowClass();
   const { size } = useChatFormat();
@@ -405,7 +404,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const composeIn = useMotion(FadeIn.duration(duration.quick).delay(discarding ? 680 : 0));
   const groupOut = useMotion(FadeOut.duration(duration.quick));
   const glass = useSurface() === 'glass';
-  const bottom = keyboardVisible || panel ? space.sm : Math.max(insets.bottom, space.sm);
+  const bottom = useBottomInset(space.sm, keyboardVisible || panel);
 
   return (
     <View style={[styles.container, glass ? styles.bare : { borderTopColor: colors.line }, { backgroundColor: colors.canvas, paddingBottom: bottom }]} testID="composer">

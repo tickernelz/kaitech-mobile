@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
+trap 'echo "::error::e2e-android.sh line $LINENO exited $?: $BASH_COMMAND" >&2' ERR
 . scripts/e2e-lease.sh
 
 usage="usage: e2e-android.sh <apk-dir> <output-dir> <locale: en-US|id-ID> <size: phone|tablet> <orientation: portrait|landscape>"
@@ -84,7 +85,7 @@ if [ "$runner" = auto ]; then
   if [ "$rotation" = 0 ]; then runner=maestro-runner; else runner=maestro; fi
 fi
 case "$runner" in
-  maestro) run=(maestro ${ANDROID_SERIAL:+--device "$ANDROID_SERIAL"}) ;;
+  maestro) run=(maestro ${ANDROID_SERIAL:+--device "$ANDROID_SERIAL"} --driver-host-port 7001) ;;
   maestro-runner) run=(maestro-runner --no-ansi --platform android --driver devicelab ${ANDROID_SERIAL:+--device "$ANDROID_SERIAL"}) ;;
 esac
 rotation_state() { adb shell dumpsys window displays | tr -d '\r' | grep -oE '(mUserRotationMode|mUserRotation|mRotation|mCurrentAppOrientation|mLastOrientation)=[A-Z_0-9]+' | sort -u | tr '\n' ' '; echo; }
@@ -230,8 +231,8 @@ watch_transport &
 transport_watcher=$!
 
 if [ "$runner" = maestro ]; then
-  adb shell am force-stop dev.devicelab.driver.android.test
-  adb shell am force-stop dev.devicelab.driver.android
+  adb shell am force-stop dev.devicelab.driver.android.test || true
+  adb shell am force-stop dev.devicelab.driver.android || true
 fi
 console="$(mktemp)"
 echo "runner: $runner" | tee -a "$out/display.txt"
@@ -347,7 +348,7 @@ if [ "${E2E_CALL_PEER:-}" = 1 ]; then
     many_peers "$E2E_CHANNEL_CALL_ID" channel 8768 leave > "$out/call-peers-channel.json" 2>&1 || true
   fi
   call_uid="$(adb shell cmd package list packages -U io.kaitech.mobile | tr -d '\r' | sed -n 's/.* uid:\([0-9]*\).*/\1/p' | head -1)"
-  adb logcat -d -b main,crash -v time --uid="$call_uid" | grep -E 'KaitechCall|ReactNativeJS|AndroidRuntime|Logging|PeerConnection|livekit' | grep -viE 'token|cookie|session_id|password|authorization' | tail -n 600 > "$out/call-logcat.txt" || true
+  adb logcat -d -b main,crash -v time --uid="$call_uid" | grep -E 'KaitechCall|ReactNativeJS|AndroidRuntime|Logging|PeerConnection|livekit' | grep -viE 'token|cookie|session_id|password|authorization' | tail -n 8000 > "$out/call-logcat.txt" || true
 fi
 release_server
 
@@ -419,6 +420,9 @@ else
   done < <(find "$out/maestro" -path '*/assets/*' -name 'cmd-[0-9][0-9][0-9]-*.png' ! -name 'cmd-[0-9][0-9][0-9]-before.png' ! -name 'cmd-[0-9][0-9][0-9]-after.png' ! -name 'cmd-[0-9][0-9][0-9]-diff.png' -print0)
 fi
 node scripts/check-screenshots.mjs "$out/screenshots" "$size" "$orientation" "$language" || status=1
+if [ "${E2E_CALL_PEER:-}" = 1 ] && [ -n "${E2E_GROUP_CALL_ID:-}" ]; then
+  node scripts/check-screen-share.mjs "$out"/screenshots/m5-group-peer-screen-*.png || status=1
+fi
 
 if [ -n "${E2E_LOGIN:-}" ]; then
   mkdir -p "$out/failures"

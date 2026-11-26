@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 import { radius, space, useTheme } from '../../../../theme';
 import { duration, easing } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
+import { useBottomInset } from '../../../../ui/insets';
 import { Overlay } from '../../../../ui/Overlay';
 import { Pressable } from '../../../../ui/Pressable';
 import { SheetItem } from '../../../../ui/Sheet';
@@ -20,7 +20,7 @@ const sourceIcons: Record<AttachSource, IconName> = { photos: 'image', camera: '
 export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[] }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomInset = useBottomInset(space.lg);
   const { height } = useWindowDimensions();
   const reduce = useReducedMotion();
   const [mounted, setMounted] = useState(visible);
@@ -45,7 +45,7 @@ export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible
         <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }, scrim]}>
           <Pressable style={styles.fill} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button" />
         </Animated.View>
-        <Animated.View style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }, sheet]} accessibilityViewIsModal testID="attach-sheet">
+        <Animated.View style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }, sheet]} accessibilityViewIsModal testID="attach-sheet">
           <View style={[styles.handle, { backgroundColor: colors.lineStrong }]} />
           <View style={styles.grid}>
             {attachSources.map((source) => {
