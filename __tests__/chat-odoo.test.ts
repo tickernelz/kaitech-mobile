@@ -66,7 +66,7 @@ describe('call history on call notices', () => {
       'mail.message': [notice(1, [7]), notice(2, [8]), notice(3, [9])],
       'discuss.call.history': [
         { id: 7, duration_hour: 0.004, end_dt: '2026-11-22 01:00:15', kaitech_answered_dt: false },
-        { id: 8, duration_hour: 0.2, end_dt: '2026-11-22 01:12:00', kaitech_answered_dt: '2026-11-22 01:00:09' },
+        { id: 8, duration_hour: 0.2, end_dt: '2026-11-22 01:12:00', kaitech_answered_dt: '2026-11-22 01:03:00' },
         { id: 9, duration_hour: 0.004, end_dt: false, kaitech_answered_dt: false },
       ],
     };
@@ -75,6 +75,7 @@ describe('call history on call notices', () => {
     expect(callNoticeKey(missed.call, false)).toBe('thread.callMissed');
     expect(callNoticeKey(missed.call, true)).toBe('thread.callUnanswered');
     expect(callNoticeKey(answered.call, false)).toBe('thread.call');
+    expect(answered.call?.minutes).toBe(9);
     expect(callNoticeKey(ringing.call, false)).toBe('thread.callOngoing');
   });
 

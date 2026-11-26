@@ -124,8 +124,10 @@ let placing = false;
 let invited = new Set<number>();
 let ringTimer: ReturnType<typeof setTimeout> | null = null;
 let invitationsGoneTimer: ReturnType<typeof setTimeout> | null = null;
+let unsureChecks = 0;
 const ringLimitMs = 45_000;
 const joinGraceMs = 4_000;
+const unsureCheckLimit = 3;
 
 export function callState(): CallState {
   return state;
@@ -283,14 +285,31 @@ function stopRingWait() {
   invitationsGoneTimer = null;
 }
 
+function checkAgain(started: number) {
+  stopRingWait();
+  ringTimer = setTimeout(() => {
+    ringTimer = null;
+    void endIfAlone(started);
+  }, joinGraceMs);
+}
+
 async function endIfAlone(started: number) {
   const api = sessionClient();
   const session = joined;
   if (stale(started) || state.startedAt || !api || !session) return;
   const store = await api.ping(session.channelId, session.sessionId, [...known]).catch(() => null);
-  if (stale(started) || state.startedAt || !store) return;
-  const others = sessionIdsFrom(store, session.channelId).added.filter((id) => id !== session.sessionId);
-  if (!others.length) void finish('unanswered');
+  if (stale(started) || state.startedAt) return;
+  const others = store ? sessionIdsFrom(store, session.channelId).added.filter((id) => id !== session.sessionId) : [];
+  if (store && !others.length) {
+    void finish('unanswered');
+    return;
+  }
+  unsureChecks += 1;
+  if (unsureChecks > unsureCheckLimit) {
+    void finish('unanswered');
+    return;
+  }
+  checkAgain(started);
 }
 
 function trackInvitations(payload: unknown) {
@@ -447,6 +466,7 @@ async function connect(api: CallClient, channelId: number, started: number) {
     publish({ phase: 'active', startedAt: answered ? Date.now() : 0, waiting: answered ? null : waitingFor(channelId), muted: false, cameraOn: false, speaker: false, recording: instance.isRecording });
     if (!answered && placing && ringsOthers(channelId)) {
       stopRingWait();
+      unsureChecks = 0;
       ringTimer = setTimeout(() => {
         ringTimer = null;
         void endIfAlone(started);

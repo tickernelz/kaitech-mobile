@@ -188,7 +188,8 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
     const historyId = id(raw.id);
     if (!historyId || typeof raw.duration_hour !== 'number') continue;
     const answered = 'kaitech_answered_dt' in raw ? { answered: Boolean(raw.kaitech_answered_dt) } : {};
-    calls.set(historyId, { minutes: Math.round(raw.duration_hour * 60), ongoing: !raw.end_dt, ...answered });
+    const talked = text(raw.kaitech_answered_dt) && text(raw.end_dt) ? (utc(raw.end_dt) - utc(raw.kaitech_answered_dt)) / 60000 : raw.duration_hour * 60;
+    calls.set(historyId, { minutes: Math.round(talked), ongoing: !raw.end_dt, ...answered });
   }
   const messages: Message[] = [];
   for (const raw of records(data, 'mail.message')) {

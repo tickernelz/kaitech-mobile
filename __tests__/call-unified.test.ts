@@ -9,6 +9,7 @@ const mockCamera = { grant: true };
 const mockAudio: { outputs: string[]; selected: string[] } = { outputs: [], selected: [] };
 let mockStore: unknown = {};
 let mockPingStore: unknown = {};
+const mockPingFails = { on: false };
 let mockConversation: { type: string } | null = null;
 const mockPresent = { names: [] as string[] };
 const mockLeaves: number[] = [];
@@ -136,7 +137,7 @@ jest.mock('../src/features/call/api', () => ({
       return Promise.resolve();
     }
     ping() {
-      return Promise.resolve(mockPingStore);
+      return mockPingFails.on ? Promise.reject(new Error('offline')) : Promise.resolve(mockPingStore);
     }
     leave(channelId: number) {
       mockLeaves.push(channelId);
@@ -269,6 +270,7 @@ beforeEach(() => {
   mockAudio.selected = [];
   mockStore = {};
   mockPingStore = {};
+  mockPingFails.on = false;
   mockConversation = null;
   mockPresent.names = [];
   mockLeaves.length = 0;
@@ -531,6 +533,31 @@ describe('a call nobody has answered yet', () => {
     expect(call.callState().phase).toBe('active');
     jest.advanceTimersByTime(1_000);
     await flush();
+    expect(call.callState()).toMatchObject({ phase: 'ended', endedReason: 'unanswered' });
+  });
+
+  it('checks again when the server cannot be reached at the ring limit, and ends once it answers that nobody joined', async () => {
+    const { call } = await placed();
+    mockPingFails.on = true;
+    jest.advanceTimersByTime(45_000);
+    await flush();
+    expect(call.callState().phase).toBe('active');
+    mockPingFails.on = false;
+    jest.advanceTimersByTime(4_000);
+    await flush();
+    expect(call.callState()).toMatchObject({ phase: 'ended', endedReason: 'unanswered' });
+  });
+
+  it('stops waiting for a person who joined on the server but never reached the room', async () => {
+    const { call } = await placed();
+    mockPingStore = { 'discuss.channel': [{ id: 5, rtc_session_ids: [['ADD', [9, 10]]] }] };
+    jest.advanceTimersByTime(45_000);
+    await flush();
+    for (let check = 0; check < 3; check += 1) {
+      expect(call.callState().phase).toBe('active');
+      jest.advanceTimersByTime(4_000);
+      await flush();
+    }
     expect(call.callState()).toMatchObject({ phase: 'ended', endedReason: 'unanswered' });
   });
 
