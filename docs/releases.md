@@ -50,7 +50,8 @@ Meizu Mblu 21, Android 17, APK v0.8.0 (versionCode 949) and the same build with 
 | Incoming call | swiped from recents | 5/5 | 1.24 s | 1.39 s |
 | Incoming call | process killed, screen locked | 5/5 | 2.3 s | 2.7 s |
 | Incoming call | force-stopped in Settings | 0/5 | - | - |
-| Activity assigned to me (reminder) | background | 0/5 before `kaitech_mobile` f500bb23, see below | - | - |
+| Activity assigned to me (reminder) | background | 5/5 (0/5 before lab0 `c9a26930`) | 2.17 s | 5.37 s |
+| Activity assigned to me (reminder) | swiped from recents | 5/5 | 2.49 s | 2.56 s |
 
 - Force-stopped: Android cancels FCM for a force-stopped app (`GCM: broadcast intent callback: result=CANCELLED`) until the user opens it again. This is Android behaviour, not a Kaitech fault; [Install the APK](install-android.md#notifications) tells users not to force-stop the app.
 - Ringing with the app killed: the call ends on the phone 0.76 to 1.06 s after the caller hangs up (5/5).
@@ -58,7 +59,7 @@ Meizu Mblu 21, Android 17, APK v0.8.0 (versionCode 949) and the same build with 
 - Unlocked, app killed, CallStyle notification: Decline stops the ring in 0.97 to 1.06 s (5/5) and the phone does not join. Answer did nothing in v0.8.0 and earlier (the action was a broadcast that only logged, and Android 12+ forbids opening an activity from it); after the fix Answer opens the call in 3.5 to 5.1 s (5/5) and the server holds both RTC sessions.
 - Tapping a message notification with the app killed opens that conversation in 6.1 to 6.5 s, never on a blank screen. Up to v0.8.0 it opened at the cached bottom and left the new messages below the screen when several arrived while the app was dead (2/2 with eight new messages, 2/12 with one); the thread now goes to its end once the server page lands, unless the reader has a saved position or scrolled first (ZHA-7944).
 - Sign-out: the device is revoked on lab0 and its push token removed within 2 s; the signed-out account then got 0/3 pushes on that phone, while the account still signed in got 3/3. A signed-out account that never was the active account (the second account on the phone) gets no push: only the active account registers its token.
-- Reminders: lab0 notifies 142 of 143 internal users by email, and Odoo web-pushes a direct notification (an activity assigned, a project deadline reminder) only to people notified in Odoo, so phones never heard of them. `kaitech_mobile` now pushes those to the phones of email-notified people too (lab0 `zha7944-activity-push`).
+- Reminders: lab0 notifies 142 of 143 internal users by email, and Odoo web-pushes a direct notification (an activity assigned, a project deadline reminder) only to people notified in Odoo, so phones never heard of them. `kaitech_mobile` now pushes those to the phones of email-notified people too, worded by the notification's subject (`"<record>: <summary>" assigned to you`, `Deadline reminder: <task>`); live on lab0 since 26 November 2026 (`c9a26930`). The first deployed version showed the email's first line ("Dear <name> ,") instead.
 
 ## Not yet verified
 
