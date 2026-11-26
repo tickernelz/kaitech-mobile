@@ -25,6 +25,7 @@ apk="$(find "$apk_dir" -maxdepth 1 -name '*.apk' | head -1)"
 region="${locale#*-}"
 
 framework_config() { adb shell am get-config 2>/dev/null | tr -d '\r' | grep -m1 '^config:' || true; }
+in_locale() { [[ "$1" =~ [\ -]$language-r$region- ]]; }
 guest_memory() { adb shell 'grep -E "^(MemTotal|MemAvailable|SwapTotal|SwapFree):" /proc/meminfo; sed "s/^/pressure /" /proc/pressure/memory' 2> /dev/null | tr -d '\r' | tr -s ' \n' ' ' || true; }
 is_root() { [ "$(adb shell id -u 2>/dev/null | tr -d '\r')" = 0 ]; }
 become_root() {
@@ -41,7 +42,7 @@ become_root() {
 adb wait-for-device
 config="$(framework_config)"
 locale_reboot=no
-if [[ "$config" != *"-$language-r$region-"* ]]; then
+if ! in_locale "$config"; then
   locale_reboot="yes, from ${config:-none}"
   become_root
   adb shell setprop persist.sys.locale "$locale"
@@ -62,7 +63,7 @@ fi
 ready=""
 for _ in $(seq 1 120); do
   config="$(framework_config)"
-  if [[ "$config" == *"-$language-r$region-"* ]] && adb shell service check package 2>/dev/null | grep -q found; then
+  if in_locale "$config" && adb shell service check package 2>/dev/null | grep -q found; then
     ready=1
     break
   fi
