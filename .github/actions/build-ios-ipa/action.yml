@@ -31,10 +31,12 @@ runs:
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGN_IDENTITY="" \
           build > build/xcodebuild.log 2>&1; then
+          scripts/expo-module-scan.sh build/xcodebuild.log || true
           grep -E 'error:' build/xcodebuild.log | head -50 || true
           tail -100 build/xcodebuild.log
           exit 1
         fi
+        scripts/expo-module-scan.sh build/xcodebuild.log
         grep -E '^\*\* BUILD' build/xcodebuild.log
     - name: Package IPA
       shell: bash

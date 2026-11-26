@@ -500,10 +500,12 @@ jobs:
             COMPILATION_CACHE_CAS_PATH="$PWD/build/cas" \
             CODE_SIGNING_ALLOWED=NO \
             build > build/xcodebuild.log 2>&1; then
+            scripts/expo-module-scan.sh build/xcodebuild.log || true
             grep -E 'error:' build/xcodebuild.log | head -50 || true
             tail -100 build/xcodebuild.log
             exit 1
           fi
+          scripts/expo-module-scan.sh build/xcodebuild.log
           grep -E '^\*\* BUILD' build/xcodebuild.log
           cas_mb="$(du -sm build/cas | cut -f1)"
           echo "compilation cache: $cas_mb MB"
