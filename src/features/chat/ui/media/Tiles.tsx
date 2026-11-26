@@ -8,7 +8,7 @@ import { Pressable } from '../../../../ui/Pressable';
 import { Text } from '../../../../ui/Text';
 import { useChat } from '../../chat';
 import { cancelFile, useFileStatus, type FileStatus } from '../../media/download';
-import { clock, extensionOf, fileFamily, mediaKind, tileSize, type FileFamily } from '../../media/kind';
+import { clock, extensionOf, fileFamily, mediaKind, tileSize, wrappableName, type FileFamily } from '../../media/kind';
 import { cacheFile, rememberMeta, useMediaMeta } from '../../media/meta';
 import { wantPreview } from '../../media/preview';
 import { imageUrl, serverPdfThumbnail } from '../../media/urls';
@@ -147,7 +147,7 @@ function Detail({ attachment, status, extra }: { attachment: Attachment; status:
     status.state === 'downloading' && status.total > 0 ? t('media.progress', { received: size(status.received), total: size(status.total) }) : size(attachment.size);
   const parts = [extra, extensionOf(attachment.name), amount].filter(Boolean);
   return (
-    <Text variant="footnote" tone="inkSoft" numberOfLines={1}>
+    <Text variant="footnote" tone="inkSoft" numberOfLines={2}>
       {parts.join(' · ')}
     </Text>
   );
@@ -230,7 +230,7 @@ export const PdfCard = memo(function PdfCard({ attachment, origin, width, onOpen
         </View>
         <View style={styles.fileText}>
           <Text variant="callout" numberOfLines={2} style={styles.bold}>
-            {attachment.name}
+            {wrappableName(attachment.name)}
           </Text>
           <Detail attachment={attachment} status={actions.status} extra={meta.pages ? t('media.pages', { count: meta.pages }) : undefined} />
         </View>
@@ -266,7 +266,7 @@ export const FileCard = memo(function FileCard({ attachment, width, mine }: { at
       </View>
       <View style={styles.fileText}>
         <Text variant="callout" numberOfLines={2} style={styles.bold}>
-          {attachment.name}
+          {wrappableName(attachment.name)}
         </Text>
         <Detail attachment={attachment} status={actions.status} />
       </View>

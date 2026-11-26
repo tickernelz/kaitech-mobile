@@ -26,6 +26,7 @@ import { RowActions } from '../../../ui/RowActions';
 import { conversationActions } from './conversationActions';
 import { refreshStarred } from '../starred';
 import { StarredSheet } from './thread/ListSheets';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 
 function usePreview() {
   const { t } = useTranslation('chat');
@@ -236,6 +237,7 @@ export function ConversationList({
         accessibilityState={{ selected: on }}
         accessibilityLabel={name === 'unread' && unreadTotal ? `${t('list.filter.unread')}, ${unreadTotal}` : undefined}
         onPress={() => setFilter(name)}
+        hitSlop={chipSlop}
         testID={`chat-filter-${name}`}
         style={[styles.chip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}>
         <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
@@ -255,11 +257,11 @@ export function ConversationList({
   const header = (
     <View style={styles.header}>
       {largeText ? (
-        <View style={[styles.chips, styles.wrap]} accessibilityRole="tablist">
+        <View style={[styles.chips, styles.wrap, styles.chipBar]} accessibilityRole="tablist">
           {chips}
         </View>
       ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityRole="tablist">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.chips} accessibilityRole="tablist">
           {chips}
         </ScrollView>
       )}
@@ -348,9 +350,10 @@ const styles = StyleSheet.create({
   archiveEntry: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
   strong: { fontWeight: '600' },
   header: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.sm, gap: space.md },
-  chips: { gap: space.sm, paddingHorizontal: space.xs },
+  chipBar: { marginVertical: chipBand.marginVertical },
+  chips: { gap: space.sm, paddingHorizontal: space.xs, paddingVertical: chipBand.paddingVertical },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
   count: { minWidth: 18, minHeight: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingLeft: space.lg, minHeight: 76 },
   rowBody: { flex: 1, paddingVertical: space.md, paddingRight: space.lg, gap: 2, borderBottomWidth: StyleSheet.hairlineWidth },

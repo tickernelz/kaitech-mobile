@@ -21,8 +21,10 @@ import { useCookie } from '../useCookie';
 import { fetchAttachment, fileKey, fileName, shareFile } from '../useOpenAttachment';
 import { ProgressRing } from './ProgressRing';
 import { Zoomable } from './Zoomable';
+import { touchTarget } from '../../../../ui/touch';
 
 const fullWidth = 2048;
+const barSlop = { top: 8, bottom: 8, left: 0, right: 0 };
 
 function mute(player: VideoPlayer, muted: boolean) {
   player.muted = muted;
@@ -32,7 +34,7 @@ const noticeMs = 2400;
 function Bar({ icon, label, onPress, testID, busy }: { icon: IconName; label: string; onPress: () => void; testID: string; busy?: boolean }) {
   const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ busy }} hitSlop={8} onPress={onPress} testID={testID} style={styles.barButton}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ busy }} hitSlop={barSlop} onPress={onPress} testID={testID} style={styles.barButton}>
       {busy ? <ActivityIndicator color={colors.onStage} /> : <Icon name={icon} color={colors.onStage} />}
     </Pressable>
   );
@@ -265,7 +267,7 @@ const styles = StyleSheet.create({
   pageNotice: { position: 'absolute', alignSelf: 'center', padding: space.md, borderRadius: radius.md },
   failure: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
   centerText: { textAlign: 'center' },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touchTarget, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill },
   notice: { position: 'absolute', alignSelf: 'center', paddingHorizontal: space.lg, paddingVertical: space.md, borderRadius: radius.pill },
   state: { position: 'absolute', left: 0, bottom: 0, width: 1, height: 1 },
 });

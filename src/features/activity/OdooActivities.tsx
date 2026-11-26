@@ -22,6 +22,7 @@ import { useDueLabel } from './due';
 import { iconOfCategory } from './icons';
 import { byModel, filtered, overviewLimit, tally, type Activity, type Filter, type Meeting, type Overview } from './odoo';
 import { ScheduleSheet, type ScheduleMode } from './ScheduleSheet';
+import { chipBand, chipHeight, chipRowGap, chipSlop, touchTarget } from '../../ui/touch';
 
 const filters: Filter[] = ['all', 'overdue', 'today', 'planned'];
 
@@ -92,6 +93,7 @@ export function OdooActivities({
                     accessibilityRole="tab"
                     accessibilityState={{ selected: on }}
                     onPress={() => setFilter(key)}
+                    hitSlop={chipSlop}
                     style={[styles.chip, { backgroundColor: on ? colors.select : colors.surface, borderColor: on ? colors.select : colors.line }]}
                     testID={`activities-filter-${key}`}>
                     <Text variant="footnote" style={{ color: on ? colors.selectInk : key === 'overdue' && counts.overdue ? colors.dangerInk : colors.ink }}>
@@ -223,8 +225,8 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   list: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   head: { gap: space.md, paddingBottom: space.sm },
-  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  filters: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.xs, rowGap: chipRowGap, ...chipBand },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   block: { gap: space.sm },
   footer: { paddingTop: space.md, textAlign: 'center' },
   section: { paddingTop: space.md, paddingBottom: space.xs, paddingHorizontal: space.xs },

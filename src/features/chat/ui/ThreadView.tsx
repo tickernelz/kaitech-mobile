@@ -54,6 +54,7 @@ import { router } from 'expo-router';
 import { ChatBackground } from '../../appearance/ChatBackground';
 import { usePartnerStatus } from '../../people/statuses';
 import { confirm, inform } from '../../../ui/dialog';
+import { reach, touchTarget } from '../../../ui/touch';
 
 const noticeMs = 4000;
 const drawDistance = 1000;
@@ -391,6 +392,7 @@ export function ThreadView({
         accessibilityLabel={t('thread.openPerson', { name })}
         disabled={type !== 'chat' || !conversation?.partnerId}
         onPress={() => conversation?.partnerId && router.push({ pathname: '/person/[id]', params: { id: String(conversation.partnerId), name } })}
+        hitSlop={reach(40, 40)}
         testID="thread-person">
         <Avatar
           name={name}
@@ -401,7 +403,7 @@ export function ThreadView({
           icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined}
         />
       </Pressable>
-      <Pressable style={styles.flex} accessible={false} disabled={!readStatus} onPress={readStatus} testID="thread-heading">
+      <Pressable style={styles.heading} accessible={false} disabled={!readStatus} onPress={readStatus} testID="thread-heading">
         <Text variant="headline" numberOfLines={largeText ? 2 : 1} accessibilityRole="header" testID="thread-title">
           {name}
         </Text>
@@ -573,6 +575,7 @@ export function ThreadView({
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  heading: { flex: 1, minHeight: touchTarget, justifyContent: 'center' },
   center: { textAlign: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md, paddingVertical: space.sm, borderBottomWidth: StyleSheet.hairlineWidth, minHeight: 60 },
   headerTight: { gap: space.xs },
@@ -583,7 +586,7 @@ const styles = StyleSheet.create({
   highlight: { borderRadius: radius.md },
   older: { padding: space.md },
   empty: { padding: space.xxl, alignItems: 'center', justifyContent: 'center' },
-  linked: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 36, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
+  linked: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touchTarget, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
   noticeWrap: { position: 'absolute', left: 0, right: 0, bottom: 96, alignItems: 'center', paddingHorizontal: space.lg },
   notice: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill, overflow: 'hidden', maxWidth: 480, textAlign: 'center' },
   composerWrap: { width: '100%', maxWidth: readableWidth + 2 * space.lg, alignSelf: 'center' },

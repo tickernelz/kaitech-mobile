@@ -15,6 +15,7 @@ import { liveRunning, mediaSource } from '../rich';
 import type { Message, Place } from '../types';
 import { useChatFormat } from './format';
 import { useCookie } from './useCookie';
+import { touchTarget } from '../../../ui/touch';
 
 export const locationWidth = 264;
 const mapHeight = 148;
@@ -103,5 +104,5 @@ const styles = StyleSheet.create({
   badge: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   text: { flex: 1 },
   bold: { fontWeight: '600' },
-  stop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, minHeight: 40, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  stop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, minHeight: touchTarget, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
 });
