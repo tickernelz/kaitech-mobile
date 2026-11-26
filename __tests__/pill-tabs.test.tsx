@@ -212,7 +212,7 @@ describe('Android Material 3 Expressive pill', () => {
     );
   }
 
-  test('the selected tab opens into the wide slot with its label beside the icon; the others stay narrow', async () => {
+  test('the selected tab opens into the wide slot with its label beside the icon, the others stay narrow, inside rounded slots that clip the ripple', async () => {
     mockFocused = 'mom';
     await render(material());
     const width = (name: string) => flat(`tab-button-${name}`).width;
@@ -220,6 +220,7 @@ describe('Android Material 3 Expressive pill', () => {
     expect(width('chat')).toBe(width('discovery'));
     expect(width('activity')).toBe(width('discovery'));
     expect(selected('mom')).toBe(true);
+    expect(flat('tab-button-chat')).toMatchObject({ borderRadius: 999, overflow: 'hidden' });
   });
 
   test('pressing a tab squeezes the indicator and the indicator springs to the new tab', async () => {

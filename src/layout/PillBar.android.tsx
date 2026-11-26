@@ -42,13 +42,14 @@ function Glyph({ tab, bar, material, wide, narrow }: { tab: PillTab; bar: PillBa
   );
 }
 
-function Slot({ tab, width, focusRing }: { tab: PillTab; width: number; focusRing: string }) {
+function Slot({ tab, width, focusRing, ripple }: { tab: PillTab; width: number; focusRing: string; ripple: string }) {
   const [keyboardFocus, setKeyboardFocus] = useState(false);
   return (
     <Pressable
       onPress={tab.press}
       onPressIn={tab.pressIn}
       onPressOut={tab.pressOut}
+      android_ripple={{ color: ripple, foreground: true }}
       onFocus={() => setKeyboardFocus(true)}
       onBlur={() => setKeyboardFocus(false)}
       accessibilityRole="tab"
@@ -89,7 +90,7 @@ export function PillBar() {
           ))}
         </View>
         {bar.items.map((tab) => (
-          <Slot key={tab.name} tab={tab} width={tab.index === selected ? wide : narrow} focusRing={material.secondary} />
+          <Slot key={tab.name} tab={tab} width={tab.index === selected ? wide : narrow} focusRing={material.secondary} ripple={`${material.onSurface}1A`} />
         ))}
       </View>
     </Animated.View>
