@@ -7,6 +7,7 @@ import { MoreSheet } from './MoreSheet';
 import { StatusRow } from './StatusRow';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useConnection } from '../../api/network';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { Panes } from '../../layout/Panes';
@@ -17,6 +18,7 @@ import { space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
+import { ConnectionBanner } from '../../ui/Banner';
 import { StateView } from '../discovery/ui';
 import { board } from './api';
 import { MeetingView } from './MeetingView';
@@ -72,6 +74,8 @@ export function MomHome() {
 
   const rows = meetings.data?.meetings ?? [];
   const days = groupByDay(rows);
+  const refreshMeetings = () => void meetings.refresh();
+  const connection = useConnection({ shown: rows.length > 0, failed: meetings.error !== undefined, refresh: refreshMeetings });
   const dayTitle = (day: string) => {
     if (day === localDay(0)) return tChat('time.today');
     if (day === localDay(-1)) return tChat('time.yesterday');
@@ -94,8 +98,9 @@ export function MomHome() {
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
         contentContainerStyle={styles.content}
-        refreshControl={<Refresh refreshing={meetings.loading && !!meetings.data} onRefresh={() => void meetings.refresh()} />}
+        refreshControl={<Refresh refreshing={meetings.loading && !!meetings.data} onRefresh={refreshMeetings} />}
         testID="mom-home">
+        <ConnectionBanner notice={connection.notice} onRetry={refreshMeetings} testID="mom-connection" />
         <StatusRow onOpenMeeting={open} />
         {ownRecording ? (
           <RecordingCard recording={ownRecording} onOpen={() => router.push('/mom/record')} />
@@ -148,10 +153,11 @@ export function MomHome() {
           ))
         ) : (
           <StateView
+            offline={!connection.online}
             loading={meetings.loading && !meetings.data}
-            error={meetings.data ? undefined : meetings.error}
+            error={meetings.error}
             empty={{ title: t('mom.noneTitle'), icon: 'minutes' }}
-            onRetry={() => void meetings.refresh()}
+            onRetry={refreshMeetings}
             testID="mom-meetings"
           />
         )}
