@@ -183,8 +183,16 @@ function notePeople(store: unknown) {
   noteStatuses(state.accountId, store);
 }
 
+const deliveredListeners = new Set<(sent: Sent) => void>();
+
+export function onDelivered(listener: (sent: Sent) => void): () => void {
+  deliveredListeners.add(listener);
+  return () => deliveredListeners.delete(listener);
+}
+
 function delivered(sent: Sent) {
   const { pending } = sent;
+  deliveredListeners.forEach((listener) => listener(sent));
   notePeople(sent.data);
   const urgentLeft = urgentLeftFrom(sent.data);
   if (urgentLeft !== null) setFeatures({ urgentLeft });

@@ -9,10 +9,12 @@ import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
 import { attachmentUrl, isCallNotice, isRemoved, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
-import type { Attachment, Message, Pending, PendingFile } from '../types';
+import type { Attachment, Message, Pending, PendingFile, Rich } from '../types';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { UploadProgress } from './MediaControls';
+import { LocationCard } from './LocationCard';
+import { PollCard } from './PollCard';
 import { RichMedia, richLabel } from './RichMedia';
 import { RichText } from './RichText';
 import { MediaAttachment } from './media/Tiles';
@@ -64,6 +66,7 @@ function Frame({
   testID,
   failed,
   bare,
+  interactive = false,
 }: {
   mine: boolean;
   children: ReactNode;
@@ -72,12 +75,14 @@ function Frame({
   testID?: string;
   failed?: boolean;
   bare?: boolean;
+  interactive?: boolean;
 }) {
   const { colors } = useTheme();
   return (
     <Pressable
       onLongPress={onLongPress}
       delayLongPress={300}
+      accessible={!interactive}
       accessibilityLabel={label}
       accessibilityHint={onLongPress ? undefined : undefined}
       accessibilityActions={onLongPress ? [{ name: 'longpress' }] : undefined}
@@ -212,7 +217,7 @@ export const MessageBubble = memo(function MessageBubble({
         ]);
   const body = (
     <>
-      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} testID={`bubble-${message.id}`} bare={rich !== undefined && 'sticker' in rich && !quote}>
+      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} testID={`bubble-${message.id}`} bare={rich !== undefined && 'sticker' in rich && !quote} interactive={rich !== undefined && ('poll' in rich || 'location' in rich)}>
         {(showAuthor || (agent && agentTag)) && !mine ? (
           <View style={styles.authorRow}>
             {showAuthor ? (
@@ -233,7 +238,13 @@ export const MessageBubble = memo(function MessageBubble({
         <QuoteBlock quote={quote} mine={mine} onPress={message.parentId ? () => onQuotePress(message.parentId as number) : undefined} />
         <Attachments attachments={message.attachments} origin={origin} mine={mine} meta={{ title: message.author, channelId: message.channelId, messageId: message.id }} />
         {rich ? (
-          <RichMedia rich={rich} origin={origin} testID={`rich-${message.id}`} />
+          'poll' in rich ? (
+            <PollCard message={message} poll={rich.poll} mine={mine} />
+          ) : 'location' in rich ? (
+            <LocationCard message={message} place={rich.location} mine={mine} />
+          ) : (
+            <RichMedia rich={rich} origin={origin} messageId={message.id} testID={`rich-${message.id}`} />
+          )
         ) : agent && !removed && !message.translated ? (
           <AgentSaid store={agent} messageId={message.id}>
             {blocks.length ? <RichText blocks={blocks} color={colors.ink} tint={colors.surface2} /> : null}
@@ -341,6 +352,13 @@ function PendingFileRow({ file }: { file: PendingFile }) {
   );
 }
 
+function PendingRich({ rich, channelId, origin }: { rich: Rich; channelId: number; origin: string }) {
+  const message = { id: 0, channelId };
+  if ('poll' in rich) return <PollCard message={message} poll={rich.poll} mine pending />;
+  if ('location' in rich) return <LocationCard message={message} place={rich.location} mine pending />;
+  return <RichMedia rich={rich} origin={origin} testID="pending-rich" />;
+}
+
 export const PendingBubble = memo(function PendingBubble({
   pending,
   offline,
@@ -362,7 +380,7 @@ export const PendingBubble = memo(function PendingBubble({
   return (
     <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`}>
       <Frame mine label={label} failed={failed} testID="bubble-pending" bare={pending.rich !== undefined && 'sticker' in pending.rich}>
-        {pending.rich ? <RichMedia rich={pending.rich} origin={origin} testID="pending-rich" /> : null}
+        {pending.rich ? <PendingRich rich={pending.rich} channelId={pending.channelId} origin={origin} /> : null}
         {pending.files.map((file) => (
           <PendingFileRow key={file.key} file={file} />
         ))}

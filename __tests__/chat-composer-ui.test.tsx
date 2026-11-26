@@ -94,6 +94,7 @@ jest.mock('react-native-svg', () => ({ __esModule: true, default: () => null, Pa
 jest.mock('../src/features/call/call', () => ({ callState: () => ({ phase: 'idle' }), subscribeCall: () => () => undefined }));
 jest.mock('../src/features/call/ui/useAutoHide', () => ({ useScreenReader: () => false }));
 jest.mock('../src/features/chat/ui/composer/Panel', () => ({ ComposerPanel: () => null }));
+jest.mock('../src/features/chat/ui/composer/LocationPicker', () => ({ LocationPicker: () => null }));
 
 const { Composer } = require('../src/features/chat/ui/Composer') as typeof import('../src/features/chat/ui/Composer');
 const { DialogLayer } = require('../src/ui/Dialog') as typeof import('../src/ui/Dialog');

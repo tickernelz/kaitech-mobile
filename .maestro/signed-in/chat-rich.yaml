@@ -1,0 +1,222 @@
+appId: io.kaitech.mobile
+name: Poll, location and live location in a chat
+tags:
+  - signed-in
+  - chat-actions
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      text: ${PEER}
+    timeout: 60000
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- tapOn:
+    id: composer-attach
+- extendedWaitUntil:
+    visible:
+      id: attach-poll
+    timeout: 10000
+- assertVisible:
+    id: attach-location
+- tapOn:
+    id: attach-poll
+- extendedWaitUntil:
+    visible:
+      id: poll-question
+    timeout: 10000
+- inputText: ${RUN + ' poll'}
+- tapOn:
+    id: poll-option-0
+- inputText: ${RUN + ' A'}
+- tapOn:
+    id: poll-option-1
+- inputText: ${RUN + ' B'}
+- runFlow: ../shared/dismiss-keyboard.yaml
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r1-poll-new
+- tapOn:
+    id: poll-send
+- extendedWaitUntil:
+    visible:
+      text: ${RUN + ' poll'}
+    timeout: 30000
+- extendedWaitUntil:
+    notVisible:
+      id: bubble-pending
+    timeout: 30000
+- tapOn:
+    text: ${RUN + ' A,.*'}
+- extendedWaitUntil:
+    visible:
+      text: ${RUN + ' A, 1 .*'}
+    timeout: 15000
+- tapOn:
+    text: ${RUN + ' B,.*'}
+- extendedWaitUntil:
+    visible:
+      text: ${RUN + ' B, 1 .*'}
+    timeout: 15000
+- assertVisible:
+    text: ${RUN + ' A, 0 .*'}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r2-poll-voted
+- tapOn:
+    id: poll-[0-9]+-votes
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: poll-votes
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r3-poll-votes
+- tapOn:
+    id: poll-votes-close
+- tapOn:
+    id: poll-[0-9]+-close
+    index: -1
+- tapOn:
+    id: poll-close-dialog-confirm
+- extendedWaitUntil:
+    notVisible:
+      id: poll-[0-9]+-close
+    timeout: 15000
+- setLocation:
+    latitude: -6.175392
+    longitude: 106.827153
+- tapOn:
+    id: composer-attach
+- extendedWaitUntil:
+    visible:
+      id: attach-location
+    timeout: 10000
+- tapOn:
+    id: attach-location
+- extendedWaitUntil:
+    visible:
+      id: (permission-location-dialog|location-picker)
+    timeout: 15000
+- runFlow:
+    when:
+      visible:
+        id: permission-location-dialog
+    commands:
+      - tapOn:
+          id: permission-location-dialog-confirm
+      - extendedWaitUntil:
+          visible:
+            text: (While using the app|Saat aplikasi digunakan)
+          timeout: 15000
+      - tapOn:
+          text: (While using the app|Saat aplikasi digunakan)
+- extendedWaitUntil:
+    visible:
+      id: location-picker
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: map-marker-self
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r4-location-picker
+- tapOn:
+    id: location-send-current
+- extendedWaitUntil:
+    visible:
+      id: location-[0-9]+-map
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r5-location-bubble
+- tapOn:
+    id: location-[0-9]+-map
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: place-screen
+    timeout: 15000
+- assertVisible:
+    id: place-open-app
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r6-place
+- tapOn:
+    id: place-close
+- tapOn:
+    id: composer-attach
+- tapOn:
+    id: attach-location
+- extendedWaitUntil:
+    visible:
+      id: map-marker-self
+    timeout: 30000
+- tapOn:
+    id: location-share-live
+- extendedWaitUntil:
+    visible:
+      id: live-duration
+    timeout: 10000
+- tapOn:
+    id: live-duration-15
+- runFlow:
+    when:
+      visible:
+        id: permission-notifications-dialog
+    commands:
+      - tapOn:
+          id: permission-notifications-dialog-confirm
+      - extendedWaitUntil:
+          visible:
+            text: (Allow|Izinkan)
+          timeout: 15000
+      - tapOn:
+          text: (Allow|Izinkan)
+- extendedWaitUntil:
+    visible:
+      id: location-[0-9]+-stop
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r7-live-bubble
+- tapOn:
+    id: location-[0-9]+-stop
+    index: -1
+- tapOn:
+    id: live-stop-dialog-confirm
+- extendedWaitUntil:
+    notVisible:
+      id: location-[0-9]+-stop
+    timeout: 20000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: r8-live-ended

@@ -16,6 +16,7 @@ import { pushSupported } from '../push';
 import type { Conversation } from '../types';
 import { Avatar } from './Avatar';
 import { useChatFormat } from './format';
+import { previewText } from '../rich';
 import { Icon } from '../../../ui/icons';
 import { RowActions } from '../../../ui/RowActions';
 import { conversationActions } from './conversationActions';
@@ -32,7 +33,7 @@ function usePreview() {
       if (last.call) return { author: '', text: t('thread.call') };
       const mine = last.authorId === partnerId;
       const author = mine ? t('list.you') : conversation.type === 'chat' ? '' : last.author.split(' ')[0];
-      const text = last.text || (last.voice ? t('list.voice') : last.attachments ? t('list.files', { count: last.attachments }) : '');
+      const text = last.rich ? previewText(last.rich, (key) => t(key)) : last.text || (last.voice ? t('list.voice') : last.attachments ? t('list.files', { count: last.attachments }) : '');
       return { author, text };
     },
     [partnerId, t],

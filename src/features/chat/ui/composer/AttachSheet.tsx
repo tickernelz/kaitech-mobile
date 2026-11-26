@@ -17,7 +17,9 @@ export type Extra = { key: string; icon: IconName; label: string; detail?: strin
 
 const sourceIcons: Record<AttachSource, IconName> = { photos: 'image', camera: 'camera', files: 'file', audio: 'audioFile' };
 
-export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[] }) {
+export type Tool = { key: string; icon: IconName; label: string; onPress: () => void };
+
+export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[]; tools?: Tool[] }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const bottomInset = useBottomInset(space.lg);
@@ -48,19 +50,20 @@ export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible
         <Animated.View style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }, sheet]} accessibilityViewIsModal testID="attach-sheet">
           <View style={[styles.handle, { backgroundColor: colors.lineStrong }]} />
           <View style={styles.grid}>
-            {attachSources.map((source) => {
-              const icon = sourceIcons[source];
-              return (
-                <Pressable key={source} accessibilityRole="button" accessibilityLabel={t(`composer.source.${source}`)} onPress={() => onPick(source)} style={styles.item} testID={`attach-${source}`}>
-                  <View style={[styles.circle, { backgroundColor: colors.surface2 }]}>
-                    <Icon name={icon} color={colors.ink} />
-                  </View>
-                  <Text variant="footnote" style={styles.center} numberOfLines={1}>
-                    {t(`composer.source.${source}`)}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            {[
+              ...attachSources.filter((source) => source !== 'audio').map((source) => ({ key: source, icon: sourceIcons[source], label: t(`composer.source.${source}`), onPress: () => onPick(source) })),
+              ...tools,
+              ...attachSources.filter((source) => source === 'audio').map((source) => ({ key: source, icon: sourceIcons[source], label: t(`composer.source.${source}`), onPress: () => onPick(source) })),
+            ].map((item) => (
+              <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={item.label} onPress={item.onPress} style={styles.item} testID={`attach-${item.key}`}>
+                <View style={[styles.circle, { backgroundColor: colors.surface2 }]}>
+                  <Icon name={item.icon} color={colors.ink} />
+                </View>
+                <Text variant="footnote" style={styles.center} numberOfLines={1}>
+                  {item.label}
+                </Text>
+              </Pressable>
+            ))}
           </View>
           {extras.length ? <View style={[styles.divider, { backgroundColor: colors.line }]} /> : null}
           {extras.map((extra) => (
