@@ -18,6 +18,8 @@ runs:
       run: npx expo prebuild --platform ios
     - name: xcodebuild (no code signing)
       shell: bash
+      env:
+        EXPO_MODULES_SCAN_TIMEOUT_MS: '60000'
       run: |
         mkdir -p build
         if ! xcodebuild \

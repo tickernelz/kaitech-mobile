@@ -481,6 +481,8 @@ jobs:
       - name: xcodebuild for the simulator (no code signing)
         id: xcodebuild
         if: steps.app.outputs.cache-hit != 'true'
+        env:
+          EXPO_MODULES_SCAN_TIMEOUT_MS: '60000'
         run: |
           mkdir -p build
           if [ -d build/cas ] && [ "$(du -sm build/cas | cut -f1)" -gt 3072 ]; then
