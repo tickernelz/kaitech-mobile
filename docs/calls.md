@@ -38,7 +38,7 @@ so they live in our own small Kotlin module instead of Notifee (last release Dec
 
 Incoming rings: while the app is in the foreground the invitation arrives on the Odoo bus and the app draws the
 in-app ring; in the background, dead, or on the lock screen the FCM data ring starts the foreground service and the
-CallStyle notification. Answering from the notification opens the app and joins. Declining sends
+CallStyle notification. Answering from the notification opens the app and joins: the Answer action is an activity PendingIntent, because Android 12 and later forbid starting an activity from a notification broadcast (up to v0.8.0 it was a broadcast and did nothing, ZHA-7944). Declining sends
 `/mail/rtc/channel/cancel_call_invitation`, through the app when it is alive and through a headless JS task when it
 is not. iOS has the in-app ring only: VoIP push and CallKit need an Apple Developer account and entitlements the
 unsigned build does not have, so there the app must be open to ring (marked unverified).
