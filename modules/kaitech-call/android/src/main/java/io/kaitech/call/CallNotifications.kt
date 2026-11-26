@@ -68,6 +68,7 @@ object CallNotifications {
     ensureChannels(context)
     val open = pending(context, RING_ID, CallIntents.openIntent(context, answer = false, ring))
     val fullScreen = pending(context, RING_ID + 100, CallIntents.openIntent(context, answer = false, ring))
+    val answer = pending(context, RING_ID + 2, CallIntents.openIntent(context, answer = true, ring))
     val builder = NotificationCompat.Builder(context, RING_CHANNEL)
       .setSmallIcon(context.applicationInfo.icon)
       .setContentTitle(ring.title)
@@ -84,11 +85,10 @@ object CallNotifications {
       .setFullScreenIntent(fullScreen, true)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
       val decline = action(context, RING_ID + 1, CallNotifications.ACTION_DECLINE, ring)
-      val answer = action(context, RING_ID + 2, CallNotifications.ACTION_ANSWER, ring)
       builder.setStyle(NotificationCompat.CallStyle.forIncomingCall(person(ring.title), decline, answer))
     } else {
       builder.addAction(0, context.getString(R.string.kaitech_call_decline), action(context, RING_ID + 1, CallNotifications.ACTION_DECLINE, ring))
-      builder.addAction(0, context.getString(R.string.kaitech_call_answer), action(context, RING_ID + 2, CallNotifications.ACTION_ANSWER, ring))
+      builder.addAction(0, context.getString(R.string.kaitech_call_answer), answer)
       builder.setStyle(NotificationCompat.BigTextStyle().bigText(ring.body))
     }
     return builder.build()
@@ -149,7 +149,6 @@ object CallNotifications {
   }
 
   const val ACTION_DECLINE = "io.kaitech.call.DECLINE"
-  const val ACTION_ANSWER = "io.kaitech.call.ANSWER"
   const val ACTION_HANGUP = "io.kaitech.call.HANGUP"
   const val ACTION_STOP_SHARING = "io.kaitech.call.STOP_SHARING"
 }

@@ -3,7 +3,6 @@ package io.kaitech.call
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 
 class CallActionReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
@@ -35,9 +34,6 @@ class CallActionReceiver : BroadcastReceiver() {
       CallNotifications.ACTION_STOP_SHARING -> CallBridge.send(mapOf("type" to "stopShare"))
       CallPip.ACTION_TOGGLE_MUTE -> CallBridge.send(mapOf("type" to "mute"))
       CallPip.ACTION_TOGGLE_CAMERA -> CallBridge.send(mapOf("type" to "camera"))
-      CallNotifications.ACTION_ANSWER -> {
-        Log.i("KaitechCall", "answer from the notification, the app opens for the call")
-      }
     }
   }
 }
