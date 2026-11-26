@@ -25,7 +25,8 @@ name: Coworker quick replies - a kt-block reply is drawn as buttons and a tap se
     timeout: 10000
 - tapOn:
     id: coworker-input
-- inputText: ${QUESTION}
+- evalScript: "${output.question = typeof QUESTION === 'undefined' || !QUESTION ? 'E2E check ' + Date.now() + ', answer with a quick-replies block (replies) offering two choices, Ya and Tidak. Is this programme summary complete?' : QUESTION}"
+- inputText: ${output.question}
 - runFlow: ../shared/dismiss-keyboard.yaml
 - tapOn:
     id: coworker-send
