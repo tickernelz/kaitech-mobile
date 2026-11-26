@@ -6,7 +6,7 @@ import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { readableWidth } from '../../../layout/windowClass';
+import { readableWidth, useLargeText } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { useReduceMotion } from '../../../theme/reduceMotion';
 import { Text } from '../../../ui/Text';
@@ -75,6 +75,7 @@ export function ThreadView({
 }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
+  const largeText = useLargeText();
   const [notifying, setNotifying] = useState(false);
   const [threadMenu, setThreadMenu] = useState(false);
   const [workSheet, setWorkSheet] = useState(false);
@@ -372,7 +373,7 @@ export function ThreadView({
   const parentId = thread.info?.parentId ?? null;
   const back = twoPane ? (parentId ? () => onOpenChannel(parentId) : undefined) : onBack;
   const header = (
-    <View style={[styles.header, { borderBottomColor: colors.line }]}>
+    <View style={[styles.header, largeText && styles.headerTight, { borderBottomColor: colors.line }]}>
       {!back ? null : (
         <Pressable accessibilityRole="button" accessibilityLabel={t('thread.back')} onPress={back} hitSlop={8} style={styles.headerButton} testID="thread-back">
           <Icon name="back" color={colors.ink} />
@@ -394,7 +395,7 @@ export function ThreadView({
         />
       </Pressable>
       <Pressable style={styles.flex} accessible={false} disabled={!readStatus} onPress={readStatus} testID="thread-heading">
-        <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
+        <Text variant="headline" numberOfLines={largeText ? 2 : 1} accessibilityRole="header" testID="thread-title">
           {name}
         </Text>
         <Text
@@ -565,6 +566,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md, paddingVertical: space.sm, borderBottomWidth: StyleSheet.hairlineWidth, minHeight: 60 },
+  headerTight: { gap: space.xs },
   headerButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   content: { paddingVertical: space.md },
   day: { alignItems: 'center', paddingVertical: space.sm },
