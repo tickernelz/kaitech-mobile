@@ -188,13 +188,17 @@ async function signIn(login, password) {
 }
 
 function checkComposer() {
-  const composer = find(dump(), 'composer');
+  const screen = dump();
+  const composer = find(screen, 'composer');
   if (!composer) return failures.push('composer: no composer under the thread');
   const navBar = adb('shell', 'dumpsys', 'window', 'displays').match(/type=navigationBars frame=\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/);
   if (!navBar) return failures.push('composer: no navigationBars frame in dumpsys window displays');
   if (Number(navBar[2]) >= Number(navBar[4])) return lines.push('composer: the navigation bar has no height on this screen');
   const navTop = Number(navBar[2]);
-  const bottoms = [...walk(composer)].filter((node) => node.bottom > node.top && node.right > node.left).map((node) => node.bottom);
+  const bottoms = [...walk(screen)]
+    .filter((node) => node !== composer && node.bottom > node.top && node.right > node.left && (node.text || node.clickable || node.id?.startsWith('composer-')))
+    .filter((node) => node.left >= composer.left && node.right <= composer.right && node.top >= composer.top && node.bottom <= composer.bottom)
+    .map((node) => node.bottom);
   if (!bottoms.length) return failures.push('composer: the composer has no visible control');
   const lowest = Math.max(...bottoms);
   const gap = dp(navTop - lowest);
