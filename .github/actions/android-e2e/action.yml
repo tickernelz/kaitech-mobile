@@ -43,6 +43,9 @@ inputs:
   audio:
     description: true starts the emulator with audio; recording flows need it.
     default: 'false'
+  undo-window-ms:
+    description: Android "Time to take action" in milliseconds, which stretches the Undo bar; empty keeps the system default that the rows flows wait out.
+    default: ''
   call-peer:
     description: true joins a headless web peer to the test call with its camera on and gives the emulator a front camera; call flows need it.
     default: 'false'
@@ -117,6 +120,7 @@ runs:
         E2E_RUNNER: ${{ inputs.runner }}
         E2E_LAYOUT_CHECK: ${{ inputs.layout-check == 'true' && '1' || '' }}
         E2E_CALL_PEER: ${{ inputs.call-peer == 'true' && '1' || '' }}
+        E2E_UNDO_WINDOW_MS: ${{ inputs.undo-window-ms }}
         PORTRAIT_COLD_START_RUNS: ${{ inputs.cold-start }}
       with:
         api-level: 35
