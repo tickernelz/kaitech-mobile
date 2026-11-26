@@ -52,7 +52,7 @@ export function StickerTab({
   };
   return (
     <View style={styles.fill}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sources} keyboardShouldPersistTaps="handled" accessibilityRole="tablist">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bar} contentContainerStyle={styles.sources} keyboardShouldPersistTaps="handled" accessibilityRole="tablist">
         {sections.map((section, index) => {
           const selected = section.key === shown;
           const cover = section.key.startsWith('pack-') ? section.stickers[0] : undefined;
@@ -98,7 +98,7 @@ export function StickerTab({
       ) : !rows.length ? (
         <PanelState problem="noStickers" />
       ) : (
-        <View style={styles.fill}>
+        <View style={styles.fill} testID="sticker-list">
           <FlashList
             ref={list}
             data={rows}
@@ -213,6 +213,7 @@ function ProviderStickers({ onPick, onSearching, onPreview }: { onPick: (sticker
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  bar: { flexGrow: 0 },
   sources: { gap: space.xs, paddingVertical: space.xs },
   source: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   provider: { width: 64 },

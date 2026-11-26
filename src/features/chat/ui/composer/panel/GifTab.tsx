@@ -63,14 +63,14 @@ export function GifTab({ initialQuery, onPick, onSearching }: { initialQuery: st
         testID="gif-search"
       />
       {!query.trim() ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} keyboardShouldPersistTaps="handled">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bar} contentContainerStyle={styles.chips} keyboardShouldPersistTaps="handled">
           <Chip label={t('panel.trending')} selected={!category} onPress={() => setCategory(null)} testID="gif-chip-trending" />
           {categories.map((item) => (
             <Chip key={item.query} label={item.name} thumb={item.preview?.url} selected={category?.query === item.query} onPress={() => setCategory(item)} testID={`gif-chip-${item.query}`} />
           ))}
         </ScrollView>
       ) : null}
-      <View style={styles.fill} onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}>
+      <View style={styles.fill} onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)} testID="gif-list">
         {problem ? (
           <PanelState problem={problem} code={page.failure?.reason ?? page.failure?.code} admin={admin} onRetry={page.retry} onSettings={() => void Linking.openURL(`${origin}/odoo/settings`)} />
         ) : page.loading && !page.items.length ? (
@@ -130,6 +130,7 @@ function Chip({ label, thumb, selected, onPress, testID }: { label: string; thum
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   search: { height: 40, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
+  bar: { flexGrow: 0 },
   chips: { gap: space.xs, paddingVertical: space.xs },
   chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, height: 32, paddingHorizontal: space.sm, borderRadius: radius.pill },
   thumb: { width: 24, height: 24, borderRadius: 12 },

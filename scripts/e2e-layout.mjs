@@ -400,7 +400,30 @@ if (peer) {
           if (moved > 1) failures.push(`composer panel: the row moved ${moved}dp when the panel replaced the keyboard`);
         }
         screenshot('composer-panel');
-        const back = find(panelTree, 'composer-keyboard');
+        for (const [tab, bar, list] of [
+          ['emoji', /^emoji-tab-/, 'emoji-list'],
+          ['sticker', /^sticker-source-/, 'sticker-list'],
+          ['gif', /^gif-chip-/, 'gif-list'],
+        ]) {
+          const tabButton = find(dump(), `panel-tab-${tab}`);
+          if (!tabButton) {
+            failures.push(`composer panel: no ${tab} tab`);
+            continue;
+          }
+          tapNode(tabButton);
+          const tree = waitFor(list);
+          const content = tree && find(tree, list);
+          const barBottom = tree && Math.max(...[...walk(tree)].filter((node) => bar.test(node.id ?? '') && shown(node)).map((node) => node.bottom));
+          if (!content || !Number.isFinite(barBottom)) {
+            failures.push(`composer panel: ${tab} tab has no ${list} or no row above it`);
+            continue;
+          }
+          const gap = dp(content.top - barBottom);
+          lines.push(`composer panel: ${tab} row ends at ${barBottom}, ${list} ${box(content)}, gap ${gap}dp, list ${dp(content.bottom - content.top)}dp`);
+          if (gap > 16) failures.push(`composer panel: ${gap}dp empty between the ${tab} row and its content`);
+          screenshot(`composer-panel-${tab}`);
+        }
+        const back = find(dump(), 'composer-keyboard');
         if (back) {
           tapNode(back);
           sleep(1500);
