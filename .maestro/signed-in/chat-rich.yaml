@@ -126,6 +126,16 @@ onFlowStart:
         - text: ${RUN + ' poll'}
         - text: (Poll closed|Polling ditutup)
     timeout: 15000
+- longPressOn:
+    text: ${RUN + ' A,.*'}
+- tapOn:
+    id: action-delete
+- tapOn:
+    id: message-delete-dialog-confirm
+- extendedWaitUntil:
+    notVisible:
+      text: ${RUN + ' poll'}
+    timeout: 15000
 - setLocation:
     latitude: -6.175392
     longitude: 106.827153
