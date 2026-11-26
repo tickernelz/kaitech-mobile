@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Overlay } from './Overlay';
 import { Pressable } from './Pressable';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../theme';
 import { Icon, type IconName } from './icons';
 import { IconButton } from './IconButton';
 import { NativeSheet, useSheetPresentation } from './NativeSheet';
 import { Text } from './Text';
+import { useBottomInset } from './insets';
 
 export type SheetAction = {
   key: string;
@@ -35,7 +35,7 @@ export function ActionSheet({
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomInset = useBottomInset(space.lg);
   const [page, setPage] = useState<SheetAction | null>(() => actions.find((action) => action.key === initial && action.choices) ?? null);
   const sheet = useSheetPresentation(onClose);
   const shown = page?.choices ?? actions;
@@ -92,7 +92,7 @@ export function ActionSheet({
     <Overlay visible transparent animationType="fade" onRequestClose={page ? () => setPage(null) : onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('row.close')}>
         <Pressable
-          style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]}
+          style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }]}
           onPress={() => undefined}
           accessibilityViewIsModal
           testID="row-sheet">

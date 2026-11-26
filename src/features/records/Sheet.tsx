@@ -3,22 +3,22 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Overlay } from '../../ui/Overlay';
 import { Pressable } from '../../ui/Pressable';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../theme';
 import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
+import { useBottomInset } from '../../ui/insets';
 
 export type SheetItem = { key: string; label: string; icon?: IconName; tone?: 'ink' | 'dangerInk'; detail?: string; selected?: boolean; onPress: () => void };
 
 export function Sheet({ title, items, onClose, children, testID }: { title?: string; items?: SheetItem[]; onClose: () => void; children?: ReactNode; testID?: string }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomInset = useBottomInset(space.lg);
   return (
     <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('records.close')}>
         <Pressable
-          style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]}
+          style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }]}
           onPress={() => undefined}
           accessibilityViewIsModal
           testID={testID}>

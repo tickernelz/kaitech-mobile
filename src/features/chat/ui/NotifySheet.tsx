@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Overlay } from '../../../ui/Overlay';
 import { Pressable } from '../../../ui/Pressable';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSession } from '../../../auth/session';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
@@ -12,6 +11,7 @@ import type { Notifications } from '../odoo';
 import { setNotifications } from '../threadActions';
 import { bubbleSettingsAvailable, muteChoices, mutedForever, mutedUntilMs, openBubbleSettings } from '../notify';
 import { Icon, type IconName } from '../../../ui/icons';
+import { useBottomInset } from '../../../ui/insets';
 
 export function NotifySheet({
   channelId,
@@ -28,7 +28,7 @@ export function NotifySheet({
 }) {
   const { t, i18n } = useTranslation('chat');
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomInset = useBottomInset(space.lg);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const [now] = useState(() => Date.now());
@@ -84,7 +84,7 @@ export function NotifySheet({
   return (
     <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('actions.close')}>
-        <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="notify-sheet">
+        <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }]} onPress={() => undefined} accessibilityViewIsModal testID="notify-sheet">
           <Text variant="headline" accessibilityRole="header" style={styles.title}>
             {t('notify.title')}
           </Text>

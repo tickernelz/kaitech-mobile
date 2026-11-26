@@ -11,6 +11,7 @@ if (!out || !size || !orientation || !language) {
 const tabs = { chat: 'chat-list', discovery: 'tab-discovery', mom: 'tab-mom', activity: 'tab-activity' };
 const barDp = { min: 56, max: 64 };
 const contentGapDp = 24;
+const composerGapDp = 8;
 const pullDepthsDp = [16, 32, 48, 72, 96, 128];
 const indicatorFromDp = 32;
 const indicatorDepthsNeeded = 4;
@@ -186,6 +187,26 @@ async function signIn(login, password) {
   return `session_id=${cookie}`;
 }
 
+function checkComposer() {
+  const screen = dump();
+  const composer = find(screen, 'composer');
+  if (!composer) return failures.push('composer: no composer under the thread');
+  const navBar = adb('shell', 'dumpsys', 'window', 'displays').match(/type=navigationBars frame=\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/);
+  if (!navBar) return failures.push('composer: no navigationBars frame in dumpsys window displays');
+  if (Number(navBar[2]) >= Number(navBar[4])) return lines.push('composer: the navigation bar has no height on this screen');
+  const navTop = Number(navBar[2]);
+  const bottoms = [...walk(screen)]
+    .filter((node) => node !== composer && node.bottom > node.top && node.right > node.left && (node.text || node.clickable || node.id?.startsWith('composer-')))
+    .filter((node) => node.left >= composer.left && node.right <= composer.right && node.top >= composer.top && node.bottom <= composer.bottom)
+    .map((node) => node.bottom);
+  if (!bottoms.length) return failures.push('composer: the composer has no visible control');
+  const lowest = Math.max(...bottoms);
+  const gap = dp(navTop - lowest);
+  lines.push(`composer: lowest control ends at ${lowest}px, ${gap}dp above the navigation bar at ${navTop}px`);
+  if (gap < composerGapDp - 0.5) failures.push(`composer: ${gap}dp between the composer and the navigation bar, under ${composerGapDp}dp`);
+  screenshot('layout-composer');
+}
+
 async function checkBubbles(sent) {
   const missing = ['E2E_SERVER', 'E2E_DB', 'E2E_LOGIN', 'E2E_PASSWORD', 'E2E_WEB_LOGIN', 'E2E_WEB_PASSWORD', 'E2E_CHANNEL_ID'].filter((key) => !process.env[key]);
   if (missing.length) return failures.push(`bubbles: missing ${missing.join(', ')}`);
@@ -230,6 +251,7 @@ async function checkBubbles(sent) {
   }
   if (!list) return failures.push('bubbles: no thread-list');
   sleep(2000);
+  checkComposer();
   const seen = new Map();
   for (let round = 0; round < 12 && seen.size < sent.length; round++) {
     const screen = dump();
