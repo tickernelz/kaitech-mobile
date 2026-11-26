@@ -313,7 +313,7 @@ if [ -n "${E2E_MOTION_FLOW:-}" ]; then
     fi
     if [ -n "$box" ]; then
       if [ "$phase" = send ]; then gate=(--max-flicker "${E2E_MAX_FLICKER:-0}"); else gate=(--max-blank "${E2E_MAX_BLANK:-0}"); fi
-      node scripts/frame-flicker.mjs "$recordings/motion-$phase.mp4" "$box" --out "$out/motion-$phase-flicker.json" "${gate[@]}" | tee -a "$out/motion-$phase-flicker.txt" || status=1
+      node scripts/frame-flicker.mjs "$recordings/motion-$phase.mp4" "$box" --out "$out/motion-$phase-flicker.json" --blank-frames "$out/failures" "${gate[@]}" | tee -a "$out/motion-$phase-flicker.txt" || status=1
     fi
   done
   rm -rf "$recordings"
