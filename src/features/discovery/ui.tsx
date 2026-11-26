@@ -93,12 +93,14 @@ export function useErrorText() {
 }
 
 export function StateView({
+  offline,
   loading,
   error,
   empty,
   onRetry,
   testID,
 }: {
+  offline?: boolean;
   loading?: boolean;
   error?: unknown;
   empty?: { title: string; body?: string; icon?: IconName };
@@ -108,6 +110,19 @@ export function StateView({
   const { t } = useTranslation();
   const { colors } = useTheme();
   const errorText = useErrorText();
+  if (offline) {
+    return (
+      <View style={styles.state} testID={testID ? `${testID}-offline` : undefined}>
+        <Icon name="cloudOff" size={48} color={colors.inkFaint} />
+        <Text variant="headline" style={styles.center} accessibilityRole="alert">
+          {t('network.offlineTitle')}
+        </Text>
+        <Text tone="inkSoft" style={styles.center}>
+          {t('network.offlineBody')}
+        </Text>
+      </View>
+    );
+  }
   if (loading) {
     return (
       <View style={styles.state} testID={testID ? `${testID}-loading` : undefined}>

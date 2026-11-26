@@ -10,7 +10,7 @@ import { usePillBar, type PillBarState, type PillTab } from './usePillBar';
 
 function Glyph({ tab, bar, colors, slot }: { tab: PillTab; bar: PillBarState; colors: Colors; slot: number }) {
   const { index } = tab;
-  const { position, pressed, pressScale } = bar;
+  const { pressed, pressScale } = bar;
   const place = useAnimatedStyle(() => ({ transform: [{ translateX: index * slot }, { scale: pressed.get() === index ? 1 - 0.08 * pressScale.get() : 1 }] }));
   return (
     <Animated.View style={[styles.glyph, { width: slot }, place]}>

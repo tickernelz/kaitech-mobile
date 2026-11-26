@@ -3,10 +3,10 @@ import i18n from '../i18n';
 import { confirm } from './dialog';
 import type { IconName } from './icons';
 
-export type PermissionKind = 'camera' | 'microphone' | 'notifications';
+export type PermissionKind = 'camera' | 'microphone' | 'notifications' | 'location';
 export type PermissionState = { granted: boolean; canAskAgain: boolean };
 
-const icons: Record<PermissionKind, IconName> = { camera: 'photo', microphone: 'mic', notifications: 'bell' };
+const icons: Record<PermissionKind, IconName> = { camera: 'photo', microphone: 'mic', notifications: 'bell', location: 'location' };
 
 export async function offerSettings(kind: PermissionKind): Promise<void> {
   const open = await confirm({

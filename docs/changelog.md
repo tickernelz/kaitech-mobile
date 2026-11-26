@@ -2,6 +2,55 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.9.0 - 2026-11-26
+
+### Added
+
+- Chat: polls. Poll in the attach sheet asks a question with 2 to 12 options and an "allow more than one answer" switch. The bubble shows each option with its count and a bar; tapping votes, changes or takes back a vote at once and puts it back when the server refuses (a closed poll, offline). View votes lists who chose what, and the author can close the poll. Every device updates live (#123, ZHA-7807).
+- Chat: locations. Location in the attach sheet asks through the Kaitech permission card first, then opens a full-screen OpenStreetMap map drawn by the app (no map SDK or key; tiles come through the lab0 server) to send the current position, a point under the pin, or a search result. The bubble shows a map preview with the place name or address and opens a full map with Open in maps app (#123, ZHA-7807).
+- Chat: live location for 15 minutes, 1 hour or 8 hours. Android keeps sending through a foreground service with a notification and a Stop button; the phone posts a new point after moving 20 m or every 2 minutes, the server ends the share when its time is up, and signing out stops it. Measured on the Meizu Mblu 21: about 28 mAh an hour (0.6% of the battery per hour) with the screen off (#123, ZHA-7807).
+- Chat: the conversation list, reply quotes and Android notifications show short labels for polls, locations, live locations, stickers and GIFs (#123, ZHA-7807).
+
+### Changed
+
+- Chat: stickers and GIFs in a conversation play only while their bubble is on screen and the app is in front; a GIF plays as a short silent video (video cache capped at 100 MB). A long press on a poll or location opens the message actions, and a pack sticker in a conversation can be added to favourites (#123, ZHA-7807).
+- Chat: cached messages keep polls and locations in a field older builds ignore, so installing an older build over this one does not crash on them (#123, ZHA-7807).
+
+### Known gaps
+
+- iOS: live location sends only while Kaitech is open, and polls, locations and live location have not run on an iPhone (ZHA-7807, ZHA-7277).
+- Live location uses high GPS accuracy, like WhatsApp; a battery-saving mode is not offered (ZHA-7807).
+
+## 0.8.2 - 2026-11-26
+
+### Fixed
+
+- MoM and Discovery tell empty, failed and offline apart. Offline with nothing loaded shows "No connection" instead of the empty text ("Belum ada rekaman rapat"), a failed load shows the error with Retry, and data already on screen gets a banner saying it is what was loaded last; both tabs reload once when the connection returns (#130, ZHA-7968).
+- Chat: in landscape on a phone the New button sits in the app bar instead of floating over the conversation rows; in portrait the list ends with room for the button (#130, ZHA-7968).
+- Large text (font scale 1.5 and up): the Chat filter chips wrap instead of being cut off, the attach sheet shows two sources per row so "Dokumen" fits, and the thread title may take two lines (#130, ZHA-7968).
+
+### Changed
+
+- iOS build: `EXPO_MODULES_SCAN_TIMEOUT_MS` sets the Expo module scan timeout (default 5000 ms) through `patches/expo-modules-autolinking+58.1.0.patch`, after a Release build failed when the scan timed out; no app code changed (#124, ZHA-7945).
+- Docs: reminder push measured on the Meizu Mblu 21 (#128, ZHA-7944).
+
+## 0.8.1 - 2026-11-26
+
+### Fixed
+
+- Calls: Answer on the incoming-call notification opens Kaitech and joins the call. Until now it did nothing while the phone kept ringing, because Android 12 and later do not let a notification broadcast open an app (#126, ZHA-7944).
+- Chat: opening a conversation from a notification after several messages arrived while Kaitech was closed shows the newest message instead of stopping at the last one already on the phone (#126, ZHA-7944).
+
+### Changed
+
+- E2E: `scripts/push-latency.mjs` and the phone flows `.maestro/local/push-message-open.yaml` and `push-call-answer.yaml` measure and repeat Android push on a physical phone; the results on the Meizu Mblu 21 are in [Releases](releases.md#android-push-on-a-physical-phone-zha-7944) (#126, ZHA-7944).
+- E2E: the chat fling check fails on half-empty frames (#119, ZHA-7919).
+
+### Known gaps
+
+- Android blocks every push, calls included, to an app the user force-stopped in Settings until it is opened again; [Install the APK](install-android.md#notifications) says so (ZHA-7944).
+- Push after hours of Doze, battery use, and phones other than the Meizu Mblu 21 are not measured (ZHA-7944).
+
 ## 0.8.0 - 2026-11-26
 
 ### Added

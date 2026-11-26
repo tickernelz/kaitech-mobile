@@ -10,7 +10,7 @@ import type { Message } from '../types';
 
 const quick = ['\u{1F44D}', '\u2764\uFE0F', '\u{1F602}', '\u{1F64F}', '\u2705'];
 
-export type MessageAction = 'reply' | 'copy' | 'forward' | 'edit' | 'delete' | 'thread' | 'pin' | 'star' | 'unread' | 'link' | 'translate' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers' | 'emoji';
+export type MessageAction = 'reply' | 'copy' | 'sticker' | 'forward' | 'edit' | 'delete' | 'thread' | 'pin' | 'star' | 'unread' | 'link' | 'translate' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers' | 'emoji';
 
 export type ActionOptions = Partial<Record<MessageAction, boolean>>;
 
@@ -60,6 +60,7 @@ export function MessageActions({
   const primary = [
     row('reply', 'reply', t('actions.reply')),
     row('copy', 'copy', t('actions.copy')),
+    row('sticker', 'favorite', t('actions.favoriteSticker')),
     row('forward', 'forwardMessage', t('actions.forward')),
     row('edit', 'edit', t('actions.edit')),
     row('delete', 'trash', t('actions.delete'), true),

@@ -33,6 +33,11 @@
   <string name="kaitech_message_file">Berkas</string>
   <string name="kaitech_message_file_named">Berkas: %1$s</string>
   <string name="kaitech_message_missed_call">Panggilan tak terjawab</string>
+  <string name="kaitech_message_poll">Polling</string>
+  <string name="kaitech_message_location">Lokasi</string>
+  <string name="kaitech_message_live_location">Lokasi langsung</string>
+  <string name="kaitech_message_sticker">Stiker</string>
+  <string name="kaitech_message_gif">GIF</string>
   <string name="kaitech_message_mention">Menyebut Anda: %1$s</string>
   <string name="kaitech_message_agent">%1$s · Coworker</string>
   <string name="kaitech_message_reply">Balas</string>

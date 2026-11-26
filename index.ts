@@ -3,6 +3,7 @@ import { registerHeadlessTask } from './src/features/call/decline';
 import { registerCallKeepAlive } from './src/features/call/keepAlive';
 import { registerMessageTask } from './src/features/chat/notify';
 import './src/features/mom/uploads';
+import './src/features/chat/liveTask';
 
 registerHeadlessTask();
 registerCallKeepAlive();
