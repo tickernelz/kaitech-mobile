@@ -137,7 +137,12 @@ onFlowStart:
     notVisible:
       id: (pending-queued|pending-sending|pending-failed)
     timeout: 30000
-- pressKey: back
+- runFlow:
+    when:
+      visible:
+        id: composer-panel
+    commands:
+      - pressKey: back
 - extendedWaitUntil:
     notVisible:
       id: composer-panel
