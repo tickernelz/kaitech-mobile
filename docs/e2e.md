@@ -12,7 +12,7 @@ Run locally: `maestro test -e APP_LANGUAGE=id -e DEVICE_SIZE=phone -e ORIENTATIO
 
 ## Shared local emulator
 
-E2E, video recordings, screenshots, and the full suite run in GitHub Actions; take videos and images from the `e2e-android-*` artifacts of a green run at the SHA in question. Flows CI cannot reach may run on a physical phone. A developer PC runs at most ONE emulator for all runs at once, and only through `scripts/emulator.sh`:
+E2E, video recordings, screenshots, and the full suite run in GitHub Actions; take videos and images from the `e2e-android-*` artifacts of a green run at the SHA in question. The merge evidence for a changed journey comes from a physical phone instead (see [Physical phone](#physical-phone)). A developer PC runs at most ONE emulator for all runs at once, and only through `scripts/emulator.sh`:
 
 ```bash
 scripts/emulator.sh run phone -- bash scripts/e2e-android.sh dist e2e-output/phone-portrait-en-US en-US phone portrait
@@ -28,6 +28,17 @@ scripts/emulator.sh stop
 - The `kaitech-emulator-reap` timer is armed as soon as a run takes the lock and armed again after the command finishes. It checks every `KAITECH_EMULATOR_IDLE_MINUTES` (default 5) minutes and stops the emulator and itself once the lock is free, so a killed run (Ctrl-C, timeout, SIGKILL, OOM) does not leave the emulator running. `scripts/emulator.sh stop` stops it at once and exits with code 75 when another run is using the emulator; run it as soon as you are done.
 - `KAITECH_EMULATOR_GPU=swangle_indirect` only to compare or when the host GPU misbehaves, with a written reason; software rendering is the emulator's largest CPU cost.
 - CI does not use this launcher: GitHub runners have no GPU and keep `swiftshader_indirect`.
+
+## Physical phone
+
+E2E in GitHub Actions is not a merge requirement (see [the merge gate](ci.md#ci-the-merge-gate)). Before a merge, the author runs the flows of the journey the change touches on a physical Android phone connected over USB and attaches the result (Maestro output, screenshots, the installed `versionCode`) to the task. On Zhafron's PC that phone is the Meizu Mblu 21.
+
+- Pick the phone explicitly: export `ANDROID_SERIAL` (from `adb devices -l`) and pass `maestro --device "$ANDROID_SERIAL"`; `scripts/e2e-android.sh` already forwards it. Never let Maestro take the first device, which may be the emulator.
+- One session at a time: take a `flock` on one lock file per phone for the whole session (install, flows, restore) and release it when done, as `scripts/emulator.sh` does for the emulator. On Zhafron's PC the lock file is `~/re/mblu21/.phone.lock`.
+- Install only the APK under test, with `adb install -r`. Never `pm clear` the app, wipe data, or uninstall other apps on the phone. Note the installed `versionCode` first, pull its `base.apk` (`adb shell pm path io.kaitech.mobile`), and reinstall it when done.
+- A change without native changes (native fingerprint unchanged) needs no native build: repack the branch's JS bundle onto the installed APK with `npx repack-app --platform android --js-bundle-only --source-app base.apk`, signed with the release keystore, and set `APP_BUILD_NUMBER` to the installed `versionCode` so the install keeps the app's session. A native change uses the arm64 APK of a CI build of the branch (`gh workflow run ci.yml --ref <branch>`) or of `main`.
+- Accounts: a flow that needs a signed-in session never signs in with Zhafron's account or with a CI test account; the device cleanup before every signed-in CI cell revokes the idle phones of the CI accounts (see [Test accounts](ci.md#test-accounts)). Run signed-out flows, or flows that start from the session already on the phone without changing it.
+- The phone is shared with its owner: unlock it only when it is idle and never type its PIN from a script without reading the screen first. Answer system prompts the install raises (Play Protect asks to scan an unknown app) without changing settings.
 
 ## Device matrix
 
