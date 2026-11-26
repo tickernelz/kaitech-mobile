@@ -71,12 +71,14 @@ onFlowStart:
       SCREEN: v2-locked
 - tapOn:
     id: voice-pause
+    waitToSettleTimeoutMs: 500
 - extendedWaitUntil:
     visible:
       id: voice-paused
     timeout: 10000
 - tapOn:
     id: voice-draft-play
+    waitToSettleTimeoutMs: 500
 - extendedWaitUntil:
     visible:
       text: '[0-9]+:[0-5][0-9] / [0-9]+:[0-5][0-9]'
@@ -87,12 +89,14 @@ onFlowStart:
       SCREEN: v3-paused-preview
 - tapOn:
     id: voice-resume
+    waitToSettleTimeoutMs: 500
 - extendedWaitUntil:
     visible:
       id: voice-recording-locked
     timeout: 10000
 - tapOn:
     id: composer-send-voice
+    waitToSettleTimeoutMs: 500
 - extendedWaitUntil:
     visible:
       id: composer-mic
@@ -112,12 +116,14 @@ onFlowStart:
     timeout: 10000
 - tapOn:
     id: voice-discard
+    waitToSettleTimeoutMs: 500
 - extendedWaitUntil:
     visible:
       text: (Recording discarded|Rekaman dibuang)
     timeout: 5000
 - tapOn:
     id: undo-action
+    waitToSettleTimeoutMs: 500
 - extendedWaitUntil:
     visible:
       id: voice-paused
@@ -128,6 +134,7 @@ onFlowStart:
       SCREEN: v4-undone
 - tapOn:
     id: voice-discard
+    waitToSettleTimeoutMs: 500
 - extendedWaitUntil:
     visible:
       id: composer-mic
