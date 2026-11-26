@@ -82,7 +82,8 @@ onFlowStart:
     timeout: 10000
 - waitForAnimationToEnd:
     timeout: 3000
-- inputText: ${QUESTION}
+- evalScript: "${output.question = typeof QUESTION === 'undefined' || !QUESTION ? 'E2E question ' + Date.now() + ', name one finding of this programme in one sentence.' : QUESTION}"
+- inputText: ${output.question}
 - runFlow:
     when:
       true: ${ORIENTATION === 'portrait' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}
@@ -97,7 +98,7 @@ onFlowStart:
           env:
             SCREEN: d6-draft-rotated
       - assertVisible:
-          text: ${QUESTION}
+          text: ${output.question}
       - setOrientation: PORTRAIT
 - runFlow:
     when:
@@ -113,10 +114,10 @@ onFlowStart:
           env:
             SCREEN: d6-draft-rotated
       - assertVisible:
-          text: ${QUESTION}
+          text: ${output.question}
       - setOrientation: LANDSCAPE_LEFT
 - assertVisible:
-    text: ${QUESTION}
+    text: ${output.question}
 - tapOn:
     id: coworker-send
 - extendedWaitUntil:
