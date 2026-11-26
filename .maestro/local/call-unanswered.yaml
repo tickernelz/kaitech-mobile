@@ -1,0 +1,121 @@
+appId: io.kaitech.mobile
+name: A placed call rings until someone joins and then counts from 00:00; an unanswered or declined call ends with No answer and the thread shows it (local only)
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-chat
+    timeout: 30000
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      text: ${PEER}
+    timeout: 60000
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- tapOn:
+    id: call-start
+- extendedWaitUntil:
+    visible:
+      id: call-status
+      text: (Calling…|Memanggil…|Ringing…|Berdering…)
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: ring-c1-placed
+- extendedWaitUntil:
+    visible:
+      id: call-status
+      text: (Ringing…|Berdering…)
+    timeout: 15000
+- evalScript: ${output.until = Date.now() + 12000}
+- repeat:
+    while:
+      true: ${Date.now() < output.until}
+    commands:
+      - assertVisible:
+          id: call-status
+          text: (Ringing…|Berdering…)
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: ring-c2-still-ringing
+- extendedWaitUntil:
+    visible:
+      id: call-status
+      text: (No answer|Tidak dijawab)
+    timeout: 60000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: ring-c3-no-answer
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      text: (No answer|Tidak dijawab) · .*
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: ring-c4-thread-no-answer
+- tapOn:
+    id: call-start
+- extendedWaitUntil:
+    visible:
+      id: call-status
+      text: (Ringing…|Berdering…)
+    timeout: 15000
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: decline
+- extendedWaitUntil:
+    visible:
+      id: call-status
+      text: (No answer|Tidak dijawab)
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: ring-c5-declined
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 15000
+- tapOn:
+    id: call-start
+- extendedWaitUntil:
+    visible:
+      id: call-status
+      text: (Ringing…|Berdering…)
+    timeout: 15000
+- runScript:
+    file: ../scripts/call-peer-command.js
+    env:
+      PEER_ACTION: join
+      CAMERA: '-'
+      SHARE: '-'
+- extendedWaitUntil:
+    visible:
+      id: call-status
+      text: 00:0[0-9]
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: ring-c6-answered
+- tapOn:
+    id: call-hangup
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 15000
