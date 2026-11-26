@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
-import Animated, { FadeIn, useReducedMotion, withTiming } from 'react-native-reanimated';
+import Animated, { withTiming } from 'react-native-reanimated';
 import { radius, space, useTheme } from '../../../../theme';
-import { duration } from '../../../../theme/motion';
+import { duration, useMotion } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { Pressable } from '../../../../ui/Pressable';
 import { stickerShelf, type StickerShelf } from '../../composerExtras';
@@ -46,7 +46,7 @@ export function ComposerPanel({
 }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
-  const reduce = useReducedMotion();
+  const enterTab = useMotion(tabEnter);
   const [tab, setTab] = useState<PanelTab>(lastPanelTab);
   const [gifQuery, setGifQuery] = useState('');
   const [shelf, setShelf] = useState<Result<StickerShelf> | null>(null);
@@ -94,7 +94,7 @@ export function ComposerPanel({
           <View style={[styles.handle, { backgroundColor: colors.lineStrong }]} />
         </View>
       )}
-      <Animated.View key={tab} entering={reduce ? FadeIn.duration(duration.quick) : tabEnter} style={styles.content}>
+      <Animated.View key={tab} entering={enterTab} style={styles.content}>
         {tab === 'emoji' ? (
           <EmojiTab
             onPick={onEmoji}

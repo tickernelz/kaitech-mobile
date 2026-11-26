@@ -8,7 +8,7 @@ import { KeyboardController, useKeyboardState, useReanimatedKeyboardAnimation } 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
-import { duration, easing, spring } from '../../../theme/motion';
+import { duration, easing, spring, useMotion } from '../../../theme/motion';
 import { FloatingSurface } from '../../../ui/FloatingSurface';
 import { useSurface } from '../../../ui/glass';
 import { Text } from '../../../ui/Text';
@@ -401,6 +401,9 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     setCursor(next.cursor);
   };
 
+  const voiceIn = useMotion(FadeIn.duration(duration.quick));
+  const composeIn = useMotion(FadeIn.duration(duration.quick).delay(discarding ? 680 : 0));
+  const groupOut = useMotion(FadeOut.duration(duration.quick));
   const glass = useSurface() === 'glass';
   const bottom = keyboardVisible || panel ? space.sm : Math.max(insets.bottom, space.sm);
 
@@ -491,11 +494,11 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
       {voice.state.phase === 'paused' ? <InterruptionBanner reason={voice.state.reason} /> : null}
       <View style={styles.row} testID="composer-row">
         {voicePhase ? (
-          <Animated.View key="voice" style={styles.group} entering={FadeIn.duration(duration.quick)} exiting={FadeOut.duration(duration.quick)}>
+          <Animated.View key="voice" style={styles.group} entering={voiceIn} exiting={groupOut}>
             <VoiceRow voice={voice} channelId={channelId} />
           </Animated.View>
         ) : (
-          <Animated.View key="compose" style={styles.group} entering={FadeIn.duration(duration.quick).delay(discarding ? 680 : 0)} exiting={FadeOut.duration(duration.quick)}>
+          <Animated.View key="compose" style={styles.group} entering={composeIn} exiting={groupOut}>
             {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />}
             {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
             <FloatingSurface solid={colors.surface} style={[styles.field, glass ? styles.bare : { borderColor: colors.line }]} testID="composer-field">
