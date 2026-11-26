@@ -55,6 +55,14 @@ describe('thread header title room', () => {
     expect(box.width).toBe(44);
   });
 
+  it('lets the title wrap to two lines under large text and keeps one line otherwise', async () => {
+    const { render, screen } = require('@testing-library/react-native') as typeof import('@testing-library/react-native');
+    await render(header(phone, { largeText: true }).element);
+    expect(screen.getByTestId('thread-title').props.numberOfLines).toBe(2);
+    await render(header(phone).element);
+    expect(screen.getByTestId('thread-title').props.numberOfLines).toBe(1);
+  });
+
   it('indents the avatar from the edge when there is no back button, as in two-pane', () => {
     const box = measure({ person: header(1194, { onBack: undefined }, 'thread-person') }).person;
     expect(box.left).toBeGreaterThanOrEqual(12);
