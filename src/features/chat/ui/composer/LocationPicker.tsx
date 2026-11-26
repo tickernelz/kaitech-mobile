@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../../theme';
 import { choose } from '../../../../ui/dialog';
@@ -132,7 +133,8 @@ export function LocationPicker({ onClose, onSend }: { onClose: () => void; onSen
   const accuracy = fix?.accuracy ? t('location.accuracy', { meters: Math.round(fix.accuracy) }) : t('location.locating');
   return (
     <Overlay visible animationType="slide" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <SafeAreaView style={[styles.fill, { backgroundColor: colors.canvas }]} edges={['top', 'bottom']} testID="location-picker">
+      <GestureHandlerRootView style={styles.fill}>
+        <SafeAreaView style={[styles.fill, { backgroundColor: colors.canvas }]} edges={['top', 'bottom']} testID="location-picker">
         <View style={styles.bar}>
           <Pressable accessibilityRole="button" accessibilityLabel={t('composer.closeSheet')} onPress={onClose} hitSlop={8} style={styles.icon} testID="location-picker-close">
             <Icon name="back" color={colors.ink} />
@@ -198,7 +200,8 @@ export function LocationPicker({ onClose, onSend }: { onClose: () => void; onSen
             </View>
           </>
         )}
-      </SafeAreaView>
+        </SafeAreaView>
+      </GestureHandlerRootView>
     </Overlay>
   );
 }
