@@ -28,6 +28,18 @@ onFlowStart:
     text: ${PEER}
 - extendedWaitUntil:
     visible:
+      id: (composer-input|voice-paused)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: voice-paused
+    commands:
+      - tapOn:
+          id: voice-discard
+          waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
       id: composer-input
     timeout: 30000
 - runFlow:
