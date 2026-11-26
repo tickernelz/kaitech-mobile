@@ -286,6 +286,11 @@ export function ThreadView({
   };
 
   const atBottom = useRef(true);
+  const userScrolled = useRef(false);
+  useEffect(() => {
+    if (!thread.loaded || initialIndex !== undefined || focusMessage || userScrolled.current) return;
+    requestAnimationFrame(() => void list.current?.scrollToEnd({ animated: false }));
+  }, [thread.loaded, initialIndex, focusMessage]);
   const onSent = useCallback(() => {
     if (atBottom.current) return;
     requestAnimationFrame(() => void list.current?.scrollToEnd({ animated: !reduceMotion }));
@@ -452,6 +457,9 @@ export function ThreadView({
             renderItem={renderItem}
             initialScrollIndex={initialIndex}
             maintainVisibleContentPosition={{ startRenderingFromBottom: true, autoscrollToBottomThreshold: 0.2, animateAutoScrollToBottom: !reduceMotion }}
+            onScrollBeginDrag={() => {
+              userScrolled.current = true;
+            }}
             onStartReached={() => void loadOlder(channelId)}
             onStartReachedThreshold={0.6}
             onEndReached={thread.hasNewer ? () => void fetchNewer(channelId) : undefined}

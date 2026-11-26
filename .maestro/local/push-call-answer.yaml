@@ -1,0 +1,57 @@
+appId: io.kaitech.mobile
+name: A call rings the phone with the app killed, Decline stops it, Answer joins the call
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-chat
+    timeout: 30000
+- pressKey: Home
+- killApp
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: ring
+- extendedWaitUntil:
+    visible:
+      text: (Decline|Tolak)
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: push-c1-ringing
+- tapOn:
+    text: (Decline|Tolak)
+- extendedWaitUntil:
+    notVisible:
+      text: (Decline|Tolak)
+    timeout: 10000
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: hangUp
+- killApp
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: ring
+- extendedWaitUntil:
+    visible:
+      text: (Answer|Jawab)
+    timeout: 30000
+- tapOn:
+    text: (Answer|Jawab)
+- extendedWaitUntil:
+    visible:
+      id: call-hangup
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: push-c2-in-call
+- tapOn:
+    id: call-hangup
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: hangUp
