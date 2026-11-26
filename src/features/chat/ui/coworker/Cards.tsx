@@ -1,5 +1,4 @@
 import { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { touchTarget } from '../../../../ui/touch';
 import { useTranslation } from 'react-i18next';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../../ui/Pressable';
@@ -11,6 +10,7 @@ import { Markdown } from '../../../discovery/Markdown';
 import { agentCardsFor, createCardStore, decideWardmote, recordCards, type AgentCard, type CardStore, type RecordCard, type Wardmote } from '../../coworker';
 import { faceSize } from '../MessageBubble';
 import { failureText } from '../actions/failure';
+import { touchTarget } from '../../../../ui/touch';
 
 function useCardStore<K, V>(load: (keys: K[]) => Promise<Map<K, V> | null>): CardStore<K, V> {
   const store = useMemo(() => createCardStore<K, V>(load), [load]);

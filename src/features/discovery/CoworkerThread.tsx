@@ -1,5 +1,4 @@
 import { randomUUID } from 'expo-crypto';
-import { touchTarget } from '../../ui/touch';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +36,7 @@ import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread
 import { IconButton } from '../../ui/IconButton';
 import { StateView, useErrorText } from './ui';
 import { notify } from '../../ui/dialog';
+import { touchTarget } from '../../ui/touch';
 
 const bottomSlack = 48;
 const pollMs = 2500;

@@ -7,7 +7,6 @@ import { Linking, ScrollView, StyleSheet, TextInput, View, type LayoutChangeEven
 import { radius, space, useTheme } from '../../../../../theme';
 import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
-import { reach, shortfall, touchTarget } from '../../../../../ui/touch';
 import { useChat } from '../../../chat';
 import { gifCategories, gifPage, type GifCategory } from '../../../composerExtras';
 import type { GifMedia } from '../../../types';
@@ -16,6 +15,7 @@ import { MediaPreview } from './Preview';
 import { GifCell } from './StickerCell';
 import { PanelState, Skeleton } from './states';
 import { problemOf } from './logic';
+import { reachBelow, touchTarget } from '../../../../../ui/touch';
 
 export function GifTab({ initialQuery, onPick, onSearching }: { initialQuery: string; onPick: (gif: GifMedia) => void; onSearching: (searching: boolean) => void }) {
   const { t } = useTranslation('chat');
@@ -119,7 +119,7 @@ export function GifTab({ initialQuery, onPick, onSearching }: { initialQuery: st
 function Chip({ label, thumb, selected, onPress, testID }: { label: string; thumb?: string; selected: boolean; onPress: () => void; testID: string }) {
   const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="tab" accessibilityState={{ selected }} onPress={onPress} hitSlop={reach(gifChipHeight)} style={[styles.chip, { backgroundColor: selected ? colors.select : colors.surface2 }]} testID={testID}>
+    <Pressable accessibilityRole="tab" accessibilityState={{ selected }} onPress={onPress} hitSlop={gifChipSlop} style={[styles.chip, { backgroundColor: selected ? colors.select : colors.surface2 }]} testID={testID}>
       {thumb ? <Image source={{ uri: thumb }} cachePolicy="memory" style={styles.thumb} accessible={false} /> : null}
       <Text variant="footnote" tone={selected ? 'selectInk' : 'inkSoft'} numberOfLines={1}>
         {label}
@@ -129,12 +129,13 @@ function Chip({ label, thumb, selected, onPress, testID }: { label: string; thum
 }
 
 const gifChipHeight = 32;
+const gifChipSlop = reachBelow(gifChipHeight, space.xs);
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   search: { height: touchTarget, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
-  bar: { flexGrow: 0, marginVertical: space.xs - shortfall(gifChipHeight) },
-  chips: { gap: space.xs, paddingVertical: shortfall(gifChipHeight) },
+  bar: { flexGrow: 0 },
+  chips: { gap: space.xs, paddingTop: gifChipSlop.top, paddingBottom: gifChipSlop.bottom },
   chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, height: gifChipHeight, paddingHorizontal: space.sm, borderRadius: radius.pill },
   thumb: { width: 24, height: 24, borderRadius: 12 },
   mark: { textAlign: 'center', paddingVertical: space.sm },

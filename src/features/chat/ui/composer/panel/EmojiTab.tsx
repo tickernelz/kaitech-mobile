@@ -8,16 +8,17 @@ import { radius, space, useTheme } from '../../../../../theme';
 import { Icon, type IconName } from '../../../../../ui/icons';
 import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
-import { reach, shortfall, touchTarget } from '../../../../../ui/touch';
 import { noteEmoji, recentEmoji, rememberSkin, searchEmoji, skinFor, skinTones, supportsSkin, withSkin } from '../../../emoji/emoji';
 import type { Sticker } from '../../../types';
 import { StickerCell } from './StickerCell';
 import { emojiColumns, emojiRows, type EmojiRow, type EmojiSection } from './logic';
+import { reachBelow, touchTarget } from '../../../../../ui/touch';
 
 const toneLabels = ['panel.tone0', 'panel.tone1', 'panel.tone2', 'panel.tone3', 'panel.tone4', 'panel.tone5'] as const;
 const cellSize = 46;
 const categoryWidth = 36;
 const categoryHeight = 32;
+const categorySlop = reachBelow(categoryHeight, space.xs);
 const headerHeight = 32;
 const holdMs = 420;
 
@@ -164,7 +165,7 @@ export function EmojiTab({
                     setActive(section);
                     list.current?.scrollToIndex({ index: headers[index], animated: false });
                   }}
-                  hitSlop={reach(categoryHeight, categoryWidth)}
+                  hitSlop={categorySlop}
                   style={[styles.category, selected && { backgroundColor: colors.select }]}
                   testID={`emoji-tab-${section}`}>
                   <Icon name={sectionIcons[section]} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   search: { flex: 1, height: touchTarget, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
   square: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  categories: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: shortfall(categoryHeight), marginVertical: space.xs - shortfall(categoryHeight) },
+  categories: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: categorySlop.top, paddingBottom: categorySlop.bottom },
   category: { width: categoryWidth, height: categoryHeight, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   header: { height: headerHeight, lineHeight: headerHeight, fontWeight: '600', paddingHorizontal: space.xs },
   row: { flexDirection: 'row' },

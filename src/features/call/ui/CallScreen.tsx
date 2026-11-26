@@ -1,5 +1,4 @@
 import { useRouter } from 'expo-router';
-import { touchTarget } from '../../../ui/touch';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
@@ -49,6 +48,7 @@ import { FloatingTile } from './FloatingTile';
 import { ScreenStage, type PipTarget } from './ScreenStage';
 import { useAutoHide } from './useAutoHide';
 import { confirm } from '../../../ui/dialog';
+import { touchTarget } from '../../../ui/touch';
 
 const pillSize = 68;
 const scrimSize = 72;

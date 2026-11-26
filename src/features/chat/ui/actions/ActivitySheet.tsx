@@ -7,11 +7,11 @@ import { Button } from '../../../../ui/Button';
 import { Sheet } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
 import { TextField } from '../../../../ui/TextField';
-import { chipBand, chipHeight, chipSlop } from '../../../../ui/touch';
 import { activityDraft, makeActivity, type ActivityDraft, type Result } from '../../messageActions';
 import type { Message } from '../../types';
 import { failureText } from './failure';
 import { WhenPicker } from './WhenPicker';
+import { chipBand, chipHeight, chipSlop } from '../../../../ui/touch';
 
 export function ActivitySheet({ message, onClose, onDone }: { message: Message; onClose: () => void; onDone: (text: string) => void }) {
   const { t } = useTranslation('chat');

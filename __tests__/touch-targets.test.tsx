@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 
 const { ToggleRow } = require('../src/ui/List') as typeof import('../src/ui/List');
-const { reach, shortfall, touchTarget } = require('../src/ui/touch') as typeof import('../src/ui/touch');
+const { reach, reachBelow, shortfall, touchTarget } = require('../src/ui/touch') as typeof import('../src/ui/touch');
 const { wrappableName } = require('../src/features/chat/media/kind') as typeof import('../src/features/chat/media/kind');
 
 describe('a settings switch row', () => {
@@ -45,6 +45,11 @@ describe('touch reach', () => {
     expect(reach(32, 36)).toEqual({ top: 6, bottom: 6, left: 4, right: 4 });
     expect(32 + 2 * shortfall(32)).toBeGreaterThanOrEqual(touchTarget);
     expect(27 + 2 * shortfall(27)).toBeGreaterThanOrEqual(touchTarget);
+  });
+
+  test('a control right under another one reaches up only to the gap and takes the rest below', () => {
+    expect(reachBelow(32, 4)).toEqual({ top: 4, bottom: 8, left: 0, right: 0 });
+    expect(reachBelow(44, 4)).toEqual({ top: 4, bottom: 0, left: 0, right: 0 });
   });
 
   test('a control already 44 dp or larger gets no extra reach', () => {

@@ -85,7 +85,6 @@ export function FormatBar({ onApply, onHide, onSpace }: { onApply: (markup: Mark
         accessibilityRole="button"
         accessibilityLabel={t('composer.format.hide')}
         onPress={onHide}
-        hitSlop={4}
         testID="format-hide"
         style={({ pressed }) => [styles.hide, pressed && { backgroundColor: colors.surface2 }]}>
         <Icon name="chevronDown" size={20} color={colors.inkSoft} />

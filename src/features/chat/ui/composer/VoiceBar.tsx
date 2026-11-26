@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { reach } from '../../../../ui/touch';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import Animated, { Easing, interpolate, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
@@ -18,6 +17,7 @@ import { buttonSize } from './Controls';
 import { cancelDistance } from './gesture';
 import { useVoiceClock, voiceLimitMs, voiceWarnMs, type ClockStore } from '../../voice/clock';
 import type { VoiceRecorder } from './useVoiceRecorder';
+import { reach } from '../../../../ui/touch';
 
 const barPitch = 5;
 const barWidth = 3;

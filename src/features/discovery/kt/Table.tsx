@@ -1,5 +1,4 @@
 import * as Clipboard from 'expo-clipboard';
-import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { memo, useMemo, useState } from 'react';
@@ -19,6 +18,7 @@ import { useThread, type Place } from './place';
 import { isDate, isNumber, SUMMED, type Cell, type Column, type TableBlock, type Tone } from './read';
 import { BlockTitle, seriesColor, Status, Tool, styles as shared } from './ui';
 import { notify } from '../../../ui/dialog';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 
 const FIRST_ROWS = 20;
 const exportFolder = 'kt-export';

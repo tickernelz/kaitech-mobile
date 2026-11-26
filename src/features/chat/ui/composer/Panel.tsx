@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { reach } from '../../../../ui/touch';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 import Animated, { withTiming } from 'react-native-reanimated';
@@ -14,6 +13,7 @@ import { EmojiTab } from './panel/EmojiTab';
 import { GifTab } from './panel/GifTab';
 import { StickerTab } from './panel/StickerTab';
 import { lastPanelTab, panelTabs, rememberPanelTab, handleOutcome, type PanelTab } from './panel/logic';
+import { reach } from '../../../../ui/touch';
 
 const tabIcons: Record<PanelTab, IconName> = { emoji: 'emoji', sticker: 'sticker', gif: 'gif' };
 function tabEnter() {

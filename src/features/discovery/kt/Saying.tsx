@@ -1,5 +1,4 @@
 import { memo, useState } from 'react';
-import { touchTarget } from '../../../ui/touch';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
@@ -9,6 +8,7 @@ import { Text } from '../../../ui/Text';
 import { useThread } from './place';
 import { isDate, type FormBlock, type FormField, type RepliesBlock } from './read';
 import { BlockTitle, styles as shared } from './ui';
+import { touchTarget } from '../../../ui/touch';
 
 function Choice({ label, on, onPress, testID, multiple }: { label: string; on: boolean; onPress: () => void; testID?: string; multiple: boolean }) {
   const { colors } = useTheme();

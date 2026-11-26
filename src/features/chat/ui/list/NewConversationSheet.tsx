@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { touchTarget } from '../../../../ui/touch';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../../ui/Pressable';
@@ -14,6 +13,7 @@ import type { Person } from '../../messageActions';
 import { createChannel, searchPeople, startChat } from '../../newConversation';
 import { failureText } from '../actions/failure';
 import { PersonChips, PersonSearch } from '../actions/PersonSearch';
+import { touchTarget } from '../../../../ui/touch';
 
 const kinds = ['chat', 'channel'] as const;
 type Kind = (typeof kinds)[number];

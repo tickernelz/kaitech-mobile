@@ -1,5 +1,4 @@
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
-import { reach, touchTarget } from '../../../ui/touch';
 import * as Clipboard from 'expo-clipboard';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -55,6 +54,7 @@ import { router } from 'expo-router';
 import { ChatBackground } from '../../appearance/ChatBackground';
 import { usePartnerStatus } from '../../people/statuses';
 import { confirm, inform } from '../../../ui/dialog';
+import { reach, touchTarget } from '../../../ui/touch';
 
 const noticeMs = 4000;
 const drawDistance = 1000;

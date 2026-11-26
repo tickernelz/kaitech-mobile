@@ -1,5 +1,4 @@
 import { Image } from 'expo-image';
-import { touchTarget } from '../../../ui/touch';
 import { router } from 'expo-router';
 import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +15,7 @@ import { liveRunning, mediaSource } from '../rich';
 import type { Message, Place } from '../types';
 import { useChatFormat } from './format';
 import { useCookie } from './useCookie';
+import { touchTarget } from '../../../ui/touch';
 
 export const locationWidth = 264;
 const mapHeight = 148;

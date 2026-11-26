@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { touchTarget } from '../../ui/touch';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { radius, space, useTheme } from '../../theme';
@@ -9,6 +8,7 @@ import { TextField } from '../../ui/TextField';
 import { Chip } from '../discovery/ui';
 import { dayFrom, isDay, urgencies, type FollowupRow, type Urgency } from './followups';
 import { Line, useMomFormat } from './parts';
+import { touchTarget } from '../../ui/touch';
 
 const statusIcons: Record<string, IconName> = { draft: 'bulb', open: 'clock', late: 'alert', done: 'check', dropped: 'close' };
 const statusTones = { draft: 'info', open: 'neutral', late: 'danger', done: 'ok', dropped: 'neutral' } as const;

@@ -6,7 +6,6 @@ import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { reach, shortfall, touchTarget } from '../../../ui/touch';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
 import { attachmentUrl, isCallNotice, isRemoved, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
@@ -29,11 +28,13 @@ import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
 import { AgentSaid } from './coworker/Cards';
 import type { AgentCard, CardStore } from '../coworker';
+import { reachBelow, shortfall, touchTarget } from '../../../ui/touch';
 
 export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
 const reactionHeight = 32;
-const reactionSlop = reach(reactionHeight, 0);
+const reactionGap = space.xs;
+const reactionSlop = reachBelow(reactionHeight, reactionGap);
 const faceSlop = { top: 2, bottom: touchTarget - faceSize - 2, left: shortfall(faceSize), right: shortfall(faceSize) };
 
 const mediaWidth = Math.min(tileMax.width, Math.round(readableWidth * 0.8) - 2 * space.md);
@@ -399,7 +400,7 @@ export const PendingBubble = memo(function PendingBubble({
         </View>
       </Frame>
       {failed ? (
-        <View style={[styles.under, styles.wrapMine]}>
+        <View style={[styles.failedActions, styles.wrapMine]}>
           <Pressable accessibilityRole="button" onPress={() => onRetry(pending.key)} style={[styles.action, { borderColor: colors.line }]} testID="pending-retry">
             <Icon name="retry" size={16} color={colors.link} />
             <Text variant="footnote" style={{ color: colors.link }}>
@@ -440,7 +441,8 @@ const styles = StyleSheet.create({
   meta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
   time: { fontWeight: '400' },
   removed: { fontStyle: 'italic' },
-  under: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs - shortfall(reactionHeight), paddingVertical: shortfall(reactionHeight) },
+  under: { flexDirection: 'row', flexWrap: 'wrap', columnGap: reactionGap, rowGap: reactionSlop.top + reactionSlop.bottom, paddingTop: reactionSlop.top, paddingBottom: reactionSlop.bottom },
+  failedActions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
   reaction: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: reactionHeight, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   notice: { paddingHorizontal: space.xxl, paddingVertical: space.sm, alignItems: 'center' },

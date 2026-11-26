@@ -1,5 +1,4 @@
 import { lazy, memo, Suspense, useMemo, useState } from 'react';
-import { chipBand, chipHeight, chipSlop } from '../../../ui/touch';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { Overlay } from '../../../ui/Overlay';
@@ -13,6 +12,7 @@ import { splitBlocks } from '../blocks';
 import { useItems, useThread, webChatUrl, type Place } from './place';
 import { parseBlock, readArtifact, type ArtifactBlock } from './read';
 import { Tool, styles as shared } from './ui';
+import { chipBand, chipHeight, chipSlop } from '../../../ui/touch';
 
 const SealedFrame = lazy(() => Promise.resolve(require('./SealedFrame') as typeof import('./SealedFrame')));
 

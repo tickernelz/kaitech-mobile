@@ -1,5 +1,4 @@
 import { useEvent } from 'expo';
-import { touchTarget } from '../../../../ui/touch';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -22,8 +21,10 @@ import { useCookie } from '../useCookie';
 import { fetchAttachment, fileKey, fileName, shareFile } from '../useOpenAttachment';
 import { ProgressRing } from './ProgressRing';
 import { Zoomable } from './Zoomable';
+import { touchTarget } from '../../../../ui/touch';
 
 const fullWidth = 2048;
+const barSlop = { top: 8, bottom: 8, left: 0, right: 0 };
 
 function mute(player: VideoPlayer, muted: boolean) {
   player.muted = muted;
@@ -33,7 +34,7 @@ const noticeMs = 2400;
 function Bar({ icon, label, onPress, testID, busy }: { icon: IconName; label: string; onPress: () => void; testID: string; busy?: boolean }) {
   const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ busy }} hitSlop={8} onPress={onPress} testID={testID} style={styles.barButton}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ busy }} hitSlop={barSlop} onPress={onPress} testID={testID} style={styles.barButton}>
       {busy ? <ActivityIndicator color={colors.onStage} /> : <Icon name={icon} color={colors.onStage} />}
     </Pressable>
   );

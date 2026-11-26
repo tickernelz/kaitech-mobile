@@ -22,10 +22,10 @@ import { useChatFormat } from './format';
 import { previewText } from '../rich';
 import { Icon } from '../../../ui/icons';
 import { RowActions } from '../../../ui/RowActions';
-import { chipBand, chipHeight, chipSlop } from '../../../ui/touch';
 import { conversationActions } from './conversationActions';
 import { refreshStarred } from '../starred';
 import { StarredSheet } from './thread/ListSheets';
+import { chipBand, chipHeight, chipSlop } from '../../../ui/touch';
 
 function usePreview() {
   const { t } = useTranslation('chat');

@@ -1,5 +1,4 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ComponentRef } from 'react';
-import { touchTarget } from '../../../ui/touch';
 import { useTranslation } from 'react-i18next';
 import { BackHandler, Platform, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type TextInputSelectionChangeEvent } from 'react-native';
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
@@ -45,6 +44,7 @@ import { PollSheet } from './composer/PollSheet';
 import { richLabel } from './RichMedia';
 import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 import { useBottomInset } from '../../../ui/insets';
+import { touchTarget } from '../../../ui/touch';
 
 type Staged = Outgoing['files'][number];
 

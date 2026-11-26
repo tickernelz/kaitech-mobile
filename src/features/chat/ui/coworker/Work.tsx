@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { touchTarget } from '../../../../ui/touch';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../../theme';
@@ -8,6 +7,7 @@ import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
 import { stopWork, type Work } from '../../coworker';
 import { failureText } from '../actions/failure';
+import { touchTarget } from '../../../../ui/touch';
 
 export function WorkBar({ works, onPress }: { works: Work[]; onPress: () => void }) {
   const { t } = useTranslation('chat');

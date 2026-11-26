@@ -11,10 +11,13 @@ import { Text } from '../../../../ui/Text';
 import { isHeld } from '../../voice/machine';
 import { lockDistance, type SendMode } from './gesture';
 import type { VoiceRecorder } from './useVoiceRecorder';
+import { reach, touchTarget } from '../../../../ui/touch';
 
 export const buttonSize = 44;
 export const heldSize = 72;
 export const controlGap = space.xs;
+const fieldButtonHeight = 40;
+const fieldButtonSlop = reach(fieldButtonHeight);
 const lockIcon = 20;
 
 export function useToward(target: number, ms: number = duration.base, curve = easing.standard) {
@@ -111,7 +114,7 @@ export function CameraSlot({ shown, onPress, onLongPress }: { shown: boolean; on
 export function FieldButton({ icon, label, onPress, testID }: { icon: IconName; label: string; onPress: () => void; testID: string }) {
   const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={2} style={styles.fieldButton} testID={testID}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={fieldButtonSlop} style={styles.fieldButton} testID={testID}>
       <Icon name={icon} color={colors.inkSoft} />
     </Pressable>
   );
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
   layer: { ...StyleSheet.absoluteFill, borderRadius: buttonSize / 2, alignItems: 'center', justifyContent: 'center' },
   round: { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2, alignItems: 'center', justifyContent: 'center' },
   cameraSlot: { height: buttonSize, overflow: 'hidden', alignItems: 'flex-start' },
-  fieldButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: -space.sm },
+  fieldButton: { width: touchTarget, height: fieldButtonHeight, borderRadius: fieldButtonHeight / 2, alignItems: 'center', justifyContent: 'center', marginRight: -space.sm },
   lockPill: { position: 'absolute', right: 0, bottom: buttonSize + 40, width: buttonSize, height: 100, paddingVertical: space.md, borderRadius: buttonSize / 2, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', gap: space.xs },
   lockStack: { width: lockIcon, height: lockIcon },
   lift: { shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3 },

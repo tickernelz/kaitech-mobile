@@ -1,5 +1,4 @@
 import { FlashList } from '@shopify/flash-list';
-import { touchTarget } from '../../ui/touch';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +23,7 @@ import { stash, unstash, useRecordsGeneration } from './stash';
 import { actionScope, type ListStash, type RecordStash } from './useRunAction';
 import { compileList, compileSearch, titleColumn, type ListSpec, type SearchSpec } from './views';
 import { Refresh } from '../../ui/Refresh';
+import { touchTarget } from '../../ui/touch';
 
 const page = 40;
 

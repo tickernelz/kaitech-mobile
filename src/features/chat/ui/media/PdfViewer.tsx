@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import { touchTarget } from '../../../../ui/touch';
 import { StatusBar } from 'expo-status-bar';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,8 +17,10 @@ import { useChatFormat } from '../format';
 import { fetchAttachment, fileKey, fileName, presentFile, shareFile } from '../useOpenAttachment';
 import { ProgressRing } from './ProgressRing';
 import { Zoomable } from './Zoomable';
+import { touchTarget } from '../../../../ui/touch';
 
 const pageGap = space.sm;
+const barSlop = { top: 8, bottom: 8, left: 0, right: 0 };
 
 type Opened = { uri: string; pages: number; ratio: number };
 
@@ -78,7 +79,7 @@ const PdfPage = memo(function PdfPage({ session, source, page, width, ratio }: {
 function Bar({ icon, label, onPress, testID }: { icon: IconName; label: string; onPress: () => void; testID: string }) {
   const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} hitSlop={8} onPress={onPress} testID={testID} style={styles.barButton}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} hitSlop={barSlop} onPress={onPress} testID={testID} style={styles.barButton}>
       <Icon name={icon} color={colors.onStage} />
     </Pressable>
   );

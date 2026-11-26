@@ -6,9 +6,9 @@ import { Pressable } from '../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../theme';
 import { Sheet } from '../../../ui/Sheet';
 import { Text } from '../../../ui/Text';
-import { chipHeight, chipSlop } from '../../../ui/touch';
 import type { EmojiCategory } from '../emoji/data';
 import { emojiGroups, noteEmoji, recentEmoji, searchEmoji } from '../emoji/emoji';
+import { chipHeight, chipSlop } from '../../../ui/touch';
 
 type Tab = 'recent' | EmojiCategory;
 

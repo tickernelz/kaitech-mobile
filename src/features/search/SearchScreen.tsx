@@ -10,13 +10,13 @@ import { radius, space, type as typography, useTheme } from '../../theme';
 import { RowActions } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
 import { textActions } from '../../ui/textActions';
-import { chipHeight, chipSlop, shortfall } from '../../ui/touch';
 import { search, type SearchHits } from '../discovery/api';
 import { openConversation, rememberProgramme, useLastProgramme } from '../discovery/store';
 import { Icon, type IconName } from '../../ui/icons';
 import { IconButton } from '../../ui/IconButton';
 import { StateView } from '../discovery/ui';
 import { joinChannel, preview, searchDirectory, type DirectoryHits } from './people';
+import { chipHeight, chipSlop, shortfall } from '../../ui/touch';
 
 type Filter = 'all' | 'chat' | 'discovery' | 'mom' | 'people';
 type Hit = { key: string; icon: IconName; title: string; detail: string; open: () => void; more?: boolean };
