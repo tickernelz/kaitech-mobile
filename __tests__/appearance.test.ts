@@ -96,6 +96,33 @@ describe('changeAppearance', () => {
   });
 });
 
+describe('applyTheme', () => {
+  const { Appearance } = require('react-native') as typeof import('react-native');
+  const setColorScheme = jest.spyOn(Appearance, 'setColorScheme').mockImplementation(() => undefined);
+
+  beforeEach(() => {
+    setColorScheme.mockClear();
+    mockBearer.mockReset();
+  });
+
+  it('applies the theme the account saved on this phone before the server answers', () => {
+    mockStore.set('appearance.dark-saved', JSON.stringify({ theme: 'dark', background: { kind: 'default' }, conversations: {} }));
+    appearance.applyTheme('dark-saved');
+    expect(setColorScheme).toHaveBeenLastCalledWith('dark');
+    expect(mockBearer).not.toHaveBeenCalled();
+  });
+
+  it('follows the phone when nobody is signed in, nothing is saved, or the saved value is broken', () => {
+    appearance.applyTheme(null);
+    expect(setColorScheme).toHaveBeenLastCalledWith('unspecified');
+    appearance.applyTheme('never-saved');
+    expect(setColorScheme).toHaveBeenLastCalledWith('unspecified');
+    mockStore.set('appearance.broken', '{not json');
+    appearance.applyTheme('broken');
+    expect(setColorScheme).toHaveBeenLastCalledWith('unspecified');
+  });
+});
+
 describe('plainColors', () => {
   const linear = (value: number) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
   const lightness = (hex: string) => {
