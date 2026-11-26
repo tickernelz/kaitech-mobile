@@ -2,7 +2,7 @@
   "expo": {
     "name": "Kaitech",
     "slug": "kaitech-mobile",
-    "version": "0.6.1",
+    "version": "0.7.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -55,6 +55,7 @@
         }
       ],
       "./plugins/with-livekit-gradle",
+      "./plugins/with-animated-webp",
       [
         "@livekit/react-native-expo-plugin",
         {
@@ -133,7 +134,7 @@
           "microphonePermission": "Kaitech uses the microphone to record meetings and voice messages, and to make calls.",
           "recordAudioAndroid": true,
           "enableBackgroundRecording": true,
-          "enableBackgroundPlayback": false
+          "enableBackgroundPlayback": true
         }
       ],
       [

@@ -2,6 +2,25 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.7.0 - 2026-11-26
+
+### Added
+
+- Chat composer like WhatsApp in Kaitech colours: attach, the message field with an emoji/sticker/GIF button inside it, a camera button that hides while you type, and one button that is the microphone on an empty field and Send once there is text. The swaps animate on the UI thread, keep the row height, and respect Reduce motion (#106, ZHA-7842).
+- Voice notes: hold the microphone to record, slide left to cancel, slide up to lock for hands-free, pause, play the draft, resume, send, or discard with Undo. Recordings under one second show a hint instead of sending; a call, the app going to the background or the 30-minute limit pauses the note into a draft that survives a restart. Playback can seek, change speed, resume where it stopped, mark unplayed notes and play the next one (#106, ZHA-7842).
+- Emoji, sticker and GIF panel that replaces the keyboard at the keyboard's height, with search, recent and favourite stickers, and KLIPY stickers and GIFs fetched through the lab0 server (#106, ZHA-7842, ZHA-7807).
+- Attach sheet with gallery, camera, document and audio; the camera opens after the Kaitech permission card and the photo is previewed before sending (#106, ZHA-7842).
+- Setting "Tap to record" for people who cannot hold the button (#106, ZHA-7842).
+
+### Fixed
+
+- Chat: the session cookie is sent with sticker and GIF images only to the account's own server, and plain-http media from other hosts is not loaded (#106, ZHA-7842).
+
+### Known gaps
+
+- Meizu Mblu 21: recording and the attach menu still drop most frames, as before this release; the cost is the GPU time of the chat thread screen (12 to 25 ms per frame), not the composer (ZHA-7842).
+- GIFs work on lab0 only until KLIPY confirms the server proxy in writing. Location, polls and contact cards in the attach sheet wait for a server contract; voice notes show a computed waveform until ZHA-7850's stored waveform is read (ZHA-7842).
+- iOS: the composer, the voice-note module and the panel are not tested on an iPhone (ZHA-7277).
 ## 0.6.1 - 2026-11-26
 
 ### Changed

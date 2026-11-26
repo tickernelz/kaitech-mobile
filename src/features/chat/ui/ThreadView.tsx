@@ -13,8 +13,12 @@ import { Text } from '../../../ui/Text';
 import { chatClient, loadWorks, refreshConversations, conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat } from '../chat';
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
-import { bodyPreview } from '../markdown';
-import { readersOf, readState } from '../odoo';
+import { bodyPreview, bodyShape } from '../markdown';
+import { attachmentUrl, readersOf, readState } from '../odoo';
+import { isPlayed, setVoiceNext } from '../voicePlayer';
+import { nextVoiceAfter, voiceIdOf } from '../voice/next';
+import { useCookie } from './useCookie';
+import { VoiceMiniBar } from './VoiceNote';
 import { buildRows, rowType, type Row } from '../rows';
 import type { Message } from '../types';
 import { CallButton } from '../../call/ui/CallButton';
@@ -79,6 +83,17 @@ export function ThreadView({
   const partnerId = useChat((state) => state.partnerId);
   const origin = useChat((state) => state.origin);
   const thread = useChat((state) => threadOf(state, channelId));
+  const voiceCookie = useCookie();
+  useEffect(
+    () =>
+      setVoiceNext((id) => {
+        const found = nextVoiceAfter(threadOf(getChat(), channelId).messages, id, isPlayed);
+        if (!found) return null;
+        const { message, attachment } = found;
+        return { id: voiceIdOf(attachment), uri: attachmentUrl(getChat().origin, attachment), headers: voiceCookie ?? undefined, meta: { title: message.author, channelId, messageId: message.id } };
+      }),
+    [channelId, voiceCookie],
+  );
   const conversation = useChat((state) => conversationById(state, channelId));
   const allPending = useChat((state) => state.pending);
   const allDelivered = useChat((state) => state.delivered);
@@ -296,7 +311,7 @@ export function ThreadView({
         );
       }
       if (item.kind === 'pending') {
-        return <PendingBubble pending={item.pending} offline={!online} onRetry={retry} onDiscard={discard} />;
+        return <PendingBubble pending={item.pending} offline={!online} origin={origin} onRetry={retry} onDiscard={discard} />;
       }
       const message = item.message;
       const mine = message.authorId === partnerId;
@@ -425,6 +440,7 @@ export function ThreadView({
         </Pressable>
       ) : null}
       {agentsOn ? <WorkBar works={thread.works} onPress={() => setWorkSheet(true)} /> : null}
+      <VoiceMiniBar hideFor={channelId} />
       <KeyboardAvoidingView behavior="padding" automaticOffset style={styles.flex}>
         <View style={styles.flex}>
           <ChatBackground channelId={channelId} />

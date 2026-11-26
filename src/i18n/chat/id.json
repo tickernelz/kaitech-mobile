@@ -114,11 +114,12 @@
     "closeSheet": "Tutup",
     "attachTitle": "Lampirkan",
     "source": {
+      "photos": "Galeri",
       "camera": "Kamera",
-      "photos": "Foto & video",
-      "files": "Dokumen"
+      "files": "Dokumen",
+      "audio": "Audio"
     },
-    "micBusy": "Rapat sedang direkam. Selesaikan dulu untuk merekam pesan suara.",
+    "micBusy": "Mikrofon sedang dipakai rekaman rapat atau panggilan.",
     "uploading": "Mengunggah {{name}}",
     "uploadingPercent": "{{name}} · {{percent}}%",
     "tooBig_one": "{{names}} melebihi batas {{limit}}.",
@@ -138,13 +139,49 @@
     },
     "editing": "Mengedit pesan",
     "cancelEdit": "Batalkan edit",
-    "saveEdit": "Simpan perubahan"
+    "saveEdit": "Simpan perubahan",
+    "camera": "Ambil foto atau video",
+    "sendVoice": "Kirim pesan suara",
+    "cancelVoice": "Batal",
+    "slideToLock": "Geser ke atas untuk mengunci rekaman",
+    "showKeyboard": "Tampilkan keyboard",
+    "openPanel": "Emoji, stiker, dan GIF",
+    "recordFailed": "Pesan suara gagal direkam. Coba lagi.",
+    "micReady": "Izin diberikan. Tahan tombol mikrofon untuk merekam.",
+    "diskFull": "Ruang penyimpanan hampir penuh. Hapus beberapa berkas lalu coba lagi.",
+    "micFailed": "Mikrofon tidak bisa dimulai. Coba lagi.",
+    "voiceSendFailed": "Pesan suara gagal disiapkan. Rekamannya masih tersimpan, coba lagi.",
+    "voiceDiscarded": "Rekaman dibuang",
+    "shortHint": "Tahan untuk merekam, lepas untuk mengirim. Geser ke atas untuk merekam tanpa menahan.",
+    "recordHint": "Tahan untuk merekam. Atau gunakan aksi Rekam untuk merekam tanpa menahan.",
+    "discardVoice": "Buang rekaman",
+    "pauseVoice": "Jeda rekaman",
+    "resumeVoice": "Lanjutkan merekam",
+    "playDraft": "Putar rekaman",
+    "pauseDraft": "Jeda pemutaran",
+    "draftPosition": "{{position}} / {{duration}}",
+    "draftSeek": "Posisi rekaman",
+    "timeLeft": "sisa {{time}}",
+    "recordingElapsed": "Merekam, {{time}}",
+    "interrupted": {
+      "background": "Rekaman dijeda karena aplikasi ditutup. Drafnya aman.",
+      "call": "Rekaman dijeda karena ada panggilan masuk. Dengarkan, lanjutkan, atau kirim.",
+      "limit": "Batas 30 menit tercapai. Dengarkan dulu, lalu kirim.",
+      "device": "Perangkat audio berubah. Rekaman dijeda.",
+      "restored": "Pesan suara yang belum terkirim masih ada."
+    },
+    "cameraHint": "Tahan untuk membuka galeri",
+    "pickerNote": "Foto dan video dipilih lewat pemilih foto sistem. Kaitech tidak meminta akses ke seluruh galeri."
   },
   "voice": {
     "play": "Putar pesan suara",
     "pause": "Jeda pesan suara",
     "label": "Pesan suara",
-    "speed": "Kecepatan putar {{rate}} kali"
+    "speed": "Kecepatan putar {{rate}} kali",
+    "position": "Posisi pesan suara",
+    "unplayed": "Belum diputar",
+    "openChat": "Buka chat dengan {{name}}",
+    "close": "Hentikan dan tutup pemutar"
   },
   "actions": {
     "reply": "Balas",
@@ -390,10 +427,6 @@
     "cancelled": "Pesan terjadwal dihapus"
   },
   "extras": {
-    "emoji": "Emoji",
-    "gif": "GIF",
-    "gifSearch": "Cari GIF",
-    "gifSend": "Kirim GIF ini",
     "canned": "Balasan siap pakai",
     "later": "Kirim nanti",
     "laterEmpty": "Tulis pesan atau lampirkan berkas dulu.",
@@ -511,5 +544,64 @@
     "viewer": "Penampil media",
     "playing": "Sedang diputar",
     "paused": "Dijeda"
+  },
+  "panel": {
+    "emoji": "Emoji",
+    "sticker": "Stiker",
+    "gif": "GIF",
+    "backspace": "Hapus",
+    "gifSearch": "Search KLIPY",
+    "stickerSearch": "Search KLIPY",
+    "none": "Tidak ada hasil",
+    "noStickers": "Belum ada stiker di sini",
+    "recent": "Terakhir",
+    "providerStickers": "Cari stiker",
+    "closePreview": "Tutup pratinjau",
+    "closeTones": "Tutup pilihan warna kulit",
+    "favorite": "Tambah ke favorit",
+    "unfavorite": "Hapus dari favorit",
+    "favorites": "Favorit",
+    "full": "Tinggi penuh",
+    "half": "Setengah tinggi",
+    "handle": "Tinggi panel",
+    "kaitechStickers": "Stiker Kaitech",
+    "noEmoji": "Tidak ada emoji untuk \"{{query}}\".",
+    "openSettings": "Buka pengaturan",
+    "retry": "Coba lagi",
+    "searchGif": "Cari \"{{query}}\" di GIF",
+    "skinHint": "Tahan untuk memilih warna kulit",
+    "trending": "Populer",
+    "tone0": "Kuning bawaan",
+    "tone1": "Warna kulit terang",
+    "tone2": "Warna kulit agak terang",
+    "tone3": "Warna kulit sedang",
+    "tone4": "Warna kulit agak gelap",
+    "tone5": "Warna kulit gelap",
+    "state": {
+      "offline": {
+        "title": "Kamu sedang luring",
+        "body": "GIF butuh koneksi. Emoji dan stiker yang tersimpan tetap bisa dipakai."
+      },
+      "unavailable": {
+        "title": "GIF belum diaktifkan",
+        "body": "Admin perlu memasang kunci KLIPY di Pengaturan Chat lab0. Emoji dan stiker tetap bisa dipakai."
+      },
+      "server": {
+        "title": "GIF tidak bisa dimuat",
+        "body": "Server tidak menjawab (kode {{code}}). Coba lagi sebentar lagi."
+      },
+      "emptySearch": {
+        "title": "Tidak ada hasil untuk \"{{query}}\"",
+        "body": "Coba kata yang lebih pendek."
+      },
+      "noStickers": {
+        "title": "Belum ada stiker",
+        "body": "Admin bisa menambah paket di Pengaturan Chat."
+      }
+    }
+  },
+  "rich": {
+    "sticker": "Stiker",
+    "gif": "GIF"
   }
 }

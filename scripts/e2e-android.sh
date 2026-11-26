@@ -126,6 +126,7 @@ if adb shell pm path "$gboard" 2>/dev/null | grep -q '^package:'; then
 fi
 
 adb shell settings put global hide_error_dialogs 1
+adb shell settings put secure accessibility_interactive_ui_timeout_ms 30000
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null
 adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run --remote-debugging-socket-name=kaitech_e2e_chrome" > /data/local/tmp/chrome-command-line'
 adb shell am set-debug-app --persistent com.android.chrome

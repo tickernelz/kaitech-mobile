@@ -1,4 +1,5 @@
 import { photoFrom, type Photo } from '../people/photo';
+import { richOf } from './rich';
 import type { Attachment, CallRecord, Conversation, ConversationType, LastMessage, Member, Message, Reaction, ServerMedia } from './types';
 
 type Raw = Record<string, unknown>;
@@ -212,9 +213,15 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
       starred: raw.starred === true,
       urgent: Array.isArray(raw.kaitech_chat_urgent_partner_ids) && raw.kaitech_chat_urgent_partner_ids.length > 0,
       pinnedAt: text(raw.pinned_at) || null,
+      ...richField(raw),
     });
   }
   return messages.sort((a, b) => a.id - b.id);
+}
+
+function richField(raw: Raw): Pick<Message, 'rich'> {
+  const rich = richOf(raw);
+  return rich ? { rich } : {};
 }
 
 const editedMark = /<span class=["']o-mail-Message-edited["']\s*(?:\/>|><\/span>)/g;
@@ -225,7 +232,7 @@ export function editedBody(html: string): { body: string; edited: boolean } {
   return { body, edited: body.length !== html.length };
 }
 
-export type MessagePatch = Partial<Pick<Message, 'body' | 'edited' | 'attachments' | 'pinnedAt' | 'starred' | 'translation' | 'translated'>>;
+export type MessagePatch = Partial<Pick<Message, 'body' | 'edited' | 'attachments' | 'pinnedAt' | 'starred' | 'translation' | 'translated'>> & { rich?: Message['rich'] };
 
 export function messagePatches(data: unknown): Map<number, MessagePatch> {
   const attachments = new Map<number, Attachment>();
@@ -242,6 +249,10 @@ export function messagePatches(data: unknown): Map<number, MessagePatch> {
     if ('attachment_ids' in raw) patch.attachments = ids(raw.attachment_ids).map((attachmentId) => attachments.get(attachmentId)).filter((item): item is Attachment => item !== undefined);
     if ('pinned_at' in raw) patch.pinnedAt = text(raw.pinned_at) || null;
     if ('starred' in raw) patch.starred = raw.starred === true;
+    if ('kaitech_chat_kind' in raw) {
+      const rich = richOf(raw);
+      if (rich || !raw.kaitech_chat_kind) patch.rich = rich ?? undefined;
+    }
     if (Object.keys(patch).length) patches.set(messageId, patch);
   }
   return patches;

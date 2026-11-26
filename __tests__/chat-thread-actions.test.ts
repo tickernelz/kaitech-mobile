@@ -1,4 +1,4 @@
-import { cannedQuery, gifBody, quickTimes } from '../src/features/chat/composerExtras';
+import { cannedQuery, quickTimes } from '../src/features/chat/composerExtras';
 import { createCardStore, isShownWork, linksIn, linksOfMessage, workFrom } from '../src/features/chat/coworker';
 import { channelOf } from '../src/features/chat/newConversation';
 import { listFilters, matches } from '../src/features/chat/listFilters';
@@ -104,10 +104,6 @@ describe('composer extras', () => {
     expect(cannedQuery('a ::x', 5)).toEqual({ start: 2, query: 'x' });
     expect(cannedQuery('a::x', 4)).toBeNull();
     expect(cannedQuery(':: x', 4)).toBeNull();
-  });
-
-  it('escapes a GIF link', () => {
-    expect(gifBody('https://x.test/a"b.gif')).toBe('<a href="https://x.test/a%22b.gif" target="_blank" rel="noreferrer noopener">https://x.test/a%22b.gif</a>');
   });
 });
 
