@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 
-const usage = 'usage: frame-flicker.mjs <video.mp4> <left,top,right,bottom> [--out result.json] [--blank-frames dir] [--max-flicker N] [--max-blank N]';
+const usage = 'usage: frame-flicker.mjs <video.mp4> <left,top,right,bottom> [--out result.json] [--blank-frames dir] [--max-flicker N] [--max-blank N] [--max-half-blank N]';
 const keptBlankFrames = 12;
 const scale = 4;
 const changed = 28;
@@ -13,6 +13,7 @@ const windowMs = 350;
 const slowShift = 16;
 const bright = 225;
 const blankShare = 0.25;
+const halfBlankShare = 0.5;
 
 function fail(message) {
   console.error(message);
@@ -38,6 +39,7 @@ const limit = (name) => {
 };
 const maxFlicker = limit('--max-flicker');
 const maxBlank = limit('--max-blank');
+const maxHalfBlank = limit('--max-half-blank');
 const shown = (value) => (value === Infinity ? 'no limit' : `limit ${value}`);
 
 const times = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'frame=pts_time', '-of', 'csv=p=0', video])
@@ -131,8 +133,9 @@ const blankAt = frames.flatMap((frame, index) => {
   return share >= blankShare ? [{ frame: index, atMs: Math.round(times[index] * 1000), share: Number(share.toFixed(3)) }] : [];
 });
 const blank = blankAt.length;
+const halfBlank = blankAt.filter((item) => item.share >= halfBlankShare).length;
 
-const result = { video, box, frames: count, unexplained: steps.filter((step) => step.residual >= jumpAt).length, flicker: flicker.length, flickerAt: flicker, blank, blankAt };
+const result = { video, box, frames: count, unexplained: steps.filter((step) => step.residual >= jumpAt).length, flicker: flicker.length, flickerAt: flicker, blank, halfBlank, blankAt };
 if (out) writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`);
 if (blankFrames && blank) {
   mkdirSync(blankFrames, { recursive: true });
@@ -141,7 +144,7 @@ if (blankFrames && blank) {
     execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', video, '-vf', `select=eq(n\\,${item.frame}),scale=iw/2:-2`, '-fps_mode', 'passthrough', '-frames:v', '1', join(blankFrames, `${name}-blank-${item.atMs}ms.png`)]);
   }
 }
-console.log(`${video}: ${count} frames, ${result.unexplained} frames changed beyond scrolling, ${flicker.length} flicker (${shown(maxFlicker)}), ${blank} frames with a quarter of the list empty (${shown(maxBlank)})`);
+console.log(`${video}: ${count} frames, ${result.unexplained} frames changed beyond scrolling, ${flicker.length} flicker (${shown(maxFlicker)}), ${blank} frames with a quarter of the list empty (${shown(maxBlank)}), ${halfBlank} with half of it empty (${shown(maxHalfBlank)})`);
 for (const item of flicker) console.log(`  flicker at ${item.atMs} ms for ${item.lastedMs} ms, ${(item.changed * 100).toFixed(1)}% of the list changed and came back`);
 for (const item of blankAt) console.log(`  blank at ${item.atMs} ms (frame ${item.frame}), ${(item.share * 100).toFixed(0)}% of the list empty`);
-if (flicker.length > maxFlicker || blank > maxBlank) process.exit(1);
+if (flicker.length > maxFlicker || blank > maxBlank || halfBlank > maxHalfBlank) process.exit(1);
