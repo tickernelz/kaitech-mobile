@@ -33,6 +33,11 @@
   <string name="kaitech_message_file">File</string>
   <string name="kaitech_message_file_named">File: %1$s</string>
   <string name="kaitech_message_missed_call">Missed call</string>
+  <string name="kaitech_message_poll">Poll</string>
+  <string name="kaitech_message_location">Location</string>
+  <string name="kaitech_message_live_location">Live location</string>
+  <string name="kaitech_message_sticker">Sticker</string>
+  <string name="kaitech_message_gif">GIF</string>
   <string name="kaitech_message_mention">Mentioned you: %1$s</string>
   <string name="kaitech_message_agent">%1$s · Coworker</string>
   <string name="kaitech_message_reply">Reply</string>

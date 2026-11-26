@@ -20,7 +20,7 @@ jest.mock('../src/auth/session', () => ({ ...jest.requireActual('../src/auth/ses
 
 require('../src/i18n');
 const { Icon, iconNames } = require('../src/ui/icons') as typeof import('../src/ui/icons');
-const { plan, strokeFor } = require('../src/ui/icons/glyphs') as typeof import('../src/ui/icons/glyphs');
+const { plan, strokeFor, glyphs, lockShackleDrop, trashLidHinge } = require('../src/ui/icons/glyphs') as typeof import('../src/ui/icons/glyphs');
 const { CallPill } = require('../src/features/call/ui/CallControls') as typeof import('../src/features/call/ui/CallControls');
 const { controlsFor } = require('../src/features/call/controls') as typeof import('../src/features/call/controls');
 const { IconButton } = require('../src/ui/IconButton') as typeof import('../src/ui/IconButton');
@@ -84,6 +84,24 @@ describe('Kaitech icon set', () => {
         expect(y).toBeLessThanOrEqual(23);
       }
     }
+  });
+
+  it('closes the lock when the shackle drops by lockShackleDrop', () => {
+    const legEnd = Math.max(...coordinates(glyphs.lockShackle.parts[0].d).map(([, y]) => y));
+    const bodyTop = Math.min(...coordinates(glyphs.lockOpen.parts[0].d).map(([, y]) => y));
+    const stroke = strokeFor(20);
+    expect(legEnd).toBeLessThan(bodyTop - stroke / 2);
+    expect(legEnd + lockShackleDrop).toBeGreaterThanOrEqual(bodyTop);
+    expect(legEnd + lockShackleDrop).toBeLessThanOrEqual(bodyTop + stroke / 2);
+    expect((lockShackleDrop * 20) / 24).toBeCloseTo(3);
+  });
+
+  it('hinges the trash lid at its right end, above the body', () => {
+    const lid = coordinates(glyphs.trashLid.parts[0].d);
+    const body = coordinates(glyphs.trashBody.parts[0].d);
+    expect(Math.max(...lid.map(([x]) => x))).toBe(trashLidHinge.x);
+    expect(lid.some(([x, y]) => x === trashLidHinge.x && y === trashLidHinge.y)).toBe(true);
+    expect(Math.max(...lid.map(([, y]) => y))).toBeLessThan(Math.min(...body.map(([, y]) => y)));
   });
 
   it('gives two icons with cut-outs on one screen their own mask', async () => {

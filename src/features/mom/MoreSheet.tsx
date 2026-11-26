@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Overlay } from '../../ui/Overlay';
 import { Pressable } from '../../ui/Pressable';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../theme';
 import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
+import { useBottomInset, useTopInset } from '../../ui/insets';
 
 const searchFrom = 12;
 
@@ -30,10 +30,11 @@ export function MoreSheet({
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const [query, setQuery] = useState('');
   const [typing, setTyping] = useState(false);
+  const topInset = useTopInset(space.lg);
+  const bottomInset = useBottomInset(space.lg);
   const total = groups.reduce((sum, group) => sum + group.actions.length, 0);
   const searchable = total > searchFrom;
   const said = query.trim().toLowerCase();
@@ -43,7 +44,7 @@ export function MoreSheet({
   return (
     <Overlay visible transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Pressable
-        style={[styles.scrim, typing && { justifyContent: 'flex-start', paddingTop: Math.max(insets.top, space.lg) }, { backgroundColor: colors.scrim }]}
+        style={[styles.scrim, typing && { justifyContent: 'flex-start', paddingTop: topInset }, { backgroundColor: colors.scrim }]}
         onPress={onClose}
         accessibilityRole="button"
         accessibilityLabel={t('mom.menu.close')}>
@@ -51,7 +52,7 @@ export function MoreSheet({
           style={[
             styles.sheet,
             typing ? [styles.raised, { maxHeight: height * 0.42 }] : null,
-            { backgroundColor: colors.surface, paddingBottom: typing ? space.sm : Math.max(insets.bottom, space.lg) },
+            { backgroundColor: colors.surface, paddingBottom: typing ? space.sm : bottomInset },
           ]}
           onPress={() => undefined}
           accessibilityViewIsModal

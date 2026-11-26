@@ -6,15 +6,20 @@ import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { readableWidth } from '../../../layout/windowClass';
+import { readableWidth, useLargeText } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
+import { useReduceMotion } from '../../../theme/reduceMotion';
 import { Text } from '../../../ui/Text';
 import { chatClient, loadWorks, refreshConversations, conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat } from '../chat';
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
 import { bodyPreview, bodyShape } from '../markdown';
-import { readersOf, readState } from '../odoo';
-import { buildRows, type Row } from '../threadRows';
+import { attachmentUrl, readersOf, readState } from '../odoo';
+import { isPlayed, setVoiceNext } from '../voicePlayer';
+import { nextVoiceAfter, voiceIdOf } from '../voice/next';
+import { useCookie } from './useCookie';
+import { VoiceMiniBar } from './VoiceNote';
+import { buildRows, rowType, type Row } from '../rows';
 import type { Message } from '../types';
 import { CallButton } from '../../call/ui/CallButton';
 import { Avatar } from './Avatar';
@@ -26,6 +31,7 @@ import { messageOptions } from '../messageOptions';
 import { hasFeature } from '../features';
 import { markUnreadFrom, messageLink, removeMessage, setPinned, toggleStar, toggleTranslation, type Result } from '../messageActions';
 import { failureText } from './actions/failure';
+import { setStickerFavorite } from '../composerExtras';
 import { EmojiPicker } from './EmojiPicker';
 import { ActivitySheet } from './actions/ActivitySheet';
 import { ForwardSheet } from './actions/ForwardSheet';
@@ -39,20 +45,22 @@ import { MessageCards, useAgentCards, useRecordCards } from './coworker/Cards';
 import { WorkBar, WorkSheet } from './coworker/Work';
 import { linksOfMessage, type RecordCard } from '../coworker';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
+import { setShownMessages } from './visible';
+import { richLabel } from './RichMedia';
+import { GalleryContext } from './media/gallery';
+import { galleryOfMessages } from '../media/viewer';
 import { NotifySheet } from './NotifySheet';
 import { router } from 'expo-router';
 import { ChatBackground } from '../../appearance/ChatBackground';
 import { usePartnerStatus } from '../../people/statuses';
 import { confirm, inform } from '../../../ui/dialog';
+import { reach, touchTarget } from '../../../ui/touch';
 
 const noticeMs = 4000;
+const drawDistance = 1000;
 const noLinks: string[] = [];
 
 type SheetKind = 'emoji' | 'forward' | 'task' | 'activity' | 'meeting' | 'reactions' | 'readers';
-
-export function rowType(row: Row): string {
-  return row.kind === 'message' ? `message-${bodyShape(row.message.body)}` : row.kind;
-}
 
 export function ThreadView({
   channelId,
@@ -71,6 +79,7 @@ export function ThreadView({
 }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
+  const largeText = useLargeText();
   const [notifying, setNotifying] = useState(false);
   const [threadMenu, setThreadMenu] = useState(false);
   const [workSheet, setWorkSheet] = useState(false);
@@ -79,11 +88,24 @@ export function ThreadView({
   const partnerId = useChat((state) => state.partnerId);
   const origin = useChat((state) => state.origin);
   const thread = useChat((state) => threadOf(state, channelId));
+  const voiceCookie = useCookie();
+  useEffect(
+    () =>
+      setVoiceNext((id) => {
+        const found = nextVoiceAfter(threadOf(getChat(), channelId).messages, id, isPlayed);
+        if (!found) return null;
+        const { message, attachment } = found;
+        return { id: voiceIdOf(attachment), uri: attachmentUrl(getChat().origin, attachment), headers: voiceCookie ?? undefined, meta: { title: message.author, channelId, messageId: message.id } };
+      }),
+    [channelId, voiceCookie],
+  );
   const conversation = useChat((state) => conversationById(state, channelId));
   const allPending = useChat((state) => state.pending);
   const allDelivered = useChat((state) => state.delivered);
+  const sent = useChat((state) => state.sent);
   const online = useChat((state) => state.online);
   const list = useRef<FlashListRef<Row>>(null);
+  const reduceMotion = useReduceMotion();
   const composer = useRef<ComposerHandle>(null);
   const [acting, setActing] = useState<Message | null>(null);
   const [actingAt, setActingAt] = useState(0);
@@ -121,15 +143,17 @@ export function ThreadView({
   const [highlight, setHighlight] = useState<number | null>(focusMessage ?? null);
 
   useEffect(() => openThread(channelId), [channelId]);
+  useEffect(() => () => setShownMessages([]), [channelId]);
 
   const pending = useMemo(() => allPending.filter((item) => item.channelId === channelId), [allPending, channelId]);
   const delivered = useMemo(() => allDelivered.filter((item) => item.pending.channelId === channelId), [allDelivered, channelId]);
-  const rows = useMemo(() => buildRows(thread.messages, pending, delivered, sameDay), [thread.messages, pending, delivered, sameDay]);
+  const rows = useMemo(() => buildRows(thread.messages, pending, delivered, sameDay, sent), [thread.messages, pending, delivered, sameDay, sent]);
   const subThreads = useMemo(
     () => Object.entries(thread.subChannels).map(([messageId, id]) => ({ id, name: bodyPreview(thread.messages.find((message) => message.id === Number(messageId))?.body ?? '') || `#${id}` })),
     [thread.messages, thread.subChannels],
   );
   const byId = useMemo(() => new Map(thread.messages.map((message) => [message.id, message])), [thread.messages]);
+  const gallery = useCallback(() => galleryOfMessages(threadOf(getChat(), channelId).messages), [channelId]);
   const name = conversation?.name || thread.info?.name || '';
   const type = conversation?.type ?? (thread.info?.type as 'chat' | 'group' | 'channel' | undefined) ?? 'channel';
   const twoPeople = type === 'chat';
@@ -141,11 +165,11 @@ export function ThreadView({
         if (!found) return;
         requestAnimationFrame(() => {
           const index = buildRows(threadOf(getChat(), channelId).messages, [], [], sameDay).findIndex((row) => row.kind === 'message' && row.message.id === messageId);
-          if (index >= 0) void list.current?.scrollToIndex({ index, animated: true, viewPosition: 0.4 });
+          if (index >= 0) void list.current?.scrollToIndex({ index, animated: !reduceMotion, viewPosition: 0.4 });
         });
       });
     },
-    [channelId, sameDay],
+    [channelId, reduceMotion, sameDay],
   );
 
   useEffect(() => {
@@ -173,15 +197,21 @@ export function ThreadView({
     [scrollTo],
   );
 
-  const quoteOf = useCallback(
-    (message: Message): Quote => {
-      if (!message.parentId) return null;
+  const quotes = useMemo(() => {
+    const out = new Map<number, Quote>();
+    for (const message of thread.messages) {
+      if (!message.parentId || out.has(message.parentId)) continue;
       const parent = byId.get(message.parentId);
-      if (!parent) return { author: '', authorId: null, text: t('thread.olderMessage') };
-      return { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) };
-    },
-    [byId, partnerId, t],
-  );
+      out.set(
+        message.parentId,
+        parent
+          ? { author: parent.authorId === partnerId ? t('thread.you') : parent.author, authorId: parent.authorId, text: parent.rich ? richLabel(t, parent.rich) : bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length }) }
+          : { author: '', authorId: null, text: t('thread.olderMessage') },
+      );
+    }
+    return out;
+  }, [byId, partnerId, t, thread.messages]);
+  const quoteOf = useCallback((message: Message): Quote => (message.parentId ? (quotes.get(message.parentId) ?? null) : null), [quotes]);
 
   const openSub = useCallback(
     async (message: Message) => {
@@ -204,6 +234,10 @@ export function ThreadView({
     },
     [t],
   );
+  const reactTo = useCallback((message: Message, content: string) => void react(message, content), [react]);
+  const openSubOf = useCallback((message: Message) => void openSub(message), [openSub]);
+  const retry = useCallback((key: string) => void retrySend(key), []);
+  const discard = useCallback((key: string) => void discardSend(key), []);
 
   const report = useCallback((result: Result<unknown>, done?: string) => {
     if (!result.ok) setNotice(failureText(t, result));
@@ -224,6 +258,9 @@ export function ThreadView({
         return;
       case 'link':
         void Clipboard.setStringAsync(messageLink(origin, message)).then(() => setNotice(t('act.linkCopied')));
+        return;
+      case 'sticker':
+        if (message.rich && 'sticker' in message.rich) void setStickerFavorite(message.rich.sticker.id as number, true).then((result) => setNotice(result.ok ? t('act.stickerSaved') : failureText(t, result)));
         return;
       case 'thread':
         void openSub(message);
@@ -257,9 +294,16 @@ export function ThreadView({
     }
   };
 
+  const atBottom = useRef(true);
+  const userScrolled = useRef(false);
+  useEffect(() => {
+    if (!thread.loaded || initialIndex !== undefined || focusMessage || userScrolled.current) return;
+    requestAnimationFrame(() => void list.current?.scrollToEnd({ animated: false }));
+  }, [thread.loaded, initialIndex, focusMessage]);
   const onSent = useCallback(() => {
-    requestAnimationFrame(() => void list.current?.scrollToEnd({ animated: true }));
-  }, []);
+    if (atBottom.current) return;
+    requestAnimationFrame(() => void list.current?.scrollToEnd({ animated: !reduceMotion }));
+  }, [reduceMotion]);
 
   useEffect(() => {
     for (const item of pending) {
@@ -281,7 +325,7 @@ export function ThreadView({
         );
       }
       if (item.kind === 'pending') {
-        return <PendingBubble pending={item.pending} offline={!online} onRetry={(key) => void retrySend(key)} onDiscard={(key) => void discardSend(key)} />;
+        return <PendingBubble pending={item.pending} offline={!online} origin={origin} onRetry={retry} onDiscard={discard} />;
       }
       const message = item.message;
       const mine = message.authorId === partnerId;
@@ -301,8 +345,8 @@ export function ThreadView({
             hasThread={!!thread.subChannels[message.id]}
             onLongPress={startActing}
             onQuotePress={jumpTo}
-            onReact={(target, content) => void react(target, content)}
-            onOpenThread={(target) => void openSub(target)}
+            onReact={reactTo}
+            onOpenThread={openSubOf}
             agent={fromAgent ? agentStore : null}
             agentTag={lookOn}
           />
@@ -320,7 +364,7 @@ export function ThreadView({
         </View>
       );
     },
-    [agentIds, agentStore, agentsOn, cardsOn, lookOn, colors, dayLabel, highlight, jumpTo, online, openRecord, openSub, origin, partnerId, quoteOf, react, recordStore, startActing, thread.members, thread.subChannels, twoPeople, type],
+    [agentIds, agentStore, agentsOn, cardsOn, lookOn, colors, dayLabel, discard, highlight, jumpTo, online, openRecord, openSubOf, origin, partnerId, quoteOf, reactTo, recordStore, retry, startActing, thread.members, thread.subChannels, twoPeople, type],
   );
 
   const typing = thread.typing;
@@ -337,7 +381,7 @@ export function ThreadView({
   const parentId = thread.info?.parentId ?? null;
   const back = twoPane ? (parentId ? () => onOpenChannel(parentId) : undefined) : onBack;
   const header = (
-    <View style={[styles.header, { borderBottomColor: colors.line }]}>
+    <View style={[styles.header, largeText && styles.headerTight, { borderBottomColor: colors.line }]}>
       {!back ? null : (
         <Pressable accessibilityRole="button" accessibilityLabel={t('thread.back')} onPress={back} hitSlop={8} style={styles.headerButton} testID="thread-back">
           <Icon name="back" color={colors.ink} />
@@ -348,6 +392,7 @@ export function ThreadView({
         accessibilityLabel={t('thread.openPerson', { name })}
         disabled={type !== 'chat' || !conversation?.partnerId}
         onPress={() => conversation?.partnerId && router.push({ pathname: '/person/[id]', params: { id: String(conversation.partnerId), name } })}
+        hitSlop={reach(40, 40)}
         testID="thread-person">
         <Avatar
           name={name}
@@ -358,8 +403,8 @@ export function ThreadView({
           icon={type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined}
         />
       </Pressable>
-      <Pressable style={styles.flex} accessible={false} disabled={!readStatus} onPress={readStatus} testID="thread-heading">
-        <Text variant="headline" numberOfLines={1} accessibilityRole="header" testID="thread-title">
+      <Pressable style={styles.heading} accessible={false} disabled={!readStatus} onPress={readStatus} testID="thread-heading">
+        <Text variant="headline" numberOfLines={largeText ? 2 : 1} accessibilityRole="header" testID="thread-title">
           {name}
         </Text>
         <Text
@@ -394,6 +439,7 @@ export function ThreadView({
   );
 
   return (
+    <GalleryContext.Provider value={gallery}>
     <SafeAreaView edges={twoPane ? ['top', 'right'] : ['top', 'left', 'right']} style={[styles.flex, { backgroundColor: colors.canvas }]} testID={`thread-${channelId}`}>
       {header}
       {thread.info?.link && linkedOn ? (
@@ -409,6 +455,7 @@ export function ThreadView({
         </Pressable>
       ) : null}
       {agentsOn ? <WorkBar works={thread.works} onPress={() => setWorkSheet(true)} /> : null}
+      <VoiceMiniBar hideFor={channelId} />
       <KeyboardAvoidingView behavior="padding" automaticOffset style={styles.flex}>
         <View style={styles.flex}>
           <ChatBackground channelId={channelId} />
@@ -419,7 +466,10 @@ export function ThreadView({
             getItemType={rowType}
             renderItem={renderItem}
             initialScrollIndex={initialIndex}
-            maintainVisibleContentPosition={{ startRenderingFromBottom: true, autoscrollToBottomThreshold: 0.2, animateAutoScrollToBottom: true }}
+            maintainVisibleContentPosition={{ startRenderingFromBottom: true, autoscrollToBottomThreshold: 0.2, animateAutoScrollToBottom: !reduceMotion }}
+            onScrollBeginDrag={() => {
+              userScrolled.current = true;
+            }}
             onStartReached={() => void loadOlder(channelId)}
             onStartReachedThreshold={0.6}
             onEndReached={thread.hasNewer ? () => void fetchNewer(channelId) : undefined}
@@ -427,12 +477,15 @@ export function ThreadView({
               if (!accountId) return;
               const first = viewableItems.find((entry) => entry.item?.kind === 'message');
               const last = viewableItems[viewableItems.length - 1];
-              const atBottom = !last || last.index === null || last.index >= rows.length - 2;
-              writeAnchor(accountId, channelId, atBottom || !first || first.item?.kind !== 'message' ? null : first.item.message.id);
-              watchVisible(viewableItems.flatMap((entry) => (entry.item?.kind === 'message' ? [entry.item.message] : [])));
+              atBottom.current = !last || last.index === null || last.index >= rows.length - 2;
+              writeAnchor(accountId, channelId, atBottom.current || !first || first.item?.kind !== 'message' ? null : first.item.message.id);
+              const shown = viewableItems.flatMap((entry) => (entry.item?.kind === 'message' ? [entry.item.message] : []));
+              watchVisible(shown);
+              setShownMessages(shown.map((message) => message.id));
             }}
             ListHeaderComponent={thread.loadingOlder ? <ActivityIndicator style={styles.older} color={colors.primary} /> : null}
             ListEmptyComponent={empty}
+            drawDistance={drawDistance}
             contentContainerStyle={styles.content}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
@@ -516,13 +569,16 @@ export function ThreadView({
         />
       ) : null}
     </SafeAreaView>
+    </GalleryContext.Provider>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  heading: { flex: 1, minHeight: touchTarget, justifyContent: 'center' },
   center: { textAlign: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md, paddingVertical: space.sm, borderBottomWidth: StyleSheet.hairlineWidth, minHeight: 60 },
+  headerTight: { gap: space.xs },
   headerButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   content: { paddingVertical: space.md },
   day: { alignItems: 'center', paddingVertical: space.sm },
@@ -530,7 +586,7 @@ const styles = StyleSheet.create({
   highlight: { borderRadius: radius.md },
   older: { padding: space.md },
   empty: { padding: space.xxl, alignItems: 'center', justifyContent: 'center' },
-  linked: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 36, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
+  linked: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touchTarget, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
   noticeWrap: { position: 'absolute', left: 0, right: 0, bottom: 96, alignItems: 'center', paddingHorizontal: space.lg },
   notice: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill, overflow: 'hidden', maxWidth: 480, textAlign: 'center' },
   composerWrap: { width: '100%', maxWidth: readableWidth + 2 * space.lg, alignSelf: 'center' },

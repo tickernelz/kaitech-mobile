@@ -1,6 +1,6 @@
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { useSyncExternalStore } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, Platform } from 'react-native';
 
 export type Surface = 'glass' | 'solid';
 
@@ -26,12 +26,13 @@ function watch() {
     (on) => update({ reduceTransparency: on }),
     () => update({ reduceTransparency: false }),
   );
-  AccessibilityInfo.isDarkerSystemColorsEnabled().then(
+  const android = Platform.OS === 'android';
+  (android ? AccessibilityInfo.isHighTextContrastEnabled() : AccessibilityInfo.isDarkerSystemColorsEnabled()).then(
     (on) => update({ increaseContrast: on }),
     () => update({ increaseContrast: false }),
   );
   AccessibilityInfo.addEventListener('reduceTransparencyChanged', (on) => update({ reduceTransparency: on }));
-  AccessibilityInfo.addEventListener('darkerSystemColorsChanged', (on) => update({ increaseContrast: on }));
+  AccessibilityInfo.addEventListener(android ? 'highTextContrastChanged' : 'darkerSystemColorsChanged', (on) => update({ increaseContrast: on }));
 }
 
 function subscribe(listener: () => void) {
@@ -48,6 +49,11 @@ export function useSurface(): Surface {
   const glass = isLiquidGlassAvailable();
   const seen = useSyncExternalStore(glass ? subscribe : noSubscription, current);
   return surfaceFor(glass, seen);
+}
+
+export function useSeeThrough(): boolean {
+  const seen = useSyncExternalStore(subscribe, current);
+  return !seen.reduceTransparency && !seen.increaseContrast;
 }
 
 function noSubscription() {

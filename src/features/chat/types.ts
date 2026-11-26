@@ -12,7 +12,10 @@ export type LastMessage = {
   call: boolean;
   type: string;
   date: number;
+  rich?: RichPreview;
 };
+
+export type RichPreview = { kind: 'poll' | 'location' | 'liveLocation' | 'sticker' | 'gif'; detail: string };
 
 export type Conversation = {
   id: number;
@@ -39,7 +42,10 @@ export type Attachment = {
   accessToken: string | null;
   checksum: string | null;
   url: string | null;
+  media?: ServerMedia;
 };
+
+export type ServerMedia = { width?: number; height?: number; pages?: number; thumbnail?: { token: string | null } };
 
 export type Reaction = { content: string; count: number; mine: boolean; people?: string[] };
 
@@ -61,9 +67,45 @@ export type Message = {
   translation?: { body: string; lang: string } | null;
   translated?: boolean;
   urgent?: boolean;
+  rich?: Rich;
 };
 
 export type CallRecord = { minutes: number; ongoing: boolean };
+
+export type Media = { url: string; width: number; height: number };
+
+export type Sticker = { source: 'pack' | 'provider'; id: number | string; packId: number | null; alt: string; animated: boolean; width: number; height: number; url: string; poster: string };
+
+export type GifMedia = { provider: string; id: string; title: string; gif: Media | null; mp4: Media | null; preview: Media | null };
+
+export type Voter = { id: number; name: string };
+
+export type PollOption = { id: number; label: string; votes: number; voters: Voter[] };
+
+export type Poll = { question: string; multiple: boolean; closed: boolean; closedAt: number | null; votersCount: number; options: PollOption[] };
+
+export type EndReason = 'stopped' | 'expired' | 'left' | 'deleted';
+
+export type Place = {
+  latitude: number;
+  longitude: number;
+  accuracy: number | null;
+  name: string;
+  address: string;
+  live: boolean;
+  liveUntil: number | null;
+  liveMinutes?: number;
+  ended: boolean;
+  endedAt: number | null;
+  endReason: EndReason | null;
+  seq: number;
+  updatedAt: number | null;
+  map: string | null;
+};
+
+export type MediaRich = { sticker: Sticker } | { gif: GifMedia };
+
+export type Rich = MediaRich | { poll: Poll } | { location: Place };
 
 export type Mention = { id: number; name: string; token: string | null };
 
@@ -75,6 +117,7 @@ export type PendingFile = {
   size: number;
   voice: boolean;
   durationMs: number | null;
+  waveform?: string | null;
   attachmentId: number | null;
   ownershipToken: string | null;
 };
@@ -92,6 +135,7 @@ export type Pending = {
   createdAt: number;
   attempts: number;
   urgent?: boolean;
+  rich?: Rich;
   state: PendingState;
   error: string | null;
 };

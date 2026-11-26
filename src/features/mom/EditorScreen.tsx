@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { Overlay } from '../../ui/Overlay';
 import { Pressable } from '../../ui/Pressable';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, useKeyboardState } from 'react-native-keyboard-controller';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { invalidate, useResource } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
 import { useSession } from '../../auth/session';
@@ -42,6 +42,7 @@ import { SmallButton } from './parts';
 import { PlayerBar, usePlayback } from './playback';
 import { Refresh } from '../../ui/Refresh';
 import { notify } from '../../ui/dialog';
+import { useBottomInset } from '../../ui/insets';
 
 const pageSize = 150;
 const settleMs = 300;
@@ -254,7 +255,8 @@ type Page = 'menu' | 'text' | 'speaker';
 function SegmentSheet({ segment, view, editable, onPlay, onClose }: { segment: EditorSegment; view: EditorView; editable: boolean; onPlay: () => void; onClose: () => void }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const keyboardVisible = useKeyboardState((state) => state.isVisible);
+  const bottomInset = useBottomInset(space.lg, keyboardVisible);
   const action = useEditorRun(view.recording.id);
   const [page, setPage] = useState<Page>('menu');
   const [text, setText] = useState(segment.text);
@@ -292,7 +294,7 @@ function SegmentSheet({ segment, view, editable, onPlay, onClose }: { segment: E
     <Overlay visible transparent animationType="fade" onRequestClose={page === 'menu' ? onClose : () => setPage('menu')} supportedOrientations={['portrait', 'landscape']}>
       <KeyboardAvoidingView behavior="padding" style={styles.fill}>
         <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('mom.menu.close')}>
-          <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]} onPress={() => undefined} accessibilityViewIsModal testID="segment-sheet">
+          <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }]} onPress={() => undefined} accessibilityViewIsModal testID="segment-sheet">
             <ScrollView contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled">
               <Text variant="footnote" tone="inkSoft">
                 {[segment.clock, segment.person || segment.speaker].join(' · ')}

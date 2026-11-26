@@ -12,7 +12,8 @@ export function messageOptions(message: Message, { partnerId, features, channelT
   const removed = isRemoved(message);
   const comment = message.type === 'comment';
   const mine = message.authorId === partnerId;
-  const text = !removed && !!plainText(message.body);
+  const rich = !!message.rich;
+  const text = !removed && !rich && !!plainText(message.body);
   const editable = comment && !removed && (mine || features.isAdmin);
   const recallClosed = hasFeature(features, 'recall_limit') && mine && now - message.date > recallMs;
   const fromMessage = hasFeature(features, 'task_from_message') && comment && !removed;
@@ -20,8 +21,9 @@ export function messageOptions(message: Message, { partnerId, features, channelT
     emoji: !removed,
     reply: !removed,
     copy: text,
+    sticker: !removed && !!message.rich && 'sticker' in message.rich && message.rich.sticker.source === 'pack',
     forward: hasFeature(features, 'forward') && comment && !removed,
-    edit: editable,
+    edit: editable && !rich,
     delete: editable && !recallClosed,
     thread: channelType !== 'chat' && !inSubThread,
     pin: comment && !removed,

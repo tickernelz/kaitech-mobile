@@ -46,10 +46,15 @@ onFlowStart:
             id: welcome-error
             text: "${APP_LANGUAGE === 'id' ? 'Masuk dibatalkan.' : 'Sign-in was cancelled.'}"
           timeout: 30000
-- tapOn:
-    id: welcome-other-server
-- assertVisible:
-    id: sign-in-server
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn:
+          id: welcome-other-server
+      - extendedWaitUntil:
+          visible:
+            id: sign-in-server
+          timeout: 10000
 - runFlow:
     file: shared/screenshot.yaml
     env:
@@ -68,6 +73,29 @@ onFlowStart:
 - runFlow:
     when:
       platform: Android
+      true: ${ORIENTATION === 'portrait' || DEVICE_SIZE === 'tablet'}
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: '(com\.google\.android|com\.android)\.inputmethod\.latin:id/.+'
+          timeout: 10000
+          optional: true
+      - runFlow:
+          file: shared/screenshot.yaml
+          env:
+            SCREEN: sign-in-keyboard
+      - tapOn:
+          id: sign-in-continue
+      - extendedWaitUntil:
+          visible:
+            id: sign-in-server-error
+            text: "${APP_LANGUAGE === 'id' ? 'Server harus memakai koneksi aman .https..' : 'The server must use a secure connection .https..'}"
+          timeout: 10000
+      - tapOn:
+          id: sign-in-server
+- runFlow:
+    when:
+      platform: Android
     commands:
       - runFlow: shared/next-field.yaml
       - pressKey: Enter
@@ -82,7 +110,12 @@ onFlowStart:
 - runFlow:
     when:
       platform: iOS
-    file: shared/dismiss-keyboard.yaml
+    commands:
+      - runFlow:
+          file: shared/screenshot.yaml
+          env:
+            SCREEN: sign-in-keyboard
+      - runFlow: shared/dismiss-keyboard.yaml
 - runFlow:
     when:
       true: ${ORIENTATION === 'portrait' && (DEVICE_SIZE === 'phone' || maestro.platform === 'ios')}

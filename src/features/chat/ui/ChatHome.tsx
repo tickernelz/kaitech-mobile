@@ -6,13 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Panes } from '../../../layout/Panes';
 import { useWindowClass } from '../../../layout/windowClass';
 import { space, useTheme } from '../../../theme';
-import { Fab } from '../../../ui/Fab';
 import { Text } from '../../../ui/Text';
 import { Wordmark } from '../../../ui/Wordmark';
 import { focusedMessage, selectChannel, selectedChannel, useSelectedChannel } from '../selection';
 import { ConversationList } from './ConversationList';
 import { NewConversationSheet } from './list/NewConversationSheet';
 import { ThreadView } from './ThreadView';
+import { VoiceMiniBar } from './VoiceNote';
 
 function toId(value: string | string[] | undefined): number | null {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -70,8 +70,8 @@ export function ChatHome() {
       <Panes
         list={
           <View style={styles.fill}>
-            <ConversationList selectedId={expanded ? selected : null} onOpen={open} />
-            <Fab icon="edit" label={t('newChat.title')} onPress={() => setCreating(true)} testID="chat-new" />
+            <VoiceMiniBar />
+            <ConversationList selectedId={expanded ? selected : null} onOpen={open} onNew={() => setCreating(true)} />
           </View>
         }
         detail={detail}

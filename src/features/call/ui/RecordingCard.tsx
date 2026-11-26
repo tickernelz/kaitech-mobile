@@ -5,11 +5,20 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
+import { onAccountForgotten } from '../../../auth/session';
 import { chatClient } from '../../chat/chat';
 import { Icon } from '../../../ui/icons';
 import { playback, type Recording } from '../recording';
 
 type Loaded = { status: 'loading' } | { status: 'failed' } | { status: 'ready'; recording: Recording };
+
+const loading: Loaded = { status: 'loading' };
+const known = new Map<string, Loaded>();
+const settled: Recording['state'][] = ['done', 'deleted', 'failed'];
+
+onAccountForgotten((account) => {
+  for (const key of [...known.keys()]) if (key.startsWith(`${account}:`)) known.delete(key);
+});
 
 export function clock(seconds: number): string {
   const total = Math.max(0, Math.round(seconds));
@@ -23,23 +32,31 @@ export function RecordingCard({ recordingId, mine }: { recordingId: number; mine
   const { t, i18n } = useTranslation('call');
   const { colors } = useTheme();
   const router = useRouter();
-  const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' });
+  const client = chatClient();
+  const key = `${client?.account.id ?? ''}:${recordingId}`;
+  const [answer, setAnswer] = useState<{ key: string; loaded: Loaded }>({ key, loaded: known.get(key) ?? loading });
+  const loaded = answer.key === key ? answer.loaded : (known.get(key) ?? loading);
 
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    const cached = known.get(key);
+    if (cached?.status === 'ready' && settled.includes(cached.recording.state)) return;
     let live = true;
-    const client = chatClient();
     (client ? playback(client.account, recordingId) : Promise.resolve(null))
       .catch(() => null)
-      .then((answer) => live && setLoaded(answer ? { status: 'ready', recording: answer.recording } : { status: 'failed' }));
+      .then((found) => {
+        const next: Loaded = found ? { status: 'ready', recording: found.recording } : { status: 'failed' };
+        if (found) known.set(key, next);
+        if (live) setAnswer({ key, loaded: next });
+      });
     return () => {
       live = false;
     };
-  }, [recordingId, attempt]);
+  }, [client, key, recordingId, attempt]);
 
   const retry = () => {
-    setLoaded({ status: 'loading' });
+    setAnswer({ key, loaded: loading });
     setAttempt((value) => value + 1);
   };
 

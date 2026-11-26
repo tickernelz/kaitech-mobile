@@ -1,0 +1,38 @@
+appId: io.kaitech.mobile
+name: A message push reaches the phone with the app killed and opens its conversation
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-chat
+    timeout: 30000
+- pressKey: Home
+- killApp
+- runScript:
+    file: ../scripts/web-peer.js
+    env:
+      ACTION: say
+      TARGET: ${CHANNEL_ID}
+- swipe:
+    start: 50%, 0%
+    end: 50%, 70%
+- extendedWaitUntil:
+    visible:
+      text: ${RUN + ' kembali'}
+    timeout: 30000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: push-m1-shade
+- tapOn:
+    text: ${RUN + ' kembali'}
+- extendedWaitUntil:
+    visible:
+      id: composer
+    timeout: 30000
+- assertVisible:
+    text: ${RUN + ' kembali'}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: push-m2-thread

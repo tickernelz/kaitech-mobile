@@ -345,8 +345,11 @@ jobs:
           size: ${{ matrix.size }}
           locale: ${{ matrix.locale }}
           orientations: ${{ matrix.orientations }}
-          flows: .maestro/signed-in/message-actions.yaml .maestro/signed-in/thread-actions.yaml .maestro/signed-in/composer-extras.yaml .maestro/signed-in/new-conversation.yaml
+          flows: .maestro/signed-in/message-actions.yaml .maestro/signed-in/thread-actions.yaml .maestro/signed-in/composer-extras.yaml .maestro/signed-in/composer-voice.yaml .maestro/signed-in/new-conversation.yaml .maestro/signed-in/chat-media.yaml .maestro/signed-in/chat-rich.yaml
+          motion-flow: ${{ matrix.size == 'phone' && '.maestro/signed-in/chat-motion' || '' }}
           runner: maestro
+          audio: 'true'
+          undo-window-ms: '30000'
 
   android-call:
     name: android call
@@ -478,6 +481,8 @@ jobs:
       - name: xcodebuild for the simulator (no code signing)
         id: xcodebuild
         if: steps.app.outputs.cache-hit != 'true'
+        env:
+          EXPO_MODULES_SCAN_TIMEOUT_MS: '60000'
         run: |
           mkdir -p build
           if [ -d build/cas ] && [ "$(du -sm build/cas | cut -f1)" -gt 3072 ]; then
@@ -497,10 +502,12 @@ jobs:
             COMPILATION_CACHE_CAS_PATH="$PWD/build/cas" \
             CODE_SIGNING_ALLOWED=NO \
             build > build/xcodebuild.log 2>&1; then
+            scripts/expo-module-scan.sh build/xcodebuild.log || true
             grep -E 'error:' build/xcodebuild.log | head -50 || true
             tail -100 build/xcodebuild.log
             exit 1
           fi
+          scripts/expo-module-scan.sh build/xcodebuild.log
           grep -E '^\*\* BUILD' build/xcodebuild.log
           cas_mb="$(du -sm build/cas | cut -f1)"
           echo "compilation cache: $cas_mb MB"

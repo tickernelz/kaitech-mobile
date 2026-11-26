@@ -23,6 +23,8 @@ Jobs run in parallel and are the only required checks for merging into `main`:
 
 A new push to a pull request cancels its run in progress. Target: under 3 minutes wall time.
 
+A pull request merges when these four checks are green at its exact head SHA, the reviewer approved that same SHA, and the author ran the E2E flows of the journey the change touches on a physical phone and attached the result to the task ([Physical phone](e2e.md#physical-phone)). `E2E` in GitHub Actions (the `run-e2e` label, a dispatch, the smoke on `main`, the nightly full run) is not a merge requirement and is not dispatched to unblock a merge: a red run is recorded as a finding and fixed in its own change, not waited on.
+
 When a pull request closes, the `cache cleanup` job deletes the caches stored under its `refs/pull/<n>/merge` ref (pull requests from forks are skipped: their token cannot delete caches).
 
 Docs-only changes (`docs/**`, `*.md`): pushes to `main` are skipped through `paths-ignore`. Pull requests are not filtered at the trigger, because a required check of a workflow that never starts stays "Expected" and blocks the merge. Instead the `changes` job lists the pull request files, and on a docs-only pull request `lint`, `typecheck` and `unit` report skipped, which branch protection accepts. `gitleaks diff` always runs, docs-only or not. The three gated jobs run unless `changes` explicitly answered docs-only (`!cancelled() && needs.changes.outputs.code != 'false'`): a failed `changes` job must not turn them into skipped checks, which branch protection would count as passed.
@@ -108,6 +110,12 @@ Every artifact is scanned by gitleaks before upload; nothing is uploaded when th
 A manual run from `main` stops after step 2: it builds the release APKs and IPA as run artifacts (`kaitech-android-apk`, `kaitech-android-apk-arm64-v8a`, `kaitech-ios-ipa`) without creating a release. Use it for a build of `main` between releases.
 
 To release: raise `version` in `app.json` and add its section to [the changelog](changelog.md) in the same pull request, then after the merge `git tag v<version> && git push origin v<version>` on that `main` commit ([Cutting a release](releases.md#cutting-a-release)). The `gitleaks` job fails a tag whose version has no section in `docs/changelog.md`, and the draft release body is `.github/release-notes.md` plus that section.
+
+### Expo module scan (iOS)
+
+Every iOS build runs `expo-modules-autolinking generate-modules-provider` in the `[Expo] Configure project` phase, which runs `ExpoModulesMacros scan-modules` over every autolinked package root to find `@ExpoModule` classes. expo-modules-autolinking 58.1.0 kills the scan after a fixed 5000 ms; the build then fails because expo-application, expo-haptics, expo-modules-core and expo-sqlite declare their classes only through the macro (Release 45794763859, attempt 1). The scan is single-threaded and walks 53 package roots (841 Swift files): on a 16-core Linux box the same scanner used 3.5 to 4.9 CPU seconds and 5.6 to 11.8 seconds of wall time under load, so whether it finished within 5000 ms depended on what else the runner was doing, not on the code. On `macos-26` the scan took 1505 ms in an `ios ipa size` build (run 45821527479) and more than 5000 ms in the failed Release build.
+
+`patches/expo-modules-autolinking+58.1.0.patch` mirrors upstream pull request [expo/expo#51895](https://github.com/expo/expo/pull/51895): `EXPO_MODULES_SCAN_TIMEOUT_MS` sets the timeout (default 5000 ms), and the patch prints `note: Scanned <n> package roots for Expo modules in <ms> ms (timeout <ms> ms)`. Both iOS `xcodebuild` steps (`build-ios-ipa` and the E2E simulator build) set it to 60000 and pass the log to `scripts/expo-module-scan.sh`, which puts that line in the job log and the run summary, so the headroom is visible on every build. When expo-modules-autolinking is bumped, `patch-package` fails at install if the patched lines moved: drop the patch once the installed version reads `EXPO_MODULES_SCAN_TIMEOUT_MS` itself, and keep the variable on both steps.
 
 ## Caches
 

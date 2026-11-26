@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Overlay } from './Overlay';
 import { Pressable } from './Pressable';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, useKeyboardState } from 'react-native-keyboard-controller';
 import { radius, space, useTheme } from '../theme';
 import { Button } from './Button';
 import { NativeSheet, useSheetPresentation } from './NativeSheet';
 import { Text } from './Text';
 import { TextField } from './TextField';
+import { useBottomInset } from './insets';
 
 export type FormField = { key: string; label: string; initial?: string; secret?: boolean };
 
@@ -34,7 +34,8 @@ export function FormSheet({
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const keyboardVisible = useKeyboardState((state) => state.isVisible);
+  const bottomInset = useBottomInset(space.lg, keyboardVisible);
   const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(fields.map((field) => [field.key, field.initial ?? ''])));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,7 +102,7 @@ export function FormSheet({
       <KeyboardAvoidingView behavior="padding" style={styles.fill}>
         <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityRole="button" accessibilityLabel={t('row.close')}>
           <Pressable
-            style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: Math.max(insets.bottom, space.lg) }]}
+            style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }]}
             onPress={() => undefined}
             accessibilityViewIsModal
             testID={testID}>

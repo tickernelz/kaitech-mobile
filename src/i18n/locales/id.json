@@ -44,6 +44,12 @@
     "accountNotTeam": "Aplikasi Kaitech hanya untuk akun tim.",
     "accountInactive": "Akun ini sudah tidak aktif."
   },
+  "network": {
+    "offlineTitle": "Tidak ada koneksi",
+    "offlineBody": "Dimuat otomatis saat tersambung lagi.",
+    "offlineCached": "Tidak ada koneksi. Yang tampil adalah data terakhir yang dimuat.",
+    "refreshFailed": "Gagal memuat ulang. Yang tampil adalah data terakhir yang dimuat."
+  },
   "wizard": {
     "skip": "Lewati",
     "next": "Berikutnya",
@@ -1276,7 +1282,10 @@
     "dim": "Redup",
     "sampleTheirs": "Ketemu jam sembilan?",
     "sampleMine": "Siap, otw.",
-    "failed": "Gagal menyimpan. Coba lagi."
+    "failed": "Gagal menyimpan. Coba lagi.",
+    "chat": "Chat",
+    "tapToRecord": "Ketuk untuk merekam",
+    "tapToRecordHint": "Ketuk mikrofon sekali untuk merekam tanpa menahan. Selalu aktif saat pembaca layar berjalan."
   },
   "profile": {
     "name": "Nama",
@@ -1620,6 +1629,12 @@
       "body": "Pesan baru, panggilan, dan rekaman yang sedang berjalan tampil di notifikasi. Setelah ini HP akan meminta izin.",
       "blockedTitle": "Notifikasi tidak aktif",
       "blockedBody": "Izinkan notifikasi untuk Kaitech di Pengaturan."
+    },
+    "location": {
+      "title": "Izinkan lokasi",
+      "body": "Kaitech hanya membaca lokasimu saat kamu mengirim tempat atau membagikannya langsung di chat. Setelah ini HP-mu menanyakan izinnya.",
+      "blockedTitle": "Akses lokasi mati",
+      "blockedBody": "Izinkan akses lokasi untuk Kaitech di Pengaturan, lalu coba lagi."
     }
   }
 }
