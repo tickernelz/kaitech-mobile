@@ -60,8 +60,7 @@ onFlowStart:
     id: new-search
 - inputText: ${PEER.split(' (')[0]}
 - tapOn:
-    id: new-search-.*
-    index: 0
+    text: ${PEER}
 - runFlow:
     file: ../shared/screenshot.yaml
     env:

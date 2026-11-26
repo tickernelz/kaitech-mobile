@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
+trap 'echo "::error::e2e-android.sh line $LINENO exited $?: $BASH_COMMAND" >&2' ERR
 . scripts/e2e-lease.sh
 
 usage="usage: e2e-android.sh <apk-dir> <output-dir> <locale: en-US|id-ID> <size: phone|tablet> <orientation: portrait|landscape>"
@@ -230,8 +231,8 @@ watch_transport &
 transport_watcher=$!
 
 if [ "$runner" = maestro ]; then
-  adb shell am force-stop dev.devicelab.driver.android.test
-  adb shell am force-stop dev.devicelab.driver.android
+  adb shell am force-stop dev.devicelab.driver.android.test || true
+  adb shell am force-stop dev.devicelab.driver.android || true
 fi
 console="$(mktemp)"
 echo "runner: $runner" | tee -a "$out/display.txt"
