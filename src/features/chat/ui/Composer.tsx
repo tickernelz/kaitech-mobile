@@ -10,6 +10,7 @@ import { radius, space, useTheme } from '../../../theme';
 import { duration, easing, spring, useMotion } from '../../../theme/motion';
 import { FloatingSurface } from '../../../ui/FloatingSurface';
 import { useSurface } from '../../../ui/glass';
+import { haptic } from '../../../ui/haptic';
 import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, useChat, type Outgoing } from '../chat';
 import { cannedQuery, cannedResponses, deleteBefore, markCannedUsed, sendLater, type Canned } from '../composerExtras';
@@ -39,7 +40,7 @@ import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
 import { StagedFile } from './MediaControls';
 import { AttachSheet, type Extra } from './composer/AttachSheet';
-import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
+import { FormatBar, useMarkup } from './FormatBar';
 import { useBottomInset } from '../../../ui/insets';
 
 type Staged = Outgoing['files'][number];
@@ -255,6 +256,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     const startedAt = clock();
     const outgoing: Outgoing = { channelId, text, parentId, mentions, files, ...(urgent ? { urgent: true } : {}) };
     if (!outgoing.text.trim() && !outgoing.files.length) return;
+    haptic.send();
     stagedRef.current = [];
     setText('');
     setFiles([]);
@@ -326,6 +328,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const mode = sendModeOf({ text, files: files.length, locked: voicePhase === 'locked' || voicePhase === 'paused' });
 
   const sendRich = (rich: Rich) => {
+    haptic.send();
     const replyTo = parentId;
     if (replyTo) setParentId(null);
     void send({ channelId, text: '', parentId: replyTo, mentions: [], files: [], rich }, clock()).then((key) => delivered(key));
@@ -499,7 +502,6 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
         ) : (
           <Animated.View key="compose" style={styles.group} entering={composeIn} exiting={groupOut}>
             {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />}
-            {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
             <FloatingSurface solid={colors.surface} style={[styles.field, glass ? styles.bare : { borderColor: colors.line }]} testID="composer-field">
               <TextInput
                 ref={input}
@@ -552,7 +554,6 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
       {markup.showBar && !voicePhase ? (
         <FormatBar
           onApply={markup.apply}
-          onHide={markup.hide}
           onSpace={(height) => {
             formatBarSpace.current = height;
           }}

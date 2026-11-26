@@ -4,6 +4,8 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import '../src/i18n';
 
 const mockSend = jest.fn(async () => 'key');
+const mockSendFeel = jest.fn();
+jest.mock('../src/ui/haptic', () => ({ haptic: { send: () => mockSendFeel() } }));
 const mockSendVoice = jest.fn();
 const mockDiscard = jest.fn();
 const mockStartLocked = jest.fn();
@@ -119,6 +121,7 @@ beforeEach(() => {
   mockKeyboard.isVisible = false;
   mockKeyboard.height = 0;
   mockSend.mockClear();
+  mockSendFeel.mockClear();
 });
 
 describe('adaptive composer', () => {
@@ -157,7 +160,30 @@ describe('adaptive composer', () => {
     await fireEvent.changeText(screen.getByTestId('composer-input'), 'halo');
     await fireEvent.press(screen.getByTestId('composer-send'));
     expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({ channelId: 12, text: 'halo', files: [] }), expect.any(Number));
+    expect(mockSendFeel).toHaveBeenCalledTimes(1);
     expect(visible('composer-mic')).toBe(true);
+  });
+
+  it('does not vibrate when send has nothing to send', async () => {
+    await show();
+    await fireEvent.changeText(screen.getByTestId('composer-input'), '   ');
+    await fireEvent.press(screen.getByTestId('composer-send', hidden));
+    expect(mockSend).not.toHaveBeenCalled();
+    expect(mockSendFeel).not.toHaveBeenCalled();
+  });
+
+  it('shows the format bar only while text is selected, like WhatsApp', async () => {
+    mockKeyboard.isVisible = true;
+    await show();
+    const input = screen.getByTestId('composer-input');
+    await fireEvent(input, 'focus');
+    await fireEvent.changeText(input, 'halo dunia');
+    await fireEvent(input, 'selectionChange', { nativeEvent: { selection: { start: 10, end: 10 } } });
+    expect(screen.queryByTestId('format-bar')).toBeNull();
+    await fireEvent(input, 'selectionChange', { nativeEvent: { selection: { start: 0, end: 4 } } });
+    expect(screen.getByTestId('format-bar')).toBeTruthy();
+    await fireEvent(input, 'selectionChange', { nativeEvent: { selection: { start: 10, end: 10 } } });
+    expect(screen.queryByTestId('format-bar')).toBeNull();
   });
 
   it('explains the camera in the Kaitech card first and stages nothing when the user declines', async () => {
@@ -216,6 +242,8 @@ describe('adaptive composer', () => {
     mockKeyboard.height = 320;
     await show();
     await fireEvent(screen.getByTestId('composer-input'), 'focus');
+    await fireEvent.changeText(screen.getByTestId('composer-input'), 'halo');
+    await fireEvent(screen.getByTestId('composer-input'), 'selectionChange', { nativeEvent: { selection: { start: 0, end: 4 } } });
     const bar = screen.getByTestId('format-bar');
     await fireEvent(bar, 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 48.8 } } });
     await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
@@ -228,8 +256,10 @@ describe('adaptive composer', () => {
     mockKeyboard.height = 320;
     await show();
     await fireEvent(screen.getByTestId('composer-input'), 'focus');
+    await fireEvent.changeText(screen.getByTestId('composer-input'), 'halo');
+    await fireEvent(screen.getByTestId('composer-input'), 'selectionChange', { nativeEvent: { selection: { start: 0, end: 4 } } });
     await fireEvent(screen.getByTestId('format-bar'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 48.8 } } });
-    await fireEvent.press(screen.getByTestId('format-hide'));
+    await fireEvent(screen.getByTestId('composer-input'), 'selectionChange', { nativeEvent: { selection: { start: 4, end: 4 } } });
     expect(screen.queryByTestId('format-bar')).toBeNull();
     await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
     expect(StyleSheet.flatten(screen.getByTestId('composer-panel-box', hidden).props.style).height).toBe(320);
