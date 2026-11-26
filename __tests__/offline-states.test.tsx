@@ -163,6 +163,19 @@ describe('MomHome connection states', () => {
     await view.unmount();
   });
 
+  it('shows a failed reload of an empty list as an error, not as empty', async () => {
+    mockBoard.mockResolvedValue({ meetings: [], total: 0 });
+    const view = await render(<MomHome />);
+    await waitFor(() => expect(screen.getByTestId('mom-meetings-empty')).toBeTruthy());
+    mockBoard.mockRejectedValue(new Error('boom'));
+    await act(async () => {
+      await resource.load(`${account.id}:mom.board.40`, () => mockBoard());
+    });
+    expect(screen.getByTestId('mom-meetings-error')).toBeTruthy();
+    expect(screen.queryByTestId('mom-meetings-empty')).toBeNull();
+    await view.unmount();
+  });
+
   it('shows a failed first load as an error with retry, not as empty', async () => {
     mockBoard.mockRejectedValue(new Error('boom'));
     const view = await render(<MomHome />);

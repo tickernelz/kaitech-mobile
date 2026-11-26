@@ -75,6 +75,22 @@ async function setNetwork(state: Partial<NetworkState>) {
   });
 }
 
+it('shows a failed reload of an empty programme list as an error, not as empty', async () => {
+  mockApi.programmes.mockResolvedValue([]);
+  const resource = require('../src/api/resource') as typeof import('../src/api/resource');
+  const { DiscoveryHome } = require('../src/features/discovery/Home') as typeof import('../src/features/discovery/Home');
+  const view = await render(<DiscoveryHome />);
+  await waitFor(() => expect(screen.getByTestId('discovery-programmes-empty')).toBeTruthy());
+  mockApi.programmes.mockRejectedValue(new Error('boom'));
+  await act(async () => {
+    await resource.load(`${mockAccount.id}:discovery.programmes`, () => mockApi.programmes());
+  });
+  expect(screen.getByTestId('discovery-programmes-error')).toBeTruthy();
+  expect(screen.queryByTestId('discovery-programmes-empty')).toBeNull();
+  await view.unmount();
+  resource.invalidate('');
+});
+
 it('marks cached Discovery data as offline and reloads it when the connection returns', async () => {
   mockApi.programmes.mockResolvedValue([programme]);
   mockApi.panel.mockResolvedValue(panelData);
