@@ -34,7 +34,7 @@ import { isShownWork, workFrom, workOf, type Work } from './coworker';
 import { featuresFromSession, noFeatures, urgentLeftFrom, type ChatFeatures } from './features';
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
-import type { Conversation, Member, Mention, Message, Pending, PendingFile, Reaction } from './types';
+import type { Conversation, Member, Mention, Message, Pending, PendingFile, Reaction, Rich } from './types';
 import { setUploadProgress } from './progress';
 import { onPresenceChange, userInApp } from '../call/presence';
 import { notePhotoList, notePhotos } from '../people/photos';
@@ -480,6 +480,7 @@ export function startChat(account: Account) {
             mentionTokens: Object.fromEntries(mentions.filter((mention) => mention.token).map((mention) => [String(mention.id), mention.token as string])),
             files,
             urgent: item.urgent === true,
+            ...(item.rich ? { rich: item.rich } : {}),
           });
         } catch (error) {
           throw sendErrorFrom(error);
@@ -537,7 +538,7 @@ export function stopChat() {
 
 onAccountForgotten((id) => {
   if (state.accountId === id) stopChat();
-  clearOpenedFiles();
+  clearOpenedFiles(id);
   void forgetChatAccount(id, { pendingFor, dropFile, forgetDrafts, forgetAccount });
 });
 
@@ -761,7 +762,7 @@ async function markRead(channelId: number) {
   }
 }
 
-export type Outgoing = { channelId: number; text: string; parentId: number | null; mentions: Mention[]; files: Omit<PendingFile, 'key' | 'attachmentId' | 'ownershipToken'>[]; urgent?: boolean };
+export type Outgoing = { channelId: number; text: string; parentId: number | null; mentions: Mention[]; files: Omit<PendingFile, 'key' | 'attachmentId' | 'ownershipToken'>[]; urgent?: boolean; rich?: Rich };
 
 export function newKey(): string {
   return randomUUID();
@@ -777,7 +778,7 @@ export function takeSendStart(key: string): number | undefined {
 
 export async function send(outgoing: Outgoing, startedAt?: number): Promise<string | null> {
   if (!outbox || !state.accountId) return null;
-  if (!outgoing.text.trim() && !outgoing.files.length) return null;
+  if (!outgoing.rich && !outgoing.text.trim() && !outgoing.files.length) return null;
   const key = newKey();
   if (startedAt !== undefined) sendStarts.set(key, startedAt);
   const item: Pending = {
@@ -791,6 +792,7 @@ export async function send(outgoing: Outgoing, startedAt?: number): Promise<stri
     createdAt: Date.now(),
     attempts: 0,
     ...(outgoing.urgent ? { urgent: true } : {}),
+    ...(outgoing.rich ? { rich: outgoing.rich, text: '', mentions: [], files: [] } : {}),
     state: 'queued',
     error: null,
   };

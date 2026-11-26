@@ -39,7 +39,10 @@ export type Attachment = {
   accessToken: string | null;
   checksum: string | null;
   url: string | null;
+  media?: ServerMedia;
 };
+
+export type ServerMedia = { width?: number; height?: number; pages?: number; thumbnail?: { token: string | null } };
 
 export type Reaction = { content: string; count: number; mine: boolean; people?: string[] };
 
@@ -61,9 +64,18 @@ export type Message = {
   translation?: { body: string; lang: string } | null;
   translated?: boolean;
   urgent?: boolean;
+  rich?: Rich;
 };
 
 export type CallRecord = { minutes: number; ongoing: boolean };
+
+export type Media = { url: string; width: number; height: number };
+
+export type Sticker = { source: 'pack' | 'provider'; id: number | string; packId: number | null; alt: string; animated: boolean; width: number; height: number; url: string; poster: string };
+
+export type GifMedia = { provider: string; id: string; title: string; gif: Media | null; mp4: Media | null; preview: Media | null };
+
+export type Rich = { sticker: Sticker } | { gif: GifMedia };
 
 export type Mention = { id: number; name: string; token: string | null };
 
@@ -75,6 +87,7 @@ export type PendingFile = {
   size: number;
   voice: boolean;
   durationMs: number | null;
+  waveform?: string | null;
   attachmentId: number | null;
   ownershipToken: string | null;
 };
@@ -92,6 +105,7 @@ export type Pending = {
   createdAt: number;
   attempts: number;
   urgent?: boolean;
+  rich?: Rich;
   state: PendingState;
   error: string | null;
 };

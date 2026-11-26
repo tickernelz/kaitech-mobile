@@ -7,7 +7,8 @@ import { changeAppearance, themes, useChatAppearance } from '../../features/appe
 import { RowIcon, SettingsPage } from '../../screens/SettingsPage';
 import { useTheme } from '../../theme';
 import { Icon } from '../../ui/icons';
-import { Check, Divider, Row, Section } from '../../ui/List';
+import { Check, Divider, Row, Section, ToggleRow } from '../../ui/List';
+import { setTapToRecord, useTapToRecord } from '../../features/chat/voice/tapSetting';
 import { Text } from '../../ui/Text';
 
 export default function AppearanceSettings() {
@@ -17,6 +18,7 @@ export default function AppearanceSettings() {
   const { active } = useSession();
   const appearance = useChatAppearance(active?.id ?? null);
   const [failed, setFailed] = useState(false);
+  const tap = useTapToRecord();
   if (!active) return null;
   return (
     <SettingsPage title={t('settings.appearance')} testID="settings-appearance-screen">
@@ -42,6 +44,9 @@ export default function AppearanceSettings() {
           onPress={() => router.push('/settings/background')}
           testID="settings-background"
         />
+      </Section>
+      <Section title={t('appearance.chat')}>
+        <ToggleRow title={t('appearance.tapToRecord')} detail={t('appearance.tapToRecordHint')} value={tap} onChange={setTapToRecord} testID="settings-tap-to-record" />
       </Section>
       {failed ? (
         <Text variant="footnote" tone="dangerInk" accessibilityLiveRegion="polite">

@@ -31,6 +31,18 @@ export function relativeStaged(documentUri: string, uri: string): string {
   return uri.startsWith(base) ? uri.slice(base.length) : uri;
 }
 
+export function safeName(name: string): string {
+  return name.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim().slice(-120) || 'file';
+}
+
+export function accountFolderName(accountId: string): string {
+  return accountId.replace(/[^\w-]/g, '_');
+}
+
+export function attachmentFolderName(attachmentId: number, checksum: string | null): string {
+  return `${attachmentId}-${(checksum ?? 'none').replace(/[^\w-]/g, '_')}`;
+}
+
 export function openedFolderName(accountId: string, attachmentId: number, checksum: string | null): string {
-  return `${accountId.replace(/[^\w-]/g, '_')}/${attachmentId}-${(checksum ?? 'none').replace(/[^\w-]/g, '_')}`;
+  return `${accountFolderName(accountId)}/${attachmentFolderName(attachmentId, checksum)}`;
 }

@@ -127,6 +127,9 @@ if adb shell pm path "$gboard" 2>/dev/null | grep -q '^package:'; then
 fi
 
 adb shell settings put global hide_error_dialogs 1
+if [ -n "${E2E_UNDO_WINDOW_MS:-}" ]; then
+  adb shell settings put secure accessibility_interactive_ui_timeout_ms "$E2E_UNDO_WINDOW_MS"
+fi
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null
 adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run --remote-debugging-socket-name=kaitech_e2e_chrome" > /data/local/tmp/chrome-command-line'
 adb shell am set-debug-app --persistent com.android.chrome
@@ -136,6 +139,11 @@ fi
 adb logcat -b main,system,crash,events -G 16M > /dev/null 2>&1 || true
 adb logcat -c
 adb install -r "$apk"
+for asset in .maestro/assets/device/*; do
+  [ -f "$asset" ] || continue
+  adb push "$asset" "/sdcard/Download/$(basename "$asset")" > /dev/null
+  adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file:///sdcard/Download/$(basename "$asset")" > /dev/null
+done
 adb shell dumpsys package io.kaitech.mobile | grep -E 'versionCode|versionName' | head -2 | tee "$out/installed.txt"
 
 activity="$(adb shell cmd package resolve-activity --brief io.kaitech.mobile | tr -d '\r' | tail -1)"

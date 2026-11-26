@@ -1276,7 +1276,10 @@
     "dim": "Dim",
     "sampleTheirs": "See you at nine?",
     "sampleMine": "Sure, on my way.",
-    "failed": "Could not save. Try again."
+    "failed": "Could not save. Try again.",
+    "chat": "Chat",
+    "tapToRecord": "Tap to record",
+    "tapToRecordHint": "Tap the mic once to record hands-free, instead of holding it. Always on while a screen reader is running."
   },
   "profile": {
     "name": "Name",

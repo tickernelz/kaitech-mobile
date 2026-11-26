@@ -13,8 +13,12 @@ import { Text } from '../../../ui/Text';
 import { chatClient, loadWorks, refreshConversations, conversationById, discardSend, takeSendStart, fetchNewer, getChat, loadAround, loadOlder, openSubThread, openThread, retrySend, threadOf, toggleReaction, useChat } from '../chat';
 import { readAnchor, writeAnchor } from '../drafts';
 import { plainText } from '../html';
-import { bodyPreview } from '../markdown';
-import { readersOf, readState } from '../odoo';
+import { bodyPreview, bodyShape } from '../markdown';
+import { attachmentUrl, readersOf, readState } from '../odoo';
+import { isPlayed, setVoiceNext } from '../voicePlayer';
+import { nextVoiceAfter, voiceIdOf } from '../voice/next';
+import { useCookie } from './useCookie';
+import { VoiceMiniBar } from './VoiceNote';
 import { buildRows, rowType, type Row } from '../rows';
 import type { Message } from '../types';
 import { CallButton } from '../../call/ui/CallButton';
@@ -40,6 +44,8 @@ import { MessageCards, useAgentCards, useRecordCards } from './coworker/Cards';
 import { WorkBar, WorkSheet } from './coworker/Work';
 import { linksOfMessage, type RecordCard } from '../coworker';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
+import { GalleryContext } from './media/gallery';
+import { galleryOfMessages } from '../media/viewer';
 import { NotifySheet } from './NotifySheet';
 import { router } from 'expo-router';
 import { ChatBackground } from '../../appearance/ChatBackground';
@@ -77,6 +83,17 @@ export function ThreadView({
   const partnerId = useChat((state) => state.partnerId);
   const origin = useChat((state) => state.origin);
   const thread = useChat((state) => threadOf(state, channelId));
+  const voiceCookie = useCookie();
+  useEffect(
+    () =>
+      setVoiceNext((id) => {
+        const found = nextVoiceAfter(threadOf(getChat(), channelId).messages, id, isPlayed);
+        if (!found) return null;
+        const { message, attachment } = found;
+        return { id: voiceIdOf(attachment), uri: attachmentUrl(getChat().origin, attachment), headers: voiceCookie ?? undefined, meta: { title: message.author, channelId, messageId: message.id } };
+      }),
+    [channelId, voiceCookie],
+  );
   const conversation = useChat((state) => conversationById(state, channelId));
   const allPending = useChat((state) => state.pending);
   const allDelivered = useChat((state) => state.delivered);
@@ -130,6 +147,7 @@ export function ThreadView({
     [thread.messages, thread.subChannels],
   );
   const byId = useMemo(() => new Map(thread.messages.map((message) => [message.id, message])), [thread.messages]);
+  const gallery = useCallback(() => galleryOfMessages(threadOf(getChat(), channelId).messages), [channelId]);
   const name = conversation?.name || thread.info?.name || '';
   const type = conversation?.type ?? (thread.info?.type as 'chat' | 'group' | 'channel' | undefined) ?? 'channel';
   const twoPeople = type === 'chat';
@@ -293,7 +311,7 @@ export function ThreadView({
         );
       }
       if (item.kind === 'pending') {
-        return <PendingBubble pending={item.pending} offline={!online} onRetry={retry} onDiscard={discard} />;
+        return <PendingBubble pending={item.pending} offline={!online} origin={origin} onRetry={retry} onDiscard={discard} />;
       }
       const message = item.message;
       const mine = message.authorId === partnerId;
@@ -406,6 +424,7 @@ export function ThreadView({
   );
 
   return (
+    <GalleryContext.Provider value={gallery}>
     <SafeAreaView edges={twoPane ? ['top', 'right'] : ['top', 'left', 'right']} style={[styles.flex, { backgroundColor: colors.canvas }]} testID={`thread-${channelId}`}>
       {header}
       {thread.info?.link && linkedOn ? (
@@ -421,6 +440,7 @@ export function ThreadView({
         </Pressable>
       ) : null}
       {agentsOn ? <WorkBar works={thread.works} onPress={() => setWorkSheet(true)} /> : null}
+      <VoiceMiniBar hideFor={channelId} />
       <KeyboardAvoidingView behavior="padding" automaticOffset style={styles.flex}>
         <View style={styles.flex}>
           <ChatBackground channelId={channelId} />
@@ -529,6 +549,7 @@ export function ThreadView({
         />
       ) : null}
     </SafeAreaView>
+    </GalleryContext.Provider>
   );
 }
 

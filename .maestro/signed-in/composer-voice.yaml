@@ -1,0 +1,141 @@
+appId: io.kaitech.mobile
+name: Voice notes like WhatsApp, hold to send, lock, pause, play the draft, resume, discard and undo, too short
+tags:
+  - signed-in
+  - chat-actions
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      text: ${PEER}
+    timeout: 60000
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: composer-mic
+    timeout: 30000
+- tapOn:
+    id: composer-mic
+- runFlow:
+    when:
+      visible:
+        id: permission-microphone-dialog-confirm
+    commands:
+      - tapOn:
+          id: permission-microphone-dialog-confirm
+      - tapOn:
+          text: (While using the app|Saat aplikasi digunakan|Allow|Izinkan)
+          optional: true
+- extendedWaitUntil:
+    visible:
+      id: voice-short-hint
+    timeout: 10000
+    optional: true
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: v1-short-hint
+- longPressOn:
+    id: composer-mic
+- extendedWaitUntil:
+    notVisible:
+      id: (pending-queued|pending-sending)
+    timeout: 60000
+- swipe:
+    from:
+      id: composer-mic
+    direction: UP
+    duration: 1500
+- extendedWaitUntil:
+    visible:
+      id: voice-recording-locked
+    timeout: 10000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: v2-locked
+- tapOn:
+    id: voice-pause
+    waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
+      id: voice-paused
+    timeout: 10000
+- tapOn:
+    id: voice-draft-play
+    waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
+      text: '[0-9]+:[0-5][0-9] / [0-9]+:[0-5][0-9]'
+    timeout: 15000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: v3-paused-preview
+- tapOn:
+    id: voice-resume
+    waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
+      id: voice-recording-locked
+    timeout: 10000
+- tapOn:
+    id: composer-send-voice
+    waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
+      id: composer-mic
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible:
+      id: (pending-queued|pending-sending|pending-failed)
+    timeout: 60000
+- swipe:
+    from:
+      id: composer-mic
+    direction: UP
+    duration: 1500
+- extendedWaitUntil:
+    visible:
+      id: voice-recording-locked
+    timeout: 10000
+- tapOn:
+    id: voice-discard
+    waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
+      text: (Recording discarded|Rekaman dibuang)
+    timeout: 5000
+- tapOn:
+    id: undo-action
+    waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
+      id: voice-paused
+    timeout: 5000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: v4-undone
+- tapOn:
+    id: voice-discard
+    waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
+      id: composer-mic
+    timeout: 10000

@@ -95,7 +95,7 @@ function bubble(id: number, body: string, mine: boolean, width: number, face: Au
 
 function pending(state: 'sending' | 'failed'): Scene {
   const item: Pending = { key: 'k-' + state, accountId: 'a', channelId: 7, text: long, parentId: null, mentions: [], files: [], createdAt: 0, attempts: 1, state, error: null };
-  return { width: phone, testID: 'bubble-pending', element: <PendingBubble pending={item} offline={false} onRetry={() => undefined} onDiscard={() => undefined} /> };
+  return { width: phone, testID: 'bubble-pending', element: <PendingBubble pending={item} offline={false} origin="https://lab0.test" onRetry={() => undefined} onDiscard={() => undefined} /> };
 }
 
 const lane = (width: number) => Math.min(width, 720 + 2 * gutter) - 2 * gutter;

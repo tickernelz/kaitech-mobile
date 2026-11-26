@@ -9,6 +9,7 @@ export class ApiError extends Error {
     readonly code: string,
     readonly status: number,
     readonly detail: string | null = null,
+    readonly reason: string | null = null,
   ) {
     super(code);
     this.name = 'ApiError';
@@ -163,7 +164,12 @@ async function sessionFor(account: Account, renew: boolean): Promise<Session> {
 
 onAccountForgotten((accountId) => sessions.delete(accountId));
 
-type RpcFailure = { code?: unknown; data?: { name?: unknown; message?: unknown } };
+type RpcFailure = { code?: unknown; data?: { name?: unknown; message?: unknown; arguments?: unknown } };
+
+function refusalReason(failure: RpcFailure): string | null {
+  const args = failure.data?.arguments;
+  return Array.isArray(args) && typeof args[1] === 'string' && /^[a-z_]{1,64}$/.test(args[1]) ? args[1] : null;
+}
 
 function shownDetail(failure: RpcFailure, code: string): string | null {
   return code === 'refused' && typeof failure.data?.message === 'string' ? failure.data.message : null;
@@ -231,7 +237,7 @@ export async function route<T>(account: Account, path: string, params: Record<st
     if (attempt === 0 && expired(failure)) continue;
     const name = typeof failure.data?.name === 'string' ? failure.data.name : '';
     const code = failure.code === 404 || /NotFound$/.test(name) ? 'not_found' : rpcCode(name);
-    throw new ApiError(code, status, shownDetail(failure, code));
+    throw new ApiError(code, status, shownDetail(failure, code), code === 'refused' ? refusalReason(failure) : null);
   }
 }
 

@@ -1,49 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
-import { Overlay } from '../../../ui/Overlay';
+import { Image, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
-import { attachSources, type AttachSource } from './attach';
 import { useChatFormat } from './format';
-import { Icon, type IconName } from '../../../ui/icons';
-import { SheetItem } from '../../../ui/Sheet';
+import { Icon } from '../../../ui/icons';
 import { cancelDistance, type Recording, type useVoiceHold } from './useVoiceHold';
 import { useBottomInset } from '../../../ui/insets';
-
-export type Extra = { key: string; icon: IconName; label: string; detail?: string; disabled?: boolean; onPress: () => void };
-
-export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[] }) {
-  const { t } = useTranslation('chat');
-  const { colors } = useTheme();
-  const bottomInset = useBottomInset(space.lg);
-  return (
-    <Overlay visible={visible} transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <Pressable style={[styles.scrim, { backgroundColor: colors.scrim }]} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button">
-        <Pressable style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }]} accessibilityViewIsModal onPress={() => undefined}>
-          <Text variant="title" accessibilityRole="header">
-            {t('composer.attachTitle')}
-          </Text>
-          <View style={styles.sheetGrid}>
-            {attachSources.map((source) => (
-              <Pressable key={source} accessibilityRole="button" onPress={() => onPick(source)} style={styles.sheetItem} testID={`attach-${source}`}>
-                <View style={[styles.sheetIcon, { backgroundColor: colors.select }]}>
-                  <Icon name={source === 'camera' ? 'photo' : source === 'photos' ? 'image' : 'file'} color={colors.selectInk} />
-                </View>
-                <Text variant="callout" style={styles.centerText}>
-                  {t(`composer.source.${source}`)}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          {extras.map((extra) => (
-            <SheetItem key={extra.key} icon={extra.icon} label={extra.label} detail={extra.detail} disabled={extra.disabled} onPress={extra.onPress} testID={`extra-${extra.key}`} />
-          ))}
-        </Pressable>
-      </Pressable>
-    </Overlay>
-  );
-}
 
 export function RecordingStrip({ recording }: { recording: Recording }) {
   const { t } = useTranslation('chat');
@@ -80,12 +43,16 @@ export function MicButton({ voice, hidden, testID = 'composer-mic' }: { voice: R
   );
 }
 
-export function StagedFile({ name, mimetype, onRemove }: { name: string; mimetype: string; onRemove: () => void }) {
+export function StagedFile({ name, mimetype, uri, onRemove }: { name: string; mimetype: string; uri?: string; onRemove: () => void }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   return (
-    <View style={[styles.stagedFile, { backgroundColor: colors.surface2 }]}>
-      <Icon name={mimetype.startsWith('image/') ? 'image' : 'file'} size={20} color={colors.inkSoft} />
+    <View style={[styles.stagedFile, { backgroundColor: colors.surface2 }]} testID="staged-file">
+      {uri && mimetype.startsWith('image/') ? (
+        <Image source={{ uri }} style={styles.thumb} accessibilityIgnoresInvertColors testID="staged-thumb" />
+      ) : (
+        <Icon name={mimetype.startsWith('image/') ? 'image' : mimetype.startsWith('video/') ? 'video' : 'file'} size={20} color={colors.inkSoft} />
+      )}
       <Text variant="footnote" numberOfLines={1} style={styles.stagedName}>
         {name}
       </Text>
@@ -114,7 +81,6 @@ export function UploadProgress({ name, sent, testID }: { name: string; sent: num
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  centerText: { textAlign: 'center' },
   recording: { flex: 1, flexDirection: 'row', alignItems: 'center', minHeight: 64, paddingLeft: space.md, gap: space.md },
   dot: { width: 10, height: 10, borderRadius: 5 },
   round: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
@@ -122,12 +88,8 @@ const styles = StyleSheet.create({
   recordButton: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' },
   stagedFile: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.sm, minHeight: 40, borderRadius: radius.md, maxWidth: 240 },
   stagedName: { flexShrink: 1 },
+  thumb: { width: 32, height: 32, borderRadius: radius.sm },
   progress: { gap: space.xs, minWidth: 160 },
   track: { height: 4, borderRadius: 2, overflow: 'hidden' },
   fill: { height: 4 },
-  scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
-  sheet: { width: '100%', maxWidth: 560, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, padding: space.xl, gap: space.lg },
-  sheetGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.lg },
-  sheetItem: { width: 88, alignItems: 'center', gap: space.xs },
-  sheetIcon: { width: 56, height: 56, borderRadius: radius.card, alignItems: 'center', justifyContent: 'center' },
 });

@@ -114,11 +114,12 @@
     "closeSheet": "Close",
     "attachTitle": "Attach",
     "source": {
+      "photos": "Gallery",
       "camera": "Camera",
-      "photos": "Photos & videos",
-      "files": "Document"
+      "files": "Document",
+      "audio": "Audio"
     },
-    "micBusy": "A meeting is being recorded. Finish it first to record a voice message.",
+    "micBusy": "The microphone is in use by a meeting recording or a call.",
     "uploading": "Uploading {{name}}",
     "uploadingPercent": "{{name}} · {{percent}}%",
     "tooBig_one": "{{names}} is over the {{limit}} limit.",
@@ -138,13 +139,49 @@
     },
     "editing": "Editing message",
     "cancelEdit": "Cancel editing",
-    "saveEdit": "Save changes"
+    "saveEdit": "Save changes",
+    "camera": "Take a photo or video",
+    "sendVoice": "Send voice message",
+    "cancelVoice": "Cancel",
+    "slideToLock": "Slide up to lock recording",
+    "showKeyboard": "Show keyboard",
+    "openPanel": "Emoji, stickers and GIFs",
+    "recordFailed": "Couldn't record the voice message. Try again.",
+    "micReady": "Microphone allowed. Hold the mic button to record.",
+    "diskFull": "Storage is almost full. Delete some files and try again.",
+    "micFailed": "The microphone couldn't start. Try again.",
+    "voiceSendFailed": "The voice message couldn't be prepared. The recording is still saved, so try again.",
+    "voiceDiscarded": "Recording discarded",
+    "shortHint": "Hold to record, release to send. Slide up to record hands-free.",
+    "recordHint": "Hold to record. Or use the Record action to record hands-free.",
+    "discardVoice": "Discard recording",
+    "pauseVoice": "Pause recording",
+    "resumeVoice": "Continue recording",
+    "playDraft": "Play recording",
+    "pauseDraft": "Pause playback",
+    "draftPosition": "{{position}} / {{duration}}",
+    "draftSeek": "Recording position",
+    "timeLeft": "{{time}} left",
+    "recordingElapsed": "Recording, {{time}}",
+    "interrupted": {
+      "background": "Recording paused because the app was closed. The draft is safe.",
+      "call": "Recording paused because of a call. Listen, continue, or send.",
+      "limit": "The 30-minute limit was reached. Listen first, then send.",
+      "device": "The audio device changed. Recording paused.",
+      "restored": "Your unsent voice message is still here."
+    },
+    "cameraHint": "Hold to open the gallery",
+    "pickerNote": "Photos and videos are picked with the system photo picker. Kaitech does not ask for access to your whole gallery."
   },
   "voice": {
     "play": "Play voice message",
     "pause": "Pause voice message",
     "label": "Voice message",
-    "speed": "Playback speed {{rate}} times"
+    "speed": "Playback speed {{rate}} times",
+    "position": "Voice message position",
+    "unplayed": "Not played yet",
+    "openChat": "Open the chat with {{name}}",
+    "close": "Stop and close the player"
   },
   "actions": {
     "reply": "Reply",
@@ -390,10 +427,6 @@
     "cancelled": "Scheduled message deleted"
   },
   "extras": {
-    "emoji": "Emoji",
-    "gif": "GIF",
-    "gifSearch": "Search GIFs",
-    "gifSend": "Send this GIF",
     "canned": "Canned responses",
     "later": "Send later",
     "laterEmpty": "Write a message or attach a file first.",
@@ -481,5 +514,94 @@
     "clearTitle": "Remove all stars?",
     "clearBody": "Every starred message loses its star. The messages stay.",
     "confirm": "Remove stars"
+  },
+  "media": {
+    "play": "Play video {{name}}",
+    "openPdf": "Open PDF {{name}}",
+    "pages_one": "{{count}} page",
+    "pages_other": "{{count}} pages",
+    "download": "Download {{name}}",
+    "cancel": "Cancel download of {{name}}",
+    "retry": "Download {{name}} again",
+    "failed": "Couldn’t download. Tap to try again.",
+    "progress": "{{received}} of {{total}}",
+    "imageFailed": "Picture didn’t load. Tap to try again.",
+    "close": "Close",
+    "counter": "{{index}} of {{count}}",
+    "save": "Save to device",
+    "saved": "Saved to your gallery",
+    "saveDenied": "Allow Kaitech to add photos so it can save to your gallery.",
+    "saveFailed": "Couldn’t save this file.",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "playFailed": "This video can’t be streamed.",
+    "downloadAndPlay": "Download and play",
+    "pdfFailed": "This PDF can’t be shown in the app.",
+    "openElsewhere": "Open in another app",
+    "page": "Page {{page}} of {{count}}",
+    "downloadingPdf": "Downloading PDF",
+    "share": "Share",
+    "viewer": "Media viewer",
+    "playing": "Playing",
+    "paused": "Paused"
+  },
+  "panel": {
+    "emoji": "Emoji",
+    "sticker": "Stickers",
+    "gif": "GIFs",
+    "backspace": "Delete",
+    "gifSearch": "Search KLIPY",
+    "stickerSearch": "Search KLIPY",
+    "none": "Nothing found",
+    "noStickers": "No stickers here yet",
+    "recent": "Recent",
+    "providerStickers": "Search stickers",
+    "closePreview": "Close preview",
+    "closeTones": "Close skin tones",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites",
+    "favorites": "Favorites",
+    "full": "Full height",
+    "half": "Half height",
+    "handle": "Panel height",
+    "kaitechStickers": "Kaitech stickers",
+    "noEmoji": "No emoji for \"{{query}}\".",
+    "openSettings": "Open settings",
+    "retry": "Try again",
+    "searchGif": "Search \"{{query}}\" in GIFs",
+    "skinHint": "Hold to pick a skin tone",
+    "trending": "Trending",
+    "tone0": "Default yellow",
+    "tone1": "Light skin tone",
+    "tone2": "Medium-light skin tone",
+    "tone3": "Medium skin tone",
+    "tone4": "Medium-dark skin tone",
+    "tone5": "Dark skin tone",
+    "state": {
+      "offline": {
+        "title": "You're offline",
+        "body": "GIFs need a connection. Emoji and saved stickers still work."
+      },
+      "unavailable": {
+        "title": "GIFs aren't turned on",
+        "body": "An admin needs to add the KLIPY key in Chat settings on lab0. Emoji and stickers still work."
+      },
+      "server": {
+        "title": "GIFs couldn't load",
+        "body": "The server didn't answer (code {{code}}). Try again in a moment."
+      },
+      "emptySearch": {
+        "title": "Nothing for \"{{query}}\"",
+        "body": "Try a shorter word."
+      },
+      "noStickers": {
+        "title": "No stickers yet",
+        "body": "An admin can add packs in Chat settings."
+      }
+    }
+  },
+  "rich": {
+    "sticker": "Sticker",
+    "gif": "GIF"
   }
 }
