@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
+import { useTabBarSpace } from '../../../layout/tabBar';
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { radius, space, useTheme } from '../../../theme';
 import { TopAppBar, useScrolledUnder } from '../../../ui/AppBar';
@@ -137,6 +138,7 @@ const Row = memo(function Row({
 export function ConversationList({ selectedId, onOpen }: { selectedId: number | null; onOpen: (id: number, message?: number | null) => void }) {
   const { t } = useTranslation(['chat', 'translation']);
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
   const conversations = useChat((state) => state.conversations);
   const loading = useChat((state) => state.listLoading);
   const loaded = useChat((state) => state.listLoaded);
@@ -287,6 +289,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
       <FlashList
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
+        contentContainerStyle={{ paddingBottom: space.sm + tabSpace }}
         data={shown}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <Row conversation={item} selected={item.id === selectedId} pending={waiting.get(item.id) ?? 0} onOpen={onOpen} inArchive={inArchive} />}
