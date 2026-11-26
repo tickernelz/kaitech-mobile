@@ -44,7 +44,7 @@ const shown = (value) => (value === Infinity ? 'no limit' : `limit ${value}`);
 
 const times = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'frame=pts_time', '-of', 'csv=p=0', video])
   .toString()
-  .split(/\s+/)
+  .split(/[\s,]+/)
   .filter(Boolean)
   .map(Number);
 const width = Math.floor((right - left) / scale);
