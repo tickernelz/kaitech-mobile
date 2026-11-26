@@ -1276,7 +1276,10 @@
     "dim": "Redup",
     "sampleTheirs": "Ketemu jam sembilan?",
     "sampleMine": "Siap, otw.",
-    "failed": "Gagal menyimpan. Coba lagi."
+    "failed": "Gagal menyimpan. Coba lagi.",
+    "chat": "Chat",
+    "tapToRecord": "Ketuk untuk merekam",
+    "tapToRecordHint": "Ketuk mikrofon sekali untuk merekam tanpa menahan. Selalu aktif saat pembaca layar berjalan."
   },
   "profile": {
     "name": "Nama",

@@ -13,10 +13,12 @@ import type { Attachment, Message, Pending, PendingFile } from '../types';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { UploadProgress } from './MediaControls';
+import { RichMedia, richLabel } from './RichMedia';
 import { RichText } from './RichText';
 import { useCookie } from './useCookie';
 import { useOpenAttachment } from './useOpenAttachment';
 import { VoiceNote } from './VoiceNote';
+import type { VoiceMeta } from '../voicePlayer';
 import { recordingIdOf } from '../../call/recordingLink';
 import { RecordingCard } from '../../call/ui/RecordingCard';
 import { callState, startCall } from '../../call/call';
@@ -105,7 +107,7 @@ function Picture({ attachment, origin }: { attachment: Attachment; origin: strin
   );
 }
 
-export function Attachments({ attachments, origin, mine }: { attachments: Attachment[]; origin: string; mine: boolean }) {
+export function Attachments({ attachments, origin, mine, meta }: { attachments: Attachment[]; origin: string; mine: boolean; meta?: VoiceMeta }) {
   if (!attachments.length) return null;
   return (
     <View style={styles.attachments}>
@@ -114,7 +116,7 @@ export function Attachments({ attachments, origin, mine }: { attachments: Attach
         return recordingId !== null ? (
           <RecordingCard key={attachment.id} recordingId={recordingId} mine={mine} />
         ) : attachment.voice || attachment.mimetype.startsWith('audio/') ? (
-          <VoiceNote key={attachment.id} id={`a${attachment.id}`} uri={attachmentUrl(origin, attachment)} mine={mine} seed={attachment.id} />
+          <VoiceNote key={attachment.id} id={`a${attachment.id}`} uri={attachmentUrl(origin, attachment)} mine={mine} seed={attachment.id} meta={meta} />
         ) : attachment.mimetype.startsWith('image/') ? (
           <Picture key={attachment.id} attachment={attachment} origin={origin} />
         ) : (
@@ -132,6 +134,7 @@ function Frame({
   label,
   testID,
   failed,
+  bare,
 }: {
   mine: boolean;
   children: ReactNode;
@@ -139,6 +142,7 @@ function Frame({
   label: string;
   testID?: string;
   failed?: boolean;
+  bare?: boolean;
 }) {
   const { colors } = useTheme();
   return (
@@ -153,8 +157,9 @@ function Frame({
       style={[
         styles.bubble,
         mine ? styles.mine : styles.theirs,
-        mine && !failed ? styles.plain : { borderColor: failed ? colors.danger : colors.line },
-        { backgroundColor: mine ? colors.select : colors.surface },
+        bare
+          ? [styles.bare, failed && { borderColor: colors.danger }]
+          : [mine && !failed ? styles.plain : { borderColor: failed ? colors.danger : colors.line }, { backgroundColor: mine ? colors.select : colors.surface }],
       ]}>
       {children}
     </Pressable>
@@ -217,7 +222,8 @@ export const MessageBubble = memo(function MessageBubble({
   const blocks = removed ? [] : bodyBlocks(shownBody);
   const notification = message.type === 'notification';
   const time = clock(message.date);
-  const text = bodyPreview(message.body);
+  const rich = removed ? undefined : message.rich;
+  const text = rich ? richLabel(t, rich) : bodyPreview(message.body);
   if (isCallNotice(message)) {
     const call = message.call;
     const label = [t(call?.ongoing ? 'thread.callOngoing' : 'thread.call'), call && !call.ongoing ? t('thread.callMinutes', { count: Math.max(1, call.minutes) }) : null, time].filter(Boolean).join(' · ');
@@ -277,7 +283,7 @@ export const MessageBubble = memo(function MessageBubble({
         ]);
   const body = (
     <>
-      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} testID={`bubble-${message.id}`}>
+      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} testID={`bubble-${message.id}`} bare={rich !== undefined && 'sticker' in rich && !quote}>
         {(showAuthor || (agent && agentTag)) && !mine ? (
           <View style={styles.authorRow}>
             {showAuthor ? (
@@ -296,8 +302,10 @@ export const MessageBubble = memo(function MessageBubble({
           </View>
         ) : null}
         <QuoteBlock quote={quote} mine={mine} onPress={message.parentId ? () => onQuotePress(message.parentId as number) : undefined} />
-        <Attachments attachments={message.attachments} origin={origin} mine={mine} />
-        {agent && !removed && !message.translated ? (
+        <Attachments attachments={message.attachments} origin={origin} mine={mine} meta={{ title: message.author, channelId: message.channelId, messageId: message.id }} />
+        {rich ? (
+          <RichMedia rich={rich} origin={origin} testID={`rich-${message.id}`} />
+        ) : agent && !removed && !message.translated ? (
           <AgentSaid store={agent} messageId={message.id}>
             {blocks.length ? <RichText blocks={blocks} color={colors.ink} tint={colors.surface2} /> : null}
           </AgentSaid>
@@ -407,11 +415,13 @@ function PendingFileRow({ file }: { file: PendingFile }) {
 export const PendingBubble = memo(function PendingBubble({
   pending,
   offline,
+  origin,
   onRetry,
   onDiscard,
 }: {
   pending: Pending;
   offline: boolean;
+  origin: string;
   onRetry: (key: string) => void;
   onDiscard: (key: string) => void;
 }) {
@@ -419,10 +429,11 @@ export const PendingBubble = memo(function PendingBubble({
   const { colors } = useTheme();
   const failed = pending.state === 'failed';
   const status = failed ? t('thread.failed') : offline && pending.state === 'queued' ? t('thread.queued') : t('thread.waiting');
-  const label = [pending.text, status].filter(Boolean).join(', ');
+  const label = [pending.rich ? richLabel(t, pending.rich) : pending.text, status].filter(Boolean).join(', ');
   return (
     <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`}>
-      <Frame mine label={label} failed={failed} testID="bubble-pending">
+      <Frame mine label={label} failed={failed} testID="bubble-pending" bare={pending.rich !== undefined && 'sticker' in pending.rich}>
+        {pending.rich ? <RichMedia rich={pending.rich} origin={origin} testID="pending-rich" /> : null}
         {pending.files.map((file) => (
           <PendingFileRow key={file.key} file={file} />
         ))}
@@ -465,6 +476,7 @@ const styles = StyleSheet.create({
   wrapMine: { alignItems: 'flex-end' },
   wrapTheirs: { alignItems: 'flex-start' },
   bubble: { maxWidth: '80%', minWidth: 88, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
+  bare: { backgroundColor: 'transparent', borderColor: 'transparent', paddingHorizontal: 0, minWidth: 0 },
   mine: { borderBottomRightRadius: radius.sm },
   plain: { borderWidth: 0 },
   theirs: { borderBottomLeftRadius: radius.sm },

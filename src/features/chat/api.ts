@@ -6,7 +6,8 @@ import { markExpired, tokenFor } from '../../auth/session';
 import { localFile } from './files';
 import { SendError, type Posted, type Uploaded } from './outbox';
 import { pushFormat } from './pushAccount';
-import type { PendingFile } from './types';
+import { richPostData } from './rich';
+import type { PendingFile, Rich } from './types';
 
 const uploadTimeoutMs = 120000;
 
@@ -104,23 +105,25 @@ export class ChatClient {
     return route<Record<string, unknown>>(this.account, '/discuss/channel/sub_channel/create', { parent_channel_id: channelId, from_message_id: messageId });
   }
 
-  async post(input: { key: string; channelId: number; body: string; parentId: number | null; partnerIds: number[]; mentionTokens: Record<string, string>; files: Uploaded[]; urgent?: boolean }): Promise<Posted> {
+  async post(input: { key: string; channelId: number; body: string; parentId: number | null; partnerIds: number[]; mentionTokens: Record<string, string>; files: Uploaded[]; urgent?: boolean; rich?: Rich }): Promise<Posted> {
     const result = await route<Record<string, unknown> | null>(this.account, '/mail/message/post', {
       thread_model: 'discuss.channel',
       thread_id: input.channelId,
       kaitech_chat_send_key: input.key,
       context: { temporary_id: input.key },
-      post_data: {
-        body: input.body,
-        message_type: 'comment',
-        subtype_xmlid: 'mail.mt_comment',
-        attachment_ids: input.files.map((file) => file.attachmentId),
-        attachment_tokens: input.files.map((file) => file.ownershipToken),
-        partner_ids: input.partnerIds,
-        partner_ids_mention_token: input.mentionTokens,
-        ...(input.parentId ? { parent_id: input.parentId } : {}),
-        ...(input.urgent ? { kaitech_chat_urgent: true } : {}),
-      },
+      post_data: input.rich
+        ? { message_type: 'comment', subtype_xmlid: 'mail.mt_comment', ...(input.parentId ? { parent_id: input.parentId } : {}), ...richPostData(input.rich) }
+        : {
+            body: input.body,
+            message_type: 'comment',
+            subtype_xmlid: 'mail.mt_comment',
+            attachment_ids: input.files.map((file) => file.attachmentId),
+            attachment_tokens: input.files.map((file) => file.ownershipToken),
+            partner_ids: input.partnerIds,
+            partner_ids_mention_token: input.mentionTokens,
+            ...(input.parentId ? { parent_id: input.parentId } : {}),
+            ...(input.urgent ? { kaitech_chat_urgent: true } : {}),
+          },
     });
     const messageId = result?.message_id;
     if (typeof messageId !== 'number') throw new ApiError('server', 500);
@@ -144,7 +147,7 @@ export class ChatClient {
         uploadType: UploadType.MULTIPART,
         fieldName: 'file',
         mimeType: file.mimetype,
-        parameters: { channel_id: String(channelId), key: file.key, ...(file.voice ? { voice: 'true', ...voiceSeconds(file.durationMs) } : {}) },
+        parameters: { channel_id: String(channelId), key: file.key, ...(file.voice ? { voice: 'true', ...voiceSeconds(file.durationMs), ...(file.waveform ? { waveform: file.waveform } : {}) } : {}) },
         headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(this.account.db ? { 'X-Odoo-Database': this.account.db } : {}) },
         signal: controller.signal,
         ...(onProgress ? { onProgress: ({ bytesSent, totalBytes }: UploadProgress) => totalBytes > 0 && onProgress(bytesSent / totalBytes) } : {}),

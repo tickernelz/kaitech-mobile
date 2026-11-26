@@ -53,7 +53,7 @@ export function useMarkup(text: string, setText: (next: string) => void, input: 
 
 const mono = Platform.select({ ios: 'Menlo', default: 'monospace' });
 
-export function FormatBar({ onApply, onHide }: { onApply: (markup: Markup) => void; onHide: () => void }) {
+export function FormatBar({ onApply, onHide, onSpace }: { onApply: (markup: Markup) => void; onHide: () => void; onSpace?: (height: number) => void }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const look: Record<Markup, TextStyle | null> = {
@@ -65,7 +65,7 @@ export function FormatBar({ onApply, onHide }: { onApply: (markup: Markup) => vo
     list: null,
   };
   return (
-    <View style={[styles.bar, { borderColor: colors.line, backgroundColor: colors.surface }]} testID="format-bar">
+    <View style={[styles.bar, { borderColor: colors.line, backgroundColor: colors.surface }]} onLayout={(event) => onSpace?.(event.nativeEvent.layout.height + styles.bar.marginTop)} testID="format-bar">
       <ScrollView horizontal keyboardShouldPersistTaps="always" showsHorizontalScrollIndicator={false} contentContainerStyle={styles.actions} style={styles.flex}>
         {markups.map((markup) => (
           <Pressable

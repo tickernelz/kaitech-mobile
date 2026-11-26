@@ -1,18 +1,27 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, ScrollView, StyleSheet, TextInput, View, type TextInputSelectionChangeEvent } from 'react-native';
+import { BackHandler, Platform, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type TextInputSelectionChangeEvent } from 'react-native';
+import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { Pressable } from '../../../ui/Pressable';
-import { useKeyboardState } from 'react-native-keyboard-controller';
+import { KeyboardController, useKeyboardState, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
+import { duration, easing, spring, useMotion } from '../../../theme/motion';
 import { FloatingSurface } from '../../../ui/FloatingSurface';
 import { useSurface } from '../../../ui/glass';
 import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, useChat, type Outgoing } from '../chat';
-import { cannedQuery, cannedResponses, markCannedUsed, sendLater, type Canned } from '../composerExtras';
+import { cannedQuery, cannedResponses, deleteBefore, markCannedUsed, sendLater, type Canned } from '../composerExtras';
 import { hasFeature } from '../features';
-import { EmojiPicker } from './EmojiPicker';
-import { GifSheet } from './composer/GifSheet';
+import { CameraSlot, FieldButton, LockPill, SendMicButton, ShortHint, controlGap } from './composer/Controls';
+import { sendModeOf } from './composer/gesture';
+import { useVoiceRecorder, type Voice } from './composer/useVoiceRecorder';
+import { DiscardAnimation, InterruptionBanner, VoiceRow, voiceRowPhase } from './composer/VoiceBar';
+import { useScreenReader } from '../../call/ui/useAutoHide';
+import { useTapToRecord } from '../voice/tapSetting';
+import { ComposerPanel } from './composer/Panel';
+import { halfPanelHeight, searchPanelHeight } from './composer/panel/logic';
 import { SendLaterSheet } from './composer/SendLaterSheet';
 import { clearDraft, readDraft, writeDraft } from '../drafts';
 import { dropFile } from '../files';
@@ -21,21 +30,21 @@ import { editMessage, mentionsInBody } from '../messageActions';
 import { failureText } from './actions/failure';
 import { useUploadLimit } from '../limits';
 import { askForPushOnce } from '../push';
-import type { Mention, Message } from '../types';
+import type { GifMedia, Mention, Message, Rich, Sticker } from '../types';
 import { pickAttachments, type AttachSource } from './attach';
 import { Avatar } from './Avatar';
 import { photoFrom } from '../../people/photo';
 import { notePhotoList } from '../../people/photos';
 import { useChatFormat } from './format';
 import { Icon, type IconName } from '../../../ui/icons';
-import { AttachSheet, MicButton, RecordingStrip, StagedFile, type Extra } from './MediaControls';
-import { useVoiceHold, type Voice } from './useVoiceHold';
+import { StagedFile } from './MediaControls';
+import { AttachSheet, type Extra } from './composer/AttachSheet';
 import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 import { useBottomInset } from '../../../ui/insets';
 
 type Staged = Outgoing['files'][number];
 
-export type ComposerHandle = { reply(message: Message): void; edit(message: Message): void; restore(body: string, partnerIds: number[]): void; focus(): void };
+export type ComposerHandle = { reply(message: Message): void; edit(message: Message): void; restore(body: string, partnerIds: number[]): void; focus(): void; closePanel(): void };
 
 const now = () => Date.now();
 const clock = () => performance.now();
@@ -72,7 +81,6 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const keyboardVisible = useKeyboardState((state) => state.isVisible);
-  const bottom = useBottomInset(space.sm, keyboardVisible);
   const { windowClass } = useWindowClass();
   const { size } = useChatFormat();
   const maxBytes = useUploadLimit(chatClient()?.account, 'chat');
@@ -86,7 +94,15 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const [sheet, setSheet] = useState(false);
   const [editing, setEditing] = useState<Message | null>(null);
   const [urgent, setUrgent] = useState(false);
-  const [extra, setExtra] = useState<'emoji' | 'gif' | 'later' | null>(null);
+  const [extra, setExtra] = useState<'later' | null>(null);
+  const [panel, setPanel] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [panelHeight, setPanelHeight] = useState(() => halfPanelHeight(0));
+  const [full, setFull] = useState(false);
+  const { height: windowHeight } = useWindowDimensions();
+  const closeRef = useRef<() => void>(() => undefined);
+  const keyboardHeight = useKeyboardState((state) => state.height);
+  const origin = useChat((state) => state.origin);
   const [laterBusy, setLaterBusy] = useState(false);
   const [canned, setCanned] = useState<Canned[]>([]);
   const features = useChat((state) => state.features);
@@ -98,6 +114,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const parent = parentId ? messages.find((message) => message.id === parentId) : null;
 
   useImperativeHandle(ref, () => ({
+    closePanel: () => closeRef.current(),
     reply: (message) => {
       setParentId(message.id);
       input.current?.focus();
@@ -278,8 +295,6 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const extras: Extra[] = editing
     ? []
     : [
-        { key: 'emoji', icon: 'emoji', label: t('extras.emoji'), onPress: () => { setSheet(false); setExtra('emoji'); } },
-        ...(features.gif ? [{ key: 'gif', icon: 'image' as const, label: t('extras.gif'), onPress: () => { setSheet(false); setExtra('gif'); } }] : []),
         { key: 'canned', icon: 'reply', label: t('extras.canned'), onPress: () => { setSheet(false); insertAtCursor('::'); input.current?.focus(); } },
         ...(hasFeature(features, 'send_later') && !parentId
           ? [{ key: 'later', icon: 'clock' as const, label: t('extras.later'), onPress: () => { setSheet(false); if (text.trim() || files.length) setExtra('later'); else onNotice?.(t('extras.laterEmpty')); } }]
@@ -295,11 +310,101 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
     if (replyTo) setParentId(null);
     void send({ channelId, text: '', parentId: replyTo, mentions: [], files: [voice] }, startedAt).then((key) => delivered(key));
   };
-  const voice = useVoiceHold(sendVoice);
-  const recording = voice.recording;
+  const screenReader = useScreenReader();
+  const tapSetting = useTapToRecord();
+  const tapMode = screenReader || tapSetting;
+  const voice = useVoiceRecorder({ accountId, channelId, tapMode, onSend: sendVoice });
+  const voicePhase = voiceRowPhase(voice);
+  const [discarding, setDiscarding] = useState(false);
+  const cancelled = voice.state.phase === 'cancelled';
+  const [seenCancel, setSeenCancel] = useState(false);
+  if (cancelled !== seenCancel) {
+    setSeenCancel(cancelled);
+    if (cancelled) setDiscarding(true);
+  }
+  const endDiscard = useCallback(() => setDiscarding(false), []);
+  const mode = sendModeOf({ text, files: files.length, locked: voicePhase === 'locked' || voicePhase === 'paused' });
 
-  const canSend = (text.trim().length > 0 || files.length > 0) && !recording;
+  const sendRich = (rich: Rich) => {
+    const replyTo = parentId;
+    if (replyTo) setParentId(null);
+    void send({ channelId, text: '', parentId: replyTo, mentions: [], files: [], rich }, clock()).then((key) => delivered(key));
+  };
+
+  const reduceMotion = useReducedMotion();
+  const keyboard = useReanimatedKeyboardAnimation();
+  const open = useSharedValue(0);
+  const reopening = useRef(false);
+  const formatBarSpace = useRef(0);
+  const openPanel = () => {
+    setPanelHeight(halfPanelHeight(keyboardHeight) + (markup.showBar ? formatBarSpace.current : 0));
+    setFull(false);
+    reopening.current = false;
+    setPanel(true);
+    open.set(keyboardVisible || reduceMotion ? 1 : withTiming(1, { duration: duration.slow, easing: easing.expo }));
+    void KeyboardController.dismiss();
+  };
+  const closePanel = useCallback(() => {
+    setSearching(false);
+    setFull(false);
+    open.set(
+      reduceMotion
+        ? 0
+        : withTiming(0, { duration: duration.base, easing: easing.exit }, (done) => {
+          if (done) scheduleOnRN(setPanel, false);
+        }),
+    );
+    if (reduceMotion) setPanel(false);
+  }, [open, reduceMotion]);
+  useEffect(() => {
+    closeRef.current = closePanel;
+  }, [closePanel]);
+  const sizePanel = useCallback(
+    (next: 'full' | 'half' | 'close') => {
+      if (next === 'close') closePanel();
+      else setFull(next === 'full');
+    },
+    [closePanel],
+  );
+  const fullHeight = Math.max(halfPanelHeight(keyboardHeight) + 80, Math.round(windowHeight * 0.6));
+  const target = searching ? searchPanelHeight : full ? fullHeight : panelHeight;
+  const grown = useSharedValue(target);
+  useEffect(() => {
+    grown.set(reduceMotion ? withTiming(target, { duration: duration.quick }) : withSpring(target, spring.spatial));
+  }, [grown, reduceMotion, target]);
+  const showKeyboard = () => {
+    reopening.current = true;
+    setSearching(false);
+    input.current?.focus();
+  };
+  useEffect(() => {
+    if (!panel || !keyboardVisible || !reopening.current) return;
+    reopening.current = false;
+    open.set(0);
+    setPanel(false);
+  }, [keyboardVisible, open, panel]);
+  useEffect(() => {
+    if (!panel) return;
+    const back = BackHandler.addEventListener('hardwareBackPress', () => {
+      closePanel();
+      return true;
+    });
+    return () => back.remove();
+  }, [closePanel, panel]);
+  const panelStyle = useAnimatedStyle(() => ({
+    height: open.get() * (searching ? grown.get() : Math.max(0, grown.get() + keyboard.height.get())),
+  }));
+  const backspace = () => {
+    const next = deleteBefore(text, cursor);
+    setText(next.text);
+    setCursor(next.cursor);
+  };
+
+  const voiceIn = useMotion(FadeIn.duration(duration.quick));
+  const composeIn = useMotion(FadeIn.duration(duration.quick).delay(discarding ? 680 : 0));
+  const groupOut = useMotion(FadeOut.duration(duration.quick));
   const glass = useSurface() === 'glass';
+  const bottom = useBottomInset(space.sm, keyboardVisible || panel);
 
   return (
     <View style={[styles.container, glass ? styles.bare : { borderTopColor: colors.line }, { backgroundColor: colors.canvas, paddingBottom: bottom }]} testID="composer">
@@ -376,6 +481,7 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
               key={file.uri}
               name={file.name}
               mimetype={file.mimetype}
+              uri={file.uri}
               onRemove={() => {
                 dropFile(file.uri);
                 setFiles((current) => current.filter((_, position) => position !== index));
@@ -384,14 +490,17 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           ))}
         </ScrollView>
       ) : null}
-      <View style={styles.row}>
-        {recording ? (
-          <RecordingStrip recording={recording} />
+      {voice.state.phase === 'paused' ? <InterruptionBanner reason={voice.state.reason} /> : null}
+      <View style={styles.row} testID="composer-row">
+        {voicePhase ? (
+          <Animated.View key="voice" style={styles.group} entering={voiceIn} exiting={groupOut}>
+            <VoiceRow voice={voice} channelId={channelId} />
+          </Animated.View>
         ) : (
-          <>
+          <Animated.View key="compose" style={styles.group} entering={composeIn} exiting={groupOut}>
             {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />}
             {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
-            <FloatingSurface solid={colors.surface} style={[styles.field, glass ? styles.bare : { borderColor: colors.line }]}>
+            <FloatingSurface solid={colors.surface} style={[styles.field, glass ? styles.bare : { borderColor: colors.line }]} testID="composer-field">
               <TextInput
                 ref={input}
                 value={text}
@@ -400,7 +509,15 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
                   setCursor(event.nativeEvent.selection.end);
                   markup.inputProps.onSelectionChange(event);
                 }}
-                onFocus={markup.inputProps.onFocus}
+                onFocus={() => {
+                  if (panel && keyboardVisible) {
+                    reopening.current = false;
+                    setSearching(false);
+                    open.set(0);
+                    setPanel(false);
+                  } else if (panel) reopening.current = true;
+                  markup.inputProps.onFocus();
+                }}
                 onBlur={markup.inputProps.onBlur}
                 placeholder={t('composer.placeholder')}
                 placeholderTextColor={colors.inkFaint}
@@ -413,31 +530,52 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
                 testID="composer-input"
                 style={[styles.input, { color: colors.ink }]}
               />
+              <FieldButton
+                icon={panel ? 'keyboard' : 'emoji'}
+                label={panel ? t('composer.showKeyboard') : t('composer.openPanel')}
+                onPress={panel ? showKeyboard : openPanel}
+                testID={panel ? 'composer-keyboard' : 'composer-panel-toggle'}
+              />
             </FloatingSurface>
-          </>
+            {editing ? null : <CameraSlot shown={mode === 'mic'} onPress={() => void pickFrom('camera')} onLongPress={() => void pickFrom('photos')} />}
+          </Animated.View>
         )}
+        {discarding ? <DiscardAnimation onDone={endDiscard} /> : null}
         {editing ? (
           <RoundButton icon="check" label={t('composer.saveEdit')} filled onPress={submit} testID="composer-save-edit" />
         ) : (
-          <>
-            {canSend ? <RoundButton icon="send" label={t('composer.send')} filled onPress={submit} testID="composer-send" /> : null}
-            <MicButton voice={voice} hidden={canSend} />
-          </>
+          <SendMicButton mode={mode} voice={voice} tapMode={tapMode} onSend={submit} />
         )}
+        {editing ? null : <LockPill voice={voice} />}
+        {editing ? null : <ShortHint shown={voice.hint} />}
       </View>
-      {markup.showBar && !recording ? <FormatBar onApply={markup.apply} onHide={markup.hide} /> : null}
-      <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} extras={extras} />
-      {extra === 'emoji' ? <EmojiPicker onClose={() => setExtra(null)} onPick={(emoji) => { setExtra(null); insertAtCursor(emoji); }} /> : null}
-      {extra === 'gif' ? (
-        <GifSheet
-          onClose={() => setExtra(null)}
-          onPick={(gif) => {
-            setExtra(null);
-            void send({ channelId, text: gif.url, parentId, mentions: [], files: [] }, clock()).then((key) => delivered(key));
-            setParentId(null);
+      {markup.showBar && !voicePhase ? (
+        <FormatBar
+          onApply={markup.apply}
+          onHide={markup.hide}
+          onSpace={(height) => {
+            formatBarSpace.current = height;
           }}
         />
       ) : null}
+      {panel ? (
+        <Animated.View style={[styles.panelClip, panelStyle]}>
+          <View style={{ height: target }} testID="composer-panel-box">
+            <ComposerPanel
+              origin={origin}
+              full={full}
+              searching={searching}
+              onSize={sizePanel}
+              onEmoji={(emoji) => insertAtCursor(emoji)}
+              onBackspace={backspace}
+              onSticker={(sticker: Sticker) => sendRich({ sticker })}
+              onGif={(gif: GifMedia) => sendRich({ gif })}
+              onSearching={setSearching}
+            />
+          </View>
+        </Animated.View>
+      ) : null}
+      <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} extras={extras} />
       {extra === 'later' ? <SendLaterSheet busy={laterBusy} onClose={() => setExtra(null)} onPick={(when) => void scheduleAt(when)} /> : null}
     </View>
   );
@@ -448,10 +586,12 @@ const styles = StyleSheet.create({
   strong: { fontWeight: '600' },
   container: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm, paddingHorizontal: space.sm, gap: space.sm },
   bare: { borderWidth: 0, borderTopWidth: 0 },
-  row: { flexDirection: 'row', alignItems: 'flex-end', gap: space.xs },
+  row: { flexDirection: 'row', alignItems: 'flex-end', gap: controlGap },
+  group: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: controlGap },
+  panelClip: { overflow: 'hidden', marginHorizontal: -space.sm },
   round: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  field: { flex: 1, minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, justifyContent: 'center' },
-  input: { fontSize: 16, lineHeight: 22, maxHeight: 132, paddingTop: Platform.OS === 'ios' ? 11 : 8, paddingBottom: Platform.OS === 'ios' ? 11 : 8 },
+  field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingLeft: space.md, paddingRight: space.sm },
+  input: { flex: 1, fontSize: 16, lineHeight: 22, maxHeight: 132, paddingTop: Platform.OS === 'ios' ? 11 : 8, paddingBottom: Platform.OS === 'ios' ? 11 : 8 },
   suggestions: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   suggestion: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, paddingHorizontal: space.md },
   replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.sm, paddingLeft: space.md },

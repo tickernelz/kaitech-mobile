@@ -2,6 +2,7 @@
 module.exports = {
   extraSources: [
     { type: 'dir', filePath: 'modules/kaitech-call', reasons: ['kaitechCallModule'] },
+    { type: 'dir', filePath: 'modules/kaitech-voice', reasons: ['kaitechVoiceModule'] },
     { type: 'dir', filePath: 'plugins', reasons: ['localConfigPlugins'] },
   ],
 };

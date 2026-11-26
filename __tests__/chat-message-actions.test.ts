@@ -114,7 +114,6 @@ describe('featuresFromSession', () => {
         self_partner: { id: 3, type: 'partner' },
         kaitech_chat_features: ['forward', 'read_by', 'meeting'],
         kaitech_chat_can_make_task: true,
-        hasGifPickerFeature: false,
         kaitech_chat_coworker_partner_id: 8,
       },
       'res.partner': [{ id: 3, main_user_id: 2 }],
@@ -126,7 +125,7 @@ describe('featuresFromSession', () => {
     const features = featuresFromSession(info);
     expect(hasFeature(features, 'forward')).toBe(true);
     expect(hasFeature(features, 'translate')).toBe(false);
-    expect(features).toMatchObject({ isAdmin: true, canMakeTask: true, gif: true, coworkerPartnerId: 8 });
+    expect(features).toMatchObject({ isAdmin: true, canMakeTask: true, coworkerPartnerId: 8 });
   });
 
   it('turns everything off when the server sends no store', () => {

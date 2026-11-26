@@ -187,7 +187,7 @@ async function signIn(login, password) {
   return `session_id=${cookie}`;
 }
 
-function checkComposer() {
+function checkComposerGap() {
   const screen = dump();
   const composer = find(screen, 'composer');
   if (!composer) return failures.push('composer: no composer under the thread');
@@ -251,7 +251,7 @@ async function checkBubbles(sent) {
   }
   if (!list) return failures.push('bubbles: no thread-list');
   sleep(2000);
-  checkComposer();
+  checkComposerGap();
   const seen = new Map();
   for (let round = 0; round < 12 && seen.size < sent.length; round++) {
     const screen = dump();
@@ -323,6 +323,145 @@ try {
 } catch (error) {
   failures.push(`bubbles: probe messages ${probes.map((one) => one.id).join(', ')} were not removed: ${error.message}`);
 }
+
+function tapNode(node) {
+  adb('shell', 'input', 'tap', String((node.left + node.right) >> 1), String((node.top + node.bottom) >> 1));
+}
+
+function waitFor(id, present = true) {
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const tree = dump();
+    if (Boolean(find(tree, id)) === present) return tree;
+    sleep(1000);
+  }
+  return null;
+}
+
+const shown = (node) => node && node.right - node.left > 1 && node.bottom - node.top > 1;
+
+function composerParts(tree) {
+  const parts = Object.fromEntries(['composer-row', 'composer-attach', 'composer-field', 'composer-panel-toggle', 'composer-camera', 'composer-send-slot'].map((id) => [id, find(tree, id)]));
+  parts['composer-camera'] = shown(parts['composer-camera']) ? parts['composer-camera'] : undefined;
+  return parts;
+}
+
+function checkComposer(state, parts) {
+  const row = parts['composer-row'];
+  const slot = parts['composer-send-slot'];
+  if (!row || !slot) {
+    failures.push(`composer ${state}: ${row ? 'no composer-send-slot' : 'no composer-row'}`);
+    return null;
+  }
+  const order = ['composer-attach', 'composer-field', 'composer-camera', 'composer-send-slot'].map((id) => [id, parts[id]]).filter(([, node]) => node);
+  lines.push(`composer ${state}: row ${box(row)} ${dp(row.bottom - row.top)}dp, ${order.map(([id, node]) => `${id.replace('composer-', '')} ${box(node)}`).join(', ')}`);
+  for (let index = 1; index < order.length; index++) {
+    const [leftId, left] = order[index - 1];
+    const [rightId, right] = order[index];
+    if (left.right > right.left + 1) failures.push(`composer ${state}: ${leftId} ${box(left)} overlaps ${rightId} ${box(right)}`);
+  }
+  for (const [id, node] of order.filter(([id]) => id !== 'composer-field')) {
+    if (dp(node.right - node.left) < 43.5 || dp(node.bottom - node.top) < 43.5) failures.push(`composer ${state}: ${id} ${box(node)} is under 44dp`);
+  }
+  const toggle = parts['composer-panel-toggle'];
+  const field = parts['composer-field'];
+  if (toggle && field && (toggle.left < field.left || toggle.right > field.right + 1)) failures.push(`composer ${state}: the panel button ${box(toggle)} is outside the field ${box(field)}`);
+  if (row.right > screenWidthAll + 1) failures.push(`composer ${state}: row ${box(row)} runs off the screen`);
+  return { row, slot, camera: parts['composer-camera'] };
+}
+
+const peer = process.env.E2E_PEER;
+adb('shell', 'monkey', '-p', 'io.kaitech.mobile', '-c', 'android.intent.category.LAUNCHER', '1');
+sleep(3000);
+const screenWidthAll = dump().children[0].right;
+if (peer) {
+  waitForNoCall();
+  const chatButton = find(dump(), 'tab-button-chat');
+  if (chatButton) tapNode(chatButton);
+  let conversation;
+  for (let attempt = 0; attempt < 30 && !conversation; attempt++) {
+    sleep(1000);
+    conversation = [...walk(dump())].find((node) => node.text === peer);
+  }
+  if (!conversation) failures.push(`composer: conversation "${peer}" never showed`);
+  else {
+    tapNode(conversation);
+    const empty = waitFor('composer-row');
+    const before = empty && checkComposer('empty', composerParts(empty));
+    if (before && !before.camera) failures.push('composer empty: no camera button');
+    screenshot('composer-empty');
+    const input = empty && find(empty, 'composer-input');
+    if (input) {
+      tapNode(input);
+      sleep(1500);
+      adb('shell', 'input', 'text', 'hai');
+      sleep(1200);
+      const typed = checkComposer('typing', composerParts(dump()));
+      screenshot('composer-typing');
+      for (let key = 0; key < 3; key++) adb('shell', 'input', 'keyevent', 'KEYCODE_DEL');
+      sleep(1200);
+      const cleared = checkComposer('cleared', composerParts(dump()));
+      if (typed?.camera) failures.push(`composer typing: the camera ${box(typed.camera)} still shows`);
+      if (cleared && !cleared.camera) failures.push('composer cleared: the camera did not come back');
+      for (const [state, now] of [['typing', typed], ['cleared', cleared]]) {
+        if (!before || !now) continue;
+        if (Math.abs(now.row.bottom - now.row.top - (before.row.bottom - before.row.top)) > 1) failures.push(`composer ${state}: row height ${dp(now.row.bottom - now.row.top)}dp, empty was ${dp(before.row.bottom - before.row.top)}dp`);
+        if (Math.abs(now.slot.left - before.slot.left) > 1 || Math.abs(now.slot.right - before.slot.right) > 1) failures.push(`composer ${state}: the mic/send slot moved from ${box(before.slot)} to ${box(now.slot)}`);
+      }
+      const withKeyboard = find(dump(), 'composer-row');
+      const toggle = withKeyboard && find(dump(), 'composer-panel-toggle');
+      if (withKeyboard && toggle) {
+        tapNode(toggle);
+        sleep(1500);
+        const panelTree = dump();
+        const withPanel = find(panelTree, 'composer-row');
+        const panel = find(panelTree, 'composer-panel');
+        if (!panel) failures.push('composer panel: the panel did not open');
+        if (withPanel) {
+          const moved = dp(Math.abs(withPanel.top - withKeyboard.top));
+          lines.push(`composer panel: row ${box(withPanel)} with the panel, ${box(withKeyboard)} with the keyboard, moved ${moved}dp`);
+          if (moved > 1) failures.push(`composer panel: the row moved ${moved}dp when the panel replaced the keyboard`);
+        }
+        screenshot('composer-panel');
+        for (const [tab, bar, list] of [
+          ['emoji', /^emoji-tab-/, 'emoji-list'],
+          ['sticker', /^sticker-source-/, 'sticker-list'],
+          ['gif', /^gif-chip-/, 'gif-list'],
+        ]) {
+          const tabButton = find(dump(), `panel-tab-${tab}`);
+          if (!tabButton) {
+            failures.push(`composer panel: no ${tab} tab`);
+            continue;
+          }
+          tapNode(tabButton);
+          const tree = waitFor(list);
+          const content = tree && find(tree, list);
+          const barBottom = tree && Math.max(...[...walk(tree)].filter((node) => bar.test(node.id ?? '') && shown(node)).map((node) => node.bottom));
+          if (!content || !Number.isFinite(barBottom)) {
+            failures.push(`composer panel: ${tab} tab has no ${list} or no row above it`);
+            continue;
+          }
+          const gap = dp(content.top - barBottom);
+          lines.push(`composer panel: ${tab} row ends at ${barBottom}, ${list} ${box(content)}, gap ${gap}dp, list ${dp(content.bottom - content.top)}dp`);
+          if (gap > 16) failures.push(`composer panel: ${gap}dp empty between the ${tab} row and its content`);
+          screenshot(`composer-panel-${tab}`);
+        }
+        const back = find(dump(), 'composer-keyboard');
+        if (back) {
+          tapNode(back);
+          sleep(1500);
+          const again = find(dump(), 'composer-row');
+          if (again) {
+            const moved = dp(Math.abs(again.top - withKeyboard.top));
+            lines.push(`composer panel: row ${box(again)} after the keyboard came back, moved ${moved}dp`);
+            if (moved > 1) failures.push(`composer panel: the row moved ${moved}dp when the keyboard came back`);
+          }
+        } else failures.push('composer panel: no keyboard button while the panel is open');
+      } else lines.push('composer panel: skipped, no keyboard-open row or panel button');
+      adb('shell', 'input', 'keyevent', 'KEYCODE_BACK');
+      sleep(1000);
+    } else failures.push('composer: no composer-input');
+  }
+} else lines.push('composer: skipped, E2E_PEER is not set');
 
 lines.push(...failures.map((failure) => `FAIL ${failure}`));
 writeFileSync(join(out, 'layout.txt'), `${lines.join('\n')}\n`);

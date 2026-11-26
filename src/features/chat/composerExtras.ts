@@ -2,7 +2,8 @@ import { route, rpc } from '../../api/odoo';
 import { chatClient, newKey } from './chat';
 import { composeBody, mentionsInText } from './html';
 import { run, odooDatetime } from './messageActions';
-import type { Mention, PendingFile } from './types';
+import { gifFrom, stickerFrom } from './rich';
+import type { GifMedia, Media, Mention, PendingFile, Sticker } from './types';
 
 export function cannedQuery(text: string, cursor: number): { start: number; query: string } | null {
   const before = text.slice(0, cursor);
@@ -11,6 +12,35 @@ export function cannedQuery(text: string, cursor: number): { start: number; quer
   const query = before.slice(at + 2);
   if (/\s/.test(query) || query.length > 32) return null;
   return { start: at, query };
+}
+
+const zeroWidthJoiner = 0x200d;
+
+function attaches(point: number): boolean {
+  return point === 0xfe0f || point === 0xfe0e || point === 0x20e3 || (point >= 0x1f3fb && point <= 0x1f3ff) || (point >= 0xe0020 && point <= 0xe007f);
+}
+
+function regional(point: number): boolean {
+  return point >= 0x1f1e6 && point <= 0x1f1ff;
+}
+
+export function deleteBefore(text: string, cursor: number): { text: string; cursor: number } {
+  const head = Array.from(text.slice(0, cursor));
+  if (!head.length) return { text, cursor };
+  const point = (index: number) => head[index].codePointAt(0) ?? 0;
+  let start = head.length - 1;
+  while (start > 0 && attaches(point(start))) start -= 1;
+  while (start > 1 && point(start - 1) === zeroWidthJoiner) {
+    start -= 2;
+    while (start > 0 && attaches(point(start))) start -= 1;
+  }
+  if (regional(point(start))) {
+    let run = 0;
+    for (let index = start; index >= 0 && regional(point(index)); index -= 1) run += 1;
+    if (run % 2 === 0) start -= 1;
+  }
+  const kept = head.slice(0, start).join('');
+  return { text: kept + text.slice(cursor), cursor: kept.length };
 }
 
 export type Canned = { id: number; source: string; substitution: string };
@@ -32,25 +62,87 @@ export function markCannedUsed(id: number) {
   });
 }
 
-export type Gif = { id: string; url: string; width: number; height: number };
+export type Attribution = { placeholder: string; mark: string };
+export type Page<T> = { items: T[]; next: string | null; attribution: Attribution | null };
+export type StickerPack = { id: number; name: string; stickers: Sticker[] };
+export type StickerShelf = { packs: StickerPack[]; recent: Sticker[]; favorites: number[] };
 
-export function searchGifs(term: string, locale: string, position: string | null) {
-  return run(async (account): Promise<{ gifs: Gif[]; next: string | null }> => {
-    const raw = await route<{ results?: unknown[]; next?: unknown }>(account, '/discuss/gif/search', { search_term: term, locale, country: locale === 'id' ? 'ID' : 'US', ...(position ? { position } : {}) });
-    const gifs: Gif[] = [];
-    for (const item of raw?.results ?? []) {
-      const record = item as { id?: unknown; media_formats?: { tinygif?: { url?: unknown; dims?: unknown } } };
-      const tiny = record.media_formats?.tinygif;
-      const dims = Array.isArray(tiny?.dims) ? tiny.dims : [];
-      if (typeof tiny?.url === 'string') gifs.push({ id: String(record.id ?? tiny.url), url: tiny.url, width: Number(dims[0]) || 1, height: Number(dims[1]) || 1 });
-    }
-    return { gifs, next: typeof raw?.next === 'string' && raw.next ? raw.next : null };
+type RawPage = { results?: unknown[]; next?: unknown; attribution?: { placeholder?: unknown; mark?: unknown } };
+
+function attributionOf(raw: RawPage | null): Attribution | null {
+  const value = raw?.attribution;
+  if (!value || typeof value.mark !== 'string') return null;
+  return { placeholder: typeof value.placeholder === 'string' ? value.placeholder : '', mark: value.mark };
+}
+
+export function pageOf<T>(raw: RawPage | null, parse: (item: unknown) => T | null): Page<T> {
+  const items: T[] = [];
+  for (const item of raw?.results ?? []) {
+    const parsed = parse(item);
+    if (parsed) items.push(parsed);
+  }
+  return { items, next: typeof raw?.next === 'string' && raw.next ? raw.next : null, attribution: attributionOf(raw) };
+}
+
+export function gifPage(query: string, position: string | null) {
+  const term = query.trim();
+  return run(async (account): Promise<Page<GifMedia>> => {
+    const raw = await route<RawPage>(account, term ? '/kaitech_chat/gif/search' : '/kaitech_chat/gif/trending', { ...(term ? { query: term } : {}), ...(position ? { position } : {}) });
+    return pageOf(raw, gifFrom);
   });
 }
 
-export function gifBody(url: string): string {
-  const href = encodeURI(url);
-  return `<a href="${href.replace(/"/g, '&quot;')}" target="_blank" rel="noreferrer noopener">${href.replace(/</g, '&lt;')}</a>`;
+export function providerStickerPage(query: string, position: string | null) {
+  const term = query.trim();
+  return run(async (account): Promise<Page<Sticker>> => {
+    const raw = await route<RawPage>(account, '/kaitech_chat/gif/stickers', { ...(term ? { query: term } : {}), ...(position ? { position } : {}) });
+    return pageOf(raw, stickerFrom);
+  });
+}
+
+export function stickerShelf() {
+  return run(async (account): Promise<StickerShelf> => shelfOf(await route<{ packs?: unknown[]; recent?: unknown[]; favorites?: unknown[] }>(account, '/kaitech_chat/stickers', {})));
+}
+
+export function shelfOf(raw: { packs?: unknown[]; recent?: unknown[]; favorites?: unknown[] } | null): StickerShelf {
+  const byId = new Map<number, Sticker>();
+  const packs: StickerPack[] = [];
+  for (const item of raw?.packs ?? []) {
+    if (!item || typeof item !== 'object') continue;
+    const pack = item as { id?: unknown; name?: unknown; stickers?: unknown[] };
+    if (typeof pack.id !== 'number') continue;
+    const stickers = (pack.stickers ?? []).map(stickerFrom).filter((sticker): sticker is Sticker => sticker !== null && sticker.source === 'pack');
+    stickers.forEach((sticker) => byId.set(sticker.id as number, sticker));
+    if (stickers.length) packs.push({ id: pack.id, name: typeof pack.name === 'string' ? pack.name : '', stickers });
+  }
+  const numbers = (list: unknown[] | undefined) => (list ?? []).filter((value): value is number => typeof value === 'number');
+  const recent = numbers(raw?.recent)
+    .map((stickerId) => byId.get(stickerId))
+    .filter((sticker): sticker is Sticker => sticker !== undefined);
+  return { packs, recent, favorites: numbers(raw?.favorites) };
+}
+
+export type GifCategory = { name: string; query: string; preview: Media | null };
+
+export function gifCategories() {
+  return run(async (account): Promise<{ categories: GifCategory[]; attribution: Attribution | null }> => {
+    const raw = await route<RawPage & { categories?: unknown[] }>(account, '/kaitech_chat/gif/categories', {});
+    const categories: GifCategory[] = [];
+    for (const item of raw?.categories ?? []) {
+      if (!item || typeof item !== 'object') continue;
+      const entry = item as { name?: unknown; query?: unknown; preview?: { url?: unknown; width?: unknown; height?: unknown } };
+      if (typeof entry.name !== 'string' || typeof entry.query !== 'string' || !entry.query) continue;
+      const preview = entry.preview && typeof entry.preview.url === 'string' ? { url: entry.preview.url, width: Number(entry.preview.width) || 1, height: Number(entry.preview.height) || 1 } : null;
+      categories.push({ name: entry.name, query: entry.query, preview });
+    }
+    return { categories, attribution: attributionOf(raw) };
+  });
+}
+
+export function setStickerFavorite(stickerId: number, favorite: boolean) {
+  return run(async (account) => {
+    await route(account, '/kaitech_chat/sticker/favorite', { sticker_id: stickerId, favorite });
+  });
 }
 
 export function sendLater(input: { channelId: number; text: string; mentions: Mention[]; files: Omit<PendingFile, 'key' | 'attachmentId' | 'ownershipToken'>[]; when: number }) {
