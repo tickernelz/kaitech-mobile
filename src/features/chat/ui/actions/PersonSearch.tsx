@@ -6,7 +6,7 @@ import { radius, space, useTheme } from '../../../../theme';
 import { Icon } from '../../../../ui/icons';
 import { Text } from '../../../../ui/Text';
 import type { Person, Result } from '../../messageActions';
-import { chipBand, chipHeight, chipRowGap, chipSlop } from '../../../../ui/touch';
+import { chipBand, chipHeight, chipRowGap, chipSlop, touchTarget } from '../../../../ui/touch';
 
 export function PersonChips({ people, onRemove, testID }: { people: Person[]; onRemove?: (person: Person) => void; testID?: string }) {
   const { t } = useTranslation('chat');
@@ -105,5 +105,5 @@ const styles = StyleSheet.create({
   input: { minHeight: 44, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
   result: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.xs, rowGap: chipRowGap, ...chipBand },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, maxWidth: '100%' },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: chipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, maxWidth: '100%' },
 });

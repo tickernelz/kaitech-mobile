@@ -11,7 +11,7 @@ import { activityDraft, makeActivity, type ActivityDraft, type Result } from '..
 import type { Message } from '../../types';
 import { failureText } from './failure';
 import { WhenPicker } from './WhenPicker';
-import { chipBand, chipHeight, chipSlop } from '../../../../ui/touch';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../../ui/touch';
 
 export function ActivitySheet({ message, onClose, onDone }: { message: Message; onClose: () => void; onDone: (text: string) => void }) {
   const { t } = useTranslation('chat');
@@ -102,5 +102,5 @@ const styles = StyleSheet.create({
   pad: { padding: space.xl },
   row: { gap: space.xs, paddingVertical: chipBand.paddingVertical },
   chipBar: { marginVertical: chipBand.marginVertical },
-  chip: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
 });

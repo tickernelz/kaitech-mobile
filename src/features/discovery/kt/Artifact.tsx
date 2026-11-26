@@ -12,7 +12,7 @@ import { splitBlocks } from '../blocks';
 import { useItems, useThread, webChatUrl, type Place } from './place';
 import { parseBlock, readArtifact, type ArtifactBlock } from './read';
 import { Tool, styles as shared } from './ui';
-import { chipBand, chipHeight, chipSlop } from '../../../ui/touch';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 
 const SealedFrame = lazy(() => Promise.resolve(require('./SealedFrame') as typeof import('./SealedFrame')));
 
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.lg },
   versionStrip: { flexGrow: 0, marginTop: chipBand.marginVertical },
   versions: { gap: space.sm, paddingHorizontal: space.lg, paddingTop: chipBand.paddingVertical, paddingBottom: space.sm },
-  version: { minHeight: chipHeight, justifyContent: 'center', borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md },
+  version: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md },
   stage: { flex: 1, marginHorizontal: space.lg, borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
   frame: { flex: 1 },
   foot: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.lg },

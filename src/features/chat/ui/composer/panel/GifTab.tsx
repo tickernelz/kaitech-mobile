@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   search: { height: touchTarget, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
   bar: { flexGrow: 0 },
   chips: { gap: space.xs, paddingTop: gifChipSlop.top, paddingBottom: gifChipSlop.bottom },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, height: gifChipHeight, paddingHorizontal: space.sm, borderRadius: radius.pill },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, height: gifChipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.sm, borderRadius: radius.pill },
   thumb: { width: 24, height: 24, borderRadius: 12 },
   mark: { textAlign: 'center', paddingVertical: space.sm },
 });

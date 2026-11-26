@@ -5,7 +5,7 @@ import { Pressable } from '../../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../../theme';
 import { Text } from '../../../../ui/Text';
 import { intlLocale } from '../../../../i18n/language';
-import { chipBand, chipHeight, chipSlop } from '../../../../ui/touch';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../../ui/touch';
 
 const dayMs = 86400000;
 const days = 14;
@@ -91,5 +91,5 @@ const styles = StyleSheet.create({
   wrap: { gap: space.xs, paddingVertical: space.xs },
   row: { gap: space.xs, paddingVertical: chipBand.paddingVertical },
   chipBar: { marginVertical: chipBand.marginVertical },
-  chip: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
 });

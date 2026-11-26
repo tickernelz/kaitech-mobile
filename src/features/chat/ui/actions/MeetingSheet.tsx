@@ -12,7 +12,7 @@ import { meetingBusy, meetingDraft, scheduleMeeting, type Busy, type MeetingDraf
 import { failureText } from './failure';
 import { PersonChips, PersonSearch } from './PersonSearch';
 import { WhenPicker } from './WhenPicker';
-import { chipBand, chipHeight, chipSlop } from '../../../../ui/touch';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../../ui/touch';
 
 const durations = [15, 30, 45, 60, 90];
 
@@ -149,5 +149,5 @@ const styles = StyleSheet.create({
   gap: { marginTop: space.sm },
   row: { gap: space.xs, paddingVertical: chipBand.paddingVertical },
   chipBar: { marginVertical: chipBand.marginVertical },
-  chip: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
 });

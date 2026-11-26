@@ -166,9 +166,11 @@ export function EmojiTab({
                     list.current?.scrollToIndex({ index: headers[index], animated: false });
                   }}
                   hitSlop={categorySlop}
-                  style={[styles.category, selected && { backgroundColor: colors.select }]}
+                  style={styles.category}
                   testID={`emoji-tab-${section}`}>
-                  <Icon name={sectionIcons[section]} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
+                  <View style={[styles.categoryMark, selected && { backgroundColor: colors.select }]}>
+                    <Icon name={sectionIcons[section]} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
+                  </View>
                 </Pressable>
               );
             })}
@@ -235,8 +237,9 @@ const styles = StyleSheet.create({
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   search: { flex: 1, height: touchTarget, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
   square: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  categories: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: categorySlop.top, paddingBottom: categorySlop.bottom },
-  category: { width: categoryWidth, height: categoryHeight, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  categories: { flexDirection: 'row', paddingTop: categorySlop.top, paddingBottom: categorySlop.bottom },
+  category: { flex: 1, height: categoryHeight, alignItems: 'center', justifyContent: 'center' },
+  categoryMark: { width: categoryWidth, height: categoryHeight, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   header: { height: headerHeight, lineHeight: headerHeight, fontWeight: '600', paddingHorizontal: space.xs },
   row: { flexDirection: 'row' },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },

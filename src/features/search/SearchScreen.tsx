@@ -16,7 +16,7 @@ import { Icon, type IconName } from '../../ui/icons';
 import { IconButton } from '../../ui/IconButton';
 import { StateView } from '../discovery/ui';
 import { joinChannel, preview, searchDirectory, type DirectoryHits } from './people';
-import { chipHeight, chipSlop, shortfall } from '../../ui/touch';
+import { chipHeight, chipSlop, shortfall, touchTarget } from '../../ui/touch';
 
 type Filter = 'all' | 'chat' | 'discovery' | 'mom' | 'people';
 type Hit = { key: string; icon: IconName; title: string; detail: string; open: () => void; more?: boolean };
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   filters: { paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   chipBar: { marginTop: -shortfall(chipHeight) },
   chips: { flexDirection: 'row', gap: space.xs, paddingHorizontal: space.lg, paddingVertical: shortfall(chipHeight) },
-  chip: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   list: { padding: space.lg, paddingTop: space.lg - shortfall(chipHeight), gap: space.xs, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   ask: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg, borderRadius: radius.pill, marginBottom: space.md },
   section: { paddingTop: space.md, paddingBottom: space.xs },

@@ -22,7 +22,7 @@ import { useDueLabel } from './due';
 import { iconOfCategory } from './icons';
 import { byModel, filtered, overviewLimit, tally, type Activity, type Filter, type Meeting, type Overview } from './odoo';
 import { ScheduleSheet, type ScheduleMode } from './ScheduleSheet';
-import { chipBand, chipHeight, chipRowGap, chipSlop } from '../../ui/touch';
+import { chipBand, chipHeight, chipRowGap, chipSlop, touchTarget } from '../../ui/touch';
 
 const filters: Filter[] = ['all', 'overdue', 'today', 'planned'];
 
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   head: { gap: space.md, paddingBottom: space.sm },
   filters: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.xs, rowGap: chipRowGap, ...chipBand },
-  chip: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   block: { gap: space.sm },
   footer: { paddingTop: space.md, textAlign: 'center' },
   section: { paddingTop: space.md, paddingBottom: space.xs, paddingHorizontal: space.xs },

@@ -25,7 +25,7 @@ import {
   type ActivityType,
   type Person,
 } from './odoo';
-import { chipBand, chipHeight, chipRowGap, chipSlop } from '../../ui/touch';
+import { chipBand, chipHeight, chipRowGap, chipSlop, touchTarget } from '../../ui/touch';
 
 export type ScheduleMode =
   | { kind: 'edit'; activity: Activity }
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   block: { gap: space.xs, paddingVertical: space.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.xs, rowGap: chipRowGap, paddingVertical: chipBand.paddingVertical },
   chipBar: { marginVertical: chipBand.marginVertical },
-  choice: { minHeight: chipHeight, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  choice: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   people: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, padding: space.sm, gap: space.xs },
   note: { minHeight: 88, textAlignVertical: 'top' },
 });

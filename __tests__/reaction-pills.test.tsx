@@ -1,3 +1,10 @@
+import '../src/i18n';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet, type Insets } from 'react-native';
+import type { Message, Reaction } from '../src/features/chat/types';
+import { MessageBubble } from '../src/features/chat/ui/MessageBubble';
+import { touchTarget } from '../src/ui/touch';
+
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined } }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 jest.mock('../src/features/call/call', () => ({ callState: () => ({ phase: 'idle' }), startCall: jest.fn() }));
@@ -8,14 +15,8 @@ jest.mock('../src/features/call/ui/RecordingCard', () => ({ RecordingCard: () =>
 jest.mock('../src/features/chat/ui/useOpenAttachment', () => ({ useOpenAttachment: () => () => undefined }));
 jest.mock('../src/features/chat/ui/useCookie', () => ({ useCookie: () => null }));
 jest.mock('../src/features/chat/ui/coworker/Cards', () => ({ AgentSaid: () => null }));
-require('../src/i18n');
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { StyleSheet, type Insets } from 'react-native';
-import type { Message, Reaction } from '../src/features/chat/types';
-import { MessageBubble } from '../src/features/chat/ui/MessageBubble';
-import { touchTarget } from '../src/ui/touch';
 
-type Box = { minHeight?: number; columnGap?: number; rowGap?: number; paddingTop?: number; paddingBottom?: number; marginBottom?: number };
+type Box = { minWidth?: number; minHeight?: number; columnGap?: number; rowGap?: number; paddingTop?: number; paddingBottom?: number; marginBottom?: number };
 
 function message(reactions: Reaction[]): Message {
   return { id: 9, channelId: 7, authorId: 40, author: 'Rina Kusuma', body: 'Oke, siap', date: Date.UTC(2026, 10, 25, 3, 0), type: 'comment', attachments: [], parentId: null, reactions };
@@ -62,12 +63,13 @@ describe('reaction pills under a message', () => {
     }
   });
 
-  test('each pill takes at least 44 dp of height without reaching into the bubble above', async () => {
+  test('each pill takes at least 44 by 44 dp without reaching into the bubble above', async () => {
     await bubble(two, false);
     const strip = StyleSheet.flatten(pills()[0].parent?.props.style) as Box;
     for (const pill of pills()) {
       const slop = pill.props.hitSlop as Insets;
       expect(32 + (slop.top ?? 0) + (slop.bottom ?? 0)).toBeGreaterThanOrEqual(touchTarget);
+      expect((StyleSheet.flatten(pill.props.style) as Box).minWidth).toBeGreaterThanOrEqual(touchTarget);
       expect(slop.top).toBeLessThanOrEqual(strip.paddingTop ?? 0);
     }
   });
