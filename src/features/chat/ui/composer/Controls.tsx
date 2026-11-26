@@ -8,6 +8,7 @@ import { Icon, type IconName } from '../../../../ui/icons';
 import { lockShackleDrop } from '../../../../ui/icons/glyphs';
 import { Pressable } from '../../../../ui/Pressable';
 import { Text } from '../../../../ui/Text';
+import { keepEdgeGestures } from '../../voice/edgeGestures';
 import { isHeld } from '../../voice/machine';
 import { lockDistance, type SendMode } from './gesture';
 import type { VoiceRecorder } from './useVoiceRecorder';
@@ -60,7 +61,7 @@ export function SendMicButton({ mode, voice, tapMode, onSend }: { mode: SendMode
   }));
   const micActive = mode === 'mic';
   return (
-    <View style={styles.slot} testID="composer-send-slot">
+    <View onLayout={keepEdgeGestures} collapsable={false} style={styles.slot} testID="composer-send-slot">
       <Animated.View pointerEvents="none" style={[styles.layer, { backgroundColor: colors.primary }, ringStyle]} />
       <Animated.View
         accessible={micActive}

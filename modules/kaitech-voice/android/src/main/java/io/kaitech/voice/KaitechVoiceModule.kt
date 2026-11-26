@@ -1,12 +1,16 @@
 package io.kaitech.voice
 
+import android.graphics.Rect
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.net.Uri
+import android.os.Build
+import android.view.View
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Coroutine
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +71,10 @@ private fun join(parts: List<String>, target: String): Long {
   return offsetUs / 1000
 }
 
+private val gestureGuard = View.OnLayoutChangeListener { view, left, top, right, bottom, _, _, _, _ ->
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) view.systemGestureExclusionRects = listOf(Rect(0, 0, right - left, bottom - top))
+}
+
 class KaitechVoiceModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("KaitechVoice")
@@ -77,5 +85,12 @@ class KaitechVoiceModule : Module() {
         mapOf("uri" to target, "durationMs" to durationMs)
       }
     }
+
+    AsyncFunction("keepEdgeGestures") { view: View ->
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return@AsyncFunction
+      view.removeOnLayoutChangeListener(gestureGuard)
+      view.addOnLayoutChangeListener(gestureGuard)
+      view.systemGestureExclusionRects = listOf(Rect(0, 0, view.width, view.height))
+    }.runOnQueue(Queues.MAIN)
   }
 }
