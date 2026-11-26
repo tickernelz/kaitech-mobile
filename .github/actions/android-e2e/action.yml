@@ -28,6 +28,9 @@ inputs:
   scroll-flow:
     description: A Maestro flow whose frame statistics (gfxinfo) are saved as scroll-gfxinfo.txt; its <name>-ready.yaml runs first to reach the starting screen. Empty skips it.
     default: ''
+  motion-flow:
+    description: Path prefix of three Maestro flows; <prefix>-ready.yaml opens a thread, then <prefix>-send.yaml and <prefix>-fling.yaml are each recorded on screen and checked frame by frame with scripts/frame-flicker.mjs (motion-<phase>-flicker.json, motion-<phase>-gfxinfo.txt). Empty skips it.
+    default: ''
   layout-check:
     description: true runs scripts/e2e-layout.mjs after the flows, on the signed-in tabs, and saves layout.txt with layout-* and pull-* screenshots.
     default: 'false'
@@ -61,6 +64,17 @@ runs:
     - uses: ./.github/actions/setup-maestro
     - uses: ./.github/actions/setup-maestro-runner
     - uses: ./.github/actions/setup-gitleaks
+    - name: ffmpeg for the frame comparison
+      if: inputs.motion-flow != ''
+      shell: bash
+      run: |
+        if command -v ffmpeg > /dev/null && command -v ffprobe > /dev/null; then ffmpeg -version | head -1; exit 0; fi
+        for attempt in 1 2 3; do
+          sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg && exit 0
+          sleep $((attempt * 15))
+        done
+        echo "::error::ffmpeg not installed after 3 attempts"
+        exit 1
     - name: Emulator hardware profile for the size
       id: device
       shell: bash
@@ -99,6 +113,7 @@ runs:
         E2E_FLOWS: ${{ inputs.flows }}
         E2E_THEMED_FLOWS: ${{ inputs.themed-flows }}
         E2E_SCROLL_FLOW: ${{ inputs.scroll-flow }}
+        E2E_MOTION_FLOW: ${{ inputs.motion-flow }}
         E2E_RUNNER: ${{ inputs.runner }}
         E2E_LAYOUT_CHECK: ${{ inputs.layout-check == 'true' && '1' || '' }}
         E2E_CALL_PEER: ${{ inputs.call-peer == 'true' && '1' || '' }}
