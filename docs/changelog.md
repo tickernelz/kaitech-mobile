@@ -2,7 +2,17 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.7.1 - 2026-11-26
+
+Ships everything listed under 0.7.0, which was not published.
+
+### Changed
+
+- E2E: Android "Time to take action" is stretched to 30 s only in the chat cells, where the voice-note flow taps Undo after a discard; the rows cells keep the default Undo window they wait out (#121, ZHA-7842).
+
 ## 0.7.0 - 2026-11-26
+
+Not published: Release run 45777800606 built every asset, but its rows cells failed because the E2E harness stretched every Undo bar to 30 s while the rows flows wait 15 s for it to commit. 0.7.1 ships these changes.
 
 ### Added
 
