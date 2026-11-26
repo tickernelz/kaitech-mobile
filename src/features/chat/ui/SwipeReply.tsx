@@ -65,7 +65,12 @@ export function SwipeReply({ message, onReply, children }: { message: Message; o
       'worklet';
       const fire = armed.get() && !event.canceled;
       armed.set(false);
-      x.set(withTiming(0, { duration: settleMs }));
+      x.set(
+        withTiming(0, { duration: settleMs }, (finished) => {
+          'worklet';
+          if (finished) scheduleOnRN(setDragged, false);
+        }),
+      );
       if (fire) scheduleOnRN(reply);
     },
   });

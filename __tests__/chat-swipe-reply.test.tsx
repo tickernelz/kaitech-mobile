@@ -1,5 +1,6 @@
 const mockTick = jest.fn();
 const mockStart = jest.fn();
+const mockMotion = { settles: false };
 jest.mock('../src/ui/haptic', () => ({ haptic: { tick: () => mockTick(), start: () => mockStart() } }));
 jest.mock('react-native-worklets', () => ({ scheduleOnRN: (fn: (...args: unknown[]) => void, ...args: unknown[]) => fn(...args) }));
 jest.mock('react-native-reanimated', () => {
@@ -21,7 +22,10 @@ jest.mock('react-native-reanimated', () => {
       return ref.current;
     },
     useAnimatedStyle: (style: () => object) => style(),
-    withTiming: (value: unknown) => value,
+    withTiming: (value: unknown, _config: unknown, done?: (finished: boolean) => void) => {
+      if (mockMotion.settles) done?.(true);
+      return value;
+    },
   };
 });
 jest.mock('react-native-svg', () => ({ __esModule: true, default: () => null, Path: () => null }));
@@ -86,6 +90,7 @@ async function drag(id: number, path: number[], end: GestureState = State.END) {
 const past = replySlop + replyReach + 4;
 
 beforeEach(() => {
+  mockMotion.settles = false;
   mockTick.mockClear();
   mockStart.mockClear();
 });
@@ -100,6 +105,15 @@ describe('swipe right to reply', () => {
     expect(reply).toHaveBeenCalledWith(item);
     expect(mockTick).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('message-51-reply-hint')).toBeTruthy();
+  });
+
+  it('unmounts the reply icon once the bubble has settled back, so a recycled row carries no hint', async () => {
+    mockMotion.settles = true;
+    const reply = jest.fn();
+    await bubble(message(59, 'Oke'), reply);
+    await drag(59, [replySlop + 10, past]);
+    expect(reply).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('message-59-reply-hint')).toBeNull();
   });
 
   it('does not reply when the pull stops short of the reach', async () => {
