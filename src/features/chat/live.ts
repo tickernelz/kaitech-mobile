@@ -71,17 +71,17 @@ export async function pushFix(fix: Fix, now = Date.now()): Promise<void> {
       if (shares.length !== saved.shares.length) write(account.id, { shares, last: saved.last });
       continue;
     }
-    const kept: Share[] = [];
+    const ended = new Set<number>();
     for (const share of shares) {
       try {
         const params = { message_id: share.messageId, latitude: fix.latitude, longitude: fix.longitude, ...(fix.accuracy !== null ? { accuracy: Math.min(10000, fix.accuracy) } : {}) };
         applyFor(account, await route<unknown>(account, '/kaitech_chat/location/update', params));
-        kept.push(share);
       } catch (error) {
-        if (!endedByServer(error)) kept.push(share);
+        if (endedByServer(error)) ended.add(share.messageId);
       }
     }
-    write(account.id, { shares: kept, last: { latitude: fix.latitude, longitude: fix.longitude, at: now } });
+    const fresh = read(account.id);
+    write(account.id, { shares: fresh.shares.filter((share) => share.until > now && !ended.has(share.messageId)), last: { latitude: fix.latitude, longitude: fix.longitude, at: now } });
   }
   await settle();
 }
@@ -151,8 +151,9 @@ export async function syncLive(account: Account): Promise<void> {
   try {
     const answer = await route<{ shares?: { message_id?: unknown }[] }>(account, '/kaitech_chat/location/active', {});
     const active = new Set((answer?.shares ?? []).map((share) => share.message_id).filter((id): id is number => typeof id === 'number'));
-    const saved = read(account.id);
-    write(account.id, { shares: saved.shares.filter((share) => active.has(share.messageId)), last: saved.last });
+    const asked = new Set(mine.map((share) => share.messageId));
+    const fresh = read(account.id);
+    write(account.id, { shares: fresh.shares.filter((share) => !asked.has(share.messageId) || active.has(share.messageId)), last: fresh.last });
   } catch {
     return settle();
   }

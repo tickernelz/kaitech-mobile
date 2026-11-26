@@ -1,10 +1,9 @@
 import type * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { AppState } from 'react-native';
-import { route } from '../../api/odoo';
-import { getSession, onAccountForgotten } from '../../auth/session';
+import { beforeAccountLeaves, onAccountForgotten } from '../../auth/session';
 import { onDelivered } from './chat';
-import { forgetShares, liveTask, pushFix, syncAllLive, trackShare } from './live';
+import { forgetShares, liveShares, liveTask, pushFix, stopShare, syncAllLive, trackShare } from './live';
 import { fixOf } from './places';
 
 TaskManager.defineTask<{ locations?: Location.LocationObject[] }>(liveTask, async ({ data, error }) => {
@@ -18,10 +17,12 @@ onDelivered((sent) => {
   trackShare(sent.pending.accountId, { messageId: sent.messageId, channelId: sent.pending.channelId, until: Date.now() + rich.location.liveMinutes * 60000 });
 });
 
+beforeAccountLeaves(async (account) => {
+  await Promise.all(liveShares(account.id, 0).map((share) => stopShare(account, share.messageId)));
+});
+
 onAccountForgotten((accountId) => {
-  const account = getSession().accounts.find((item) => item.id === accountId);
-  const shares = forgetShares(accountId);
-  if (account) for (const share of shares) void route(account, '/kaitech_chat/location/stop', { message_id: share.messageId }).catch(() => undefined);
+  forgetShares(accountId);
 });
 
 AppState.addEventListener('change', (next) => {

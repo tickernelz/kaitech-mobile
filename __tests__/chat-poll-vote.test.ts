@@ -94,6 +94,16 @@ describe('vote and close through the server', () => {
     expect(shown()!.options.map((option) => option.votes)).toEqual([1, 1]);
   });
 
+  it('puts back the last choice the server accepted when two queued votes both fail', async () => {
+    mockRoute.mockRejectedValue(new Error('offline'));
+    const first = vote({ id: 901, channelId: 12 }, [42]);
+    const second = vote({ id: 901, channelId: 12 }, []);
+    expect(chosenBy(shown()!, 7)).toEqual([]);
+    await Promise.all([first, second]);
+    expect(chosenBy(shown()!, 7)).toEqual([41]);
+    expect(shown()!.options.map((option) => option.votes)).toEqual([1, 1]);
+  });
+
   it('keeps the old choice when the phone is offline', async () => {
     mockRoute.mockRejectedValue(new Error('offline'));
     const result = await vote({ id: 901, channelId: 12 }, []);

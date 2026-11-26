@@ -106,12 +106,13 @@ export function isRich(value: unknown): value is Rich {
 export type Cached<T> = Omit<T, 'rich'> & { rich?: unknown; content?: unknown };
 
 export function toCache<T extends { rich?: Rich }>(item: T): Cached<T> {
+  if (!item.rich) return item;
   const { rich, ...rest } = item;
-  if (!rich) return rest;
   return 'sticker' in rich || 'gif' in rich ? { ...rest, rich } : { ...rest, content: rich };
 }
 
 export function fromCache<T extends { rich?: Rich }>(raw: Cached<T>): T {
+  if (raw.rich === undefined && raw.content === undefined) return raw as T;
   const { rich, content, ...rest } = raw;
   const found = content ?? rich;
   return (isRich(found) ? { ...rest, rich: found } : rest) as T;

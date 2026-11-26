@@ -32,6 +32,7 @@ export function shareOf(votes: number, poll: Poll): number {
 }
 
 const chains = new Map<number, Promise<unknown>>();
+const confirmed = new Map<number, number[]>();
 
 function queued<T>(messageId: number, work: () => Promise<T>): Promise<T> {
   const next = (chains.get(messageId) ?? Promise.resolve()).then(work, work);
@@ -53,18 +54,23 @@ function applied(data: unknown) {
 export function vote(message: Pick<Message, 'id' | 'channelId'>, optionIds: number[]): Promise<Result<null>> {
   const partnerId = getChat().partnerId;
   const before = pollOf(message.id, message.channelId);
+  if (before && !chains.has(message.id)) confirmed.set(message.id, chosenBy(before, partnerId));
   if (before) patchMessages(new Map([[message.id, { rich: { poll: withVote(before, partnerId, optionIds) } }]]));
-  return queued(message.id, async () => {
+  const done = queued(message.id, async () => {
     const result = await run(async (account) => {
       applied(await route<unknown>(account, '/kaitech_chat/poll/vote', { message_id: message.id, option_ids: optionIds }));
       return null;
     });
-    if (!result.ok && before) {
-      const now = pollOf(message.id, message.channelId);
-      if (now) patchMessages(new Map([[message.id, { rich: { poll: withVote(now, partnerId, chosenBy(before, partnerId)) } }]]));
+    const now = pollOf(message.id, message.channelId);
+    if (result.ok) {
+      confirmed.set(message.id, now ? chosenBy(now, partnerId) : optionIds);
+    } else if (now && confirmed.has(message.id)) {
+      patchMessages(new Map([[message.id, { rich: { poll: withVote(now, partnerId, confirmed.get(message.id) ?? []) } }]]));
     }
     return result;
   });
+  void done.finally(() => !chains.has(message.id) && confirmed.delete(message.id));
+  return done;
 }
 
 export function closePoll(message: Pick<Message, 'id'>): Promise<Result<null>> {

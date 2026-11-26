@@ -114,6 +114,42 @@ describe('a live share on this phone', () => {
     expect(liveShares('a').map((share) => share.messageId)).toEqual([902]);
   });
 
+  it('keeps a share started while an update for another share is in flight', async () => {
+    trackShare('a', { messageId: 902, channelId: 12, until: now + 60000 });
+    let answer: (value: unknown) => void = () => undefined;
+    mockRoute.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)));
+    const pushing = pushFix(here, now);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    trackShare('a', { messageId: 905, channelId: 13, until: now + 60000 });
+    answer({ store_data: {} });
+    await pushing;
+    expect(liveShares('a', now).map((share) => share.messageId).sort()).toEqual([902, 905]);
+  });
+
+  it('does not bring back a share stopped while an update was in flight', async () => {
+    trackShare('a', { messageId: 902, channelId: 12, until: Date.now() + 60000 });
+    let answer: (value: unknown) => void = () => undefined;
+    mockRoute.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve))).mockResolvedValue({ store_data: {} });
+    const pushing = pushFix(here, Date.now());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await stopShare(account, 902);
+    answer({ store_data: {} });
+    await pushing;
+    expect(liveShares('a')).toEqual([]);
+  });
+
+  it('keeps a share delivered while the active list is being fetched', async () => {
+    trackShare('a', { messageId: 902, channelId: 12, until: Date.now() + 60000 });
+    let answer: (value: unknown) => void = () => undefined;
+    mockRoute.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)));
+    const syncing = syncLive(account);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    trackShare('a', { messageId: 905, channelId: 13, until: Date.now() + 60000 });
+    answer({ shares: [] });
+    await syncing;
+    expect(liveShares('a').map((share) => share.messageId)).toEqual([905]);
+  });
+
   it('replaces an earlier share in the same chat, as the server does', () => {
     trackShare('a', { messageId: 902, channelId: 12, until: Date.now() + 60000 });
     trackShare('a', { messageId: 905, channelId: 12, until: Date.now() + 60000 });
