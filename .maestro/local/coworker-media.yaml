@@ -73,7 +73,8 @@ name: Coworker media - voice note, video and a document to the Coworker, then op
     timeout: 10000
 - tapOn:
     id: coworker-input
-- inputText: ${QUESTION}
+- evalScript: "${output.question = typeof QUESTION === 'undefined' || !QUESTION ? 'E2E question ' + Date.now() + ', name one finding of this programme in one sentence.' : QUESTION}"
+- inputText: ${output.question}
 - runFlow: ../shared/dismiss-keyboard.yaml
 - takeScreenshot: m4-staged
 - tapOn:

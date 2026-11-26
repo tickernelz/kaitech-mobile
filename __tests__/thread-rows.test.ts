@@ -1,4 +1,4 @@
-import { buildRows } from '../src/features/chat/threadRows';
+import { buildRows } from '../src/features/chat/rows';
 import type { Message } from '../src/features/chat/types';
 
 const callBody = '<div data-oe-type="call" class="o_mail_notification"></div>';

@@ -63,6 +63,15 @@ export class Outbox {
     await this.update({ ...item, state: 'queued', error: null });
   }
 
+  async confirm(key: string): Promise<Pending | null> {
+    const item = this.items.get(key);
+    if (!item) return null;
+    this.items.delete(key);
+    this.emit();
+    await this.store.remove(key);
+    return item;
+  }
+
   async discard(key: string): Promise<Pending | null> {
     const item = this.items.get(key);
     if (!item || item.state === 'sending') return null;
@@ -112,10 +121,10 @@ export class Outbox {
         uploaded.push(done);
       }
       const posted = await this.transport.post(item, uploaded);
-      this.items.delete(item.key);
-      this.emit();
       await this.store.remove(item.key);
+      this.items.delete(item.key);
       this.onSent({ pending: item, messageId: posted.messageId, data: posted.data });
+      this.emit();
       return false;
     } catch (error) {
       const failure = error instanceof SendError ? error : new SendError('network', true);
