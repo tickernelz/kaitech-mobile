@@ -59,43 +59,91 @@ onFlowStart:
 - extendedWaitUntil:
     visible:
       id: media-video
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
     timeout: 60000
 - extendedWaitUntil:
     visible:
       id: video-duration
       text: 0:06
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
     timeout: 60000
 - assertVisible:
     id: media-photo
+    above:
+      id: media-video
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
 - scrollUntilVisible:
     element:
       id: pdf-preview
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
     direction: UP
     timeout: 60000
 - assertVisible:
     text: .*2 (pages|halaman).*
+    childOf:
+      id: bubble-.*
+      containsDescendants:
+        - text: ${RUN + ' m1'}
 - scrollUntilVisible:
     element:
       id: media-file
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
     direction: UP
 - assertVisible:
     text: .*DOCX.*
+    childOf:
+      id: bubble-.*
+      containsDescendants:
+        - text: ${RUN + ' m1'}
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
       SCREEN: m1-previews
 - tapOn:
     id: file-download
+    childOf:
+      id: bubble-.*
+      containsDescendants:
+        - text: ${RUN + ' m1'}
 - extendedWaitUntil:
     visible:
       id: attachment-share
+      childOf:
+        id: media-file
+        childOf:
+          id: bubble-.*
+          containsDescendants:
+            - text: ${RUN + ' m1'}
     timeout: 60000
 - scrollUntilVisible:
     element:
       id: media-video
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
     direction: DOWN
 - tapOn:
     id: media-video
+    childOf:
+      id: bubble-.*
+      containsDescendants:
+        - text: ${RUN + ' m1'}
 - extendedWaitUntil:
     visible:
       id: media-viewer
@@ -114,9 +162,21 @@ onFlowStart:
 - scrollUntilVisible:
     element:
       id: media-photo
-    direction: DOWN
+      above:
+        id: media-video
+        childOf:
+          id: bubble-.*
+          containsDescendants:
+            - text: ${RUN + ' m1'}
+    direction: UP
 - tapOn:
     id: media-photo
+    above:
+      id: media-video
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
 - extendedWaitUntil:
     visible:
       id: viewer-photo
@@ -151,9 +211,17 @@ onFlowStart:
 - scrollUntilVisible:
     element:
       id: media-pdf
-    direction: UP
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
+    direction: DOWN
 - tapOn:
     id: media-pdf
+    childOf:
+      id: bubble-.*
+      containsDescendants:
+        - text: ${RUN + ' m1'}
 - extendedWaitUntil:
     visible:
       id: pdf-page-1
