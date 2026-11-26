@@ -7,8 +7,12 @@ export const pillMaxWidth = 440;
 const glyph = 24;
 const labelGap = space.sm;
 
+export function pillBottom(bottomInset: number): number {
+  return bottomInset + space.sm;
+}
+
 export function pillCover(bottomInset: number): number {
-  return bottomInset + space.sm + pillHeight;
+  return pillBottom(bottomInset) + pillHeight;
 }
 
 export function pillWidth(windowWidth: number, sideInsets: number): number {

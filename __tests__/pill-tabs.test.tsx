@@ -118,12 +118,14 @@ describe('floating pill tab bar (shared behaviour, iOS below 26 look)', () => {
     for (const name of ['chat', 'discovery', 'mom', 'activity']) expect(screen.getByTestId(`tab-label-${name}`, hidden)).toBeTruthy();
   });
 
-  test('the capsule is slightly see-through, and solid when Reduce Transparency or Increase Contrast is on', async () => {
+  test('the capsule is slightly see-through without a shadow, and solid with its shadow when Reduce Transparency or Increase Contrast is on', async () => {
     const view = await render(tree());
     expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}D1$/i);
+    expect(flat('navigation-bar').shadowOpacity).toBeUndefined();
     mockSeeThrough = false;
     await act(async () => view.rerender(tree()));
     expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}$/i);
+    expect(flat('navigation-bar').shadowOpacity).toBeGreaterThan(0);
   });
 
   test('the highlight springs to a newly selected tab', async () => {

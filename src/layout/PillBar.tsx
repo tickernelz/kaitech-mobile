@@ -51,7 +51,7 @@ export function PillBar() {
       style={[styles.wrap, { bottom: bar.bottom, paddingLeft: bar.sideInsets.left, paddingRight: bar.sideInsets.right }, lift]}>
       <View
         accessibilityRole="tablist"
-        style={[styles.capsule, scheme === 'dark' ? styles.shadowDark : styles.shadowLight, { width, borderColor: colors.line, backgroundColor: seeThrough ? `${colors.surface}D1` : colors.surface }]}
+        style={[styles.capsule, { width, borderColor: colors.line }, seeThrough ? { backgroundColor: `${colors.surface}D1` } : [scheme === 'dark' ? styles.shadowDark : styles.shadowLight, { backgroundColor: colors.surface }]]}
         testID="navigation-bar">
         <View style={styles.track} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Animated.View style={[styles.lens, { width: slot, backgroundColor: colors.select }, lens]} testID="tab-highlight" />

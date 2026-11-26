@@ -111,3 +111,53 @@ describe('useSurface', () => {
     expect(StyleSheet.flatten(view.getByTestId('bar').props.style)).toMatchObject({ backgroundColor: '#151418' });
   });
 });
+
+describe('useSeeThrough on Android', () => {
+  type Listener = (on: boolean) => void;
+  let cleanup: () => Promise<void> = async () => undefined;
+
+  afterEach(async () => {
+    await cleanup();
+    jest.restoreAllMocks();
+  });
+
+  function android(highContrast: () => Promise<boolean>) {
+    jest.resetModules();
+    const rntl = require('@testing-library/react-native/pure') as typeof import('@testing-library/react-native/pure');
+    const { AccessibilityInfo, Platform, Text: FreshText } = require('react-native') as typeof import('react-native');
+    jest.replaceProperty(Platform, 'OS', 'android');
+    const listeners: Record<string, Listener> = {};
+    jest.spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled').mockImplementation(async () => false);
+    const darker = jest.spyOn(AccessibilityInfo, 'isDarkerSystemColorsEnabled').mockImplementation(async () => false);
+    jest.spyOn(AccessibilityInfo, 'isHighTextContrastEnabled').mockImplementation(highContrast);
+    jest.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation(((name: string, listener: Listener) => {
+      listeners[name] = listener;
+      return { remove: () => undefined };
+    }) as typeof AccessibilityInfo.addEventListener);
+    const { useSeeThrough } = require('../src/ui/glass') as typeof import('../src/ui/glass');
+    function Probe() {
+      return <FreshText testID="see-through">{String(useSeeThrough())}</FreshText>;
+    }
+    cleanup = rntl.cleanup;
+    return { ...rntl, listeners, darker, Probe, shown: () => rntl.screen.getByTestId('see-through').props.children };
+  }
+
+  it('reads high contrast text, not the iOS setting, and turns solid when it is switched on', async () => {
+    const { render: draw, act: settle, listeners, darker, Probe, shown } = android(async () => false);
+    await draw(<Probe />);
+    await settle(async () => undefined);
+    expect(shown()).toBe('true');
+    expect(darker).not.toHaveBeenCalled();
+    await settle(async () => listeners.highTextContrastChanged(true));
+    expect(shown()).toBe('false');
+    await settle(async () => listeners.highTextContrastChanged(false));
+    expect(shown()).toBe('true');
+  });
+
+  it('starts solid when high contrast text is already on', async () => {
+    const { render: draw, act: settle, Probe, shown } = android(async () => true);
+    await draw(<Probe />);
+    await settle(async () => undefined);
+    expect(shown()).toBe('false');
+  });
+});

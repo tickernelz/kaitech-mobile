@@ -9,7 +9,7 @@ import { usePendingActivities } from '../features/activity/useActivityOverview';
 import { duration, easing, spring } from '../theme/motion';
 import { useReduceMotion } from '../theme/reduceMotion';
 import { useSeeThrough } from '../ui/glass';
-import { pillCover, pillWidth } from './tabBar';
+import { pillBottom, pillCover, pillWidth } from './tabBar';
 import { badgeText, tabs, type TabName } from './tabs';
 import { useTab } from './useTab';
 
@@ -90,7 +90,7 @@ export function usePillBar(): PillBarState {
     hidden,
     keyboard,
     width: pillWidth(window.width, insets.left + insets.right),
-    bottom: insets.bottom + 8,
+    bottom: pillBottom(insets.bottom),
     cover: pillCover(insets.bottom),
     sideInsets: { left: insets.left, right: insets.right },
     badge,
