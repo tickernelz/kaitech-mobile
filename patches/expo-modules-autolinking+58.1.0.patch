@@ -1,0 +1,51 @@
+diff --git a/node_modules/expo-modules-autolinking/build/commands/generateModulesProviderCommand.js b/node_modules/expo-modules-autolinking/build/commands/generateModulesProviderCommand.js
+index 88bf880..a53dfcb 100644
+--- a/node_modules/expo-modules-autolinking/build/commands/generateModulesProviderCommand.js
++++ b/node_modules/expo-modules-autolinking/build/commands/generateModulesProviderCommand.js
+@@ -110,7 +110,7 @@ function generateModulesProviderCommand(cli) {
+         });
+         // Otherwise the app would fail at runtime with a missing native module.
+         if (packagesMissingModules.length > 0) {
+-            console.error(`error: Scanning for @ExpoModule classes didn't complete (see the warnings above), so the module classes of these packages are missing from the modules provider: ${packagesMissingModules.join(', ')}. Build again to retry the scan, or declare the classes in the package's expo-module.config.json.`);
++            console.error(`error: Scanning for @ExpoModule classes didn't complete (see the warnings above), so the module classes of these packages are missing from the modules provider: ${packagesMissingModules.join(', ')}. Build again to retry the scan, set EXPO_MODULES_SCAN_TIMEOUT_MS to a longer timeout in milliseconds if the scan timed out, or declare the classes in the package's expo-module.config.json.`);
+             process.exitCode = 1;
+         }
+     });
+diff --git a/node_modules/expo-modules-autolinking/build/platforms/apple/moduleScanner.js b/node_modules/expo-modules-autolinking/build/platforms/apple/moduleScanner.js
+index 093a8f5..980f6a4 100644
+--- a/node_modules/expo-modules-autolinking/build/platforms/apple/moduleScanner.js
++++ b/node_modules/expo-modules-autolinking/build/platforms/apple/moduleScanner.js
+@@ -129,16 +129,32 @@ function collectPackageRoots(searchResults) {
+     }
+     return packageRoots;
+ }
++const DEFAULT_SCAN_TIMEOUT_MS = 5000;
++const MAX_SCAN_TIMEOUT_MS = 2147483647;
++function getScanTimeout() {
++    const value = process.env.EXPO_MODULES_SCAN_TIMEOUT_MS;
++    if (value === undefined || value === '') {
++        return DEFAULT_SCAN_TIMEOUT_MS;
++    }
++    if (!/^\d+$/.test(value) || Number(value) <= 0 || Number(value) > MAX_SCAN_TIMEOUT_MS) {
++        console.warn(`warning: EXPO_MODULES_SCAN_TIMEOUT_MS is set to "${value}", which isn't a whole number of milliseconds from 1 to ${MAX_SCAN_TIMEOUT_MS}, so the scan for Expo modules uses the default timeout of ${DEFAULT_SCAN_TIMEOUT_MS} ms. Set it to a value such as 20000, or unset it.`);
++        return DEFAULT_SCAN_TIMEOUT_MS;
++    }
++    return Number(value);
++}
+ async function scanExpoModulesAsync(scanner, packageRoots) {
+     const roots = Object.values(packageRoots);
+     if (!roots.length) {
+         return null;
+     }
++    const timeout = getScanTimeout();
++    const startedAt = Date.now();
+     let output;
+     try {
+         output = await scanner.scanModules(roots, {
+-            timeout: 5000
++            timeout
+         });
++        console.warn(`note: Scanned ${roots.length} package roots for Expo modules in ${Date.now() - startedAt} ms (timeout ${timeout} ms)`);
+     } catch (error) {
+         console.warn(`warning: Scanning for Expo modules failed, only modules declared in expo-module.config.json will be linked: ${error.message ?? error}`);
+         return null;

@@ -2,6 +2,23 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.8.1 - 2026-11-26
+
+### Fixed
+
+- Calls: Answer on the incoming-call notification opens Kaitech and joins the call. Until now it did nothing while the phone kept ringing, because Android 12 and later do not let a notification broadcast open an app (#126, ZHA-7944).
+- Chat: opening a conversation from a notification after several messages arrived while Kaitech was closed shows the newest message instead of stopping at the last one already on the phone (#126, ZHA-7944).
+
+### Changed
+
+- E2E: `scripts/push-latency.mjs` and the phone flows `.maestro/local/push-message-open.yaml` and `push-call-answer.yaml` measure and repeat Android push on a physical phone; the results on the Meizu Mblu 21 are in [Releases](releases.md#android-push-on-a-physical-phone-zha-7944) (#126, ZHA-7944).
+- E2E: the chat fling check fails on half-empty frames (#119, ZHA-7919).
+
+### Known gaps
+
+- Android blocks every push, calls included, to an app the user force-stopped in Settings until it is opened again; [Install the APK](install-android.md#notifications) says so (ZHA-7944).
+- Push after hours of Doze, battery use, and phones other than the Meizu Mblu 21 are not measured (ZHA-7944).
+
 ## 0.8.0 - 2026-11-26
 
 ### Added
