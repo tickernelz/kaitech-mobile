@@ -1,10 +1,10 @@
-import { StyleSheet, View } from 'react-native';
-import Animated, { interpolateColor, useAnimatedStyle } from 'react-native-reanimated';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { radius, useTheme, type Colors } from '../theme';
 import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
 import { PillBadge } from './PillBadge';
-import { openness, pillHeight, pillPadding } from './tabBar';
+import { pillHeight, pillPadding } from './tabBar';
 import { tabIcons } from './tabs';
 import { usePillBar, type PillBarState, type PillTab } from './usePillBar';
 
@@ -12,23 +12,15 @@ function Glyph({ tab, bar, colors, slot }: { tab: PillTab; bar: PillBarState; co
   const { index } = tab;
   const { position, pressed, pressScale } = bar;
   const place = useAnimatedStyle(() => ({ transform: [{ translateX: index * slot }, { scale: pressed.get() === index ? 1 - 0.08 * pressScale.get() : 1 }] }));
-  const fill = useAnimatedStyle(() => ({ opacity: openness(index, position.get()) }));
-  const line = useAnimatedStyle(() => ({ opacity: 1 - openness(index, position.get()) }));
-  const ink = useAnimatedStyle(() => ({ color: interpolateColor(openness(index, position.get()), [0, 1], [colors.inkSoft, colors.selectInk]) }));
   return (
     <Animated.View style={[styles.glyph, { width: slot }, place]}>
       <View style={styles.icon}>
-        <Animated.View style={[StyleSheet.absoluteFill, line]}>
-          <Icon name={tabIcons[tab.name]} color={colors.inkSoft} />
-        </Animated.View>
-        <Animated.View style={[StyleSheet.absoluteFill, fill]}>
-          <Icon name={tabIcons[tab.name]} color={colors.selectInk} variant="fill" />
-        </Animated.View>
+        <Icon name={tabIcons[tab.name]} color={tab.focused ? colors.selectInk : colors.inkSoft} variant={tab.focused ? 'fill' : 'line'} />
         {tab.name === 'activity' ? <PillBadge text={bar.badge} fill={colors.danger} ink={colors.onPrimary} edge={colors.surface} reduceMotion={bar.reduceMotion} style={styles.badge} /> : null}
       </View>
-      <Animated.Text numberOfLines={1} maxFontSizeMultiplier={1.2} style={[styles.label, ink]} testID={`tab-label-${tab.name}`}>
+      <Text numberOfLines={1} maxFontSizeMultiplier={1.2} style={[styles.label, { color: tab.focused ? colors.selectInk : colors.inkSoft }]} testID={`tab-label-${tab.name}`}>
         {tab.label}
-      </Animated.Text>
+      </Text>
     </Animated.View>
   );
 }

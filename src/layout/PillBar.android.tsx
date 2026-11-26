@@ -20,18 +20,11 @@ function Glyph({ tab, bar, material, wide, narrow }: { tab: PillTab; bar: PillBa
     const squeeze = pressed.get() === index ? 1 - 0.1 * pressScale.get() : 1;
     return { transform: [{ translateX: glyphLeft(index, position.get(), wide, narrow, label.get()) }, { scale: squeeze }] };
   });
-  const fill = useAnimatedStyle(() => ({ opacity: openness(index, position.get()) }));
-  const line = useAnimatedStyle(() => ({ opacity: 1 - openness(index, position.get()) }));
   const words = useAnimatedStyle(() => ({ opacity: Math.min(1, Math.max(0, (openness(index, position.get()) - 0.5) * 2)) }));
   return (
     <Animated.View style={[styles.glyph, place]}>
       <View style={styles.icon}>
-        <Animated.View style={[StyleSheet.absoluteFill, line]}>
-          <Icon name={tabIcons[tab.name]} color={material.onSurfaceVariant} />
-        </Animated.View>
-        <Animated.View style={[StyleSheet.absoluteFill, fill]}>
-          <Icon name={tabIcons[tab.name]} color={material.onSecondaryContainer} variant="fill" />
-        </Animated.View>
+        <Icon name={tabIcons[tab.name]} color={tab.focused ? material.onSecondaryContainer : material.onSurfaceVariant} variant={tab.focused ? 'fill' : 'line'} />
         {tab.name === 'activity' ? <PillBadge text={bar.badge} fill={material.error} ink={material.onError} reduceMotion={bar.reduceMotion} style={styles.badge} /> : null}
       </View>
       <Animated.View style={words}>
@@ -77,8 +70,7 @@ export function PillBar() {
     const travel = Math.sin(Math.PI * (position.get() - Math.floor(position.get())));
     return {
       opacity: Math.min(1, Math.max(0, position.get() + 1)),
-      borderRadius: indicatorRadius - 10 * pressScale.get(),
-      transform: [{ translateX: position.get() * narrow }, { scaleX: 1 + 0.08 * travel }, { scaleY: 1 - 0.08 * travel - 0.04 * pressScale.get() }],
+      transform: [{ translateX: position.get() * narrow }, { scaleX: 1 + 0.08 * travel - 0.04 * pressScale.get() }, { scaleY: 1 - 0.08 * travel - 0.08 * pressScale.get() }],
     };
   });
   return (
@@ -91,7 +83,7 @@ export function PillBar() {
         style={[styles.capsule, { width }, seeThrough ? { backgroundColor: `${material.surfaceContainer}EB`, borderColor: material.outlineVariant, borderWidth: StyleSheet.hairlineWidth } : [styles.raised, { backgroundColor: material.surfaceContainer }]]}
         testID="navigation-bar">
         <View style={styles.track} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <Animated.View style={[styles.indicator, { width: wide, backgroundColor: material.secondaryContainer }, morph]} testID="tab-highlight" />
+          <Animated.View style={[styles.indicator, { width: wide, borderRadius: indicatorRadius, backgroundColor: material.secondaryContainer }, morph]} testID="tab-highlight" />
           {bar.items.map((tab) => (
             <Glyph key={tab.name} tab={tab} bar={bar} material={material} wide={wide} narrow={narrow} />
           ))}

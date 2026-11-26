@@ -222,14 +222,15 @@ describe('Android Material 3 Expressive pill', () => {
     expect(selected('mom')).toBe(true);
   });
 
-  test('pressing a tab morphs the indicator corners and the indicator springs to the new tab', async () => {
+  test('pressing a tab squeezes the indicator and the indicator springs to the new tab', async () => {
     const view = await render(material());
-    const resting = flat('tab-highlight').borderRadius;
+    const squeeze = () => Object.assign({}, ...flat('tab-highlight').transform).scaleY;
+    const resting = squeeze();
     mockSpring.mockClear();
     await act(async () => fireEvent(screen.getByTestId('tab-button-activity'), 'pressIn'));
     expect(mockSpring).toHaveBeenCalledWith(1);
     await act(async () => view.rerender(material()));
-    expect(flat('tab-highlight').borderRadius).toBeLessThan(resting);
+    expect(squeeze()).toBeLessThan(resting);
     await act(async () => fireEvent.press(screen.getByTestId('tab-button-activity')));
     expect(mockSwitch).toHaveBeenCalledWith('activity', {});
     mockFocused = 'activity';
