@@ -1,4 +1,4 @@
-import { attachmentUrl, conversationPage, lastMessageOf, membersFromStore, messagesFromStore, readState, utc } from '../src/features/chat/odoo';
+import { attachmentUrl, callNoticeKey, conversationPage, lastMessageOf, membersFromStore, messagesFromStore, readState, utc } from '../src/features/chat/odoo';
 
 const store = {
   'mail.message': [
@@ -59,6 +59,30 @@ describe('call history on call notices', () => {
     expect(ended.call).toEqual({ minutes: 12, ongoing: false });
     expect(running.call).toEqual({ minutes: 3, ongoing: true });
     expect(bare.call).toBeUndefined();
+  });
+
+  it('marks a call nobody answered as missed for the person called and unanswered for the caller', () => {
+    const store = {
+      'mail.message': [notice(1, [7]), notice(2, [8]), notice(3, [9])],
+      'discuss.call.history': [
+        { id: 7, duration_hour: 0.004, end_dt: '2026-11-22 01:00:15', kaitech_answered_dt: false },
+        { id: 8, duration_hour: 0.2, end_dt: '2026-11-22 01:12:00', kaitech_answered_dt: '2026-11-22 01:00:09' },
+        { id: 9, duration_hour: 0.004, end_dt: false, kaitech_answered_dt: false },
+      ],
+    };
+    const [missed, answered, ringing] = messagesFromStore(store, 9);
+    expect(missed.call).toEqual({ minutes: 0, ongoing: false, answered: false });
+    expect(callNoticeKey(missed.call, false)).toBe('thread.callMissed');
+    expect(callNoticeKey(missed.call, true)).toBe('thread.callUnanswered');
+    expect(callNoticeKey(answered.call, false)).toBe('thread.call');
+    expect(callNoticeKey(ringing.call, false)).toBe('thread.callOngoing');
+  });
+
+  it('keeps the plain call label when the server does not say whether the call was answered', () => {
+    const store = { 'mail.message': [notice(1, [7])], 'discuss.call.history': [{ id: 7, duration_hour: 0.2, end_dt: '2026-11-22 01:12:00' }] };
+    const [old] = messagesFromStore(store, 9);
+    expect(callNoticeKey(old.call, false)).toBe('thread.call');
+    expect(callNoticeKey(undefined, false)).toBe('thread.call');
   });
 });
 

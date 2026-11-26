@@ -186,7 +186,9 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
   const calls = new Map<number, CallRecord>();
   for (const raw of records(data, 'discuss.call.history')) {
     const historyId = id(raw.id);
-    if (historyId && typeof raw.duration_hour === 'number') calls.set(historyId, { minutes: Math.round(raw.duration_hour * 60), ongoing: !raw.end_dt });
+    if (!historyId || typeof raw.duration_hour !== 'number') continue;
+    const answered = 'kaitech_answered_dt' in raw ? { answered: Boolean(raw.kaitech_answered_dt) } : {};
+    calls.set(historyId, { minutes: Math.round(raw.duration_hour * 60), ongoing: !raw.end_dt, ...answered });
   }
   const messages: Message[] = [];
   for (const raw of records(data, 'mail.message')) {
@@ -373,6 +375,12 @@ export function fullMessages(data: unknown, myPartnerId: number): Message[] {
 
 export function isCallNotice(message: Pick<Message, 'type' | 'body'>): boolean {
   return message.type === 'notification' && message.body.includes('data-oe-type="call"');
+}
+
+export function callNoticeKey(call: CallRecord | undefined, mine: boolean): 'thread.call' | 'thread.callOngoing' | 'thread.callMissed' | 'thread.callUnanswered' {
+  if (call?.ongoing) return 'thread.callOngoing';
+  if (call?.answered === false) return mine ? 'thread.callUnanswered' : 'thread.callMissed';
+  return 'thread.call';
 }
 
 export function lastMessageOf(message: Message, plain: string): LastMessage {

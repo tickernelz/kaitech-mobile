@@ -8,6 +8,10 @@ const mockNative: { startCall: unknown[][]; ring: unknown[][] } = { startCall: [
 const mockCamera = { grant: true };
 const mockAudio: { outputs: string[]; selected: string[] } = { outputs: [], selected: [] };
 let mockStore: unknown = {};
+let mockPingStore: unknown = {};
+let mockConversation: { type: string } | null = null;
+const mockPresent = { names: [] as string[] };
+const mockLeaves: number[] = [];
 
 type Handler = () => void;
 
@@ -87,6 +91,7 @@ class MockRoom {
     for (const handler of this.handlers.get(name) ?? []) handler();
   }
   connect() {
+    for (const name of mockPresent.names) this.remoteParticipants.set(name, new MockRemote(name, name));
     return Promise.resolve();
   }
   disconnect() {
@@ -131,9 +136,10 @@ jest.mock('../src/features/call/api', () => ({
       return Promise.resolve();
     }
     ping() {
-      return Promise.resolve({});
+      return Promise.resolve(mockPingStore);
     }
-    leave() {
+    leave(channelId: number) {
+      mockLeaves.push(channelId);
       return Promise.resolve();
     }
     decline() {
@@ -224,7 +230,7 @@ jest.mock('../src/features/call/permissions', () => ({
 }));
 
 jest.mock('../src/features/chat/chat', () => ({
-  conversationById: () => null,
+  conversationById: () => mockConversation,
   getChat: () => ({ threads: {}, conversations: [] }),
   invitedChannels: () => [],
 }));
@@ -262,6 +268,10 @@ beforeEach(() => {
   mockAudio.outputs = [];
   mockAudio.selected = [];
   mockStore = {};
+  mockPingStore = {};
+  mockConversation = null;
+  mockPresent.names = [];
+  mockLeaves.length = 0;
   jest.resetModules();
 });
 
@@ -477,3 +487,74 @@ describe('an incoming call from the web or an older app', () => {
     expect(mockJoins).toEqual([]);
   });
 });
+
+describe('a call nobody has answered yet', () => {
+  const invitations = (mode: 'ADD' | 'DELETE', ids: number[]) => ({ 'discuss.channel': [{ id: 5, invited_member_ids: [[mode, ids]] }] });
+
+  it('says Calling, then Ringing once the invitation is out, and starts the clock from 00:00 only when someone joins', async () => {
+    const { call, room } = await placed();
+    expect(call.callState()).toMatchObject({ waiting: 'calling', startedAt: 0 });
+    call.onNotification('mail.record/insert', invitations('ADD', [77]));
+    expect(call.callState().waiting).toBe('ringing');
+    jest.advanceTimersByTime(12_000);
+    expect(call.callState().startedAt).toBe(0);
+    joinRemote(room);
+    expect(call.callState()).toMatchObject({ waiting: null, startedAt: Date.now() });
+  });
+
+  it('ends as unanswered when the person declines and nobody else is in the call', async () => {
+    const { call } = await placed();
+    call.onNotification('mail.record/insert', invitations('ADD', [77]));
+    call.onNotification('mail.record/insert', invitations('DELETE', [77]));
+    jest.advanceTimersByTime(4_000);
+    await flush();
+    expect(call.callState()).toMatchObject({ phase: 'ended', endedReason: 'unanswered' });
+    expect(mockLeaves).toEqual([5]);
+  });
+
+  it('keeps ringing when the invitation is gone because the person is joining', async () => {
+    const { call, room } = await placed();
+    mockPingStore = { 'discuss.channel': [{ id: 5, rtc_session_ids: [['ADD', [9, 10]]] }] };
+    call.onNotification('mail.record/insert', invitations('ADD', [77]));
+    call.onNotification('mail.record/insert', invitations('DELETE', [77]));
+    jest.advanceTimersByTime(4_000);
+    await flush();
+    expect(call.callState()).toMatchObject({ phase: 'active', startedAt: 0 });
+    joinRemote(room);
+    expect(call.callState().startedAt).toBe(Date.now());
+  });
+
+  it('ends as unanswered after 45 seconds when nobody ever joins', async () => {
+    const { call } = await placed();
+    jest.advanceTimersByTime(44_000);
+    await flush();
+    expect(call.callState().phase).toBe('active');
+    jest.advanceTimersByTime(1_000);
+    await flush();
+    expect(call.callState()).toMatchObject({ phase: 'ended', endedReason: 'unanswered' });
+  });
+
+  it('never ends an answered call at the ring limit', async () => {
+    const { call, room } = await placed();
+    joinRemote(room);
+    jest.advanceTimersByTime(60_000);
+    await flush();
+    expect(call.callState().phase).toBe('active');
+  });
+
+  it('starts the clock at once when joining a call others are already in', async () => {
+    mockPresent.names = ['41'];
+    const { call } = await placed();
+    expect(call.callState()).toMatchObject({ waiting: null, startedAt: Date.now() });
+  });
+
+  it('waits in a channel without ringing anyone or a time limit', async () => {
+    mockConversation = { type: 'channel' };
+    const { call } = await placed();
+    expect(call.callState().waiting).toBe('alone');
+    jest.advanceTimersByTime(120_000);
+    await flush();
+    expect(call.callState()).toMatchObject({ phase: 'active', waiting: 'alone', startedAt: 0 });
+  });
+});
+

@@ -67,7 +67,7 @@ export type Message = {
   rich?: Rich;
 };
 
-export type CallRecord = { minutes: number; ongoing: boolean };
+export type CallRecord = { minutes: number; ongoing: boolean; answered?: boolean };
 
 export type Media = { url: string; width: number; height: number };
 

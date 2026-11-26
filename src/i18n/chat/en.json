@@ -87,6 +87,8 @@
     "openPerson": "Open {{name}}",
     "callOngoing": "Call in progress",
     "callJoin": "Join",
+    "callMissed": "Missed call",
+    "callUnanswered": "No answer",
     "callMinutes_one": "{{count}} min",
     "callMinutes_other": "{{count}} min",
     "removed": "This message was deleted",
