@@ -1,5 +1,5 @@
 import { createElement } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import '../src/i18n';
 
@@ -117,6 +117,7 @@ function visible(testID: string): boolean {
 beforeEach(() => {
   mockVoiceState = { phase: 'idle' };
   mockKeyboard.isVisible = false;
+  mockKeyboard.height = 0;
   mockSend.mockClear();
 });
 
@@ -208,6 +209,18 @@ describe('adaptive composer', () => {
     await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
     expect(screen.getByTestId('composer-keyboard')).toBeTruthy();
     expect(screen.getByLabelText('Show keyboard')).toBeTruthy();
+  });
+
+  it('opens the panel as tall as the keyboard plus the format bar it replaces, so the row does not drop', async () => {
+    mockKeyboard.isVisible = true;
+    mockKeyboard.height = 320;
+    await show();
+    await fireEvent(screen.getByTestId('composer-input'), 'focus');
+    const bar = screen.getByTestId('format-bar');
+    await fireEvent(bar, 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 48.8 } } });
+    await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
+    const box = screen.getByTestId('composer-panel-box', hidden);
+    expect(StyleSheet.flatten(box.props.style).height).toBeCloseTo(320 + 48.8 + 4);
   });
 
   it('closes the panel when the message field is tapped while the emoji search already holds the keyboard', async () => {

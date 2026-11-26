@@ -336,8 +336,9 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const keyboard = useReanimatedKeyboardAnimation();
   const open = useSharedValue(0);
   const reopening = useRef(false);
+  const formatBarSpace = useRef(0);
   const openPanel = () => {
-    setPanelHeight(halfPanelHeight(keyboardHeight));
+    setPanelHeight(halfPanelHeight(keyboardHeight) + (markup.showBar ? formatBarSpace.current : 0));
     setFull(false);
     reopening.current = false;
     setPanel(true);
@@ -546,10 +547,18 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
         {editing ? null : <LockPill voice={voice} />}
         {editing ? null : <ShortHint shown={voice.hint} />}
       </View>
-      {markup.showBar && !voicePhase ? <FormatBar onApply={markup.apply} onHide={markup.hide} /> : null}
+      {markup.showBar && !voicePhase ? (
+        <FormatBar
+          onApply={markup.apply}
+          onHide={markup.hide}
+          onSpace={(height) => {
+            formatBarSpace.current = height;
+          }}
+        />
+      ) : null}
       {panel ? (
         <Animated.View style={[styles.panelClip, panelStyle]}>
-          <View style={{ height: target }}>
+          <View style={{ height: target }} testID="composer-panel-box">
             <ComposerPanel
               origin={origin}
               full={full}
