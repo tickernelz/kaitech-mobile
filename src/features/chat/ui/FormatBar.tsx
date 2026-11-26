@@ -76,8 +76,8 @@ export function FormatBar({ onApply, onSpace }: { onApply: (markup: Markup) => v
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   bar: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, minHeight: 44, marginTop: space.xs },
-  actions: { alignItems: 'center', paddingHorizontal: space.xs, gap: 2 },
-  action: { minHeight: 44, minWidth: 44, paddingHorizontal: space.md, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  actions: { flexGrow: 1, alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.xs, gap: 2 },
+  action: { minHeight: 44, minWidth: 44, paddingHorizontal: space.sm, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   bold: { fontWeight: '700' },
   italic: { fontStyle: 'italic' },
   code: { fontFamily: mono },
