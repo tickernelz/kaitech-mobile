@@ -54,6 +54,7 @@ import { router } from 'expo-router';
 import { ChatBackground } from '../../appearance/ChatBackground';
 import { usePartnerStatus } from '../../people/statuses';
 import { confirm, inform } from '../../../ui/dialog';
+import { touchTarget } from '../../../ui/touch';
 
 const noticeMs = 4000;
 const drawDistance = 1000;
@@ -554,7 +555,7 @@ const styles = StyleSheet.create({
   highlight: { borderRadius: radius.md },
   older: { padding: space.md },
   empty: { padding: space.xxl, alignItems: 'center', justifyContent: 'center' },
-  linked: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 36, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
+  linked: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touchTarget, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
   noticeWrap: { position: 'absolute', left: 0, right: 0, bottom: 96, alignItems: 'center', paddingHorizontal: space.lg },
   notice: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill, overflow: 'hidden', maxWidth: 480, textAlign: 'center' },
   composerWrap: { width: '100%', maxWidth: readableWidth + 2 * space.lg, alignSelf: 'center' },

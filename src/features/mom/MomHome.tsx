@@ -11,6 +11,7 @@ import { useConnection } from '../../api/network';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { Panes } from '../../layout/Panes';
+import { useTabBarSpace } from '../../layout/tabBar';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
 import { HeaderActions } from '../../screens/HeaderActions';
 import { TopAppBar, useScrolledUnder } from '../../ui/AppBar';
@@ -38,6 +39,7 @@ export function MomHome() {
   const { t } = useTranslation();
   const { t: tChat } = useTranslation('chat');
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
   const router = useRouter();
   const format = useMomFormat();
   const statusLabel = useStatusLabel();
@@ -97,7 +99,7 @@ export function MomHome() {
       <ScrollView
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: space.xxl + tabSpace }]}
         refreshControl={<Refresh refreshing={meetings.loading && !!meetings.data} onRefresh={refreshMeetings} />}
         testID="mom-home">
         <ConnectionBanner notice={connection.notice} onRetry={refreshMeetings} testID="mom-connection" />
@@ -261,5 +263,5 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center', padding: space.xl },
   centerText: { textAlign: 'center', maxWidth: readableWidth },
-  content: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xxl, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
+  content: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
 });

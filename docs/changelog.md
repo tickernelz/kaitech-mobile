@@ -2,6 +2,47 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.10.2 - 2026-11-27
+
+### Fixed
+
+- Touch targets: every control a finger can tap now takes at least 44 by 44 dp. A settings row with a switch (Tap to record, Out of office, Picture in picture, App lock and the others) flips when you tap anywhere on the row, and a screen reader hears it as one switch. Filter chips in Chat, Search and Activity, GIF chips, emoji categories, reaction pills, voice note controls and the other small controls keep their look but accept taps up to 44 dp, without taking taps meant for the control next to them. Measured on the Meizu Mblu 21: taps 2.9 to 4.6 dp outside a chip's drawn edge selected it in 0 of 5 cases on 0.8.0 and 5 of 5 on this build; tapping a switch row's text flipped the switch in 0 of 3 cases before and 3 of 3 after (#133, ZHA-7965).
+- Existing controls that took taps from a neighbour no longer do: the composer's emoji/keyboard button (2 dp of the text field), the format bar's hide button (4 dp of the last format action), the media and PDF viewer bar buttons (4 dp of each other) and the poll option remove button (8 dp of its field) (#133, ZHA-7965).
+- Files: the detail line of a PDF or file card takes two lines instead of cutting off, and a long file name breaks after `_`, `-` or `.` instead of inside a word (#133, ZHA-7965).
+
+### Changed
+
+- A message with reactions or a thread link is 8 dp taller, wrapped rows of reactions are 12 dp apart, and the emoji category row and the GIF chip row each have 4 dp more space below, so the taps below a pill or chip stay with it (#133, ZHA-7965).
+
+### Known gaps
+
+- The composer text field measures 43.4 dp (the 44 dp field minus its 1 px border), and on screens narrower than 396 dp each emoji category is the panel width divided by nine, under 44 dp (#133, ZHA-7965).
+- iOS: no device check; the changes are shared code covered by unit tests (ZHA-7965).
+
+## 0.10.1 - 2026-11-27
+
+### Fixed
+
+- Launch: on Android a cold start no longer shows an empty light screen for about 0.4 s between the splash and the first screen, in the dark and the light theme. The splash now stays until the first screen has laid out and leaves without a fade on Android, and the account's saved theme applies before the first frame. Measured on the Meizu Mblu 21 (15 recordings each, the same 0.8.0 native build with the old and the new JS): empty light frames in 15 of 15 cold starts before, in 0 of 15 after. A cold start opens the Chat list; reopening the app while it still runs returns to the screen you left, as before (#132, ZHA-7964).
+
+### Known gaps
+
+- Launch, measured on the Mblu 21: the Chat list shows a median 1790 ms after the splash appears against 1681 ms before, with overlapping ranges (1484-1883 and 1550-1892 ms); the cause of the difference is not proven. `am start -W` TotalTime rises from a median 1495 to 2002 ms because the first frame drawn is now the Chat list instead of the empty screen (#132, ZHA-7964).
+- Launch: with the phone in the light theme and the account set to Dark, 3 of 8 cold starts still show 2 to 3 light splash frames (45-65 ms) right after the Chat list first appears; fixing it needs the account's night mode applied natively before the activity starts (ZHA-7964).
+
+## 0.10.0 - 2026-11-26
+
+### Changed
+
+- Tabs: on phones the tabs sit in a capsule that floats at the bottom of the screen, slightly see-through, with its own look per platform on the Kaitech colours. Android follows Material 3 Expressive: the selected tab opens into a wide slot with its label beside the filled icon, and the indicator stretches while it slides to the next tab and squeezes while a tab is held. iOS below 26 follows the iOS 26 system bar: equal slots with labels under the icons and a lens that slides between tabs. iOS 26 and later keep the system Liquid Glass bar. Tablets keep the side rail (#125, ZHA-7950).
+- Tabs: switching tabs gives a light haptic, the Activity badge pops when it appears or its number changes, and the incoming tab screen fades in on the background colour, so nothing flashes white. Reduce Motion turns every animation into an instant change; Reduce Transparency, Increase Contrast and Android high contrast text make the capsule solid. While the keyboard is up the capsule slides away (#125, ZHA-7950).
+- Chat, Discovery, MoM and both Activity lists end with room for the floating capsule, and the New chat button and the undo bar sit above it (#125, ZHA-7950).
+
+### Known gaps
+
+- Tabs, measured on the Meizu Mblu 21 against 0.9.0: scrolling and cold start are unchanged, and the worst frame on a tab switch drops from 46-150 ms to 34-38 ms, but each switch now animates about 65 frames instead of jumping in about 9, so about 3 more frames per switch arrive late (88-119 against 31-41 over 20 switches). Neither build meets the ZHA-7946 jank target for tab switches (#125, ZHA-7950).
+- iOS: no device. The capsule for iOS below 26 is covered only by unit tests, CI simulators run iOS 26 (the unchanged system bar), and the Liquid Glass bar behind sign-in has not been seen (ZHA-7950, ZHA-7277).
+
 ## 0.9.0 - 2026-11-26
 
 ### Added

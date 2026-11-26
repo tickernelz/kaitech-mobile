@@ -13,6 +13,10 @@ import { useChat } from '../chat';
 import { clampZoom, moved, offsetOf, tilePath, tilesFor, tileSize, type Point } from '../geo';
 import { mediaSource } from '../rich';
 import { useCookie } from './useCookie';
+import { reach } from '../../../ui/touch';
+
+const zoomSize = 40;
+const zoomSlop = reach(zoomSize, zoomSize);
 
 export type MapMarker = { key: string; point: Point; kind: 'self' | 'pin' | 'live'; ended?: boolean };
 
@@ -119,10 +123,10 @@ export function TileMap({
         </View>
       ) : null}
       <View style={styles.zoom}>
-        <Pressable accessibilityRole="button" accessibilityLabel={t('location.zoomIn')} onPress={() => zoomBy(1)} style={[styles.zoomButton, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="map-zoom-in">
+        <Pressable accessibilityRole="button" accessibilityLabel={t('location.zoomIn')} onPress={() => zoomBy(1)} hitSlop={zoomSlop} style={[styles.zoomButton, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="map-zoom-in">
           <Icon name="zoomIn" size={20} color={colors.ink} />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel={t('location.zoomOut')} onPress={() => zoomBy(-1)} style={[styles.zoomButton, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="map-zoom-out">
+        <Pressable accessibilityRole="button" accessibilityLabel={t('location.zoomOut')} onPress={() => zoomBy(-1)} hitSlop={zoomSlop} style={[styles.zoomButton, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="map-zoom-out">
           <Icon name="zoomOut" size={20} color={colors.ink} />
         </Pressable>
       </View>
@@ -140,6 +144,6 @@ const styles = StyleSheet.create({
   marker: { position: 'absolute', width: markerSize, height: markerSize, alignItems: 'center', justifyContent: 'flex-end' },
   self: { width: 18, height: 18, borderRadius: 9, borderWidth: 3, marginBottom: markerSize / 2 - 9 },
   zoom: { position: 'absolute', right: space.sm, top: space.sm, gap: space.xs },
-  zoomButton: { width: 40, height: 40, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  zoomButton: { width: zoomSize, height: zoomSize, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   attribution: { position: 'absolute', right: 0, bottom: 0, paddingHorizontal: space.xs, borderTopLeftRadius: radius.sm, opacity: 0.9 },
 });

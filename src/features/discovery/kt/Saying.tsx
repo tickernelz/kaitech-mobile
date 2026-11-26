@@ -8,6 +8,7 @@ import { Text } from '../../../ui/Text';
 import { useThread } from './place';
 import { isDate, type FormBlock, type FormField, type RepliesBlock } from './read';
 import { BlockTitle, styles as shared } from './ui';
+import { touchTarget } from '../../../ui/touch';
 
 function Choice({ label, on, onPress, testID, multiple }: { label: string; on: boolean; onPress: () => void; testID?: string; multiple: boolean }) {
   const { colors } = useTheme();
@@ -197,7 +198,7 @@ const styles = StyleSheet.create({
   reply: { minHeight: 44, borderRadius: radius.field, borderWidth: 1, paddingHorizontal: space.lg, paddingVertical: space.sm, justifyContent: 'center' },
   field: { gap: space.xs },
   choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  choice: { minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: space.xs, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md },
+  choice: { minHeight: touchTarget, flexDirection: 'row', alignItems: 'center', gap: space.xs, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md },
   input: { minHeight: 44, borderWidth: 1, borderRadius: radius.field, paddingHorizontal: space.md, paddingVertical: space.sm, fontSize: 16 },
   foot: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: space.md },
   send: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.pill, paddingHorizontal: space.lg },

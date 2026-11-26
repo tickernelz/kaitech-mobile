@@ -36,6 +36,7 @@ import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread
 import { IconButton } from '../../ui/IconButton';
 import { StateView, useErrorText } from './ui';
 import { notify } from '../../ui/dialog';
+import { touchTarget } from '../../ui/touch';
 
 const bottomSlack = 48;
 const pollMs = 2500;
@@ -500,7 +501,7 @@ const styles = StyleSheet.create({
   bubble: { borderRadius: radius.card, paddingHorizontal: space.lg, paddingVertical: space.md, maxWidth: '88%' },
   mine: { alignSelf: 'flex-end', borderBottomRightRadius: radius.sm },
   theirs: { alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: radius.sm },
-  steps: { borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
+  steps: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   failure: { borderRadius: radius.card, padding: space.lg, gap: space.xs },
   pendingWrap: { gap: space.xs },
   status: { alignSelf: 'flex-end' },

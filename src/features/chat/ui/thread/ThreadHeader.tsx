@@ -6,7 +6,11 @@ import { Text } from '../../../../ui/Text';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { CallButton } from '../../../call/ui/CallButton';
 import type { Photo } from '../../../people/photo';
+import { reach, touchTarget } from '../../../../ui/touch';
 import { Avatar } from '../Avatar';
+
+const avatarSize = 40;
+const personSlop = reach(avatarSize, avatarSize);
 
 export type ThreadHeaderProps = {
   channelId: number;
@@ -33,8 +37,8 @@ export function ThreadHeader({ channelId, name, subtitle, typing, largeText = fa
           <Icon name="back" color={colors.ink} />
         </Pressable>
       )}
-      <Pressable accessibilityRole="button" accessibilityLabel={t('thread.openPerson', { name })} disabled={!onPerson} onPress={onPerson} testID="thread-person">
-        <Avatar name={name} seed={avatar.seed} size={40} partnerId={avatar.partnerId} photo={avatar.photo} icon={avatar.icon} />
+      <Pressable accessibilityRole="button" accessibilityLabel={t('thread.openPerson', { name })} disabled={!onPerson} onPress={onPerson} hitSlop={personSlop} testID="thread-person">
+        <Avatar name={name} seed={avatar.seed} size={avatarSize} partnerId={avatar.partnerId} photo={avatar.photo} icon={avatar.icon} />
       </Pressable>
       <Pressable style={styles.heading} accessible={false} disabled={!onStatus} onPress={onStatus} testID="thread-heading">
         <Text variant="headline" numberOfLines={largeText ? 2 : 1} accessibilityRole="header" testID="thread-title">
@@ -63,6 +67,6 @@ export function ThreadHeader({ channelId, name, subtitle, typing, largeText = fa
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.xs, paddingVertical: space.sm, borderBottomWidth: StyleSheet.hairlineWidth, minHeight: 60 },
   headerNoBack: { paddingLeft: space.md },
-  heading: { flex: 1, marginLeft: space.xs },
+  heading: { flex: 1, marginLeft: space.xs, minHeight: touchTarget, justifyContent: 'center' },
   button: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 });

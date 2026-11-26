@@ -8,6 +8,7 @@ import { TextField } from '../../ui/TextField';
 import { Chip } from '../discovery/ui';
 import { dayFrom, isDay, urgencies, type FollowupRow, type Urgency } from './followups';
 import { Line, useMomFormat } from './parts';
+import { touchTarget } from '../../ui/touch';
 
 const statusIcons: Record<string, IconName> = { draft: 'bulb', open: 'clock', late: 'alert', done: 'check', dropped: 'close' };
 const statusTones = { draft: 'info', open: 'neutral', late: 'danger', done: 'ok', dropped: 'neutral' } as const;
@@ -155,6 +156,6 @@ export function PickRow({ label, value, placeholder, onPress, testID }: { label:
 const styles = StyleSheet.create({
   field: { gap: space.xs },
   choices: { gap: space.sm, paddingVertical: space.xs },
-  choice: { minHeight: 40, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  choice: { minHeight: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
   pick: { minHeight: 48, borderRadius: radius.field, borderWidth: 1, paddingHorizontal: space.md, justifyContent: 'center' },
 });

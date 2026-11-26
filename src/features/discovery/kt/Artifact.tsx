@@ -12,6 +12,7 @@ import { splitBlocks } from '../blocks';
 import { useItems, useThread, webChatUrl, type Place } from './place';
 import { parseBlock, readArtifact, type ArtifactBlock } from './read';
 import { Tool, styles as shared } from './ui';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 
 const SealedFrame = lazy(() => Promise.resolve(require('./SealedFrame') as typeof import('./SealedFrame')));
 
@@ -103,6 +104,7 @@ function Screen({ versions, start, onClose }: { versions: Version[]; start: Vers
                   accessibilityRole="tab"
                   accessibilityState={{ selected: on }}
                   onPress={() => setPicked(version.number)}
+                  hitSlop={chipSlop}
                   style={[styles.version, { borderColor: on ? colors.primary : colors.line, backgroundColor: on ? colors.select : colors.surface }]}>
                   <Text variant="label" tone={on ? 'selectInk' : 'inkSoft'}>
                     {t('discovery.block.artifact.version', { number: version.number })}
@@ -168,9 +170,9 @@ const styles = StyleSheet.create({
   bold: { fontWeight: '700' },
   screen: { flex: 1 },
   head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.lg },
-  versionStrip: { flexGrow: 0 },
-  versions: { gap: space.sm, paddingHorizontal: space.lg, paddingBottom: space.sm },
-  version: { borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: space.xs },
+  versionStrip: { flexGrow: 0, marginTop: chipBand.marginVertical },
+  versions: { gap: space.sm, paddingHorizontal: space.lg, paddingTop: chipBand.paddingVertical, paddingBottom: space.sm },
+  version: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md },
   stage: { flex: 1, marginHorizontal: space.lg, borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
   frame: { flex: 1 },
   foot: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.lg },

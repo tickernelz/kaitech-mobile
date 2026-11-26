@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 jest.mock('react-native-reanimated', () => {
   const { View } = require('react-native');
@@ -137,7 +138,11 @@ describe('Android state layer colour', () => {
 describe('Android Material 3 floating action button', () => {
   test('keeps its Maestro id and spoken label and runs the action', async () => {
     const onPress = jest.fn();
-    await render(<Fab icon="edit" label="New chat" onPress={onPress} testID="chat-new" />);
+    await render(
+      <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 400, height: 800 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } }}>
+        <Fab icon="edit" label="New chat" onPress={onPress} testID="chat-new" />
+      </SafeAreaProvider>,
+    );
     const fab = screen.getByTestId('chat-new');
     expect(fab.props.accessibilityLabel).toBe('New chat');
     await act(async () => fireEvent.press(fab));

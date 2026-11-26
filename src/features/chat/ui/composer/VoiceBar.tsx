@@ -17,6 +17,7 @@ import { buttonSize } from './Controls';
 import { cancelDistance } from './gesture';
 import { useVoiceClock, voiceLimitMs, voiceWarnMs, type ClockStore } from '../../voice/clock';
 import type { VoiceRecorder } from './useVoiceRecorder';
+import { reach } from '../../../../ui/touch';
 
 const barPitch = 5;
 const barWidth = 3;
@@ -24,6 +25,7 @@ const barMin = 3;
 const barMax = 32;
 const seekStepMs = 5000;
 const trashIcon = 24;
+const draftPlaySize = 36;
 
 export function voiceRowPhase(voice: VoiceRecorder): 'held' | 'locked' | 'paused' | null {
   const state = voice.state;
@@ -187,6 +189,7 @@ function DraftBox({ voice, channelId }: { voice: VoiceRecorder; channelId: numbe
         accessibilityRole="button"
         accessibilityLabel={mine && player.playing ? t('composer.pauseDraft') : t('composer.playDraft')}
         onPress={() => uri && void toggleVoice(id, uri)}
+        hitSlop={reach(draftPlaySize, draftPlaySize)}
         style={[styles.play, { backgroundColor: colors.primary }]}
         testID="voice-draft-play">
         <Icon name={mine && player.playing ? 'pause' : 'play'} size={20} color={colors.onPrimary} />
@@ -293,7 +296,7 @@ const styles = StyleSheet.create({
   slide: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs },
   wave: { flex: 1, height: barMax, justifyContent: 'center' },
   draft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: buttonSize, borderRadius: buttonSize / 2, paddingLeft: 4, paddingRight: space.md },
-  play: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  play: { width: draftPlaySize, height: draftPlaySize, borderRadius: draftPlaySize / 2, alignItems: 'center', justifyContent: 'center' },
   banner: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.sm },
   trash: { width: trashIcon, height: trashIcon },
   discard: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 120, justifyContent: 'center', paddingLeft: space.sm },

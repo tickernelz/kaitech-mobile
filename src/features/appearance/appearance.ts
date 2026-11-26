@@ -118,10 +118,18 @@ export function useChatAppearance(accountId: string | null): ChatAppearance {
   return useSyncExternalStore(subscribe, snapshot);
 }
 
+function setScheme(theme: Theme) {
+  Appearance.setColorScheme(theme === 'system' ? 'unspecified' : theme);
+}
+
+export function applyTheme(accountId: string | null) {
+  setScheme(accountId ? read(accountId).theme : defaultAppearance.theme);
+}
+
 export function useAppliedTheme(accountId: string | null) {
   const { theme } = useChatAppearance(accountId);
   useEffect(() => {
-    Appearance.setColorScheme(theme === 'system' ? 'unspecified' : theme);
+    setScheme(theme);
   }, [theme]);
 }
 

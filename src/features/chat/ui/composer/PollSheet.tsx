@@ -11,6 +11,7 @@ import { Text } from '../../../../ui/Text';
 import { TextField } from '../../../../ui/TextField';
 import { draftPoll, growOptions, pollLimits, pollProblem } from '../../rich';
 import type { Poll } from '../../types';
+import { touchTarget } from '../../../../ui/touch';
 
 export function PollSheet({ onClose, onSend }: { onClose: () => void; onSend: (poll: Poll) => void }) {
   const { t } = useTranslation('chat');
@@ -75,7 +76,7 @@ export function PollSheet({ onClose, onSend }: { onClose: () => void; onSend: (p
               testID={`poll-option-${index}`}
             />
             {removable ? (
-              <Pressable accessibilityRole="button" accessibilityLabel={t('poll.removeOption', { number: index + 1 })} onPress={() => remove(index)} hitSlop={8} style={styles.remove} testID={`poll-option-${index}-remove`}>
+              <Pressable accessibilityRole="button" accessibilityLabel={t('poll.removeOption', { number: index + 1 })} onPress={() => remove(index)} style={styles.remove} testID={`poll-option-${index}-remove`}>
                 <Icon name="close" size={18} color={colors.inkSoft} />
               </Pressable>
             ) : null}
@@ -94,6 +95,6 @@ const styles = StyleSheet.create({
   heading: { marginTop: space.md },
   row: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: radius.field, paddingHorizontal: space.md, minHeight: 48 },
   input: { flex: 1, fontSize: 16, paddingVertical: space.sm },
-  remove: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  remove: { width: touchTarget, height: touchTarget, marginRight: (32 - touchTarget) / 2, alignItems: 'center', justifyContent: 'center' },
   foot: { gap: space.sm },
 });

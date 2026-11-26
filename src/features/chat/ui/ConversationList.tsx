@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
+import { useTabBarSpace } from '../../../layout/tabBar';
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { useLargeText, useWindowClass } from '../../../layout/windowClass';
 import { Banner } from '../../../ui/Banner';
@@ -25,6 +26,7 @@ import { RowActions } from '../../../ui/RowActions';
 import { conversationActions } from './conversationActions';
 import { refreshStarred } from '../starred';
 import { StarredSheet } from './thread/ListSheets';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 
 function usePreview() {
   const { t } = useTranslation('chat');
@@ -149,6 +151,7 @@ export function ConversationList({
 }) {
   const { t } = useTranslation(['chat', 'translation']);
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
   const { short } = useWindowClass();
   const largeText = useLargeText();
   const conversations = useChat((state) => state.conversations);
@@ -234,6 +237,7 @@ export function ConversationList({
         accessibilityState={{ selected: on }}
         accessibilityLabel={name === 'unread' && unreadTotal ? `${t('list.filter.unread')}, ${unreadTotal}` : undefined}
         onPress={() => setFilter(name)}
+        hitSlop={chipSlop}
         testID={`chat-filter-${name}`}
         style={[styles.chip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}>
         <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
@@ -253,11 +257,11 @@ export function ConversationList({
   const header = (
     <View style={styles.header}>
       {largeText ? (
-        <View style={[styles.chips, styles.wrap]} accessibilityRole="tablist">
+        <View style={[styles.chips, styles.wrap, styles.chipBar]} accessibilityRole="tablist">
           {chips}
         </View>
       ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityRole="tablist">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.chips} accessibilityRole="tablist">
           {chips}
         </ScrollView>
       )}
@@ -308,7 +312,7 @@ export function ConversationList({
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <Row conversation={item} selected={item.id === selectedId} pending={waiting.get(item.id) ?? 0} onOpen={onOpen} inArchive={inArchive} />}
         extraData={`${selectedId}|${pending.length}|${inArchive}`}
-        contentContainerStyle={inArchive || short ? undefined : styles.fabClearance}
+        contentContainerStyle={{ paddingBottom: tabSpace + (inArchive || short ? space.sm : fabClearance) }}
         ListHeaderComponent={inArchive ? null : header}
         ListEmptyComponent={empty}
         onEndReached={() => void (inArchive ? loadArchived(true) : loadMoreConversations())}
@@ -338,16 +342,18 @@ export function ConversationList({
   );
 }
 
+const fabClearance = 56 + space.lg * 2;
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
   archiveEntry: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
   strong: { fontWeight: '600' },
   header: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.sm, gap: space.md },
-  chips: { gap: space.sm, paddingHorizontal: space.xs },
+  chipBar: { marginVertical: chipBand.marginVertical },
+  chips: { gap: space.sm, paddingHorizontal: space.xs, paddingVertical: chipBand.paddingVertical },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  fabClearance: { paddingBottom: 56 + space.lg * 2 },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
   count: { minWidth: 18, minHeight: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingLeft: space.lg, minHeight: 76 },
   rowBody: { flex: 1, paddingVertical: space.md, paddingRight: space.lg, gap: 2, borderBottomWidth: StyleSheet.hairlineWidth },

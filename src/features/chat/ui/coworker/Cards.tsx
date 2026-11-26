@@ -10,6 +10,7 @@ import { Markdown } from '../../../discovery/Markdown';
 import { agentCardsFor, createCardStore, decideWardmote, recordCards, type AgentCard, type CardStore, type RecordCard, type Wardmote } from '../../coworker';
 import { faceSize } from '../MessageBubble';
 import { failureText } from '../actions/failure';
+import { touchTarget } from '../../../../ui/touch';
 
 function useCardStore<K, V>(load: (keys: K[]) => Promise<Map<K, V> | null>): CardStore<K, V> {
   const store = useMemo(() => createCardStore<K, V>(load), [load]);
@@ -127,7 +128,7 @@ function WardmoteCard({ card, onChange }: { card: Wardmote; onChange: (next: War
         </View>
       ) : null}
       {card.url ? (
-        <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(card.url)}>
+        <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(card.url)} style={styles.link}>
           <Text variant="footnote" tone="link">
             {t('cards.openIssue')}
           </Text>
@@ -184,6 +185,7 @@ export function RecordCards({ cards, onOpen }: { cards: RecordCard[]; onOpen: (c
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  link: { minHeight: touchTarget, justifyContent: 'center' },
   bold: { fontWeight: '600' },
   stack: { gap: space.xs, marginTop: space.xs },
   card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.card, padding: space.md, gap: 4, maxWidth: 420 },
