@@ -12,21 +12,22 @@ index 88bf880..a53dfcb 100644
          }
      });
 diff --git a/node_modules/expo-modules-autolinking/build/platforms/apple/moduleScanner.js b/node_modules/expo-modules-autolinking/build/platforms/apple/moduleScanner.js
-index 093a8f5..03bf51a 100644
+index 093a8f5..980f6a4 100644
 --- a/node_modules/expo-modules-autolinking/build/platforms/apple/moduleScanner.js
 +++ b/node_modules/expo-modules-autolinking/build/platforms/apple/moduleScanner.js
-@@ -129,16 +129,31 @@ function collectPackageRoots(searchResults) {
+@@ -129,16 +129,32 @@ function collectPackageRoots(searchResults) {
      }
      return packageRoots;
  }
 +const DEFAULT_SCAN_TIMEOUT_MS = 5000;
++const MAX_SCAN_TIMEOUT_MS = 2147483647;
 +function getScanTimeout() {
 +    const value = process.env.EXPO_MODULES_SCAN_TIMEOUT_MS;
 +    if (value === undefined || value === '') {
 +        return DEFAULT_SCAN_TIMEOUT_MS;
 +    }
-+    if (!/^\d+$/.test(value) || Number(value) <= 0) {
-+        console.warn(`warning: EXPO_MODULES_SCAN_TIMEOUT_MS is set to "${value}", which isn't a positive whole number of milliseconds, so the scan for Expo modules uses the default timeout of ${DEFAULT_SCAN_TIMEOUT_MS} ms. Set it to a value such as 20000, or unset it.`);
++    if (!/^\d+$/.test(value) || Number(value) <= 0 || Number(value) > MAX_SCAN_TIMEOUT_MS) {
++        console.warn(`warning: EXPO_MODULES_SCAN_TIMEOUT_MS is set to "${value}", which isn't a whole number of milliseconds from 1 to ${MAX_SCAN_TIMEOUT_MS}, so the scan for Expo modules uses the default timeout of ${DEFAULT_SCAN_TIMEOUT_MS} ms. Set it to a value such as 20000, or unset it.`);
 +        return DEFAULT_SCAN_TIMEOUT_MS;
 +    }
 +    return Number(value);
