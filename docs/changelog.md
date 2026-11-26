@@ -2,6 +2,17 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.10.1 - 2026-11-27
+
+### Fixed
+
+- Launch: on Android a cold start no longer shows an empty light screen for about 0.4 s between the splash and the first screen, in the dark and the light theme. The splash now stays until the first screen has laid out and leaves without a fade on Android, and the account's saved theme applies before the first frame. Measured on the Meizu Mblu 21 (15 recordings each, the same 0.8.0 native build with the old and the new JS): empty light frames in 15 of 15 cold starts before, in 0 of 15 after. A cold start opens the Chat list; reopening the app while it still runs returns to the screen you left, as before (#132, ZHA-7964).
+
+### Known gaps
+
+- Launch, measured on the Mblu 21: the Chat list shows a median 1790 ms after the splash appears against 1681 ms before, with overlapping ranges (1484-1883 and 1550-1892 ms); the cause of the difference is not proven. `am start -W` TotalTime rises from a median 1495 to 2002 ms because the first frame drawn is now the Chat list instead of the empty screen (#132, ZHA-7964).
+- Launch: with the phone in the light theme and the account set to Dark, 3 of 8 cold starts still show 2 to 3 light splash frames (45-65 ms) right after the Chat list first appears; fixing it needs the account's night mode applied natively before the activity starts (ZHA-7964).
+
 ## 0.10.0 - 2026-11-26
 
 ### Changed
