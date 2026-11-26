@@ -12,6 +12,7 @@ export const handleDragDp = 40;
 export const flingDpPerMs = 0.8;
 const defaultPanelHeight = 300;
 const panelMin = 260;
+const panelMax = 360;
 export const searchPanelHeight = 196;
 
 export type PanelTab = 'emoji' | 'sticker' | 'gif';
@@ -23,7 +24,7 @@ export type StickerRow = { type: 'header'; section: string; title: string } | { 
 export type PanelProblem = 'offline' | 'unavailable' | 'server' | 'emptySearch' | 'noStickers';
 
 export function halfPanelHeight(keyboard: number): number {
-  return keyboard > 0 ? Math.max(panelMin, keyboard) : defaultPanelHeight;
+  return keyboard > 0 ? Math.min(panelMax, Math.max(panelMin, keyboard)) : defaultPanelHeight;
 }
 
 export function handleOutcome(dy: number, vy: number, full: boolean): 'full' | 'half' | 'close' | 'stay' {
