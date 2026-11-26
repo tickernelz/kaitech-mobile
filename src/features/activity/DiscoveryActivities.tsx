@@ -6,6 +6,7 @@ import { Pressable } from '../../ui/Pressable';
 import { update, type Resource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
+import { useTabBarSpace } from '../../layout/tabBar';
 import { readableWidth } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
 import { ToggleRow } from '../../ui/List';
@@ -41,6 +42,7 @@ export function DiscoveryActivities({
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
   const router = useRouter();
   const { date } = useFormatters();
   const { active } = useSession();
@@ -89,7 +91,7 @@ export function DiscoveryActivities({
     <FlatList
       data={shown}
       keyExtractor={(item, index) => `${item.kind}-${item.packet_id ?? item.conversation_id ?? item.engagement_id}-${index}`}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={[styles.list, { paddingBottom: space.lg + tabSpace }]}
       onScroll={onScroll}
       scrollEventThrottle={16}
       refreshControl={<Refresh refreshing={items.loading && !!items.data} onRefresh={() => void items.refresh()} />}
@@ -193,7 +195,7 @@ export function DiscoveryActivities({
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  list: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
+  list: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   head: { gap: space.md, paddingBottom: space.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, minHeight: 60 },
   icon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },

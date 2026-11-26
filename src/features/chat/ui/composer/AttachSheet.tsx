@@ -7,6 +7,7 @@ import { radius, space, useTheme } from '../../../../theme';
 import { duration, easing } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { useBottomInset } from '../../../../ui/insets';
+import { useLargeText } from '../../../../layout/windowClass';
 import { Overlay } from '../../../../ui/Overlay';
 import { Pressable } from '../../../../ui/Pressable';
 import { SheetItem } from '../../../../ui/Sheet';
@@ -17,11 +18,14 @@ export type Extra = { key: string; icon: IconName; label: string; detail?: strin
 
 const sourceIcons: Record<AttachSource, IconName> = { photos: 'image', camera: 'camera', files: 'file', audio: 'audioFile' };
 
-export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[] }) {
+export type Tool = { key: string; icon: IconName; label: string; onPress: () => void };
+
+export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[]; tools?: Tool[] }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const bottomInset = useBottomInset(space.lg);
   const { height } = useWindowDimensions();
+  const largeText = useLargeText();
   const reduce = useReducedMotion();
   const [mounted, setMounted] = useState(visible);
   const shown = useSharedValue(0);
@@ -48,19 +52,20 @@ export function AttachSheet({ visible, onClose, onPick, extras = [] }: { visible
         <Animated.View style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }, sheet]} accessibilityViewIsModal testID="attach-sheet">
           <View style={[styles.handle, { backgroundColor: colors.lineStrong }]} />
           <View style={styles.grid}>
-            {attachSources.map((source) => {
-              const icon = sourceIcons[source];
-              return (
-                <Pressable key={source} accessibilityRole="button" accessibilityLabel={t(`composer.source.${source}`)} onPress={() => onPick(source)} style={styles.item} testID={`attach-${source}`}>
-                  <View style={[styles.circle, { backgroundColor: colors.surface2 }]}>
-                    <Icon name={icon} color={colors.ink} />
-                  </View>
-                  <Text variant="footnote" style={styles.center} numberOfLines={1}>
-                    {t(`composer.source.${source}`)}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            {[
+              ...attachSources.filter((source) => source !== 'audio').map((source) => ({ key: source, icon: sourceIcons[source], label: t(`composer.source.${source}`), onPress: () => onPick(source) })),
+              ...tools,
+              ...attachSources.filter((source) => source === 'audio').map((source) => ({ key: source, icon: sourceIcons[source], label: t(`composer.source.${source}`), onPress: () => onPick(source) })),
+            ].map((item) => (
+              <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={item.label} onPress={item.onPress} style={[styles.item, largeText && styles.itemWide]} testID={`attach-${item.key}`}>
+                <View style={[styles.circle, { backgroundColor: colors.surface2 }]}>
+                  <Icon name={item.icon} color={colors.ink} />
+                </View>
+                <Text variant="footnote" style={styles.center} numberOfLines={1}>
+                  {item.label}
+                </Text>
+              </Pressable>
+            ))}
           </View>
           {extras.length ? <View style={[styles.divider, { backgroundColor: colors.line }]} /> : null}
           {extras.map((extra) => (
@@ -82,6 +87,7 @@ const styles = StyleSheet.create({
   handle: { alignSelf: 'center', width: 32, height: 4, borderRadius: radius.pill, marginBottom: space.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: space.lg },
   item: { width: '25%', alignItems: 'center', gap: space.xs, minHeight: 84 },
+  itemWide: { width: '50%' },
   circle: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
   center: { textAlign: 'center' },
   divider: { height: StyleSheet.hairlineWidth, marginVertical: space.xs },

@@ -4,10 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useConnection } from '../../api/network';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
 import { Panes } from '../../layout/Panes';
+import { useTabBarSpace } from '../../layout/tabBar';
 import { useWindowClass } from '../../layout/windowClass';
 import { HeaderActions } from '../../screens/HeaderActions';
 import { TopAppBar, useScrolledUnder } from '../../ui/AppBar';
@@ -15,6 +17,7 @@ import { radius, space, useTheme } from '../../theme';
 import { Section } from '../../ui/List';
 import { RowActions, type RowBind } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
+import { ConnectionBanner } from '../../ui/Banner';
 import { textActions } from '../../ui/textActions';
 import { counts, findings, panel, programmes, type Panel, type Programme } from './api';
 import { CoworkerThread } from './CoworkerThread';
@@ -154,6 +157,7 @@ function AskBar({ name, onPress }: { name: string; onPress: () => void }) {
 export function DiscoveryHome() {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
   const router = useRouter();
   const { active } = useSession();
   const { windowClass } = useWindowClass();
@@ -215,6 +219,11 @@ export function DiscoveryHome() {
     void programmePanel.refresh();
     void latest.refresh();
   };
+  const connection = useConnection({
+    shown: !!current && programmePanel.data !== undefined,
+    failed: [list.error, programmePanel.error, latest.error].some((error) => error !== undefined),
+    refresh,
+  });
 
   const home = (
     <View style={styles.fill}>
@@ -222,9 +231,10 @@ export function DiscoveryHome() {
       <ScrollView
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: space.xxl + tabSpace }]}
         refreshControl={<Refresh refreshing={refreshing && !!programmePanel.data} onRefresh={refresh} />}
         testID="discovery-home">
+        <ConnectionBanner notice={connection.notice} onRetry={refresh} testID="discovery-connection" />
         {current ? (
           <Pressable
             accessibilityRole="button"
@@ -240,8 +250,9 @@ export function DiscoveryHome() {
         ) : null}
         {!current ? (
           <StateView
+            offline={!connection.online}
             loading={list.loading && !list.data}
-            error={list.data ? undefined : list.error}
+            error={list.error}
             empty={{ title: t('discovery.home.noneTitle'), icon: 'compass' }}
             onRetry={() => void list.refresh()}
             testID="discovery-programmes"
@@ -310,6 +321,7 @@ export function DiscoveryHome() {
           </>
         ) : (
           <StateView
+            offline={!connection.online}
             loading={programmePanel.loading || !programmePanel.error}
             error={programmePanel.error}
             onRetry={() => void programmePanel.refresh()}
@@ -350,7 +362,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   shrink: { flexShrink: 1 },
   strong: { fontWeight: '600' },
-  content: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xxl, gap: space.lg, width: '100%', maxWidth: 720, alignSelf: 'center' },
+  content: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.lg, width: '100%', maxWidth: 720, alignSelf: 'center' },
   switch: {
     flexDirection: 'row',
     alignItems: 'center',

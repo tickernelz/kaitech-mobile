@@ -164,6 +164,11 @@ object MessageNotifications {
       "voice" -> if (push.duration > 0) context.getString(R.string.kaitech_message_voice_length, clock(push.duration)) else context.getString(R.string.kaitech_message_voice)
       "file" -> if (push.fileName.isNotBlank()) context.getString(R.string.kaitech_message_file_named, push.fileName) else context.getString(R.string.kaitech_message_file)
       MISSED_CALL -> context.getString(R.string.kaitech_message_missed_call)
+      "poll" -> captioned(context.getString(R.string.kaitech_message_poll), detailOf(body))
+      "location" -> captioned(context.getString(R.string.kaitech_message_location), detailOf(body))
+      "live_location" -> context.getString(R.string.kaitech_message_live_location)
+      "sticker" -> context.getString(R.string.kaitech_message_sticker)
+      "gif" -> context.getString(R.string.kaitech_message_gif)
       else -> body.ifBlank { context.getString(R.string.kaitech_message_new) }
     }
     return if (push.mention) context.getString(R.string.kaitech_message_mention, base) else base
@@ -176,6 +181,8 @@ object MessageNotifications {
   }
 
   private fun captioned(label: String, caption: String) = if (caption.isBlank()) label else "$label: $caption"
+
+  private fun detailOf(preview: String) = if (preview.contains(": ")) preview.substringAfter(": ").trim() else ""
 
   private fun clock(seconds: Int) = "%d:%02d".format(seconds / 60, seconds % 60)
 

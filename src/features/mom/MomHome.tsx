@@ -7,9 +7,11 @@ import { MoreSheet } from './MoreSheet';
 import { StatusRow } from './StatusRow';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useConnection } from '../../api/network';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { Panes } from '../../layout/Panes';
+import { useTabBarSpace } from '../../layout/tabBar';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
 import { HeaderActions } from '../../screens/HeaderActions';
 import { TopAppBar, useScrolledUnder } from '../../ui/AppBar';
@@ -17,6 +19,7 @@ import { space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
+import { ConnectionBanner } from '../../ui/Banner';
 import { StateView } from '../discovery/ui';
 import { board } from './api';
 import { MeetingView } from './MeetingView';
@@ -36,6 +39,7 @@ export function MomHome() {
   const { t } = useTranslation();
   const { t: tChat } = useTranslation('chat');
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
   const router = useRouter();
   const format = useMomFormat();
   const statusLabel = useStatusLabel();
@@ -72,6 +76,8 @@ export function MomHome() {
 
   const rows = meetings.data?.meetings ?? [];
   const days = groupByDay(rows);
+  const refreshMeetings = () => void meetings.refresh();
+  const connection = useConnection({ shown: rows.length > 0, failed: meetings.error !== undefined, refresh: refreshMeetings });
   const dayTitle = (day: string) => {
     if (day === localDay(0)) return tChat('time.today');
     if (day === localDay(-1)) return tChat('time.yesterday');
@@ -93,9 +99,10 @@ export function MomHome() {
       <ScrollView
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={styles.content}
-        refreshControl={<Refresh refreshing={meetings.loading && !!meetings.data} onRefresh={() => void meetings.refresh()} />}
+        contentContainerStyle={[styles.content, { paddingBottom: space.xxl + tabSpace }]}
+        refreshControl={<Refresh refreshing={meetings.loading && !!meetings.data} onRefresh={refreshMeetings} />}
         testID="mom-home">
+        <ConnectionBanner notice={connection.notice} onRetry={refreshMeetings} testID="mom-connection" />
         <StatusRow onOpenMeeting={open} />
         {ownRecording ? (
           <RecordingCard recording={ownRecording} onOpen={() => router.push('/mom/record')} />
@@ -148,10 +155,11 @@ export function MomHome() {
           ))
         ) : (
           <StateView
+            offline={!connection.online}
             loading={meetings.loading && !meetings.data}
-            error={meetings.data ? undefined : meetings.error}
+            error={meetings.error}
             empty={{ title: t('mom.noneTitle'), icon: 'minutes' }}
-            onRetry={() => void meetings.refresh()}
+            onRetry={refreshMeetings}
             testID="mom-meetings"
           />
         )}
@@ -255,5 +263,5 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center', padding: space.xl },
   centerText: { textAlign: 'center', maxWidth: readableWidth },
-  content: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xxl, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
+  content: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
 });
