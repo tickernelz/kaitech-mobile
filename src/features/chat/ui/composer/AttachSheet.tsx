@@ -7,6 +7,7 @@ import { radius, space, useTheme } from '../../../../theme';
 import { duration, easing } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { useBottomInset } from '../../../../ui/insets';
+import { useLargeText } from '../../../../layout/windowClass';
 import { Overlay } from '../../../../ui/Overlay';
 import { Pressable } from '../../../../ui/Pressable';
 import { SheetItem } from '../../../../ui/Sheet';
@@ -24,6 +25,7 @@ export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] 
   const { colors } = useTheme();
   const bottomInset = useBottomInset(space.lg);
   const { height } = useWindowDimensions();
+  const largeText = useLargeText();
   const reduce = useReducedMotion();
   const [mounted, setMounted] = useState(visible);
   const shown = useSharedValue(0);
@@ -55,7 +57,7 @@ export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] 
               ...tools,
               ...attachSources.filter((source) => source === 'audio').map((source) => ({ key: source, icon: sourceIcons[source], label: t(`composer.source.${source}`), onPress: () => onPick(source) })),
             ].map((item) => (
-              <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={item.label} onPress={item.onPress} style={styles.item} testID={`attach-${item.key}`}>
+              <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={item.label} onPress={item.onPress} style={[styles.item, largeText && styles.itemWide]} testID={`attach-${item.key}`}>
                 <View style={[styles.circle, { backgroundColor: colors.surface2 }]}>
                   <Icon name={item.icon} color={colors.ink} />
                 </View>
@@ -85,6 +87,7 @@ const styles = StyleSheet.create({
   handle: { alignSelf: 'center', width: 32, height: 4, borderRadius: radius.pill, marginBottom: space.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: space.lg },
   item: { width: '25%', alignItems: 'center', gap: space.xs, minHeight: 84 },
+  itemWide: { width: '50%' },
   circle: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
   center: { textAlign: 'center' },
   divider: { height: StyleSheet.hairlineWidth, marginVertical: space.xs },

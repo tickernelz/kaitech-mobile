@@ -44,6 +44,12 @@
     "accountNotTeam": "Aplikasi Kaitech hanya untuk akun tim.",
     "accountInactive": "Akun ini sudah tidak aktif."
   },
+  "network": {
+    "offlineTitle": "Tidak ada koneksi",
+    "offlineBody": "Dimuat otomatis saat tersambung lagi.",
+    "offlineCached": "Tidak ada koneksi. Yang tampil adalah data terakhir yang dimuat.",
+    "refreshFailed": "Gagal memuat ulang. Yang tampil adalah data terakhir yang dimuat."
+  },
   "wizard": {
     "skip": "Lewati",
     "next": "Berikutnya",

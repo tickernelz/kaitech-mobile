@@ -2,6 +2,7 @@ import { randomUUID } from 'expo-crypto';
 import { addNetworkStateListener, getNetworkStateAsync } from 'expo-network';
 import { useSyncExternalStore } from 'react';
 import { AppState } from 'react-native';
+import { isOnline } from '../../api/network';
 import type { Account } from '../../auth/oauth';
 import { onAccountForgotten } from '../../auth/session';
 import { ChatClient, errorCode, sendErrorFrom } from './api';
@@ -508,7 +509,7 @@ export function startChat(account: Account) {
   void refreshConversations();
   void flush();
   const network = addNetworkStateListener((network) => {
-    const online = network.isConnected !== false && network.isInternetReachable !== false;
+    const online = isOnline(network);
     const wasOnline = state.online;
     set({ online });
     if (online !== wasOnline) realtime?.reconnectNow();
@@ -517,7 +518,7 @@ export function startChat(account: Account) {
       void refreshConversations();
     }
   });
-  void getNetworkStateAsync().then((network) => set({ online: network.isConnected !== false && network.isInternetReachable !== false }));
+  void getNetworkStateAsync().then((network) => set({ online: isOnline(network) }));
   const stopPresence = onPresenceChange((next) => {
     const nowActive = userInApp(next);
     if (nowActive === active) return;
