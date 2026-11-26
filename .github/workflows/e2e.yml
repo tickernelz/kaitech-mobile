@@ -349,6 +349,7 @@ jobs:
           motion-flow: ${{ matrix.size == 'phone' && '.maestro/signed-in/chat-motion' || '' }}
           runner: maestro
           audio: 'true'
+          undo-window-ms: '30000'
 
   android-call:
     name: android call
