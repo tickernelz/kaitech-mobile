@@ -61,7 +61,7 @@ export function CallStrip() {
   const elapsed = useElapsed(call.startedAt, shown && call.phase === 'active');
   if (!shown) return null;
   const name = call.channelName || call.callerName;
-  const status = call.phase === 'active' ? elapsed : call.phase === 'reconnecting' ? t('reconnecting') : t('connecting');
+  const status = call.phase === 'active' ? (call.waiting ? t(call.waiting) : elapsed) : call.phase === 'reconnecting' ? t('reconnecting') : t('connecting');
   return (
     <Pressable
       accessibilityRole="button"

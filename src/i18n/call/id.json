@@ -1,6 +1,8 @@
 {
   "incoming": "Panggilan masuk",
   "calling": "Memanggil…",
+  "ringing": "Berdering…",
+  "alone": "Menunggu peserta lain…",
   "connecting": "Menyambungkan…",
   "reconnecting": "Menyambung ulang…",
   "inCall": "Dalam panggilan",
@@ -73,6 +75,7 @@
   "ended": {
     "left": "Panggilan berakhir",
     "declined": "Panggilan ditolak",
+    "unanswered": "Tidak dijawab",
     "disconnected": "Koneksi terputus",
     "removed": "Anda dikeluarkan dari panggilan",
     "microphone": "Izin mikrofon dibutuhkan untuk menelepon",

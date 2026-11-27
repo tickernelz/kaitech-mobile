@@ -128,6 +128,11 @@ if (ACTION === 'ring') {
   output.peer = { session: Number((rtc.localSession && rtc.localSession.id) || rtc.localSession || 0) };
 }
 
+if (ACTION === 'decline') {
+  rpc('/mail/rtc/channel/cancel_call_invitation', { channel_id: channel }, cookie);
+  output.peer = { declined: channel };
+}
+
 if (ACTION === 'hangUp') {
   rpc('/mail/rtc/channel/leave_call', { channel_id: channel }, cookie);
   output.peer = { left: channel };

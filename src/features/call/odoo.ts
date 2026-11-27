@@ -85,10 +85,19 @@ export function peopleFrom(store: unknown): Map<number, Person> {
 }
 
 export function sessionIdsFrom(store: unknown, channelId: number): { added: number[]; removed: number[] } {
+  return relationChanges(store, channelId, 'rtc_session_ids');
+}
+
+export function invitedIdsFrom(store: unknown, channelId: number): { added: number[]; removed: number[] } {
+  return relationChanges(store, channelId, 'invited_member_ids');
+}
+
+function relationChanges(store: unknown, channelId: number, field: string): { added: number[]; removed: number[] } {
   const channel = records(store, 'discuss.channel').find((row) => idOf(row.id) === channelId);
   const added: number[] = [];
   const removed: number[] = [];
-  const commands = Array.isArray(channel?.rtc_session_ids) ? channel.rtc_session_ids : [];
+  const value = channel?.[field];
+  const commands = Array.isArray(value) ? value : [];
   for (const command of commands) {
     if (!Array.isArray(command) || !Array.isArray(command[1])) continue;
     const ids = command[1].map(idOf).filter((id): id is number => id !== null);

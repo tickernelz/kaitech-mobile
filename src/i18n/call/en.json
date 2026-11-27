@@ -1,6 +1,8 @@
 {
   "incoming": "Incoming call",
   "calling": "Calling…",
+  "ringing": "Ringing…",
+  "alone": "Waiting for others…",
   "connecting": "Connecting…",
   "reconnecting": "Reconnecting…",
   "inCall": "In a call",
@@ -73,6 +75,7 @@
   "ended": {
     "left": "Call ended",
     "declined": "Call declined",
+    "unanswered": "No answer",
     "disconnected": "Connection lost",
     "removed": "You were removed from the call",
     "microphone": "Calls need microphone permission",
