@@ -68,6 +68,21 @@ describe('attach sheet on Android', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps one Back listener and one keyboard dismiss while the parent re-renders, and Back calls the latest onClose', async () => {
+    const first = jest.fn();
+    const latest = jest.fn();
+    const view = await render(sheet(true, first));
+    await view.rerender(sheet(true, jest.fn()));
+    await view.rerender(sheet(true, latest));
+    expect(BackHandler.addEventListener).toHaveBeenCalledTimes(1);
+    expect(Keyboard.dismiss).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      backHandlers[0]();
+    });
+    expect(latest).toHaveBeenCalledTimes(1);
+    expect(first).not.toHaveBeenCalled();
+  });
+
   it('stays mounted after closing so the next open does not rebuild it, but takes no touches, Back or screen reader focus', async () => {
     const view = await render(sheet(true));
     await view.rerender(sheet(false));

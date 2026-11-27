@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BackHandler, Keyboard, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -30,16 +30,20 @@ export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] 
   const inWindow = Platform.OS === 'android';
   const [mounted, setMounted] = useState(visible);
   const shown = useSharedValue(0);
+  const close = useRef(onClose);
   if (visible && !mounted) setMounted(true);
+  useEffect(() => {
+    close.current = onClose;
+  }, [onClose]);
   useEffect(() => {
     if (!inWindow || !visible) return;
     Keyboard.dismiss();
     const back = BackHandler.addEventListener('hardwareBackPress', () => {
-      onClose();
+      close.current();
       return true;
     });
     return () => back.remove();
-  }, [inWindow, visible, onClose]);
+  }, [inWindow, visible]);
   useEffect(() => {
     if (visible) {
       shown.set(reduce ? withTiming(1, { duration: duration.quick }) : withTiming(1, { duration: duration.hero, easing: easing.expo }));

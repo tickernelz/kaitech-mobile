@@ -93,7 +93,7 @@ function gestureZones() {
   return [...shell('dumpsys window').matchAll(/type=systemGestures frame=\[(\d+),(\d+)\]\[(\d+),(\d+)\]/g)].map(([, left, top, right, bottom]) => ({ left: +left, top: +top, right: +right, bottom: +bottom }));
 }
 
-export function pressPoint(box, zones) {
+function pressPoint(box, zones) {
   const inside = (x) => zones.some((zone) => x >= zone.left && x < zone.right && box.y >= zone.top && box.y < zone.bottom);
   for (let x = box.x; x > box.left; x -= 1) if (!inside(x)) return { x, y: box.y };
   return null;
@@ -141,7 +141,7 @@ const scenarios = {
 };
 for (const name of scenarioNames) if (!scenarios[name]) fail(`unknown scenario "${name}"; ${usage}`);
 
-export function parseGfxinfo(text) {
+function parseGfxinfo(text) {
   const read = (pattern) => {
     const match = text.match(pattern);
     return match ? Number(match[1]) : null;
