@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 import Animated, { withTiming } from 'react-native-reanimated';
@@ -64,12 +64,12 @@ export function ComposerPanel({
       live = false;
     };
   }, [shelfVersion]);
-  const wasShown = useRef(shown);
-  useEffect(() => {
-    const reopened = shown && !wasShown.current;
-    wasShown.current = shown;
-    if (reopened) setShelfVersion((value) => value + 1);
-  }, [shown]);
+  const [seenShown, setSeenShown] = useState(shown);
+  if (shown !== seenShown) {
+    setSeenShown(shown);
+    if (shown) setShelfVersion((value) => value + 1);
+    else setGifQuery('');
+  }
   const choose = useCallback((next: PanelTab) => {
     setTab(next);
     rememberPanelTab(next);

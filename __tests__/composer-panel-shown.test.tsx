@@ -17,11 +17,15 @@ const mockShelves: Result<StickerShelf>[] = [];
 const mockStickerShelf = jest.fn(async () => mockShelves.shift() ?? { ok: true as const, value: { packs: [], recent: [], favorites: [] } });
 jest.mock('../src/features/chat/composerExtras', () => ({ stickerShelf: () => mockStickerShelf() }));
 const mockSeen: (Result<StickerShelf> | null)[] = [];
-jest.mock('../src/features/chat/ui/composer/panel/EmojiTab', () => ({ EmojiTab: () => null }));
+jest.mock('../src/features/chat/ui/composer/panel/EmojiTab', () => {
+  const { Pressable } = jest.requireActual('react-native');
+  const { createElement: make } = jest.requireActual('react');
+  return { EmojiTab: ({ onSearchGif }: { onSearchGif: (query: string) => void }) => make(Pressable, { testID: 'emoji-search-gif', onPress: () => onSearchGif('kucing') }) };
+});
 jest.mock('../src/features/chat/ui/composer/panel/GifTab', () => {
   const { View } = jest.requireActual('react-native');
   const { createElement: make } = jest.requireActual('react');
-  return { GifTab: () => make(View, { testID: 'gif-tab' }) };
+  return { GifTab: ({ initialQuery }: { initialQuery: string }) => make(View, { testID: 'gif-tab', accessibilityLabel: initialQuery }) };
 });
 jest.mock('../src/features/chat/ui/composer/panel/StickerTab', () => ({
   StickerTab: ({ shelf }: { shelf: Result<StickerShelf> | null }) => {
@@ -144,6 +148,15 @@ describe('sticker and GIF tabs behind a closed panel', () => {
     expect(screen.queryByTestId('gif-tab')).toBeNull();
     await screen.rerender(panel(true));
     expect(screen.getByTestId('gif-tab')).toBeTruthy();
+  });
+
+  test('a GIF search started from the emoji tab does not come back after the panel was closed', async () => {
+    await render(panel(true));
+    await fireEvent.press(screen.getByTestId('emoji-search-gif'));
+    expect(screen.getByTestId('gif-tab').props.accessibilityLabel).toBe('kucing');
+    await screen.rerender(panel(false));
+    await screen.rerender(panel(true));
+    expect(screen.getByTestId('gif-tab').props.accessibilityLabel).toBe('');
   });
 
   test('the sticker tab is not kept while the panel is closed', async () => {
