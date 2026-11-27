@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { memo, type ReactNode } from 'react';
+import { memo, useCallback, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
@@ -16,7 +16,7 @@ import { UploadProgress } from './MediaControls';
 import { LocationCard } from './LocationCard';
 import { PollCard } from './PollCard';
 import { RichMedia, richLabel } from './RichMedia';
-import { RichText } from './RichText';
+import { LONG_PRESS_MS, RichText } from './RichText';
 import { MediaAttachment } from './media/Tiles';
 import { tileMax } from '../media/kind';
 import { VoiceNote } from './VoiceNote';
@@ -86,7 +86,7 @@ function Frame({
   return (
     <Pressable
       onLongPress={onLongPress}
-      delayLongPress={300}
+      delayLongPress={LONG_PRESS_MS}
       accessible={!interactive}
       accessibilityLabel={label}
       accessibilityHint={onLongPress ? undefined : undefined}
@@ -156,6 +156,7 @@ export const MessageBubble = memo(function MessageBubble({
   const { t, i18n } = useTranslation('chat');
   const { colors } = useTheme();
   const { clock } = useChatFormat();
+  const hold = useCallback(() => onLongPress(message), [onLongPress, message]);
   const removed = isRemoved(message);
   const shownBody = message.translated && message.translation ? message.translation.body : message.body;
   const blocks = removed ? [] : bodyBlocks(shownBody);
@@ -222,7 +223,7 @@ export const MessageBubble = memo(function MessageBubble({
         ]);
   const body = (
     <>
-      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} testID={`bubble-${message.id}`} bare={rich !== undefined && 'sticker' in rich && !quote} interactive={rich !== undefined && ('poll' in rich || 'location' in rich)}>
+      <Frame mine={mine} onLongPress={hold} label={label} testID={`bubble-${message.id}`} bare={rich !== undefined && 'sticker' in rich && !quote} interactive={rich !== undefined && ('poll' in rich || 'location' in rich)}>
         {(showAuthor || (agent && agentTag)) && !mine ? (
           <View style={styles.authorRow}>
             {showAuthor ? (
@@ -244,18 +245,18 @@ export const MessageBubble = memo(function MessageBubble({
         <Attachments attachments={message.attachments} origin={origin} mine={mine} meta={{ title: message.author, channelId: message.channelId, messageId: message.id }} />
         {rich ? (
           'poll' in rich ? (
-            <PollCard message={message} poll={rich.poll} mine={mine} onLongPress={() => onLongPress(message)} />
+            <PollCard message={message} poll={rich.poll} mine={mine} onLongPress={hold} />
           ) : 'location' in rich ? (
-            <LocationCard message={message} place={rich.location} mine={mine} onLongPress={() => onLongPress(message)} />
+            <LocationCard message={message} place={rich.location} mine={mine} onLongPress={hold} />
           ) : (
             <RichMedia rich={rich} origin={origin} messageId={message.id} testID={`rich-${message.id}`} />
           )
         ) : agent && !removed && !message.translated ? (
           <AgentSaid store={agent} messageId={message.id}>
-            {blocks.length ? <RichText blocks={blocks} color={colors.ink} tint={colors.surface2} /> : null}
+            {blocks.length ? <RichText blocks={blocks} color={colors.ink} tint={colors.surface2} onLongPress={hold} /> : null}
           </AgentSaid>
         ) : blocks.length ? (
-          <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} />
+          <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} onLongPress={hold} />
         ) : null}
         {message.translated && message.translation ? (
           <Text variant="label" tone="inkFaint" testID={`translated-${message.id}`}>
