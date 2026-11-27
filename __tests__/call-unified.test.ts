@@ -526,6 +526,38 @@ describe('a call nobody has answered yet', () => {
     expect(call.callState().startedAt).toBe(Date.now());
   });
 
+  it('keeps ringing until the ring limit for a person who joined on the server but whose call connects slowly', async () => {
+    const { call, room } = await placed();
+    mockPingStore = { 'discuss.channel': [{ id: 5, rtc_session_ids: [['ADD', [9, 10]]] }] };
+    call.onNotification('mail.record/insert', invitations('ADD', [77]));
+    jest.advanceTimersByTime(2_000);
+    call.onNotification('mail.record/insert', invitations('DELETE', [77]));
+    for (let elapsed = 2_000; elapsed < 44_000; elapsed += 4_000) {
+      jest.advanceTimersByTime(4_000);
+      await flush();
+      expect(call.callState()).toMatchObject({ phase: 'active', startedAt: 0 });
+    }
+    joinRemote(room);
+    expect(call.callState().startedAt).toBe(Date.now());
+  });
+
+  it('ends as unanswered when that person never reaches the call, a few checks after the ring limit', async () => {
+    const { call } = await placed();
+    mockPingStore = { 'discuss.channel': [{ id: 5, rtc_session_ids: [['ADD', [9, 10]]] }] };
+    call.onNotification('mail.record/insert', invitations('ADD', [77]));
+    call.onNotification('mail.record/insert', invitations('DELETE', [77]));
+    jest.advanceTimersByTime(4_000);
+    await flush();
+    jest.advanceTimersByTime(41_000);
+    await flush();
+    for (let check = 0; check < 3; check += 1) {
+      expect(call.callState().phase).toBe('active');
+      jest.advanceTimersByTime(4_000);
+      await flush();
+    }
+    expect(call.callState()).toMatchObject({ phase: 'ended', endedReason: 'unanswered' });
+  });
+
   it('ends as unanswered after 45 seconds when nobody ever joins', async () => {
     const { call } = await placed();
     jest.advanceTimersByTime(44_000);
