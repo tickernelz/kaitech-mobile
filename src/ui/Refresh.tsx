@@ -8,6 +8,8 @@ const indicatorClearance = 8;
 
 export const refreshIndicatorOffset = indicatorDiameter + indicatorClearance;
 
+const releaseAttempts = 10;
+
 type NativeRefresh = { releaseIndicatorTouches(tag: number): Promise<void> };
 
 const native = requireOptionalNativeModule<NativeRefresh>('KaitechRefresh');
@@ -22,9 +24,14 @@ export function Refresh({ onLayout, ...props }: RefreshControlProps) {
       const tag = findNodeHandle(event.currentTarget) ?? (event.nativeEvent as { target?: unknown }).target;
       if (!native || typeof tag !== 'number' || tag === released.current) return;
       released.current = tag;
-      native.releaseIndicatorTouches(tag).catch(() => {
-        released.current = null;
-      });
+      const attempt = (left: number) => {
+        native.releaseIndicatorTouches(tag).catch(() => {
+          if (released.current !== tag) return;
+          if (left > 0) requestAnimationFrame(() => attempt(left - 1));
+          else released.current = null;
+        });
+      };
+      attempt(releaseAttempts);
     },
     [onLayout],
   );
