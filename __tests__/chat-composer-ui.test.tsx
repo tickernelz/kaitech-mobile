@@ -299,11 +299,23 @@ describe('floating composer', () => {
     expect(onOverlap).toHaveBeenCalledTimes(1);
   });
 
-  it('turns solid with a hairline edge when Reduce Transparency or high contrast is on', async () => {
+  it('turns solid with the same 1 dp edge when Reduce Transparency or high contrast is on', async () => {
     mockSeeThrough = false;
     await show();
     expect(screen.queryByTestId('glass-backdrop', hidden)).toBeNull();
-    expect(flat('composer-capsule')).toMatchObject({ backgroundColor: expect.stringMatching(/^#[0-9A-F]{6}$/i), borderWidth: StyleSheet.hairlineWidth });
+    expect(flat('composer-capsule')).toMatchObject({ backgroundColor: expect.stringMatching(/^#[0-9A-F]{6}$/i), borderWidth: 1 });
+  });
+
+  it.each([true, false])('centres attach, emoji, camera and the text line on the send button (see-through %s)', async (seeThrough) => {
+    mockSeeThrough = seeThrough;
+    await show();
+    const edge = flat('composer-capsule').borderWidth;
+    const centre = flat('composer-send-slot').height / 2;
+    expect(centre).toBe(pill.composer.button / 2);
+    for (const id of ['composer-attach', 'composer-panel-toggle', 'composer-camera', 'composer-input']) {
+      const box = flat(id);
+      expect([id, edge + (box.height ?? box.minHeight) / 2]).toEqual([id, centre]);
+    }
   });
 
   it('a recording row sits in the same glass capsule, so it stays readable over the chat', async () => {

@@ -1,4 +1,4 @@
-import { callButtonSize, callPillThickness, pill } from '../src/ui/pill';
+import { callButtonSize, callPillThickness, glassEdge, pill } from '../src/ui/pill';
 import { touchTarget } from '../src/ui/touch';
 
 const length = (count: number, button: number) => count * button + (count - 1) * pill.call.gap + pill.call.endGap + 2 * pill.call.padding;
@@ -11,8 +11,10 @@ describe('shared pill sizes', () => {
     expect(pill.call.button).toBeGreaterThan(touchTarget);
   });
 
-  test('the text field fits inside the composer capsule and its 1 dp glass edge', () => {
-    expect(pill.composer.field).toBeLessThanOrEqual(pill.composer.height - 2);
+  test('controls inside the composer capsule fill it between its glass edges, so they centre on the send button beside it', () => {
+    expect(pill.composer.inside + 2 * glassEdge).toBe(pill.composer.height);
+    expect(pill.composer.height).toBe(pill.composer.button);
+    expect(pill.composer.inside).toBeGreaterThan(touchTarget);
   });
 
   test.each([360, 393, 411])('a %i dp phone keeps the full call button size for the five pill controls', (width) => {

@@ -1,9 +1,12 @@
 import { space } from '../theme/tokens';
 import { touchTarget } from './touch';
 
+export const glassEdge = 1;
+const composerHeight = 52;
+
 export const pill = {
   tab: { height: 68, padding: space.sm, labelGap: 4 },
-  composer: { height: 52, button: 52, gap: space.sm, field: 50 },
+  composer: { height: composerHeight, button: composerHeight, gap: space.sm, inside: composerHeight - 2 * glassEdge },
   call: { button: 56, gap: space.sm, padding: space.sm, endGap: space.sm },
 } as const;
 

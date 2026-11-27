@@ -7,6 +7,7 @@ import { useKeyboardState } from 'react-native-keyboard-controller';
 import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { Icon } from '../../../ui/icons';
+import { pill } from '../../../ui/pill';
 import { applyMarkup, markups, type Markup, type Selection } from '../markup';
 
 const hiddenKey = 'chat.formatBar.hidden';
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
   actions: { alignItems: 'center', paddingHorizontal: space.xs, gap: 2 },
   action: { minHeight: 44, minWidth: 44, paddingHorizontal: space.md, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   hide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm },
-  toggle: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  toggle: { width: 44, height: pill.composer.inside, alignItems: 'center', justifyContent: 'center' },
   bold: { fontWeight: '700' },
   italic: { fontStyle: 'italic' },
   code: { fontFamily: mono },

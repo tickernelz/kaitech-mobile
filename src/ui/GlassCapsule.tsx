@@ -4,6 +4,7 @@ import { radius, useTheme, type Scheme } from '../theme';
 import { GlassBlur } from './GlassBlur';
 import { useSeeThrough, useSurface } from './glass';
 import { glassMaterial, type Thickness } from './glassMaterial';
+import { glassEdge } from './pill';
 
 type Props = ViewProps & { solid: StyleProp<ViewStyle>; tone?: Scheme; thickness?: Thickness; overMedia?: boolean; liquid?: boolean };
 
@@ -28,7 +29,7 @@ export function GlassCapsule({ solid, tone, thickness = 'regular', overMedia, li
   const glass = glassMaterial(tone ?? scheme, thickness);
   const corner = StyleSheet.flatten(style)?.borderRadius ?? radius.pill;
   return (
-    <View style={[style, { borderColor: glass.edge, borderWidth: 1, boxShadow: glass.shadow }]} {...props}>
+    <View style={[style, { borderColor: glass.edge, borderWidth: glassEdge, boxShadow: glass.shadow }]} {...props}>
       <View pointerEvents="none" style={[StyleSheet.absoluteFill, { borderRadius: corner, overflow: 'hidden' }]} testID="glass-backdrop">
         <GlassBlur tint={glass.blur} />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: glass.tint }]} testID="glass-tint" />

@@ -43,7 +43,7 @@ import { PollSheet } from './composer/PollSheet';
 import { richLabel } from './RichMedia';
 import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 import { useBottomInset } from '../../../ui/insets';
-import { pill } from '../../../ui/pill';
+import { glassEdge, pill } from '../../../ui/pill';
 import { touchTarget } from '../../../ui/touch';
 
 type Staged = Outgoing['files'][number];
@@ -64,7 +64,7 @@ export function mentionQuery(text: string, cursor: number): { start: number; que
   return { start: at, query };
 }
 
-function RoundButton({ icon, label, onPress, filled, inRow, testID }: { icon: IconName; label: string; onPress?: () => void; filled?: boolean; inRow?: boolean; testID?: string }) {
+function RoundButton({ icon, label, onPress, filled, inRow, inCapsule, testID }: { icon: IconName; label: string; onPress?: () => void; filled?: boolean; inRow?: boolean; inCapsule?: boolean; testID?: string }) {
   const { colors } = useTheme();
   return (
     <Pressable
@@ -73,7 +73,7 @@ function RoundButton({ icon, label, onPress, filled, inRow, testID }: { icon: Ic
       onPress={onPress}
       testID={testID}
       hitSlop={4}
-      style={({ pressed }) => [styles.round, inRow && styles.rowButton, { backgroundColor: filled ? colors.primary : 'transparent', opacity: pressed ? 0.75 : 1 }]}>
+      style={({ pressed }) => [styles.round, inRow && styles.rowButton, inCapsule && styles.capsuleButton, { backgroundColor: filled ? colors.primary : 'transparent', opacity: pressed ? 0.75 : 1 }]}>
       <Icon name={icon} color={filled ? colors.onPrimary : colors.inkSoft} />
     </Pressable>
   );
@@ -417,7 +417,7 @@ export const Composer = forwardRef<
   useEffect(() => {
     if (floatHeight) onOverlap?.(space.sm + floatHeight + resting);
   }, [floatHeight, onOverlap, resting]);
-  const solidCapsule = { backgroundColor: colors.surface, borderColor: colors.line, borderWidth: StyleSheet.hairlineWidth };
+  const solidCapsule = { backgroundColor: colors.surface, borderColor: colors.line, borderWidth: glassEdge };
 
   return (
     <View pointerEvents="box-none" style={[styles.container, { paddingBottom: bottom }]} testID="composer">
@@ -515,7 +515,7 @@ export const Composer = forwardRef<
           ) : (
             <Animated.View key="compose" style={styles.group} entering={composeIn} exiting={groupOut}>
               <GlassCapsule liquid thickness="thick" solid={solidCapsule} style={styles.capsule} testID="composer-capsule">
-                {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} inRow onPress={() => setSheet(true)} testID="composer-attach" />}
+                {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} inCapsule onPress={() => setSheet(true)} testID="composer-attach" />}
                 {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
                 <View style={[styles.field, editing && styles.fieldAlone]} testID="composer-field">
                   <TextInput
@@ -620,15 +620,16 @@ const styles = StyleSheet.create({
   strong: { fontWeight: '600' },
   container: { paddingTop: space.sm, paddingHorizontal: space.sm, gap: space.sm },
   float: { gap: space.sm },
-  capsule: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: pill.composer.height, borderRadius: pill.composer.height / 2 },
+  capsule: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: pill.composer.height, borderRadius: pill.composer.height / 2, borderWidth: glassEdge, borderColor: 'transparent' },
   fieldAlone: { paddingLeft: space.md },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: controlGap },
   group: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: controlGap },
   panelClip: { overflow: 'hidden', marginHorizontal: -space.sm },
   round: { width: touchTarget, height: touchTarget, borderRadius: touchTarget / 2, alignItems: 'center', justifyContent: 'center' },
   rowButton: { width: pill.composer.button, height: pill.composer.button, borderRadius: pill.composer.button / 2 },
-  field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: pill.composer.field, paddingRight: space.sm },
-  input: { flex: 1, fontSize: 16, lineHeight: inputLine, maxHeight: 132, minHeight: pill.composer.field, textAlignVertical: 'bottom', paddingTop: (pill.composer.field - inputLine) / 2, paddingBottom: (pill.composer.field - inputLine) / 2 },
+  capsuleButton: { width: pill.composer.inside, height: pill.composer.inside, borderRadius: pill.composer.inside / 2 },
+  field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: pill.composer.inside, paddingRight: space.sm },
+  input: { flex: 1, fontSize: 16, lineHeight: inputLine, maxHeight: 132, minHeight: pill.composer.inside, textAlignVertical: 'bottom', paddingTop: (pill.composer.inside - inputLine) / 2, paddingBottom: (pill.composer.inside - inputLine) / 2 },
   suggestions: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   suggestion: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, paddingHorizontal: space.md },
   replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.sm, paddingLeft: space.md },

@@ -15,9 +15,10 @@ import { pill } from '../../../../ui/pill';
 import { reach, touchTarget } from '../../../../ui/touch';
 
 export const buttonSize = pill.composer.button;
+export const insideSize = pill.composer.inside;
 export const heldSize = 72;
 export const controlGap = pill.composer.gap;
-const fieldButtonHeight = pill.composer.field - 2 * space.xs;
+const fieldButtonHeight = insideSize;
 const fieldButtonSlop = reach(fieldButtonHeight);
 const lockIcon = 20;
 
@@ -98,14 +99,14 @@ export function CameraSlot({ shown, onPress, onLongPress }: { shown: boolean; on
   const open = useToward(shown ? 1 : 0, reduce ? 0 : duration.base);
   const fade = useToward(shown ? 1 : 0, duration.quick);
   const slot = useAnimatedStyle(() => ({
-    width: open.get() * buttonSize,
+    width: open.get() * insideSize,
     marginLeft: (open.get() - 1) * controlGap,
     opacity: fade.get(),
     transform: reduce ? [] : [{ scale: interpolate(open.get(), [0, 1], [0.6, 1]) }],
   }));
   return (
     <Animated.View style={[styles.cameraSlot, slot]} pointerEvents={shown ? 'auto' : 'none'} importantForAccessibility={shown ? 'auto' : 'no-hide-descendants'}>
-      <Pressable accessibilityRole="button" accessibilityLabel={t('composer.camera')} accessibilityHint={t('composer.cameraHint')} onPress={onPress} onLongPress={onLongPress} delayLongPress={420} style={styles.round} testID="composer-camera">
+      <Pressable accessibilityRole="button" accessibilityLabel={t('composer.camera')} accessibilityHint={t('composer.cameraHint')} onPress={onPress} onLongPress={onLongPress} delayLongPress={420} style={styles.inside} testID="composer-camera">
         <Icon name="camera" color={colors.inkSoft} />
       </Pressable>
     </Animated.View>
@@ -191,7 +192,8 @@ const styles = StyleSheet.create({
   slot: { width: buttonSize, height: buttonSize },
   layer: { ...StyleSheet.absoluteFill, borderRadius: buttonSize / 2, alignItems: 'center', justifyContent: 'center' },
   round: { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2, alignItems: 'center', justifyContent: 'center' },
-  cameraSlot: { height: buttonSize, overflow: 'hidden', alignItems: 'flex-start' },
+  inside: { width: insideSize, height: insideSize, borderRadius: insideSize / 2, alignItems: 'center', justifyContent: 'center' },
+  cameraSlot: { height: insideSize, overflow: 'hidden', alignItems: 'flex-start' },
   fieldButton: { width: touchTarget, height: fieldButtonHeight, borderRadius: fieldButtonHeight / 2, alignItems: 'center', justifyContent: 'center', marginRight: -space.sm },
   lockPill: { position: 'absolute', right: 0, bottom: buttonSize + 40, width: buttonSize, height: 100, paddingVertical: space.md, borderRadius: buttonSize / 2, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', gap: space.xs },
   lockStack: { width: lockIcon, height: lockIcon },
