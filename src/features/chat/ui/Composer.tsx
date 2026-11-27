@@ -1,6 +1,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BackHandler, Platform, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type TextInputSelectionChangeEvent } from 'react-native';
+import { BackHandler, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type TextInputSelectionChangeEvent } from 'react-native';
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { Pressable } from '../../../ui/Pressable';
@@ -8,8 +8,7 @@ import { KeyboardController, useKeyboardState, useReanimatedKeyboardAnimation } 
 import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { duration, easing, spring, useMotion } from '../../../theme/motion';
-import { FloatingSurface } from '../../../ui/FloatingSurface';
-import { useSurface } from '../../../ui/glass';
+import { GlassCapsule } from '../../../ui/GlassCapsule';
 import { haptic } from '../../../ui/haptic';
 import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, useChat, type Outgoing } from '../chat';
@@ -45,12 +44,14 @@ import { PollSheet } from './composer/PollSheet';
 import { richLabel } from './RichMedia';
 import { FormatBar, useMarkup } from './FormatBar';
 import { useBottomInset } from '../../../ui/insets';
+import { glassEdge, pill } from '../../../ui/pill';
 import { touchTarget } from '../../../ui/touch';
 
 type Staged = Outgoing['files'][number];
 
 export type ComposerHandle = { reply(message: Message): void; edit(message: Message): void; restore(body: string, partnerIds: number[]): void; focus(): void; closePanel(): void };
 
+const inputLine = 22;
 const now = () => Date.now();
 const clock = () => performance.now();
 
@@ -64,7 +65,7 @@ export function mentionQuery(text: string, cursor: number): { start: number; que
   return { start: at, query };
 }
 
-function RoundButton({ icon, label, onPress, filled, testID }: { icon: IconName; label: string; onPress?: () => void; filled?: boolean; testID?: string }) {
+function RoundButton({ icon, label, onPress, filled, inRow, inCapsule, testID }: { icon: IconName; label: string; onPress?: () => void; filled?: boolean; inRow?: boolean; inCapsule?: boolean; testID?: string }) {
   const { colors } = useTheme();
   return (
     <Pressable
@@ -73,14 +74,17 @@ function RoundButton({ icon, label, onPress, filled, testID }: { icon: IconName;
       onPress={onPress}
       testID={testID}
       hitSlop={4}
-      style={({ pressed }) => [styles.round, { backgroundColor: filled ? colors.primary : 'transparent', opacity: pressed ? 0.75 : 1 }]}>
+      style={({ pressed }) => [styles.round, inRow && styles.rowButton, inCapsule && styles.capsuleButton, { backgroundColor: filled ? colors.primary : 'transparent', opacity: pressed ? 0.75 : 1 }]}>
       <Icon name={icon} color={filled ? colors.onPrimary : colors.inkSoft} />
     </Pressable>
   );
 }
 
-export const Composer = forwardRef<ComposerHandle, { accountId: string; channelId: number; messages: Message[]; onSent: () => void; onNotice?: (text: string) => void }>(function Composer(
-  { accountId, channelId, messages, onSent, onNotice },
+export const Composer = forwardRef<
+  ComposerHandle,
+  { accountId: string; channelId: number; messages: Message[]; onSent: () => void; onNotice?: (text: string) => void; onOverlap?: (height: number) => void }
+>(function Composer(
+  { accountId, channelId, messages, onSent, onNotice, onOverlap },
   ref,
 ) {
   const { t } = useTranslation('chat');
@@ -410,11 +414,16 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
   const voiceIn = useMotion(FadeIn.duration(duration.quick));
   const composeIn = useMotion(FadeIn.duration(duration.quick).delay(discarding ? 680 : 0));
   const groupOut = useMotion(FadeOut.duration(duration.quick));
-  const glass = useSurface() === 'glass';
   const bottom = useBottomInset(space.sm, keyboardVisible || panel);
+  const resting = useBottomInset(space.sm);
+  const [floatHeight, setFloatHeight] = useState(0);
+  useEffect(() => {
+    if (floatHeight) onOverlap?.(space.sm + floatHeight + resting);
+  }, [floatHeight, onOverlap, resting]);
+  const solidCapsule = { backgroundColor: colors.surface, borderColor: colors.line, borderWidth: glassEdge };
 
   return (
-    <View style={[styles.container, glass ? styles.bare : { borderTopColor: colors.line }, { backgroundColor: colors.canvas, paddingBottom: bottom }]} testID="composer">
+    <View pointerEvents="box-none" style={[styles.container, { paddingBottom: bottom }]} testID="composer">
       {queryText !== null && suggestions.length ? (
         <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="mention-suggestions">
           {suggestions.map((person) => (
@@ -446,123 +455,129 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
           ))}
         </View>
       ) : null}
-      {urgent ? (
-        <View style={[styles.replyBar, { backgroundColor: colors.warnBand }]} testID="composer-urgent">
-          <Icon name="alert" color={colors.warnInk} />
-          <Text variant="footnote" tone="warnInk" style={[styles.flex, styles.strong]}>
-            {t('extras.urgentOn')}
-          </Text>
-          <RoundButton icon="close" label={t('extras.notUrgent')} onPress={() => setUrgent(false)} />
-        </View>
-      ) : null}
-      {editing ? (
-        <View style={[styles.replyBar, { backgroundColor: colors.surface2 }]} testID="composer-editing">
-          <View style={styles.flex}>
-            <Text variant="footnote" style={styles.strong}>
-              {t('composer.editing')}
+      <View pointerEvents="box-none" style={styles.float} onLayout={(event) => setFloatHeight(event.nativeEvent.layout.height)} testID="composer-float">
+        {urgent ? (
+          <View style={[styles.replyBar, { backgroundColor: colors.warnBand }]} testID="composer-urgent">
+            <Icon name="alert" color={colors.warnInk} />
+            <Text variant="footnote" tone="warnInk" style={[styles.flex, styles.strong]}>
+              {t('extras.urgentOn')}
             </Text>
-            <Text variant="footnote" tone="inkSoft" numberOfLines={1}>
-              {bodyPreview(editing.body)}
-            </Text>
+            <RoundButton icon="close" label={t('extras.notUrgent')} onPress={() => setUrgent(false)} />
           </View>
-          <RoundButton icon="close" label={t('composer.cancelEdit')} onPress={stopEditing} testID="composer-cancel-edit" />
-        </View>
-      ) : null}
-      {parentId ? (
-        <View style={[styles.replyBar, { backgroundColor: colors.surface2 }]} testID="composer-reply">
-          <View style={styles.flex}>
-            <Text variant="footnote" style={[styles.strong, { color: colors.ink }]}>
-              {t('composer.replyingTo', { name: parent?.author ?? '' })}
-            </Text>
-            <Text variant="footnote" tone="inkSoft" numberOfLines={1}>
-              {parent ? (parent.rich ? richLabel(t, parent.rich) : bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length })) : ''}
-            </Text>
-          </View>
-          <RoundButton icon="close" label={t('composer.cancelReply')} onPress={() => setParentId(null)} />
-        </View>
-      ) : null}
-      {files.length ? (
-        <ScrollView horizontal contentContainerStyle={styles.staged} showsHorizontalScrollIndicator={false}>
-          {files.map((file, index) => (
-            <StagedFile
-              key={file.uri}
-              name={file.name}
-              mimetype={file.mimetype}
-              uri={file.uri}
-              onRemove={() => {
-                dropFile(file.uri);
-                setFiles((current) => current.filter((_, position) => position !== index));
-              }}
-            />
-          ))}
-        </ScrollView>
-      ) : null}
-      {voice.state.phase === 'paused' ? <InterruptionBanner reason={voice.state.reason} /> : null}
-      <View style={styles.row} testID="composer-row">
-        {voicePhase ? (
-          <Animated.View key="voice" style={styles.group} entering={voiceIn} exiting={groupOut}>
-            <VoiceRow voice={voice} channelId={channelId} />
-          </Animated.View>
-        ) : (
-          <Animated.View key="compose" style={styles.group} entering={composeIn} exiting={groupOut}>
-            {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />}
-            <FloatingSurface solid={colors.surface} style={[styles.field, glass ? styles.bare : { borderColor: colors.line }]} testID="composer-field">
-              <TextInput
-                ref={input}
-                value={text}
-                onChangeText={changeText}
-                onSelectionChange={(event: TextInputSelectionChangeEvent) => {
-                  setCursor(event.nativeEvent.selection.end);
-                  markup.inputProps.onSelectionChange(event);
-                }}
-                onFocus={() => {
-                  if (panel && keyboardVisible) {
-                    reopening.current = false;
-                    setSearching(false);
-                    open.set(0);
-                    setPanel(false);
-                  } else if (panel) reopening.current = true;
-                  markup.inputProps.onFocus();
-                }}
-                onBlur={markup.inputProps.onBlur}
-                placeholder={t('composer.placeholder')}
-                placeholderTextColor={colors.inkFaint}
-                multiline
-                disableFullscreenUI
-                submitBehavior={hardwareSubmit ? 'submit' : 'newline'}
-                returnKeyType={hardwareSubmit ? 'send' : 'default'}
-                onSubmitEditing={hardwareSubmit ? submit : undefined}
-                accessibilityLabel={t('composer.placeholder')}
-                testID="composer-input"
-                style={[styles.input, { color: colors.ink }]}
-              />
-              <FieldButton
-                icon={panel ? 'keyboard' : 'emoji'}
-                label={panel ? t('composer.showKeyboard') : t('composer.openPanel')}
-                onPress={panel ? showKeyboard : openPanel}
-                testID={panel ? 'composer-keyboard' : 'composer-panel-toggle'}
-              />
-            </FloatingSurface>
-            {editing ? null : <CameraSlot shown={mode === 'mic'} onPress={() => void pickFrom('camera')} onLongPress={() => void pickFrom('photos')} />}
-          </Animated.View>
-        )}
-        {discarding ? <DiscardAnimation onDone={endDiscard} /> : null}
+        ) : null}
         {editing ? (
-          <RoundButton icon="check" label={t('composer.saveEdit')} filled onPress={submit} testID="composer-save-edit" />
-        ) : (
-          <SendMicButton mode={mode} voice={voice} tapMode={tapMode} onSend={submit} />
-        )}
-        {editing ? null : <LockPill voice={voice} />}
-        {editing ? null : <ShortHint shown={voice.hint} />}
+          <View style={[styles.replyBar, { backgroundColor: colors.surface2 }]} testID="composer-editing">
+            <View style={styles.flex}>
+              <Text variant="footnote" style={styles.strong}>
+                {t('composer.editing')}
+              </Text>
+              <Text variant="footnote" tone="inkSoft" numberOfLines={1}>
+                {bodyPreview(editing.body)}
+              </Text>
+            </View>
+            <RoundButton icon="close" label={t('composer.cancelEdit')} onPress={stopEditing} testID="composer-cancel-edit" />
+          </View>
+        ) : null}
+        {parentId ? (
+          <View style={[styles.replyBar, { backgroundColor: colors.surface2 }]} testID="composer-reply">
+            <View style={styles.flex}>
+              <Text variant="footnote" style={[styles.strong, { color: colors.ink }]}>
+                {t('composer.replyingTo', { name: parent?.author ?? '' })}
+              </Text>
+              <Text variant="footnote" tone="inkSoft" numberOfLines={1}>
+                {parent ? (parent.rich ? richLabel(t, parent.rich) : bodyPreview(parent.body) || t('list.files', { count: parent.attachments.length })) : ''}
+              </Text>
+            </View>
+            <RoundButton icon="close" label={t('composer.cancelReply')} onPress={() => setParentId(null)} />
+          </View>
+        ) : null}
+        {files.length ? (
+          <ScrollView horizontal contentContainerStyle={styles.staged} showsHorizontalScrollIndicator={false}>
+            {files.map((file, index) => (
+              <StagedFile
+                key={file.uri}
+                name={file.name}
+                mimetype={file.mimetype}
+                uri={file.uri}
+                onRemove={() => {
+                  dropFile(file.uri);
+                  setFiles((current) => current.filter((_, position) => position !== index));
+                }}
+              />
+            ))}
+          </ScrollView>
+        ) : null}
+        {voice.state.phase === 'paused' ? <InterruptionBanner reason={voice.state.reason} /> : null}
+        <View style={styles.row} testID="composer-row">
+          {voicePhase ? (
+            <Animated.View key="voice" style={styles.group} entering={voiceIn} exiting={groupOut}>
+              <GlassCapsule liquid thickness="thick" solid={solidCapsule} style={styles.capsule} testID="composer-voice-capsule">
+                <VoiceRow voice={voice} channelId={channelId} />
+              </GlassCapsule>
+            </Animated.View>
+          ) : (
+            <Animated.View key="compose" style={styles.group} entering={composeIn} exiting={groupOut}>
+              <GlassCapsule liquid thickness="thick" solid={solidCapsule} style={styles.capsule} testID="composer-capsule">
+                {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} inCapsule onPress={() => setSheet(true)} testID="composer-attach" />}
+                <View style={[styles.field, editing && styles.fieldAlone]} testID="composer-field">
+                  <TextInput
+                    ref={input}
+                    value={text}
+                    onChangeText={changeText}
+                    onSelectionChange={(event: TextInputSelectionChangeEvent) => {
+                      setCursor(event.nativeEvent.selection.end);
+                      markup.inputProps.onSelectionChange(event);
+                    }}
+                    onFocus={() => {
+                      if (panel && keyboardVisible) {
+                        reopening.current = false;
+                        setSearching(false);
+                        open.set(0);
+                        setPanel(false);
+                      } else if (panel) reopening.current = true;
+                      markup.inputProps.onFocus();
+                    }}
+                    onBlur={markup.inputProps.onBlur}
+                    placeholder={t('composer.placeholder')}
+                    placeholderTextColor={colors.inkSoft}
+                    multiline
+                    disableFullscreenUI
+                    submitBehavior={hardwareSubmit ? 'submit' : 'newline'}
+                    returnKeyType={hardwareSubmit ? 'send' : 'default'}
+                    onSubmitEditing={hardwareSubmit ? submit : undefined}
+                    accessibilityLabel={t('composer.placeholder')}
+                    testID="composer-input"
+                    style={[styles.input, { color: colors.ink }]}
+                  />
+                  <FieldButton
+                    icon={panel ? 'keyboard' : 'emoji'}
+                    label={panel ? t('composer.showKeyboard') : t('composer.openPanel')}
+                    onPress={panel ? showKeyboard : openPanel}
+                    testID={panel ? 'composer-keyboard' : 'composer-panel-toggle'}
+                  />
+                </View>
+                {editing ? null : <CameraSlot shown={mode === 'mic'} onPress={() => void pickFrom('camera')} onLongPress={() => void pickFrom('photos')} />}
+              </GlassCapsule>
+            </Animated.View>
+          )}
+          {discarding ? <DiscardAnimation onDone={endDiscard} /> : null}
+          {editing ? (
+            <RoundButton icon="check" label={t('composer.saveEdit')} filled inRow onPress={submit} testID="composer-save-edit" />
+          ) : (
+            <SendMicButton mode={mode} voice={voice} tapMode={tapMode} onSend={submit} />
+          )}
+          {editing ? null : <LockPill voice={voice} />}
+          {editing ? null : <ShortHint shown={voice.hint} />}
+        </View>
+        {markup.showBar && !voicePhase ? (
+          <FormatBar
+            onApply={markup.apply}
+            onSpace={(height) => {
+              formatBarSpace.current = height;
+            }}
+          />
+        ) : null}
       </View>
-      {markup.showBar && !voicePhase ? (
-        <FormatBar
-          onApply={markup.apply}
-          onSpace={(height) => {
-            formatBarSpace.current = height;
-          }}
-        />
-      ) : null}
       {panel ? (
         <Animated.View style={[styles.panelClip, panelStyle]}>
           <View style={{ height: target }} testID="composer-panel-box">
@@ -604,14 +619,18 @@ export const Composer = forwardRef<ComposerHandle, { accountId: string; channelI
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   strong: { fontWeight: '600' },
-  container: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm, paddingHorizontal: space.sm, gap: space.sm },
-  bare: { borderWidth: 0, borderTopWidth: 0 },
+  container: { paddingTop: space.sm, paddingHorizontal: space.sm, gap: space.sm },
+  float: { gap: space.sm },
+  capsule: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: pill.composer.height, borderRadius: pill.composer.height / 2, borderWidth: glassEdge, borderColor: 'transparent' },
+  fieldAlone: { paddingLeft: space.md },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: controlGap },
   group: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: controlGap },
   panelClip: { overflow: 'hidden', marginHorizontal: -space.sm },
-  round: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingLeft: space.md, paddingRight: space.sm },
-  input: { flex: 1, fontSize: 16, lineHeight: 22, maxHeight: 132, minHeight: touchTarget - 2 * StyleSheet.hairlineWidth, textAlignVertical: 'bottom', paddingTop: Platform.OS === 'ios' ? 11 : 8, paddingBottom: Platform.OS === 'ios' ? 11 : 8 },
+  round: { width: touchTarget, height: touchTarget, borderRadius: touchTarget / 2, alignItems: 'center', justifyContent: 'center' },
+  rowButton: { width: pill.composer.button, height: pill.composer.button, borderRadius: pill.composer.button / 2 },
+  capsuleButton: { width: pill.composer.inside, height: pill.composer.inside, borderRadius: pill.composer.inside / 2 },
+  field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: pill.composer.inside, paddingRight: space.sm },
+  input: { flex: 1, fontSize: 16, lineHeight: inputLine, maxHeight: 132, minHeight: pill.composer.inside, textAlignVertical: 'bottom', paddingTop: (pill.composer.inside - inputLine) / 2, paddingBottom: (pill.composer.inside - inputLine) / 2 },
   suggestions: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   suggestion: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, paddingHorizontal: space.md },
   replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.sm, paddingLeft: space.md },

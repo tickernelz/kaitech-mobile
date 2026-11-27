@@ -1,8 +1,9 @@
 import { createContext, useContext } from 'react';
 import { space } from '../theme/tokens';
+import { pill } from '../ui/pill';
 
-export const pillHeight = 64;
-export const pillPadding = space.sm;
+export const pillHeight = pill.tab.height;
+export const pillPadding = pill.tab.padding;
 export const pillMaxWidth = 440;
 const glyph = 24;
 const labelGap = space.sm;
