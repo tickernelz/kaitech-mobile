@@ -28,7 +28,7 @@ import { chatAttachments } from './files';
 import { ItemsContext, ThreadContext, type Thread } from './kt/place';
 import { Markdown } from './Markdown';
 import { sourceBlocks } from '../chat/markdown';
-import { FormatBar, FormatToggle, useMarkup } from '../chat/ui/FormatBar';
+import { FormatBar, useMarkup } from '../chat/ui/FormatBar';
 import { RichText } from '../chat/ui/RichText';
 import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
 import { viewConversation } from './viewing';
@@ -459,7 +459,6 @@ export function CoworkerThread({
         ) : (
           <>
             <IconButton icon="attach" label={t('discovery.thread.attach')} onPress={() => setSheet(true)} testID={`${testID}-attach`} />
-            {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
             <TextInput
               ref={input}
               value={draft}
@@ -484,7 +483,7 @@ export function CoworkerThread({
       </View>
       {markup.showBar && !voice.recording ? (
         <View style={[styles.formatBar, { backgroundColor: colors.canvas }]}>
-          <FormatBar onApply={markup.apply} onHide={markup.hide} />
+          <FormatBar onApply={markup.apply} />
         </View>
       ) : null}
       <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} />

@@ -2,6 +2,40 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.12.0 - 2026-11-27
+
+### Changed
+
+- Tab bar, call controls and the chat composer: all three are now floating glass capsules in Kaitech colours with a thin edge and a soft shadow, so they stand apart from a white or dark background instead of blending into it. iOS below 26 blurs what is behind them; Android uses a tinted glass without blur, because blur added about 3 ms per frame while scrolling on the Meizu Mblu 21. With Reduce Transparency or high contrast on they turn solid (#141, ZHA-7978).
+- Chat composer: it floats over the conversation with no bar behind it, so the messages scroll up to the bottom edge and the last message still ends above the capsule. Attach, emoji, camera and the text line now sit on one centre line with the send button (#141, ZHA-7978).
+- Larger pills: the tab bar is 68 dp tall instead of 64, the composer 52 dp instead of 44, and call buttons 56 dp instead of 52, from one shared size set; on phones narrower than 360 dp the five call buttons shrink to fit, never below 44 dp (#141, ZHA-7978).
+
+### Known gaps
+
+- Opening and closing the keyboard in a conversation measured about 1.8 ms more per frame at the 90th percentile on the Meizu Mblu 21 (34.3 against 32.5 ms, 6 alternating rounds), about 1 to 2 extra janky frames per keyboard open; the floating composer was kept by choice. Typing, scrolling, tab switches and cold start were not worse (#141, ZHA-7978).
+- iOS: no device check. Unit tests cover the iOS below 26 blur capsule and the Release IPA builds (+0.05%); the iOS 26 Liquid Glass look behind sign-in has not been seen (ZHA-7277).
+
+## 0.11.0 - 2026-11-27
+
+### Added
+
+- Chat: swipe a message right to reply to it, like WhatsApp; a short swipe, swiping back, or a cancelled gesture does not reply, and deleted messages and system notices cannot be swiped. Long-pressing a message, sending, and adding a reaction now vibrate. Dragging a voice note's waveform still seeks instead of swiping the message (#131, ZHA-7967).
+- App lock: a phone with only a screen PIN (no fingerprint enrolled) can now turn app lock on; before, Settings showed no app lock at all on such a phone (#110, ZHA-7439).
+
+### Changed
+
+- Chat: the format bar (bold, italic, code, link, quote, list) appears only while text is selected, so typing keeps the full thread height; all six actions fit on a 411 dp screen. The thread title gets about 207 dp instead of 163 dp, so "Uji Chat Web (ZHA-7238)" fits without being cut. Measured on the Meizu Mblu 21 (#131, ZHA-7967).
+
+### Fixed
+
+- App lock: when the device's screen lock was removed while app lock was on, every unlock failed and only clearing app data helped; the lock screen now says why and offers sign-out behind a confirm (#139, ZHA-7439).
+- Lists: data invalidated while it was still loading (for example the MoM list right after an upload finished) is refetched at once instead of showing the older answer until the stale timer ran out (#115, ZHA-7439).
+
+### Known gaps
+
+- Chat scroll on the Meizu Mblu 21 measured 28.8% janky frames with swipe-to-reply against 27.2% without (slow UI thread 1557 against 1561, 3 alternating rounds on the 0.9.0 base); the gap sits inside the per-pass spread but is not proven regression-free (#131, ZHA-7967).
+- iOS: swipe-to-reply against the iOS back gesture has no device check; the changes are shared code covered by unit tests (#131, ZHA-7967).
+
 ## 0.10.3 - 2026-11-27
 
 ### Fixed

@@ -201,6 +201,7 @@ onFlowComplete:
     id: row-action-remove
 - tapOn:
     id: undo-action
+    waitToSettleTimeoutMs: 500
 - assertNotVisible:
     id: undo-bar
 - extendedWaitUntil:

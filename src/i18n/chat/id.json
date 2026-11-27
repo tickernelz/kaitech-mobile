@@ -134,10 +134,7 @@
       "code": "Kode",
       "link": "Tautan",
       "quote": "Kutipan",
-      "list": "Daftar",
-      "hide": "Sembunyikan format",
-      "show": "Tampilkan format",
-      "glyph": "Aa"
+      "list": "Daftar"
     },
     "editing": "Mengedit pesan",
     "cancelEdit": "Batalkan edit",
