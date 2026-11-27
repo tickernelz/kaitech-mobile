@@ -1,6 +1,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BackHandler, Platform, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type TextInputSelectionChangeEvent } from 'react-native';
+import { BackHandler, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type TextInputSelectionChangeEvent } from 'react-native';
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { Pressable } from '../../../ui/Pressable';
@@ -43,12 +43,14 @@ import { PollSheet } from './composer/PollSheet';
 import { richLabel } from './RichMedia';
 import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
 import { useBottomInset } from '../../../ui/insets';
+import { pill } from '../../../ui/pill';
 import { touchTarget } from '../../../ui/touch';
 
 type Staged = Outgoing['files'][number];
 
 export type ComposerHandle = { reply(message: Message): void; edit(message: Message): void; restore(body: string, partnerIds: number[]): void; focus(): void; closePanel(): void };
 
+const inputLine = 22;
 const now = () => Date.now();
 const clock = () => performance.now();
 
@@ -62,7 +64,7 @@ export function mentionQuery(text: string, cursor: number): { start: number; que
   return { start: at, query };
 }
 
-function RoundButton({ icon, label, onPress, filled, testID }: { icon: IconName; label: string; onPress?: () => void; filled?: boolean; testID?: string }) {
+function RoundButton({ icon, label, onPress, filled, inRow, testID }: { icon: IconName; label: string; onPress?: () => void; filled?: boolean; inRow?: boolean; testID?: string }) {
   const { colors } = useTheme();
   return (
     <Pressable
@@ -71,7 +73,7 @@ function RoundButton({ icon, label, onPress, filled, testID }: { icon: IconName;
       onPress={onPress}
       testID={testID}
       hitSlop={4}
-      style={({ pressed }) => [styles.round, { backgroundColor: filled ? colors.primary : 'transparent', opacity: pressed ? 0.75 : 1 }]}>
+      style={({ pressed }) => [styles.round, inRow && styles.rowButton, { backgroundColor: filled ? colors.primary : 'transparent', opacity: pressed ? 0.75 : 1 }]}>
       <Icon name={icon} color={filled ? colors.onPrimary : colors.inkSoft} />
     </Pressable>
   );
@@ -512,7 +514,7 @@ export const Composer = forwardRef<
           ) : (
             <Animated.View key="compose" style={styles.group} entering={composeIn} exiting={groupOut}>
               <GlassCapsule liquid thickness="thick" solid={solidCapsule} style={styles.capsule} testID="composer-capsule">
-                {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} onPress={() => setSheet(true)} testID="composer-attach" />}
+                {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} inRow onPress={() => setSheet(true)} testID="composer-attach" />}
                 {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
                 <View style={[styles.field, editing && styles.fieldAlone]} testID="composer-field">
                 <TextInput
@@ -557,7 +559,7 @@ export const Composer = forwardRef<
           )}
           {discarding ? <DiscardAnimation onDone={endDiscard} /> : null}
           {editing ? (
-            <RoundButton icon="check" label={t('composer.saveEdit')} filled onPress={submit} testID="composer-save-edit" />
+            <RoundButton icon="check" label={t('composer.saveEdit')} filled inRow onPress={submit} testID="composer-save-edit" />
           ) : (
             <SendMicButton mode={mode} voice={voice} tapMode={tapMode} onSend={submit} />
           )}
@@ -617,14 +619,15 @@ const styles = StyleSheet.create({
   strong: { fontWeight: '600' },
   container: { paddingTop: space.sm, paddingHorizontal: space.sm, gap: space.sm },
   float: { gap: space.sm },
-  capsule: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: 44, borderRadius: 22 },
+  capsule: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: pill.composer.height, borderRadius: pill.composer.height / 2 },
   fieldAlone: { paddingLeft: space.md },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: controlGap },
   group: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: controlGap },
   panelClip: { overflow: 'hidden', marginHorizontal: -space.sm },
-  round: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: 42, paddingRight: space.sm },
-  input: { flex: 1, fontSize: 16, lineHeight: 22, maxHeight: 132, minHeight: touchTarget - 2 * StyleSheet.hairlineWidth, textAlignVertical: 'bottom', paddingTop: Platform.OS === 'ios' ? 11 : 8, paddingBottom: Platform.OS === 'ios' ? 11 : 8 },
+  round: { width: touchTarget, height: touchTarget, borderRadius: touchTarget / 2, alignItems: 'center', justifyContent: 'center' },
+  rowButton: { width: pill.composer.button, height: pill.composer.button, borderRadius: pill.composer.button / 2 },
+  field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: pill.composer.field, paddingRight: space.sm },
+  input: { flex: 1, fontSize: 16, lineHeight: inputLine, maxHeight: 132, minHeight: pill.composer.field, textAlignVertical: 'bottom', paddingTop: (pill.composer.field - inputLine) / 2, paddingBottom: (pill.composer.field - inputLine) / 2 },
   suggestions: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   suggestion: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, paddingHorizontal: space.md },
   replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.sm, paddingLeft: space.md },

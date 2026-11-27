@@ -11,12 +11,13 @@ import { Text } from '../../../../ui/Text';
 import { isHeld } from '../../voice/machine';
 import { lockDistance, type SendMode } from './gesture';
 import type { VoiceRecorder } from './useVoiceRecorder';
+import { pill } from '../../../../ui/pill';
 import { reach, touchTarget } from '../../../../ui/touch';
 
-export const buttonSize = 44;
+export const buttonSize = pill.composer.button;
 export const heldSize = 72;
-export const controlGap = space.xs;
-const fieldButtonHeight = 40;
+export const controlGap = pill.composer.gap;
+const fieldButtonHeight = pill.composer.field - 2 * space.xs;
 const fieldButtonSlop = reach(fieldButtonHeight);
 const lockIcon = 20;
 

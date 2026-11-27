@@ -7,6 +7,7 @@ import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';
 import { GlassCapsule } from '../../../ui/GlassCapsule';
+import { pill as pillSize } from '../../../ui/pill';
 import { useSeeThrough, useSurface } from '../../../ui/glass';
 import { glassMaterial } from '../../../ui/glassMaterial';
 import { Text } from '../../../ui/Text';
@@ -84,7 +85,7 @@ export function RoundButton({
   active,
   danger,
   busy,
-  size = 52,
+  size = pillSize.call.button,
   well,
   testID,
 }: Look & { onPress: () => void; onStage: boolean; size?: number; well?: string; testID?: string }) {
@@ -111,6 +112,7 @@ export function CallPill({
   state,
   onStage,
   vertical,
+  size = pillSize.call.button,
   shown,
   motion,
   onAction,
@@ -120,6 +122,7 @@ export function CallPill({
   state: ControlState;
   onStage: boolean;
   vertical: boolean;
+  size?: number;
   shown: boolean;
   motion: AnimatedStyle<ViewStyle>;
   onAction: (action: CallAction) => void;
@@ -147,7 +150,7 @@ export function CallPill({
         testID="call-controls">
         {actions.map((action) => (
           <View key={action} style={action === 'hangup' ? (vertical ? styles.endColumn : styles.endRow) : null}>
-            <RoundButton {...look(action, state)} onStage={onStage} well={well} onPress={() => onAction(action)} testID={`call-${action}`} />
+            <RoundButton {...look(action, state)} onStage={onStage} well={well} size={size} onPress={() => onAction(action)} testID={`call-${action}`} />
           </View>
         ))}
       </GlassCapsule>
@@ -251,11 +254,11 @@ export function MoreSheet({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   round: { borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
-  pill: { borderRadius: radius.pill, padding: space.sm, gap: space.sm, alignItems: 'center' },
+  pill: { borderRadius: radius.pill, padding: pillSize.call.padding, gap: pillSize.call.gap, alignItems: 'center' },
   pillRow: { flexDirection: 'row' },
   pillColumn: { flexDirection: 'column' },
-  endRow: { marginLeft: space.sm },
-  endColumn: { marginTop: space.sm },
+  endRow: { marginLeft: pillSize.call.endGap },
+  endColumn: { marginTop: pillSize.call.endGap },
   backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.sm, maxHeight: '70%' },
   grabber: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, marginBottom: space.sm },

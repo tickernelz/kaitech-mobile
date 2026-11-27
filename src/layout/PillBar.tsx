@@ -5,6 +5,7 @@ import { GlassCapsule } from '../ui/GlassCapsule';
 import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
 import { PillBadge } from './PillBadge';
+import { pill } from '../ui/pill';
 import { pillHeight, pillPadding } from './tabBar';
 import { tabIcons } from './tabs';
 import { usePillBar, type PillBarState, type PillTab } from './usePillBar';
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
   shadowDark: { shadowColor: '#000000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   track: { position: 'absolute', top: pillPadding, left: pillPadding, right: pillPadding, bottom: pillPadding },
   lens: { position: 'absolute', top: 0, bottom: 0, left: 0, borderRadius: radius.pill },
-  glyph: { position: 'absolute', top: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  glyph: { position: 'absolute', top: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', gap: pill.tab.labelGap },
   icon: { width: 24, height: 24 },
   label: { fontSize: 10, lineHeight: 12, fontWeight: '600', maxWidth: '100%', paddingHorizontal: 4 },
   slot: { height: pillHeight - 2 * pillPadding, borderRadius: radius.pill },

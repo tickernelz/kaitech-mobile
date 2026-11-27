@@ -59,6 +59,7 @@ jest.mock('../src/ui/glass', () => ({ useSeeThrough: () => mockSeeThrough, useSu
 require('../src/i18n');
 const { PillTabs } = require('../src/layout/PillTabs') as typeof import('../src/layout/PillTabs');
 const { PillBar: MaterialPill } = require('../src/layout/PillBar.android') as typeof import('../src/layout/PillBar.android');
+const { pill } = require('../src/ui/pill') as typeof import('../src/ui/pill');
 const { glyphLeft, labelRoom, openness, pillCover, pillPadding, pillSlots, pillWidth, slotLeft, useTabBarSpace } = require('../src/layout/tabBar') as typeof import('../src/layout/tabBar');
 
 const metrics = { frame: { x: 0, y: 0, width: 411, height: 914 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
@@ -180,7 +181,7 @@ describe('floating pill tab bar (shared behaviour, iOS below 26 look)', () => {
   test('tab screens get the space the pill covers, from one source', async () => {
     await render(tree());
     expect(screen.getByTestId('tab-space').props.children).toBe(String(pillCover(16)));
-    expect(pillCover(16)).toBe(16 + 8 + 64);
+    expect(pillCover(16)).toBe(16 + 8 + pill.tab.height);
   });
 
   test('screens outside the tabs get no tab bar space', async () => {

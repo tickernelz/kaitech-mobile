@@ -100,6 +100,7 @@ jest.mock('../src/features/chat/ui/composer/LocationPicker', () => ({ LocationPi
 
 const { Composer } = require('../src/features/chat/ui/Composer') as typeof import('../src/features/chat/ui/Composer');
 const { DialogLayer } = require('../src/ui/Dialog') as typeof import('../src/ui/Dialog');
+const { pill } = require('../src/ui/pill') as typeof import('../src/ui/pill');
 
 const hidden = { includeHiddenElements: true };
 
@@ -148,12 +149,12 @@ describe('adaptive composer', () => {
     expect(visible('composer-camera')).toBe(true);
   });
 
-  it('keeps one 44 dp slot for mic and send so the row does not move', async () => {
+  it('keeps one pill-sized slot for mic and send so the row does not move', async () => {
     await show();
     const slot = screen.getByTestId('composer-send-slot', hidden);
-    expect(slot.props.style).toMatchObject({ width: 44, height: 44 });
+    expect(slot.props.style).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
     await fireEvent.changeText(screen.getByTestId('composer-input'), 'halo');
-    expect(screen.getByTestId('composer-send-slot', hidden).props.style).toMatchObject({ width: 44, height: 44 });
+    expect(screen.getByTestId('composer-send-slot', hidden).props.style).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
   });
 
   it('sends the typed text and goes back to the microphone', async () => {
@@ -174,7 +175,7 @@ describe('adaptive composer', () => {
     expect(visible('composer-mic')).toBe(true);
   });
 
-  it('turns a locked recording into discard, pause and send-voice controls in the same 44 dp row', async () => {
+  it('turns a locked recording into discard, pause and send-voice controls in the same pill-sized row', async () => {
     mockVoiceState = { phase: 'recording', locked: true };
     await show();
     expect(screen.getByTestId('voice-recording-locked')).toBeTruthy();
@@ -185,7 +186,7 @@ describe('adaptive composer', () => {
     expect(mockDiscard).toHaveBeenCalledTimes(1);
     await fireEvent.press(screen.getByTestId('composer-send-voice'));
     expect(mockSendVoice).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('composer-send-slot', hidden).props.style).toMatchObject({ width: 44, height: 44 });
+    expect(screen.getByTestId('composer-send-slot', hidden).props.style).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
   });
 
   it('shows the paused draft with its interruption banner and the send-voice button', async () => {
