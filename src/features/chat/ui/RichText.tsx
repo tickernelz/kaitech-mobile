@@ -2,6 +2,7 @@ import { memo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, PixelRatio, Platform, ScrollView, StyleSheet, Text as NativeText, View, type TextLayoutEvent, type TextStyle } from 'react-native';
 import { radius, space, type as typography, useTheme, type Colors } from '../../../theme';
+import { Pressable } from '../../../ui/Pressable';
 import type { Span } from '../html';
 import { isFlatList, type MdBlock } from '../markdown';
 
@@ -15,7 +16,9 @@ const BULLET = '\u2022';
 const MARKER_GAP = '\u2002';
 const INDENT = '\u2003\u2003';
 
-type Paint = { color: string; tint: string; selectable: boolean; colors: Colors };
+type Paint = { color: string; tint: string; selectable: boolean; colors: Colors; onLongPress?: () => void };
+
+export const LONG_PRESS_MS = 300;
 type ListBlock = Extract<MdBlock, { kind: 'list' }>;
 type TableBlock = Extract<MdBlock, { kind: 'table' }>;
 
@@ -159,14 +162,14 @@ function Table({ block, paint }: { block: TableBlock; paint: Paint }) {
       showsHorizontalScrollIndicator
       accessibilityLabel={t('thread.table', { columns: widths.length, rows: block.rows.length })}
       testID="markdown-table">
-      <View style={[styles.table, { borderColor: colors.line }]}>
+      <Pressable onLongPress={paint.onLongPress} delayLongPress={LONG_PRESS_MS} accessible={false} style={[styles.table, { borderColor: colors.line }]} testID="markdown-table-content">
         {columns ?? (
           <>
             {block.head ? row(block.head, true, -1, false) : null}
             {block.rows.map((cells, index) => row(cells, false, index, index > 0 || !!block.head))}
           </>
         )}
-      </View>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -231,16 +234,18 @@ export const RichText = memo(function RichText({
   color,
   tint,
   selectable = false,
+  onLongPress,
 }: {
   blocks: MdBlock[];
   color?: string;
   tint?: string;
   selectable?: boolean;
+  onLongPress?: () => void;
 }) {
   const { colors } = useTheme();
   return (
     <View style={styles.wrap}>
-      <Blocks blocks={blocks} paint={{ color: color ?? colors.ink, tint: tint ?? colors.surface2, selectable, colors }} />
+      <Blocks blocks={blocks} paint={{ color: color ?? colors.ink, tint: tint ?? colors.surface2, selectable, colors, onLongPress }} />
     </View>
   );
 });
