@@ -1,16 +1,14 @@
-import { createElement, type ReactNode } from 'react';
-import { AppState } from 'react-native';
-import { act, fireEvent, render, renderHook, screen } from '@testing-library/react-native';
+import { createElement } from 'react';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import '../src/i18n';
 import type { StickerShelf } from '../src/features/chat/composerExtras';
 import type { Result } from '../src/features/chat/messageActions';
 import { ComposerPanel } from '../src/features/chat/ui/composer/Panel';
-import { PanelShown, useVisiblePlaying, useWhenPanelShows } from '../src/features/chat/ui/composer/panel/paging';
+import { PanelShown, useWhenPanelShows } from '../src/features/chat/ui/composer/panel/paging';
 
-let mockReduce = false;
 jest.mock('react-native-reanimated', () => {
   const { View } = jest.requireActual('react-native');
-  return { __esModule: true, default: { View }, Easing: { bezier: () => () => 0, out: () => () => 0 }, withTiming: (value: unknown) => value, useReducedMotion: () => mockReduce };
+  return { __esModule: true, default: { View }, Easing: { bezier: () => () => 0, out: () => () => 0 }, withTiming: (value: unknown) => value, useReducedMotion: () => false };
 });
 jest.mock('@shopify/flash-list', () => ({ FlashList: jest.requireActual('react-native').FlatList }));
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() } }));
@@ -20,7 +18,11 @@ const mockStickerShelf = jest.fn(async () => mockShelves.shift() ?? { ok: true a
 jest.mock('../src/features/chat/composerExtras', () => ({ stickerShelf: () => mockStickerShelf() }));
 const mockSeen: (Result<StickerShelf> | null)[] = [];
 jest.mock('../src/features/chat/ui/composer/panel/EmojiTab', () => ({ EmojiTab: () => null }));
-jest.mock('../src/features/chat/ui/composer/panel/GifTab', () => ({ GifTab: () => null }));
+jest.mock('../src/features/chat/ui/composer/panel/GifTab', () => {
+  const { View } = jest.requireActual('react-native');
+  const { createElement: make } = jest.requireActual('react');
+  return { GifTab: () => make(View, { testID: 'gif-tab' }) };
+});
 jest.mock('../src/features/chat/ui/composer/panel/StickerTab', () => ({
   StickerTab: ({ shelf }: { shelf: Result<StickerShelf> | null }) => {
     mockSeen.push(shelf);
@@ -52,7 +54,6 @@ beforeEach(() => {
   mockShelves.length = 0;
   mockSeen.length = 0;
   mockStickerShelf.mockClear();
-  mockReduce = false;
 });
 
 describe('emoji panel kept mounted while closed', () => {
@@ -134,26 +135,24 @@ describe('panel state across closing and opening', () => {
   });
 });
 
-describe('animated stickers and GIFs in the panel', () => {
-  beforeAll(() => {
-    Object.defineProperty(AppState, 'currentState', { value: 'active', configurable: true });
+describe('sticker and GIF tabs behind a closed panel', () => {
+  test('the GIF tab is not kept while the panel is closed and comes back when it opens', async () => {
+    await render(panel(true));
+    await fireEvent.press(screen.getByTestId('panel-tab-gif'));
+    expect(screen.getByTestId('gif-tab')).toBeTruthy();
+    await screen.rerender(panel(false));
+    expect(screen.queryByTestId('gif-tab')).toBeNull();
+    await screen.rerender(panel(true));
+    expect(screen.getByTestId('gif-tab')).toBeTruthy();
   });
 
-  const wrap = (shown: boolean) =>
-    function Wrapper({ children }: { children: ReactNode }) {
-      return createElement(PanelShown.Provider, { value: shown }, children);
-    };
-
-  test('visible cells play while the panel is shown', async () => {
-    const { result } = await renderHook(() => useVisiblePlaying(), { wrapper: wrap(true) });
-    await act(async () => result.current.onViewableItemsChanged({ viewableItems: [{ key: 'g1', isViewable: true }] }));
-    expect(result.current.isPlaying('g1')).toBe(true);
-    expect(result.current.isPlaying('g2')).toBe(false);
-  });
-
-  test('no cell plays behind a closed panel, even when its list still reports it viewable', async () => {
-    const { result } = await renderHook(() => useVisiblePlaying(), { wrapper: wrap(false) });
-    await act(async () => result.current.onViewableItemsChanged({ viewableItems: [{ key: 'g1', isViewable: true }] }));
-    expect(result.current.isPlaying('g1')).toBe(false);
+  test('the sticker tab is not kept while the panel is closed', async () => {
+    await render(panel(true));
+    await fireEvent.press(screen.getByTestId('panel-tab-sticker'));
+    await flush();
+    const before = mockSeen.length;
+    await screen.rerender(panel(false));
+    await flush();
+    expect(mockSeen.length).toBe(before);
   });
 });

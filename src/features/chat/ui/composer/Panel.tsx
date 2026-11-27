@@ -121,7 +121,7 @@ export function ComposerPanel({
               choose('gif');
             }}
           />
-        ) : tab === 'sticker' ? (
+        ) : !shown ? null : tab === 'sticker' ? (
           <StickerTab shelf={shelf} origin={origin} onPick={onSticker} onSearching={onSearching} onShelfChanged={() => setShelfVersion((value) => value + 1)} />
         ) : (
           <GifTab initialQuery={gifQuery} onPick={onGif} onSearching={onSearching} />

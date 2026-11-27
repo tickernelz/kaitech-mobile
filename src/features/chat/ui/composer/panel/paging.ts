@@ -83,7 +83,6 @@ export function usePaged<T>(load: (query: string, position: string | null) => Pr
 
 export function useVisiblePlaying() {
   const reduce = useReducedMotion();
-  const shown = useContext(PanelShown);
   const [playing, setPlaying] = useState<Set<string>>(() => new Set());
   const [active, setActive] = useState(AppState.currentState === 'active');
   useEffect(() => {
@@ -94,5 +93,5 @@ export function useVisiblePlaying() {
     const keys = viewableItems.filter((entry) => entry.isViewable !== false && entry.key).map((entry) => entry.key as string);
     setPlaying(new Set(keys.slice(0, maxPlaying)));
   };
-  return { isPlaying: (key: string) => shown && !reduce && active && playing.has(key), onViewableItemsChanged, viewabilityConfig: { itemVisiblePercentThreshold: 50 } };
+  return { isPlaying: (key: string) => !reduce && active && playing.has(key), onViewableItemsChanged, viewabilityConfig: { itemVisiblePercentThreshold: 50 } };
 }
