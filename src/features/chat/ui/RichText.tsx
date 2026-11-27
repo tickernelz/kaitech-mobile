@@ -153,6 +153,13 @@ function Table({ block, paint }: { block: TableBlock; paint: Paint }) {
       ))}
     </View>
   ) : null;
+  const cells = columns ?? (
+    <>
+      {block.head ? row(block.head, true, -1, false) : null}
+      {block.rows.map((cells, index) => row(cells, false, index, index > 0 || !!block.head))}
+    </>
+  );
+  const frame = [styles.table, { borderColor: colors.line }];
   return (
     <ScrollView
       horizontal
@@ -162,14 +169,15 @@ function Table({ block, paint }: { block: TableBlock; paint: Paint }) {
       showsHorizontalScrollIndicator
       accessibilityLabel={t('thread.table', { columns: widths.length, rows: block.rows.length })}
       testID="markdown-table">
-      <Pressable onLongPress={paint.onLongPress} delayLongPress={LONG_PRESS_MS} accessible={false} style={[styles.table, { borderColor: colors.line }]} testID="markdown-table-content">
-        {columns ?? (
-          <>
-            {block.head ? row(block.head, true, -1, false) : null}
-            {block.rows.map((cells, index) => row(cells, false, index, index > 0 || !!block.head))}
-          </>
-        )}
-      </Pressable>
+      {paint.onLongPress ? (
+        <Pressable onLongPress={paint.onLongPress} delayLongPress={LONG_PRESS_MS} accessible={false} style={frame} testID="markdown-table-content">
+          {cells}
+        </Pressable>
+      ) : (
+        <View style={frame} testID="markdown-table-content">
+          {cells}
+        </View>
+      )}
     </ScrollView>
   );
 }

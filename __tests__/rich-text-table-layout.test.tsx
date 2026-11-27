@@ -95,6 +95,16 @@ describe('markdown table layout', () => {
     jest.useRealTimers();
   });
 
+  it('leaves the touch to the parent when no long press is wired, like a pending bubble', () => {
+    let tree: ReturnType<typeof create> | undefined;
+    act(() => {
+      tree = create(<RichText blocks={sourceBlocks(wide, true)} />);
+    });
+    const content = tree!.root.findAll((node) => typeof node.type === 'string' && node.props.testID === 'markdown-table-content');
+    expect(content).toHaveLength(1);
+    expect(content[0].props.onStartShouldSetResponder).toBeUndefined();
+  });
+
   it('keeps the per-cell fallback as wide as its columns', () => {
     const long = 'catatan panjang yang pasti terbungkus di kolom';
     const { boxes, widths, border } = layout(`| A | B | C | D |\n|---|---|---|---|\n| ${long} | ${long} | ${long} | x |`);
