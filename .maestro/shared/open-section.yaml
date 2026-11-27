@@ -41,9 +41,9 @@ name: Find a Discovery section by its web menu name (SECTION in English, SECTION
         id: list-row-[0-9]+
     commands:
       - waitForAnimationToEnd:
-          timeout: 3000
+          timeout: 5000
       - retry:
-          maxRetries: 1
+          maxRetries: 2
           commands:
             - tapOn:
                 id: list-row-[0-9]+

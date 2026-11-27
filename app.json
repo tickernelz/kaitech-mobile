@@ -2,7 +2,7 @@
   "expo": {
     "name": "Kaitech",
     "slug": "kaitech-mobile",
-    "version": "0.10.3",
+    "version": "0.13.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -18,11 +18,7 @@
     "ios": {
       "bundleIdentifier": "io.kaitech.mobile",
       "supportsTablet": true,
-      "icon": {
-        "light": "./assets/icon.png",
-        "dark": "./assets/icon-dark.png",
-        "tinted": "./assets/icon-tinted.png"
-      },
+      "icon": "./assets/AppIcon.icon",
       "infoPlist": {
         "CFBundleAllowMixedLocalizations": true,
         "UIBackgroundModes": [
@@ -88,12 +84,8 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
-          "backgroundColor": "#F4F4F5",
-          "dark": {
-            "image": "./assets/splash-icon-dark.png",
-            "backgroundColor": "#100F11"
-          },
-          "imageWidth": 160,
+          "backgroundColor": "#441D65",
+          "imageWidth": 96,
           "resizeMode": "contain"
         }
       ],

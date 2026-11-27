@@ -6,6 +6,7 @@ const pairs = {
   canvas: ['#F4F4F5', '#100F11'],
   surface: ['#FFFFFF', '#1C1B1F'],
   surface2: ['#EFEFF1', '#28272B'],
+  glass: ['#D5D1DF', '#343238'],
   line: ['#E2E1E5', '#343238'],
   lineStrong: ['#C6C5CA', '#4A4850'],
   edge: ['#7F7D85', '#85838B'],

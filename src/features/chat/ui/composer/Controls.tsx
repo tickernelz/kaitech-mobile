@@ -11,13 +11,13 @@ import { Text } from '../../../../ui/Text';
 import { isHeld } from '../../voice/machine';
 import { lockDistance, type SendMode } from './gesture';
 import type { VoiceRecorder } from './useVoiceRecorder';
-import { reach, touchTarget } from '../../../../ui/touch';
+import { useGlassShadow } from '../../../../ui/GlassCapsule';
+import { pill } from '../../../../ui/pill';
 
-export const buttonSize = 44;
+export const buttonSize = pill.composer.button;
+export const insideSize = pill.composer.inside;
 export const heldSize = 72;
-export const controlGap = space.xs;
-const fieldButtonHeight = 40;
-const fieldButtonSlop = reach(fieldButtonHeight);
+export const controlGap = pill.composer.gap;
 const lockIcon = 20;
 
 export function useToward(target: number, ms: number = duration.base, curve = easing.standard) {
@@ -59,8 +59,9 @@ export function SendMicButton({ mode, voice, tapMode, onSend }: { mode: SendMode
     transform: reduce ? [] : [{ scale: interpolate(sending.get(), [0, 1], [0.5, 1]) }, { rotate: `${interpolate(sending.get(), [0, 1], [-45, 0])}deg` }],
   }));
   const micActive = mode === 'mic';
+  const lift = useGlassShadow('thick', true);
   return (
-    <View style={styles.slot} testID="composer-send-slot">
+    <View style={[styles.slot, lift]} testID="composer-send-slot">
       <Animated.View pointerEvents="none" style={[styles.layer, { backgroundColor: colors.primary }, ringStyle]} />
       <Animated.View
         accessible={micActive}
@@ -97,14 +98,13 @@ export function CameraSlot({ shown, onPress, onLongPress }: { shown: boolean; on
   const open = useToward(shown ? 1 : 0, reduce ? 0 : duration.base);
   const fade = useToward(shown ? 1 : 0, duration.quick);
   const slot = useAnimatedStyle(() => ({
-    width: open.get() * buttonSize,
-    marginLeft: (open.get() - 1) * controlGap,
+    width: open.get() * insideSize,
     opacity: fade.get(),
     transform: reduce ? [] : [{ scale: interpolate(open.get(), [0, 1], [0.6, 1]) }],
   }));
   return (
     <Animated.View style={[styles.cameraSlot, slot]} pointerEvents={shown ? 'auto' : 'none'} importantForAccessibility={shown ? 'auto' : 'no-hide-descendants'}>
-      <Pressable accessibilityRole="button" accessibilityLabel={t('composer.camera')} accessibilityHint={t('composer.cameraHint')} onPress={onPress} onLongPress={onLongPress} delayLongPress={420} style={styles.round} testID="composer-camera">
+      <Pressable accessibilityRole="button" accessibilityLabel={t('composer.camera')} accessibilityHint={t('composer.cameraHint')} onPress={onPress} onLongPress={onLongPress} delayLongPress={420} style={styles.inside} testID="composer-camera">
         <Icon name="camera" color={colors.inkSoft} />
       </Pressable>
     </Animated.View>
@@ -114,7 +114,7 @@ export function CameraSlot({ shown, onPress, onLongPress }: { shown: boolean; on
 export function FieldButton({ icon, label, onPress, testID }: { icon: IconName; label: string; onPress: () => void; testID: string }) {
   const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={fieldButtonSlop} style={styles.fieldButton} testID={testID}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.inside} testID={testID}>
       <Icon name={icon} color={colors.inkSoft} />
     </Pressable>
   );
@@ -187,11 +187,11 @@ export function ShortHint({ shown }: { shown: boolean }) {
 export const springIn = spring.spatial;
 
 const styles = StyleSheet.create({
-  slot: { width: buttonSize, height: buttonSize },
+  slot: { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2 },
   layer: { ...StyleSheet.absoluteFill, borderRadius: buttonSize / 2, alignItems: 'center', justifyContent: 'center' },
   round: { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2, alignItems: 'center', justifyContent: 'center' },
-  cameraSlot: { height: buttonSize, overflow: 'hidden', alignItems: 'flex-start' },
-  fieldButton: { width: touchTarget, height: fieldButtonHeight, borderRadius: fieldButtonHeight / 2, alignItems: 'center', justifyContent: 'center', marginRight: -space.sm },
+  inside: { width: insideSize, height: insideSize, borderRadius: insideSize / 2, alignItems: 'center', justifyContent: 'center' },
+  cameraSlot: { height: insideSize, overflow: 'hidden', alignItems: 'flex-start' },
   lockPill: { position: 'absolute', right: 0, bottom: buttonSize + 40, width: buttonSize, height: 100, paddingVertical: space.md, borderRadius: buttonSize / 2, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', gap: space.xs },
   lockStack: { width: lockIcon, height: lockIcon },
   lift: { shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3 },

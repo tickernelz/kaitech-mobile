@@ -4,11 +4,15 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import '../src/i18n';
 
 const mockSend = jest.fn(async () => 'key');
+const mockSendFeel = jest.fn();
+jest.mock('../src/ui/haptic', () => ({ haptic: { send: () => mockSendFeel() } }));
 const mockSendVoice = jest.fn();
 const mockDiscard = jest.fn();
 const mockStartLocked = jest.fn();
 const mockKeyboard = { isVisible: false, height: 0 };
 let mockVoiceState: { phase: string; locked?: boolean; reason?: string | null } = { phase: 'idle' };
+let mockSeeThrough = true;
+let mockInsetBottom = 0;
 
 jest.mock('react-native-reanimated', () => {
   const { View } = jest.requireActual('react-native');
@@ -37,6 +41,7 @@ jest.mock('react-native-reanimated', () => {
     withTiming: (value: unknown) => value,
   };
 });
+jest.mock('../src/ui/glass', () => ({ useSeeThrough: () => mockSeeThrough, useSurface: () => 'solid' }));
 jest.mock('react-native-worklets', () => ({ scheduleOnRN: (fn: (...args: unknown[]) => void, ...args: unknown[]) => fn(...args) }));
 jest.mock('react-native-keyboard-controller', () => ({
   KeyboardController: { dismiss: jest.fn(async () => undefined) },
@@ -44,7 +49,7 @@ jest.mock('react-native-keyboard-controller', () => ({
   useReanimatedKeyboardAnimation: () => ({ height: { get: () => 0 }, progress: { get: () => 0 } }),
 }));
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() }));
-jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
+jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: mockInsetBottom, left: 0, right: 0 }) }));
 const mockRequestCamera = jest.fn(async () => ({ granted: false, canAskAgain: true }));
 jest.mock('expo-image-picker', () => ({
   getCameraPermissionsAsync: jest.fn(async () => ({ granted: false, canAskAgain: true })),
@@ -98,6 +103,8 @@ jest.mock('../src/features/chat/ui/composer/LocationPicker', () => ({ LocationPi
 
 const { Composer } = require('../src/features/chat/ui/Composer') as typeof import('../src/features/chat/ui/Composer');
 const { DialogLayer } = require('../src/ui/Dialog') as typeof import('../src/ui/Dialog');
+const { pill } = require('../src/ui/pill') as typeof import('../src/ui/pill');
+const { measureRendered } = require('./fixtures/measure') as typeof import('./fixtures/measure');
 
 const hidden = { includeHiddenElements: true };
 
@@ -120,6 +127,9 @@ beforeEach(() => {
   mockKeyboard.isVisible = false;
   mockKeyboard.height = 0;
   mockSend.mockClear();
+  mockSeeThrough = true;
+  mockInsetBottom = 0;
+  mockSendFeel.mockClear();
 });
 
 describe('adaptive composer', () => {
@@ -145,12 +155,12 @@ describe('adaptive composer', () => {
     expect(visible('composer-camera')).toBe(true);
   });
 
-  it('keeps one 44 dp slot for mic and send so the row does not move', async () => {
+  it('keeps one pill-sized slot for mic and send so the row does not move', async () => {
     await show();
     const slot = screen.getByTestId('composer-send-slot', hidden);
-    expect(slot.props.style).toMatchObject({ width: 44, height: 44 });
+    expect(StyleSheet.flatten(slot.props.style)).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
     await fireEvent.changeText(screen.getByTestId('composer-input'), 'halo');
-    expect(screen.getByTestId('composer-send-slot', hidden).props.style).toMatchObject({ width: 44, height: 44 });
+    expect(StyleSheet.flatten(screen.getByTestId('composer-send-slot', hidden).props.style)).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
   });
 
   it('sends the typed text and goes back to the microphone', async () => {
@@ -158,7 +168,30 @@ describe('adaptive composer', () => {
     await fireEvent.changeText(screen.getByTestId('composer-input'), 'halo');
     await fireEvent.press(screen.getByTestId('composer-send'));
     expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({ channelId: 12, text: 'halo', files: [] }), expect.any(Number));
+    expect(mockSendFeel).toHaveBeenCalledTimes(1);
     expect(visible('composer-mic')).toBe(true);
+  });
+
+  it('does not vibrate when send has nothing to send', async () => {
+    await show();
+    await fireEvent.changeText(screen.getByTestId('composer-input'), '   ');
+    await fireEvent.press(screen.getByTestId('composer-send', hidden));
+    expect(mockSend).not.toHaveBeenCalled();
+    expect(mockSendFeel).not.toHaveBeenCalled();
+  });
+
+  it('shows the format bar only while text is selected, like WhatsApp', async () => {
+    mockKeyboard.isVisible = true;
+    await show();
+    const input = screen.getByTestId('composer-input');
+    await fireEvent(input, 'focus');
+    await fireEvent.changeText(input, 'halo dunia');
+    await fireEvent(input, 'selectionChange', { nativeEvent: { selection: { start: 10, end: 10 } } });
+    expect(screen.queryByTestId('format-bar')).toBeNull();
+    await fireEvent(input, 'selectionChange', { nativeEvent: { selection: { start: 0, end: 4 } } });
+    expect(screen.getByTestId('format-bar')).toBeTruthy();
+    await fireEvent(input, 'selectionChange', { nativeEvent: { selection: { start: 10, end: 10 } } });
+    expect(screen.queryByTestId('format-bar')).toBeNull();
   });
 
   it('explains the camera in the Kaitech card first and stages nothing when the user declines', async () => {
@@ -171,7 +204,7 @@ describe('adaptive composer', () => {
     expect(visible('composer-mic')).toBe(true);
   });
 
-  it('turns a locked recording into discard, pause and send-voice controls in the same 44 dp row', async () => {
+  it('turns a locked recording into discard, pause and send-voice controls in the same pill-sized row', async () => {
     mockVoiceState = { phase: 'recording', locked: true };
     await show();
     expect(screen.getByTestId('voice-recording-locked')).toBeTruthy();
@@ -182,7 +215,7 @@ describe('adaptive composer', () => {
     expect(mockDiscard).toHaveBeenCalledTimes(1);
     await fireEvent.press(screen.getByTestId('composer-send-voice'));
     expect(mockSendVoice).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('composer-send-slot', hidden).props.style).toMatchObject({ width: 44, height: 44 });
+    expect(StyleSheet.flatten(screen.getByTestId('composer-send-slot', hidden).props.style)).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
   });
 
   it('shows the paused draft with its interruption banner and the send-voice button', async () => {
@@ -217,6 +250,8 @@ describe('adaptive composer', () => {
     mockKeyboard.height = 320;
     await show();
     await fireEvent(screen.getByTestId('composer-input'), 'focus');
+    await fireEvent.changeText(screen.getByTestId('composer-input'), 'halo');
+    await fireEvent(screen.getByTestId('composer-input'), 'selectionChange', { nativeEvent: { selection: { start: 0, end: 4 } } });
     const bar = screen.getByTestId('format-bar');
     await fireEvent(bar, 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 48.8 } } });
     await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
@@ -229,8 +264,10 @@ describe('adaptive composer', () => {
     mockKeyboard.height = 320;
     await show();
     await fireEvent(screen.getByTestId('composer-input'), 'focus');
+    await fireEvent.changeText(screen.getByTestId('composer-input'), 'halo');
+    await fireEvent(screen.getByTestId('composer-input'), 'selectionChange', { nativeEvent: { selection: { start: 0, end: 4 } } });
     await fireEvent(screen.getByTestId('format-bar'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 48.8 } } });
-    await fireEvent.press(screen.getByTestId('format-hide'));
+    await fireEvent(screen.getByTestId('composer-input'), 'selectionChange', { nativeEvent: { selection: { start: 4, end: 4 } } });
     expect(screen.queryByTestId('format-bar')).toBeNull();
     await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
     expect(StyleSheet.flatten(screen.getByTestId('composer-panel-box', hidden).props.style).height).toBe(320);
@@ -246,5 +283,115 @@ describe('adaptive composer', () => {
     await fireEvent(screen.getByTestId('composer-input'), 'focus');
     expect(screen.queryByTestId('composer-keyboard')).toBeNull();
     expect(screen.getByTestId('composer-panel-toggle')).toBeTruthy();
+  });
+});
+
+describe('composer capsule spacing', () => {
+  const touch = 48;
+  const element = () => createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent: jest.fn() });
+  const states = {
+    empty: async () => undefined,
+    typing: async () => fireEvent.changeText(screen.getByTestId('composer-input'), 'Uji kapsul kaca light'),
+    panel: async () => fireEvent.press(screen.getByTestId('composer-panel-toggle')),
+  };
+  const cases = ([360, 411, 800] as const).flatMap((width) => [true, false].flatMap((seeThrough) => (Object.keys(states) as (keyof typeof states)[]).map((state) => [state, width, seeThrough] as const)));
+
+  it.each(cases)('%s at %i dp (see-through %s): end icons sit as far from the capsule edge as attach, and clear of the send button', async (state, width, seeThrough) => {
+    mockSeeThrough = seeThrough;
+    await render(element());
+    await states[state]();
+    await screen.rerender(element());
+    const box = measureRendered(screen.toJSON(), width);
+    const capsule = box['composer-capsule'];
+    const send = box['composer-send-slot'];
+    const ids = ['composer-attach', state === 'panel' ? 'composer-keyboard' : 'composer-panel-toggle', ...(state === 'typing' ? [] : ['composer-camera'])];
+    const icons = ids.map((id) => {
+      const left = box[id].left + (box[id].width - pill.composer.icon) / 2;
+      return { id, left, right: left + pill.composer.icon };
+    });
+    const lead = icons[0].left - capsule.left;
+    const trail = capsule.left + capsule.width - icons[icons.length - 1].right;
+    expect(lead).toBeGreaterThanOrEqual(12);
+    expect(trail).toBe(lead);
+    expect(send.left - icons[icons.length - 1].right).toBeGreaterThanOrEqual(lead + pill.composer.gap);
+    for (let i = 1; i < icons.length; i++) expect([icons[i].id, icons[i].left - icons[i - 1].right >= lead]).toEqual([icons[i].id, true]);
+    for (const id of ids) expect([id, Math.min(box[id].width, box[id].height) >= touch]).toEqual([id, true]);
+    expect([send.top, send.height]).toEqual([capsule.top, capsule.height]);
+  });
+});
+
+describe('floating composer', () => {
+  const flat = (testID: string) => Object.assign({}, ...[screen.getByTestId(testID, hidden).props.style].flat(3).filter(Boolean));
+  const within = (child: string, parent: string) => {
+    let node: ReturnType<typeof screen.getByTestId> | null = screen.getByTestId(child, hidden);
+    while (node && node.props.testID !== parent) node = node.parent;
+    return node !== null;
+  };
+
+  it('has no solid bar behind it: only the glass capsule and the send button carry a surface', async () => {
+    await show();
+    expect(flat('composer').backgroundColor).toBeUndefined();
+    expect(flat('composer').borderTopWidth).toBeUndefined();
+    expect(screen.getByTestId('composer').props.pointerEvents).toBe('box-none');
+    expect(flat('composer-capsule')).toMatchObject({ borderWidth: 1, boxShadow: expect.any(String) });
+    expect(within('composer-input', 'composer-capsule')).toBe(true);
+    expect(within('composer-attach', 'composer-capsule')).toBe(true);
+    expect(within('composer-camera', 'composer-capsule')).toBe(true);
+    expect(within('composer-send', 'composer-capsule') || within('composer-mic', 'composer-capsule')).toBe(false);
+  });
+
+  it('reports how far it floats over the list: gap, everything above the panel, and the bottom inset', async () => {
+    const onOverlap = jest.fn();
+    await render(createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent: jest.fn(), onOverlap }));
+    await fireEvent(screen.getByTestId('composer-float'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 60 } } });
+    expect(onOverlap).toHaveBeenLastCalledWith(8 + 60 + 8);
+    await fireEvent(screen.getByTestId('composer-float'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 104 } } });
+    expect(onOverlap).toHaveBeenLastCalledWith(8 + 104 + 8);
+  });
+
+  it('keeps the overlap when the keyboard opens, so ThreadView does not re-render mid-animation', async () => {
+    mockInsetBottom = 24;
+    const onOverlap = jest.fn();
+    const onSent = jest.fn();
+    const composer = () => createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent, onOverlap });
+    await render(composer());
+    await fireEvent(screen.getByTestId('composer-float'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 60 } } });
+    expect(onOverlap).toHaveBeenLastCalledWith(8 + 60 + 24 + 8);
+    mockKeyboard.isVisible = true;
+    mockKeyboard.height = 300;
+    await screen.rerender(composer());
+    expect(Object.assign({}, ...[screen.getByTestId('composer').props.style].flat(3).filter(Boolean)).paddingBottom).toBe(8);
+    expect(onOverlap).toHaveBeenCalledTimes(1);
+  });
+
+  it('turns solid with the same 1 dp edge when Reduce Transparency or high contrast is on', async () => {
+    mockSeeThrough = false;
+    await show();
+    expect(screen.queryByTestId('glass-backdrop', hidden)).toBeNull();
+    expect(flat('composer-capsule')).toMatchObject({ backgroundColor: expect.stringMatching(/^#[0-9A-F]{6}$/i), borderWidth: 1 });
+  });
+
+  it.each([true, false])('centres attach, emoji, camera and the text line on the send button (see-through %s)', async (seeThrough) => {
+    mockSeeThrough = seeThrough;
+    await show();
+    const edge = flat('composer-capsule').borderWidth;
+    const centre = flat('composer-send-slot').height / 2;
+    expect(centre).toBe(pill.composer.button / 2);
+    for (const id of ['composer-attach', 'composer-panel-toggle', 'composer-camera', 'composer-input']) {
+      const box = flat(id);
+      expect([id, edge + (box.height ?? box.minHeight) / 2]).toEqual([id, centre]);
+    }
+  });
+
+  it.each([true, false])('puts the send button on the capsule layer: same shadow, or none when solid (see-through %s)', async (seeThrough) => {
+    mockSeeThrough = seeThrough;
+    await show();
+    expect(flat('composer-send-slot').boxShadow).toBe(seeThrough ? flat('composer-capsule').boxShadow : undefined);
+  });
+
+  it('a recording row sits in the same glass capsule, so it stays readable over the chat', async () => {
+    mockVoiceState = { phase: 'recording', locked: true };
+    await show();
+    expect(screen.getByTestId('composer-voice-capsule', hidden)).toBeTruthy();
   });
 });

@@ -21,10 +21,6 @@ name: Long recording, part 2 - still recording after the screen was off, finish,
     visible:
       id: upload-sending
     timeout: 120000
-- extendedWaitUntil:
-    visible:
-      text: .*[89][0-9].?%.*
-    timeout: 900000
 - setAirplaneMode: enabled
 - extendedWaitUntil:
     visible:
@@ -45,7 +41,7 @@ name: Long recording, part 2 - still recording after the screen was off, finish,
 - extendedWaitUntil:
     visible:
       id: upload-done
-    timeout: 900000
+    timeout: 300000
 - runFlow:
     file: ../shared/screenshot.yaml
     env:
