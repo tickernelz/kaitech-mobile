@@ -114,6 +114,7 @@ onFlowStart:
 - tapOn:
     text: (Play voice message|Putar pesan suara)
     index: -1
+    waitToSettleTimeoutMs: 500
 - extendedWaitUntil:
     visible:
       text: 0:0[1-9] / 0:0[1-9]
