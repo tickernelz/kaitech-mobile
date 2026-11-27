@@ -76,9 +76,19 @@ describe('glass stands apart from a plain screen', () => {
     }
   });
 
-  test('every colour comes from the Kaitech theme: the tint is the line colour on iOS and the highest Material surface container on Android', () => {
+  test.each(oses)('on %s in light the button well stands apart from the capsule body', (os) => {
+    const glass = glassMaterial('light', 'regular', os);
+    for (const screenColor of screens('light')[os]) {
+      const ground = parse(screenColor).rgb;
+      const body = over(glass.tint, ground);
+      expect(contrast(body, ground)).toBeGreaterThanOrEqual(1.3);
+      expect(contrast(over(glass.well, body), body)).toBeGreaterThanOrEqual(1.2);
+    }
+  });
+
+  test('every colour comes from the Kaitech theme: the tint is the glass colour on iOS and the highest Material surface container on Android', () => {
     for (const scheme of schemes) {
-      expect(glassMaterial(scheme, 'regular', 'ios').tint.slice(0, 7)).toBe(colorsFor(scheme).line);
+      expect(glassMaterial(scheme, 'regular', 'ios').tint.slice(0, 7)).toBe(colorsFor(scheme).glass);
       expect(glassMaterial(scheme, 'thick', 'android').tint.slice(0, 7)).toBe(materialColors(scheme).surfaceContainerHighest);
       expect(glassMaterial(scheme, 'regular', 'ios').edge).toBe(colorsFor(scheme).lineStrong);
       expect(glassMaterial(scheme, 'regular', 'android').edge).toBe(materialColors(scheme).outlineVariant);

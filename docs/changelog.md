@@ -8,6 +8,10 @@ Every release of Kaitech Mobile, newest first. Each version has one section, `##
 
 - App icon and splash: the icon is now the kaitech.io favicon mark on Android (adaptive background, foreground and monochrome) and on iOS (any, dark and tinted, compiled from the Icon Composer stack), and the splash uses the same mark. The retired icon assets are gone (#146, ZHA-8004).
 
+### Changed
+
+- Floating capsules in the light theme (tab bar, call controls, chat composer): the pale purple glass sat at 1.14:1 against the screen and its buttons at 1.14:1 against the capsule, so both blended into white. The glass colour is now a deeper lavender at a higher opacity from one token, at 1.33:1 against the screen and 1.26:1 for a button against the capsule, while every label and icon on it keeps its contrast over light and dark content. The dark theme is unchanged (#151, ZHA-8064).
+
 ### Fixed
 
 - Chat composer: while typing, the emoji button sat about 3 dp from the end of the message capsule, almost against the send button; it now sits as far in as the attach button on the other end (14 dp from the edge) whether the field is empty, has text, or the emoji panel is open, and every button in the capsule is at least 48 dp. The send button takes the capsule's own shadow, so the two read as one row (#150, ZHA-8058).
