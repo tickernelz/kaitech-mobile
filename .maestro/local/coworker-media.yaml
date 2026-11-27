@@ -87,7 +87,7 @@ name: Coworker media - voice note, video and a document to the Coworker, then op
 - takeScreenshot: m5-uploading
 - extendedWaitUntil:
     visible:
-      text: laporan-lembur.pdf
+      text: laporan-.*lembur.*pdf
     timeout: 120000
 - extendedWaitUntil:
     notVisible:
