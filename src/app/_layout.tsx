@@ -70,7 +70,7 @@ export default function RootLayout() {
         <Stack screenLayout={ScreenLayout} screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas }, ...(reduceMotion ? { animation: 'none' } : {}) }}>
           <Stack.Protected guard={signedIn && session.onboarded} redirectTo={home}>
             <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="chat/[id]" />
+            <Stack.Screen name="chat/[id]" options={{ animation: reduceMotion ? 'none' : 'slide_from_right' }} />
             <Stack.Screen name="call/[id]" options={{ presentation: 'fullScreenModal', animation: fade }} />
             <Stack.Screen name="recording/[id]" options={{ presentation: 'fullScreenModal', animation: fade }} />
             <Stack.Screen name="media" options={{ presentation: 'fullScreenModal', animation: fade }} />
