@@ -128,6 +128,7 @@ let invited = new Set<number>();
 let ringTimer: ReturnType<typeof setTimeout> | null = null;
 let invitationsGoneTimer: ReturnType<typeof setTimeout> | null = null;
 let unsureChecks = 0;
+let ringDeadline = 0;
 const ringLimitMs = 45_000;
 const joinGraceMs = 4_000;
 const unsureCheckLimit = 3;
@@ -288,12 +289,12 @@ function stopRingWait() {
   invitationsGoneTimer = null;
 }
 
-function checkAgain(started: number) {
+function checkAgain(started: number, delayMs = joinGraceMs) {
   stopRingWait();
   ringTimer = setTimeout(() => {
     ringTimer = null;
     void endIfAlone(started);
-  }, joinGraceMs);
+  }, delayMs);
 }
 
 async function endIfAlone(started: number) {
@@ -305,6 +306,10 @@ async function endIfAlone(started: number) {
   const others = store ? sessionIdsFrom(store, session.channelId).added.filter((id) => id !== session.sessionId) : [];
   if (store && !others.length) {
     void finish('unanswered');
+    return;
+  }
+  if (store && Date.now() < ringDeadline) {
+    checkAgain(started, ringDeadline - Date.now());
     return;
   }
   unsureChecks += 1;
@@ -470,6 +475,7 @@ async function connect(api: CallClient, channelId: number, started: number) {
     if (!answered && placing && ringsOthers(channelId)) {
       stopRingWait();
       unsureChecks = 0;
+      ringDeadline = Date.now() + ringLimitMs;
       ringTimer = setTimeout(() => {
         ringTimer = null;
         void endIfAlone(started);
