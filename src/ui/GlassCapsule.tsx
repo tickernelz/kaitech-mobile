@@ -8,6 +8,14 @@ import { glassEdge } from './pill';
 
 type Props = ViewProps & { solid: StyleProp<ViewStyle>; tone?: Scheme; thickness?: Thickness; overMedia?: boolean; liquid?: boolean };
 
+export function useGlassShadow(thickness: Thickness, liquid = false): ViewStyle | null {
+  const { scheme } = useTheme();
+  const surface = useSurface();
+  const seeThrough = useSeeThrough();
+  if ((liquid && surface === 'glass') || !seeThrough) return null;
+  return { boxShadow: glassMaterial(scheme, thickness).shadow };
+}
+
 export function GlassCapsule({ solid, tone, thickness = 'regular', overMedia, liquid = false, style, children, ...props }: Props) {
   const { scheme } = useTheme();
   const surface = useSurface();
