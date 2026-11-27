@@ -46,7 +46,7 @@ describe.each(languages)('one way to call (%s)', (language) => {
     const button = screen.getByTestId('call-start');
     expect(button.props.accessibilityLabel).toBe(language === 'en' ? 'Call' : 'Panggil');
     expect(screen.queryByTestId('call-video')).toBeNull();
-    fireEvent.press(button);
+    await fireEvent.press(button);
     expect(mockPush).toHaveBeenCalledWith({ pathname: '/call/[id]', params: { id: '5' } });
     expect(mockStarts).toEqual([[{ channelId: 5, channelName: 'Team' }]]);
   });
@@ -55,7 +55,7 @@ describe.each(languages)('one way to call (%s)', (language) => {
     await render(createElement(IncomingCall));
     expect(screen.getByText(language === 'en' ? 'Incoming call' : 'Panggilan masuk')).toBeTruthy();
     expect(screen.queryByTestId('incoming-answer-other')).toBeNull();
-    fireEvent.press(screen.getByTestId('incoming-answer'));
+    await fireEvent.press(screen.getByTestId('incoming-answer'));
     expect(mockAnswers).toEqual([[]]);
   });
 

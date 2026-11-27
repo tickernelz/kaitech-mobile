@@ -223,7 +223,7 @@ describe('interaction', () => {
   it('copies a table as Markdown with the total row, like the web', async () => {
     await draw(blocks.find((block) => block.kind === 'table')!.raw);
     await act(async () => {
-      fireEvent.press(screen.getByTestId('kt-table-copy'));
+      await fireEvent.press(screen.getByTestId('kt-table-copy'));
     });
     const markdown = (Clipboard.setStringAsync as jest.Mock).mock.calls.at(-1)[0] as string;
     const lines = markdown.split('\n');

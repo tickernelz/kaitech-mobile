@@ -199,6 +199,7 @@ onFlowComplete:
           id: ${output.row}
 - tapOn:
     id: row-action-remove
+    waitToSettleTimeoutMs: 500
 - tapOn:
     id: undo-action
     waitToSettleTimeoutMs: 500

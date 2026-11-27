@@ -113,6 +113,7 @@ onFlowComplete:
       SCREEN: r12-conversation-swipe-left
 - tapOn:
     id: ${output.row + '-swipe-remove'}
+    waitToSettleTimeoutMs: 500
 - tapOn:
     id: undo-action
     waitToSettleTimeoutMs: 500
