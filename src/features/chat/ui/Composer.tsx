@@ -106,6 +106,7 @@ export const Composer = forwardRef<
   const [urgent, setUrgent] = useState(false);
   const [extra, setExtra] = useState<'later' | 'poll' | 'location' | null>(null);
   const [panel, setPanel] = useState(false);
+  const [panelKept, setPanelKept] = useState(false);
   const [searching, setSearching] = useState(false);
   const [panelHeight, setPanelHeight] = useState(() => halfPanelHeight(0));
   const [full, setFull] = useState(false);
@@ -353,6 +354,7 @@ export const Composer = forwardRef<
     setFull(false);
     reopening.current = false;
     setPanel(true);
+    setPanelKept(true);
     open.set(keyboardVisible || reduceMotion ? 1 : withTiming(1, { duration: duration.slow, easing: easing.expo }));
     void KeyboardController.dismiss();
   };
@@ -579,9 +581,14 @@ export const Composer = forwardRef<
           />
         ) : null}
       </View>
-      {panel ? (
-        <Animated.View style={[styles.panelClip, panelStyle]}>
-          <View style={{ height: target }} testID="composer-panel-box">
+      {panelKept ? (
+        <Animated.View
+          pointerEvents={panel ? 'auto' : 'none'}
+          importantForAccessibility={panel ? 'auto' : 'no-hide-descendants'}
+          accessibilityElementsHidden={!panel}
+          style={[styles.panelClip, panelStyle]}
+          testID="composer-panel-clip">
+          <View style={{ height: target }} testID={panel ? 'composer-panel-box' : undefined}>
             <ComposerPanel
               origin={origin}
               full={full}

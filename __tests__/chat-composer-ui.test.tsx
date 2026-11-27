@@ -98,7 +98,16 @@ jest.mock('../src/features/chat/ui/useVoiceHold', () => ({ cancelDistance: 96, u
 jest.mock('react-native-svg', () => ({ __esModule: true, default: () => null, Path: () => null }));
 jest.mock('../src/features/call/call', () => ({ callState: () => ({ phase: 'idle' }), subscribeCall: () => () => undefined }));
 jest.mock('../src/features/call/ui/useAutoHide', () => ({ useScreenReader: () => false }));
-jest.mock('../src/features/chat/ui/composer/Panel', () => ({ ComposerPanel: () => null }));
+let mockPanelMounts = 0;
+jest.mock('../src/features/chat/ui/composer/Panel', () => ({
+  ComposerPanel: () => {
+    const { useEffect } = jest.requireActual('react');
+    useEffect(() => {
+      mockPanelMounts += 1;
+    }, []);
+    return null;
+  },
+}));
 jest.mock('../src/features/chat/ui/composer/LocationPicker', () => ({ LocationPicker: () => null }));
 
 const { Composer } = require('../src/features/chat/ui/Composer') as typeof import('../src/features/chat/ui/Composer');
@@ -271,6 +280,25 @@ describe('adaptive composer', () => {
     expect(screen.queryByTestId('format-bar')).toBeNull();
     await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
     expect(StyleSheet.flatten(screen.getByTestId('composer-panel-box', hidden).props.style).height).toBe(320);
+  });
+
+  it('keeps the closed panel mounted but out of reach, so opening it again does not rebuild the emoji grid', async () => {
+    mockPanelMounts = 0;
+    await show();
+    expect(screen.queryByTestId('composer-panel-clip', hidden)).toBeNull();
+    await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
+    expect(visible('composer-panel-clip')).toBe(true);
+    mockKeyboard.isVisible = true;
+    await screen.rerender(createElement(View, null, createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent: jest.fn() }), createElement(DialogLayer, { root: true })));
+    await fireEvent(screen.getByTestId('composer-input'), 'focus');
+    expect(screen.getByTestId('composer-panel-toggle')).toBeTruthy();
+    expect(screen.queryByTestId('composer-panel-box', hidden)).toBeNull();
+    expect(visible('composer-panel-clip')).toBe(false);
+    mockKeyboard.isVisible = false;
+    await screen.rerender(createElement(View, null, createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent: jest.fn() }), createElement(DialogLayer, { root: true })));
+    await fireEvent.press(screen.getByTestId('composer-panel-toggle'));
+    expect(visible('composer-panel-clip')).toBe(true);
+    expect(mockPanelMounts).toBe(1);
   });
 
   it('closes the panel when the message field is tapped while the emoji search already holds the keyboard', async () => {
