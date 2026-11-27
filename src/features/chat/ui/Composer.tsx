@@ -9,6 +9,7 @@ import { useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { duration, easing, spring, useMotion } from '../../../theme/motion';
 import { GlassCapsule } from '../../../ui/GlassCapsule';
+import { haptic } from '../../../ui/haptic';
 import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, useChat, type Outgoing } from '../chat';
 import { cannedQuery, cannedResponses, deleteBefore, markCannedUsed, sendLater, type Canned } from '../composerExtras';
@@ -41,7 +42,7 @@ import { AttachSheet, type Extra } from './composer/AttachSheet';
 import { LocationPicker } from './composer/LocationPicker';
 import { PollSheet } from './composer/PollSheet';
 import { richLabel } from './RichMedia';
-import { FormatBar, FormatToggle, useMarkup } from './FormatBar';
+import { FormatBar, useMarkup } from './FormatBar';
 import { useBottomInset } from '../../../ui/insets';
 import { glassEdge, pill } from '../../../ui/pill';
 import { touchTarget } from '../../../ui/touch';
@@ -263,6 +264,7 @@ export const Composer = forwardRef<
     const startedAt = clock();
     const outgoing: Outgoing = { channelId, text, parentId, mentions, files, ...(urgent ? { urgent: true } : {}) };
     if (!outgoing.text.trim() && !outgoing.files.length) return;
+    haptic.send();
     stagedRef.current = [];
     setText('');
     setFiles([]);
@@ -334,6 +336,7 @@ export const Composer = forwardRef<
   const mode = sendModeOf({ text, files: files.length, locked: voicePhase === 'locked' || voicePhase === 'paused' });
 
   const sendRich = (rich: Rich) => {
+    haptic.send();
     const replyTo = parentId;
     if (replyTo) setParentId(null);
     void send({ channelId, text: '', parentId: replyTo, mentions: [], files: [], rich }, clock()).then((key) => delivered(key));
@@ -516,7 +519,6 @@ export const Composer = forwardRef<
             <Animated.View key="compose" style={styles.group} entering={composeIn} exiting={groupOut}>
               <GlassCapsule liquid thickness="thick" solid={solidCapsule} style={styles.capsule} testID="composer-capsule">
                 {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} inCapsule onPress={() => setSheet(true)} testID="composer-attach" />}
-                {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
                 <View style={[styles.field, editing && styles.fieldAlone]} testID="composer-field">
                   <TextInput
                     ref={input}
@@ -570,7 +572,6 @@ export const Composer = forwardRef<
         {markup.showBar && !voicePhase ? (
           <FormatBar
             onApply={markup.apply}
-            onHide={markup.hide}
             onSpace={(height) => {
               formatBarSpace.current = height;
             }}
