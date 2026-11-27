@@ -2,6 +2,17 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.14.1 - 2026-11-27
+
+### Fixed
+
+- Calls: a call you place shows "Calling…", then "Ringing…" until someone else joins, and the clock starts at 00:00 when they do; before, it counted from the moment the phone reached the call room, so an unanswered call read 00:03, 00:11. A one-to-one or group call that nobody answers, or that the other side declines, ends with "No answer" (#129, ZHA-7966).
+- Chat: a call nobody answered now reads "No answer" for the caller and "Missed call" for the people called, without a duration, and an answered call counts its minutes from the answer; before, an unanswered call of 15 seconds read "Call · 1 min". A call notice that arrives while the conversation is open updates when the call starts and ends, instead of keeping "Call" with no duration until the conversation is reopened. Needs `kaitech_mobile` 19.0.1.13.0 on the server (#129, ZHA-7966).
+
+### Known gaps
+
+- Android: the ongoing-call notification still counts from the moment the phone reached the call room, not from the answer (#129, ZHA-7966).
+
 ## 0.14.0 - 2026-11-28
 
 ### Added
