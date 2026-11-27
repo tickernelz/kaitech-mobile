@@ -34,8 +34,10 @@ export async function load<T>(key: string, fetcher: () => Promise<T>): Promise<v
   } catch (error) {
     next = { error, loading: false };
   }
-  if (invalidatedWhileLoading.delete(key) && next.at) next.at = 0;
-  if (generationOf(key) === generation) put(key, next);
+  const outdated = invalidatedWhileLoading.delete(key) && next.at !== undefined;
+  if (generationOf(key) !== generation) return;
+  put(key, outdated ? { ...next, at: 0 } : next);
+  if (outdated) await load(key, fetcher);
 }
 
 export function update<T>(key: string, change: (current: T | undefined) => T) {
