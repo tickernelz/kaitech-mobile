@@ -1,7 +1,7 @@
 {
   "platforms": ["android", "apple"],
   "android": {
-    "modules": ["io.kaitech.call.KaitechCallModule"],
+    "modules": ["io.kaitech.call.KaitechCallModule", "io.kaitech.call.KaitechProximityModule"],
     "publication": {
       "groupId": "io.kaitech.call",
       "artifactId": "kaitech-call",
@@ -9,6 +9,6 @@
     }
   },
   "apple": {
-    "modules": ["KaitechBroadcastModule"]
+    "modules": ["KaitechBroadcastModule", "KaitechProximityModule"]
   }
 }
