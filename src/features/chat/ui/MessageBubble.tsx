@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, type as typography, useTheme } from '../../../theme';
 import { haptic } from '../../../ui/haptic';
 import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
@@ -175,8 +175,8 @@ export const MessageBubble = memo(function MessageBubble({
     const call = message.call;
     const label = [t(call?.ongoing ? 'thread.callOngoing' : 'thread.call'), call && !call.ongoing ? t('thread.callMinutes', { count: Math.max(1, call.minutes) }) : null, time].filter(Boolean).join(' · ');
     return (
-      <View style={styles.notice} accessible={!call?.ongoing} accessibilityLabel={label} testID={`call-notice-${message.id}`}>
-        <View style={[styles.noticePill, styles.callNotice, call?.ongoing && styles.callLive, { backgroundColor: colors.surface2 }]}>
+      <View style={[styles.notice, styles.callRow]} accessible={!call?.ongoing} accessibilityLabel={label} testID={`call-notice-${message.id}`}>
+        <View style={[styles.noticePill, styles.callNotice, { backgroundColor: colors.surface2 }]} testID={`call-notice-${message.id}-pill`}>
           <Icon name="phone" size={16} color={colors.inkSoft} />
           <Text variant="footnote" tone="inkSoft">
             {label}
@@ -435,6 +435,11 @@ export const PendingBubble = memo(function PendingBubble({
   );
 });
 
+const callTouch = 48;
+const callLine = typography.footnote.lineHeight;
+const joinBand = Math.ceil((callTouch - callLine) / 2);
+const callRowPad = Math.max(space.sm, Math.ceil((callTouch - callLine - 2 * space.xs) / 2));
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
@@ -463,9 +468,9 @@ const styles = StyleSheet.create({
   action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   notice: { paddingHorizontal: space.xxl, paddingVertical: space.sm, alignItems: 'center' },
   noticePill: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.md, overflow: 'hidden' },
-  callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs },
-  callLive: { minHeight: touchTarget, paddingVertical: 0 },
-  join: { minHeight: touchTarget, justifyContent: 'center' },
+  callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, overflow: 'visible' },
+  callRow: { paddingVertical: callRowPad },
+  join: { paddingVertical: joinBand, marginVertical: -joinBand, paddingHorizontal: space.sm, marginHorizontal: -space.sm },
   withFace: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm, paddingLeft: space.sm },
   faceSpace: { width: faceSize },
   faceColumn: { flex: 1, alignItems: 'flex-start' },

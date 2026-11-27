@@ -17,6 +17,9 @@ import { pipFocus, pipSpec, type PipSpec } from './pip';
 import { loadVolumes, saveVolume } from './volumes';
 import { onPictureInPictureAllowedChange, pictureInPictureAllowed } from './pipSetting';
 import { applyBlur, blurPreferred, blurSupported, prepareBlur, setBlurPreferred, type EffectTrack } from './blur';
+import { screenOffNearEar, type AudioRoute } from './proximity';
+import { onAudioRouteChange, proximityNative } from './proximityNative';
+import { userInApp } from './presence';
 
 export type CallPhase = 'idle' | 'incoming' | 'outgoing' | 'connecting' | 'active' | 'reconnecting' | 'ended';
 
@@ -835,6 +838,28 @@ function sendCallSurface(visible: boolean) {
 export function setCallSurface(visible: boolean) {
   screenSurface = visible;
   sendCallSurface(visible);
+  syncProximity();
+}
+
+let screenOff = false;
+
+function syncProximity() {
+  const native = proximityNative();
+  if (!native) return;
+  const input = { ...state, onCallScreen: screenSurface, inApp: userInApp(AppState.currentState) };
+  let wanted = screenOffNearEar({ ...input, route: 'earpiece' });
+  if (wanted) {
+    let route: AudioRoute = 'unknown';
+    try {
+      route = native.audioRoute();
+    } catch {
+      route = 'unknown';
+    }
+    wanted = screenOffNearEar({ ...input, route });
+  }
+  if (wanted === screenOff) return;
+  screenOff = wanted;
+  void native.setScreenOff(wanted).catch(() => undefined);
 }
 
 function stopRinging() {
@@ -976,6 +1001,9 @@ onCallAction(fromNative);
 
 subscribeCall(syncPictureInPicture);
 onPictureInPictureAllowedChange(syncPictureInPicture);
+subscribeCall(syncProximity);
+AppState.addEventListener('change', syncProximity);
+onAudioRouteChange(syncProximity);
 
 void takePendingActions();
 

@@ -11,8 +11,8 @@ jest.mock('react-native/Libraries/Components/RefreshControl/RefreshControl', () 
 });
 jest.mock('../src/theme', () => ({ useTheme: () => ({ colors: { primary: '#5b2a86' } }) }));
 
-function layoutOf(target: number, element = screen.getByTestId('refresh')) {
-  fireEvent(element, 'layout', { currentTarget: null, nativeEvent: { target, layout: { x: 0, y: 0, width: 360, height: 640 } } });
+async function layoutOf(target: number, element = screen.getByTestId('refresh')) {
+  await fireEvent(element, 'layout', { currentTarget: null, nativeEvent: { target, layout: { x: 0, y: 0, width: 360, height: 640 } } });
 }
 
 beforeEach(() => mockRelease.mockClear());
@@ -20,8 +20,18 @@ beforeEach(() => mockRelease.mockClear());
 it('releases the hidden circle when a list re-clones the control with its own ref, as Animated.ScrollView in FlashList does', async () => {
   const element = <Refresh testID="refresh" refreshing={false} onRefresh={() => undefined} />;
   await render(cloneElement(element as ReactElement<{ ref?: unknown }>, { ref: createRef() }));
-  layoutOf(42);
+  await layoutOf(42);
   expect(mockRelease).toHaveBeenCalledWith(42);
+});
+
+it('releases each mounted refresh layout once and still calls the caller onLayout', async () => {
+  const caller = jest.fn();
+  await render(<Refresh testID="refresh" refreshing={false} onRefresh={() => undefined} onLayout={caller} />);
+  await layoutOf(7);
+  await layoutOf(7);
+  await layoutOf(8);
+  expect(mockRelease.mock.calls).toEqual([[7], [8]]);
+  expect(caller).toHaveBeenCalledTimes(3);
 });
 
 it('retries on the next frames while the native layout is not mounted yet, then gives up so a later layout can try again', async () => {
@@ -37,29 +47,19 @@ it('retries on the next frames while the native layout is not mounted yet, then 
   const raf = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => frames.push(callback));
   try {
     mockRelease.mockRejectedValueOnce(new Error('view not found')).mockRejectedValueOnce(new Error('view not found'));
-    layoutOf(5, control);
+    await layoutOf(5, control);
     await settle();
     expect(mockRelease.mock.calls).toEqual([[5], [5], [5]]);
 
     mockRelease.mockClear().mockRejectedValue(new Error('view not found'));
-    layoutOf(6, control);
+    await layoutOf(6, control);
     await settle();
     expect(mockRelease).toHaveBeenCalledTimes(11);
 
     mockRelease.mockClear().mockImplementation(async () => undefined);
-    layoutOf(6, control);
+    await layoutOf(6, control);
     expect(mockRelease).toHaveBeenCalledWith(6);
   } finally {
     raf.mockRestore();
   }
-});
-
-it('releases each mounted refresh layout once and still calls the caller onLayout', async () => {
-  const caller = jest.fn();
-  await render(<Refresh testID="refresh" refreshing={false} onRefresh={() => undefined} onLayout={caller} />);
-  layoutOf(7);
-  layoutOf(7);
-  layoutOf(8);
-  expect(mockRelease.mock.calls).toEqual([[7], [8]]);
-  expect(caller).toHaveBeenCalledTimes(3);
 });

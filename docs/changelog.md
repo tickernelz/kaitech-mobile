@@ -2,6 +2,37 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.14.0 - 2026-11-28
+
+### Added
+
+- Calls: in a voice call held to the ear, the screen turns off and ignores touches, and turns on again when the phone moves away, like the phone app. It only happens while the call screen is open, nobody shows a camera or screen share, and the sound plays from the earpiece; the speaker, a Bluetooth or wired headset, picture-in-picture, the background or the end of the call keep the screen on. Checked on the Meizu Mblu 21: the proximity screen-off lock was held 1.4 s after answering, released 0.8 s after the other person turned a camera on and 0.2 s after choosing the speaker or hanging up, and taken back when the camera or speaker went off (#144, ZHA-7992).
+
+### Fixed
+
+- App lock: when signing out from the lock screen fails, the Sign out button stops spinning and the lock screen says so, instead of spinning forever (#149, ZHA-7439).
+
+### Known gaps
+
+- iOS: the screen-off at the ear is built and compiled, not checked on a device (#144, ZHA-7992).
+
+## 0.13.0 - 2026-11-27
+
+### Changed
+
+- App icon and splash: the icon is now the kaitech.io favicon mark on Android (adaptive background, foreground and monochrome) and on iOS (any, dark and tinted, compiled from the Icon Composer stack), and the splash uses the same mark. The retired icon assets are gone (#146, ZHA-8004).
+- Floating capsules in the light theme (tab bar, call controls, chat composer): the pale purple glass sat at 1.14:1 against the screen and its buttons at 1.14:1 against the capsule, so both blended into white. The glass colour is now a deeper lavender at a higher opacity from one token, at 1.33:1 against the screen and 1.26:1 for a button against the capsule, while every label and icon on it keeps its contrast over light and dark content. The dark theme is unchanged (#151, ZHA-8064).
+
+### Fixed
+
+- Chat composer: while typing, the emoji button sat about 3 dp from the end of the message capsule, almost against the send button; it now sits as far in as the attach button on the other end (14 dp from the edge) whether the field is empty, has text, or the emoji panel is open, and every button in the capsule is at least 48 dp. The send button takes the capsule's own shadow, so the two read as one row (#150, ZHA-8058).
+- Chat: a "Call in progress" notice was almost twice as tall as an ended call's notice. Both are now the same pill; Join still takes a 48 dp touch without making the pill bigger (#150, ZHA-8058).
+- Lists: a refresh indicator could stay up after the refresh finished because the native call that releases it ran before the view had mounted; it is retried until it takes effect (#145, ZHA-7439).
+
+### Known gaps
+
+- iOS: no device check. The iOS 26 icon stack is compiled and present in the release IPA, but the glass look behind sign-in has still not been seen (ZHA-7277). The IPA measures 26,751,577 bytes at 144a8b3, +8.6% on the 24,623,415 byte baseline (limit +15%); its JS bundle is 9,702,966 bytes, +5.9% on 9,159,155.
+
 ## 0.12.0 - 2026-11-27
 
 ### Changed

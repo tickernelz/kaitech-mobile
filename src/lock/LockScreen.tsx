@@ -18,6 +18,7 @@ export function LockScreen() {
   const [failed, setFailed] = useState(false);
   const [stranded, setStranded] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [leaveFailed, setLeaveFailed] = useState(false);
   const fadeIn = useMotion(FadeIn.duration(duration.quick));
   const attempt = useCallback(
     () =>
@@ -43,8 +44,15 @@ export function LockScreen() {
     });
     if (answer?.key !== 'leave') return;
     setLeaving(true);
-    for (const account of getSession().accounts) await signOut(account.id);
-    resetLock();
+    setLeaveFailed(false);
+    try {
+      for (const account of getSession().accounts) await signOut(account.id);
+      resetLock();
+    } catch {
+      setLeaveFailed(true);
+    } finally {
+      setLeaving(false);
+    }
   };
   return (
     <Animated.View
@@ -66,9 +74,16 @@ export function LockScreen() {
             {t('lock.title')}
           </Text>
           {stranded ? (
-            <Text tone="inkSoft" style={styles.text} testID="lock-no-screen-lock">
-              {t('lock.noScreenLock')}
-            </Text>
+            <>
+              <Text tone="inkSoft" style={styles.text} testID="lock-no-screen-lock">
+                {t('lock.noScreenLock')}
+              </Text>
+              {leaveFailed ? (
+                <Text tone="dangerInk" style={styles.text} accessibilityRole="alert" testID="lock-sign-out-failed">
+                  {t('lock.signOutFailed')}
+                </Text>
+              ) : null}
+            </>
           ) : failed ? (
             <Text tone="dangerInk" accessibilityRole="alert">
               {t('lock.failed')}
