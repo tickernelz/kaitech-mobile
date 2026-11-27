@@ -16,8 +16,11 @@ import { coworkerFallbackBytes, withinBudget } from '../chat/uploadRule';
 import { pickAttachments, type AttachSource, type Picked } from '../chat/ui/attach';
 import { useChatFormat } from '../chat/ui/format';
 import { Icon } from '../../ui/icons';
-import { AttachSheet, MicButton, RecordingStrip, StagedFile, UploadProgress } from '../chat/ui/MediaControls';
+import { MicButton, RecordingStrip, StagedFile, UploadProgress } from '../chat/ui/MediaControls';
+import { AttachSheet } from '../chat/ui/composer/AttachSheet';
 import { Attachments } from '../chat/ui/MessageBubble';
+import { GalleryContext } from '../chat/ui/media/gallery';
+import { galleryItems } from '../chat/media/viewer';
 import { useVoiceHold, type Voice } from '../chat/ui/useVoiceHold';
 import { ask, cards as readCards, panel, transcript, type Card, type Cursor, type Document, type TranscriptItem } from './api';
 import { DecisionCard } from './DecisionCard';
@@ -33,6 +36,7 @@ import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread
 import { IconButton } from '../../ui/IconButton';
 import { StateView, useErrorText } from './ui';
 import { notify } from '../../ui/dialog';
+import { touchTarget } from '../../ui/touch';
 
 const bottomSlack = 48;
 const pollMs = 2500;
@@ -323,6 +327,9 @@ export function CoworkerThread({
   };
 
   const entries = useMemo(() => entriesOf(thread.items), [thread.items]);
+  const shownItems = useRef(thread.items);
+  shownItems.current = thread.items;
+  const gallery = useCallback(() => galleryItems(shownItems.current.flatMap((item) => chatAttachments(item.attachments))), []);
   const data: (Entry | Pending | Card)[] = [...entries, ...shownPending, ...(threadCards.data ?? [])];
 
   const onAnswered = (next: Card) => {
@@ -401,6 +408,7 @@ export function CoworkerThread({
       ) : (
         <ThreadContext.Provider value={threadContext}>
         <ItemsContext.Provider value={thread.items}>
+        <GalleryContext.Provider value={gallery}>
         <FlatList
           ref={list}
           data={data}
@@ -426,6 +434,7 @@ export function CoworkerThread({
             ) : undefined
           }
         />
+        </GalleryContext.Provider>
         </ItemsContext.Provider>
         </ThreadContext.Provider>
       )}
@@ -493,7 +502,7 @@ const styles = StyleSheet.create({
   bubble: { borderRadius: radius.card, paddingHorizontal: space.lg, paddingVertical: space.md, maxWidth: '88%' },
   mine: { alignSelf: 'flex-end', borderBottomRightRadius: radius.sm },
   theirs: { alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: radius.sm },
-  steps: { borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
+  steps: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   failure: { borderRadius: radius.card, padding: space.lg, gap: space.xs },
   pendingWrap: { gap: space.xs },
   status: { alignSelf: 'flex-end' },

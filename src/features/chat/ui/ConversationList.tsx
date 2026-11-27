@@ -3,7 +3,11 @@ import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
+import { useTabBarSpace } from '../../../layout/tabBar';
 import { HeaderActions } from '../../../screens/HeaderActions';
+import { useLargeText, useWindowClass } from '../../../layout/windowClass';
+import { Banner } from '../../../ui/Banner';
+import { Fab } from '../../../ui/Fab';
 import { radius, space, useTheme } from '../../../theme';
 import { TopAppBar, useScrolledUnder } from '../../../ui/AppBar';
 import { Refresh } from '../../../ui/Refresh';
@@ -16,11 +20,13 @@ import { pushSupported } from '../push';
 import type { Conversation } from '../types';
 import { Avatar } from './Avatar';
 import { useChatFormat } from './format';
+import { previewText } from '../rich';
 import { Icon } from '../../../ui/icons';
 import { RowActions } from '../../../ui/RowActions';
 import { conversationActions } from './conversationActions';
 import { refreshStarred } from '../starred';
 import { StarredSheet } from './thread/ListSheets';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 
 function usePreview() {
   const { t } = useTranslation('chat');
@@ -32,7 +38,7 @@ function usePreview() {
       if (last.call) return { author: '', text: t('thread.call') };
       const mine = last.authorId === partnerId;
       const author = mine ? t('list.you') : conversation.type === 'chat' ? '' : last.author.split(' ')[0];
-      const text = last.text || (last.voice ? t('list.voice') : last.attachments ? t('list.files', { count: last.attachments }) : '');
+      const text = last.rich ? previewText(last.rich, (key) => t(key)) : last.text || (last.voice ? t('list.voice') : last.attachments ? t('list.files', { count: last.attachments }) : '');
       return { author, text };
     },
     [partnerId, t],
@@ -134,9 +140,20 @@ const Row = memo(function Row({
   );
 });
 
-export function ConversationList({ selectedId, onOpen }: { selectedId: number | null; onOpen: (id: number, message?: number | null) => void }) {
+export function ConversationList({
+  selectedId,
+  onOpen,
+  onNew,
+}: {
+  selectedId: number | null;
+  onOpen: (id: number, message?: number | null) => void;
+  onNew: () => void;
+}) {
   const { t } = useTranslation(['chat', 'translation']);
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
+  const { short } = useWindowClass();
+  const largeText = useLargeText();
   const conversations = useChat((state) => state.conversations);
   const loading = useChat((state) => state.listLoading);
   const loaded = useChat((state) => state.listLoaded);
@@ -211,50 +228,47 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
       </Pressable>
     ) : null;
 
+  const chips = filters.map((name) => {
+    const on = filter === name;
+    return (
+      <Pressable
+        key={name}
+        accessibilityRole="tab"
+        accessibilityState={{ selected: on }}
+        accessibilityLabel={name === 'unread' && unreadTotal ? `${t('list.filter.unread')}, ${unreadTotal}` : undefined}
+        onPress={() => setFilter(name)}
+        hitSlop={chipSlop}
+        testID={`chat-filter-${name}`}
+        style={[styles.chip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}>
+        <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
+          {t(`list.filter.${name}`)}
+        </Text>
+        {name === 'unread' && unreadTotal ? (
+          <View style={[styles.count, { backgroundColor: on ? colors.onPrimary : colors.primary }]}>
+            <Text variant="label" style={{ color: on ? colors.primary : colors.onPrimary }}>
+              {unreadTotal}
+            </Text>
+          </View>
+        ) : null}
+      </Pressable>
+    );
+  });
+
   const header = (
     <View style={styles.header}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityRole="tablist">
-        {filters.map((name) => {
-          const on = filter === name;
-          return (
-            <Pressable
-              key={name}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: on }}
-              accessibilityLabel={name === 'unread' && unreadTotal ? `${t('list.filter.unread')}, ${unreadTotal}` : undefined}
-              onPress={() => setFilter(name)}
-              testID={`chat-filter-${name}`}
-              style={[styles.chip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}>
-              <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
-                {t(`list.filter.${name}`)}
-              </Text>
-              {name === 'unread' && unreadTotal ? (
-                <View style={[styles.count, { backgroundColor: on ? colors.onPrimary : colors.primary }]}>
-                  <Text variant="label" style={{ color: on ? colors.primary : colors.onPrimary }}>
-                    {unreadTotal}
-                  </Text>
-                </View>
-              ) : null}
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      {largeText ? (
+        <View style={[styles.chips, styles.wrap, styles.chipBar]} accessibilityRole="tablist">
+          {chips}
+        </View>
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.chips} accessibilityRole="tablist">
+          {chips}
+        </ScrollView>
+      )}
       {!online ? (
-        <View style={[styles.banner, { backgroundColor: colors.warnBand }]} accessibilityLiveRegion="polite" testID="chat-offline">
-          <Icon name="cloudOff" size={20} color={colors.warnInk} />
-          <Text variant="footnote" tone="warnInk" style={styles.flex}>
-            {pending.length ? t('list.offlineQueued', { count: pending.length }) : t('list.offline')}
-          </Text>
-        </View>
+        <Banner tone="warn" icon="cloudOff" text={pending.length ? t('list.offlineQueued', { count: pending.length }) : t('list.offline')} testID="chat-offline" />
       ) : null}
-      {!pushSupported ? (
-        <View style={[styles.banner, { backgroundColor: colors.infoBand }]} testID="chat-ios-push-note">
-          <Icon name="bell" size={20} color={colors.infoInk} />
-          <Text variant="footnote" tone="infoInk" style={styles.flex}>
-            {t('list.iosNoPush')}
-          </Text>
-        </View>
-      ) : null}
+      {!pushSupported ? <Banner tone="info" icon="bell" text={t('list.iosNoPush')} testID="chat-ios-push-note" /> : null}
       {archiveEntry}
       {starredEntry}
     </View>
@@ -282,7 +296,14 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
         title={inArchive ? t('rowActions.archivedTitle') : t('translation:tabs.chat')}
         scrolled={bar.scrolled}
         navigation={inArchive ? archiveBack : null}
-        actions={inArchive ? null : <HeaderActions />}
+        actions={
+          inArchive ? null : (
+            <>
+              {short ? <IconButton icon="edit" label={t('newChat.title')} onPress={onNew} testID="chat-new" /> : null}
+              <HeaderActions />
+            </>
+          )
+        }
       />
       <FlashList
         onScroll={bar.onScroll}
@@ -291,6 +312,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <Row conversation={item} selected={item.id === selectedId} pending={waiting.get(item.id) ?? 0} onOpen={onOpen} inArchive={inArchive} />}
         extraData={`${selectedId}|${pending.length}|${inArchive}`}
+        contentContainerStyle={{ paddingBottom: tabSpace + (inArchive || short ? space.sm : fabClearance) }}
         ListHeaderComponent={inArchive ? null : header}
         ListEmptyComponent={empty}
         onEndReached={() => void (inArchive ? loadArchived(true) : loadMoreConversations())}
@@ -306,6 +328,7 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
           />
         }
       />
+      {inArchive || short ? null : <Fab icon="edit" label={t('newChat.title')} onPress={onNew} testID="chat-new" />}
       {inStarred ? (
         <StarredSheet
           onClose={() => setInStarred(false)}
@@ -319,16 +342,19 @@ export function ConversationList({ selectedId, onOpen }: { selectedId: number | 
   );
 }
 
+const fabClearance = 56 + space.lg * 2;
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
   archiveEntry: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
   strong: { fontWeight: '600' },
   header: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.sm, gap: space.md },
-  chips: { gap: space.sm, paddingHorizontal: space.xs },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  count: { minWidth: 18, height: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
-  banner: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: radius.md },
+  chipBar: { marginVertical: chipBand.marginVertical },
+  chips: { gap: space.sm, paddingHorizontal: space.xs, paddingVertical: chipBand.paddingVertical },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap' },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  count: { minWidth: 18, minHeight: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingLeft: space.lg, minHeight: 76 },
   rowBody: { flex: 1, paddingVertical: space.md, paddingRight: space.lg, gap: 2, borderBottomWidth: StyleSheet.hairlineWidth },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: space.sm },

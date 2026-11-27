@@ -28,6 +28,9 @@ inputs:
   scroll-flow:
     description: A Maestro flow whose frame statistics (gfxinfo) are saved as scroll-gfxinfo.txt; its <name>-ready.yaml runs first to reach the starting screen. Empty skips it.
     default: ''
+  motion-flow:
+    description: Path prefix of three Maestro flows; <prefix>-ready.yaml opens a thread, then <prefix>-send.yaml and <prefix>-fling.yaml are each recorded on screen and checked frame by frame with scripts/frame-flicker.mjs (motion-<phase>-flicker.json, motion-<phase>-gfxinfo.txt). Empty skips it.
+    default: ''
   layout-check:
     description: true runs scripts/e2e-layout.mjs after the flows, on the signed-in tabs, and saves layout.txt with layout-* and pull-* screenshots.
     default: 'false'
@@ -40,6 +43,9 @@ inputs:
   audio:
     description: true starts the emulator with audio; recording flows need it.
     default: 'false'
+  undo-window-ms:
+    description: Android "Time to take action" in milliseconds, which stretches the Undo bar; empty keeps the system default that the rows flows wait out.
+    default: ''
   call-peer:
     description: true joins a headless web peer to the test call with its camera on and gives the emulator a front camera; call flows need it.
     default: 'false'
@@ -61,6 +67,17 @@ runs:
     - uses: ./.github/actions/setup-maestro
     - uses: ./.github/actions/setup-maestro-runner
     - uses: ./.github/actions/setup-gitleaks
+    - name: ffmpeg for the frame comparison
+      if: inputs.motion-flow != ''
+      shell: bash
+      run: |
+        if command -v ffmpeg > /dev/null && command -v ffprobe > /dev/null; then ffmpeg -version | head -1; exit 0; fi
+        for attempt in 1 2 3; do
+          sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg && exit 0
+          sleep $((attempt * 15))
+        done
+        echo "::error::ffmpeg not installed after 3 attempts"
+        exit 1
     - name: Emulator hardware profile for the size
       id: device
       shell: bash
@@ -99,9 +116,11 @@ runs:
         E2E_FLOWS: ${{ inputs.flows }}
         E2E_THEMED_FLOWS: ${{ inputs.themed-flows }}
         E2E_SCROLL_FLOW: ${{ inputs.scroll-flow }}
+        E2E_MOTION_FLOW: ${{ inputs.motion-flow }}
         E2E_RUNNER: ${{ inputs.runner }}
         E2E_LAYOUT_CHECK: ${{ inputs.layout-check == 'true' && '1' || '' }}
         E2E_CALL_PEER: ${{ inputs.call-peer == 'true' && '1' || '' }}
+        E2E_UNDO_WINDOW_MS: ${{ inputs.undo-window-ms }}
         PORTRAIT_COLD_START_RUNS: ${{ inputs.cold-start }}
       with:
         api-level: 35
@@ -109,6 +128,7 @@ runs:
         target: google_apis
         profile: ${{ steps.device.outputs.profile }}
         disable-animations: true
+        ram-size: 4096M
         force-avd-creation: true
         emulator-options: -no-window -no-snapshot -wipe-data -gpu swiftshader_indirect ${{ inputs.audio != 'true' && '-noaudio' || '' }} -no-boot-anim -camera-back none -camera-front ${{ inputs.call-peer == 'true' && 'emulated' || 'none' }}
         script: for o in ${{ inputs.orientations }}; do runs=0; [ "$o" = portrait ] && runs="$PORTRAIT_COLD_START_RUNS"; COLD_START_RUNS="$runs" bash scripts/e2e-android.sh "${{ inputs.apk-dir }}" "e2e-output/${{ inputs.output-prefix }}${{ inputs.size }}-$o-${{ inputs.locale }}" ${{ inputs.locale }} ${{ inputs.size }} "$o" || status=1; done; exit "${status:-0}"

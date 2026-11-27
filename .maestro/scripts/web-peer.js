@@ -122,6 +122,17 @@ if (ACTION === 'say') {
   output.peer = { said: Number(TARGET) };
 }
 
+if (ACTION === 'ring') {
+  var joined = rpc('/mail/rtc/channel/join_call', { channel_id: channel, camera: false }, cookie).result;
+  var rtc = joined.Rtc || joined.rtc || {};
+  output.peer = { session: Number((rtc.localSession && rtc.localSession.id) || rtc.localSession || 0) };
+}
+
+if (ACTION === 'hangUp') {
+  rpc('/mail/rtc/channel/leave_call', { channel_id: channel }, cookie);
+  output.peer = { left: channel };
+}
+
 if (ACTION === 'left') {
   var phonePartner = otherMember(channel);
   var still = callKw('discuss.channel.member', 'search_count', [[['channel_id', '=', Number(TARGET)], ['partner_id', '=', phonePartner]]]);

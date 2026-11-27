@@ -1,0 +1,17 @@
+appId: io.kaitech.mobile
+name: Attach <FILE> from the Download folder through the system file picker
+---
+- tapOn:
+    id: composer-attach
+- tapOn:
+    id: attach-files
+- extendedWaitUntil:
+    visible:
+      text: ${FILE}
+    timeout: 20000
+- tapOn:
+    text: ${FILE}
+- extendedWaitUntil:
+    visible:
+      id: composer-send
+    timeout: 20000

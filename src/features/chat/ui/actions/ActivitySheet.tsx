@@ -11,6 +11,7 @@ import { activityDraft, makeActivity, type ActivityDraft, type Result } from '..
 import type { Message } from '../../types';
 import { failureText } from './failure';
 import { WhenPicker } from './WhenPicker';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../../ui/touch';
 
 export function ActivitySheet({ message, onClose, onDone }: { message: Message; onClose: () => void; onDone: (text: string) => void }) {
   const { t } = useTranslation('chat');
@@ -72,13 +73,14 @@ export function ActivitySheet({ message, onClose, onDone }: { message: Message; 
               <Text variant="label" tone="inkSoft">
                 {t('activity.type')}
               </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.row}>
                 {draft.value.types.map((type) => (
                   <Pressable
                     key={type.id}
                     accessibilityRole="button"
                     accessibilityState={{ selected: typeId === type.id }}
                     onPress={() => setTypeId(typeId === type.id ? null : type.id)}
+                    hitSlop={chipSlop}
                     style={[styles.chip, { borderColor: typeId === type.id ? colors.focus : colors.line, backgroundColor: typeId === type.id ? colors.select : 'transparent' }]}
                     testID={`activity-type-${type.id}`}>
                     <Text variant="footnote" tone={typeId === type.id ? 'selectInk' : 'ink'}>
@@ -98,6 +100,7 @@ export function ActivitySheet({ message, onClose, onDone }: { message: Message; 
 
 const styles = StyleSheet.create({
   pad: { padding: space.xl },
-  row: { gap: space.xs },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  row: { gap: space.xs, paddingVertical: chipBand.paddingVertical },
+  chipBar: { marginVertical: chipBand.marginVertical },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
 });

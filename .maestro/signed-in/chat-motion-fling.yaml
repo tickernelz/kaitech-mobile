@@ -1,0 +1,21 @@
+appId: io.kaitech.mobile
+name: Fling the thread six times towards older messages and three times back, away from its last message, while the screen is recorded
+tags:
+  - signed-in
+  - motion
+---
+- repeat:
+    times: 6
+    commands:
+      - swipe:
+          start: 50%, 30%
+          end: 50%, 80%
+          duration: 80
+- repeat:
+    times: 3
+    commands:
+      - swipe:
+          start: 50%, 80%
+          end: 50%, 30%
+          duration: 80
+- waitForAnimationToEnd

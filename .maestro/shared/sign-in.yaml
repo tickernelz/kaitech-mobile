@@ -1,6 +1,11 @@
 appId: io.kaitech.mobile
 name: Sign in on the server page and finish setup when the app is signed out
 ---
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - stopApp: com.android.chrome
 - tapOn:
     id: welcome-sign-in
 - runFlow:

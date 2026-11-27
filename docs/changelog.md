@@ -2,6 +2,169 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.10.3 - 2026-11-27
+
+### Fixed
+
+- Chat: a wide table in a message can be scrolled sideways on Android, so you can reach its last column. Before, the long press on the message held every finger movement and the table never scrolled. Holding a table still opens the message actions. Measured on the Meizu Mblu 21 with a six-column table: scroll position stayed at 0 on 0.10.2, and reached 252 after a drag and 485 (the last column) after a fling on this build (#142, ZHA-7977).
+
+### Known gaps
+
+- iOS: no device check; the change is shared code covered by unit tests (ZHA-7977).
+
+## 0.10.2 - 2026-11-27
+
+### Fixed
+
+- Touch targets: every control a finger can tap now takes at least 44 by 44 dp. A settings row with a switch (Tap to record, Out of office, Picture in picture, App lock and the others) flips when you tap anywhere on the row, and a screen reader hears it as one switch. Filter chips in Chat, Search and Activity, GIF chips, emoji categories, reaction pills, voice note controls and the other small controls keep their look but accept taps up to 44 dp, without taking taps meant for the control next to them. Measured on the Meizu Mblu 21: taps 2.9 to 4.6 dp outside a chip's drawn edge selected it in 0 of 5 cases on 0.8.0 and 5 of 5 on this build; tapping a switch row's text flipped the switch in 0 of 3 cases before and 3 of 3 after (#133, ZHA-7965).
+- Existing controls that took taps from a neighbour no longer do: the composer's emoji/keyboard button (2 dp of the text field), the format bar's hide button (4 dp of the last format action), the media and PDF viewer bar buttons (4 dp of each other) and the poll option remove button (8 dp of its field) (#133, ZHA-7965).
+- Files: the detail line of a PDF or file card takes two lines instead of cutting off, and a long file name breaks after `_`, `-` or `.` instead of inside a word (#133, ZHA-7965).
+
+### Changed
+
+- A message with reactions or a thread link is 8 dp taller, wrapped rows of reactions are 12 dp apart, and the emoji category row and the GIF chip row each have 4 dp more space below, so the taps below a pill or chip stay with it (#133, ZHA-7965).
+
+### Known gaps
+
+- The composer text field measures 43.4 dp (the 44 dp field minus its 1 px border), and on screens narrower than 396 dp each emoji category is the panel width divided by nine, under 44 dp (#133, ZHA-7965).
+- iOS: no device check; the changes are shared code covered by unit tests (ZHA-7965).
+
+## 0.10.1 - 2026-11-27
+
+### Fixed
+
+- Launch: on Android a cold start no longer shows an empty light screen for about 0.4 s between the splash and the first screen, in the dark and the light theme. The splash now stays until the first screen has laid out and leaves without a fade on Android, and the account's saved theme applies before the first frame. Measured on the Meizu Mblu 21 (15 recordings each, the same 0.8.0 native build with the old and the new JS): empty light frames in 15 of 15 cold starts before, in 0 of 15 after. A cold start opens the Chat list; reopening the app while it still runs returns to the screen you left, as before (#132, ZHA-7964).
+
+### Known gaps
+
+- Launch, measured on the Mblu 21: the Chat list shows a median 1790 ms after the splash appears against 1681 ms before, with overlapping ranges (1484-1883 and 1550-1892 ms); the cause of the difference is not proven. `am start -W` TotalTime rises from a median 1495 to 2002 ms because the first frame drawn is now the Chat list instead of the empty screen (#132, ZHA-7964).
+- Launch: with the phone in the light theme and the account set to Dark, 3 of 8 cold starts still show 2 to 3 light splash frames (45-65 ms) right after the Chat list first appears; fixing it needs the account's night mode applied natively before the activity starts (ZHA-7964).
+
+## 0.10.0 - 2026-11-26
+
+### Changed
+
+- Tabs: on phones the tabs sit in a capsule that floats at the bottom of the screen, slightly see-through, with its own look per platform on the Kaitech colours. Android follows Material 3 Expressive: the selected tab opens into a wide slot with its label beside the filled icon, and the indicator stretches while it slides to the next tab and squeezes while a tab is held. iOS below 26 follows the iOS 26 system bar: equal slots with labels under the icons and a lens that slides between tabs. iOS 26 and later keep the system Liquid Glass bar. Tablets keep the side rail (#125, ZHA-7950).
+- Tabs: switching tabs gives a light haptic, the Activity badge pops when it appears or its number changes, and the incoming tab screen fades in on the background colour, so nothing flashes white. Reduce Motion turns every animation into an instant change; Reduce Transparency, Increase Contrast and Android high contrast text make the capsule solid. While the keyboard is up the capsule slides away (#125, ZHA-7950).
+- Chat, Discovery, MoM and both Activity lists end with room for the floating capsule, and the New chat button and the undo bar sit above it (#125, ZHA-7950).
+
+### Known gaps
+
+- Tabs, measured on the Meizu Mblu 21 against 0.9.0: scrolling and cold start are unchanged, and the worst frame on a tab switch drops from 46-150 ms to 34-38 ms, but each switch now animates about 65 frames instead of jumping in about 9, so about 3 more frames per switch arrive late (88-119 against 31-41 over 20 switches). Neither build meets the ZHA-7946 jank target for tab switches (#125, ZHA-7950).
+- iOS: no device. The capsule for iOS below 26 is covered only by unit tests, CI simulators run iOS 26 (the unchanged system bar), and the Liquid Glass bar behind sign-in has not been seen (ZHA-7950, ZHA-7277).
+
+## 0.9.0 - 2026-11-26
+
+### Added
+
+- Chat: polls. Poll in the attach sheet asks a question with 2 to 12 options and an "allow more than one answer" switch. The bubble shows each option with its count and a bar; tapping votes, changes or takes back a vote at once and puts it back when the server refuses (a closed poll, offline). View votes lists who chose what, and the author can close the poll. Every device updates live (#123, ZHA-7807).
+- Chat: locations. Location in the attach sheet asks through the Kaitech permission card first, then opens a full-screen OpenStreetMap map drawn by the app (no map SDK or key; tiles come through the lab0 server) to send the current position, a point under the pin, or a search result. The bubble shows a map preview with the place name or address and opens a full map with Open in maps app (#123, ZHA-7807).
+- Chat: live location for 15 minutes, 1 hour or 8 hours. Android keeps sending through a foreground service with a notification and a Stop button; the phone posts a new point after moving 20 m or every 2 minutes, the server ends the share when its time is up, and signing out stops it. Measured on the Meizu Mblu 21: about 28 mAh an hour (0.6% of the battery per hour) with the screen off (#123, ZHA-7807).
+- Chat: the conversation list, reply quotes and Android notifications show short labels for polls, locations, live locations, stickers and GIFs (#123, ZHA-7807).
+
+### Changed
+
+- Chat: stickers and GIFs in a conversation play only while their bubble is on screen and the app is in front; a GIF plays as a short silent video (video cache capped at 100 MB). A long press on a poll or location opens the message actions, and a pack sticker in a conversation can be added to favourites (#123, ZHA-7807).
+- Chat: cached messages keep polls and locations in a field older builds ignore, so installing an older build over this one does not crash on them (#123, ZHA-7807).
+
+### Known gaps
+
+- iOS: live location sends only while Kaitech is open, and polls, locations and live location have not run on an iPhone (ZHA-7807, ZHA-7277).
+- Live location uses high GPS accuracy, like WhatsApp; a battery-saving mode is not offered (ZHA-7807).
+
+## 0.8.2 - 2026-11-26
+
+### Fixed
+
+- MoM and Discovery tell empty, failed and offline apart. Offline with nothing loaded shows "No connection" instead of the empty text ("Belum ada rekaman rapat"), a failed load shows the error with Retry, and data already on screen gets a banner saying it is what was loaded last; both tabs reload once when the connection returns (#130, ZHA-7968).
+- Chat: in landscape on a phone the New button sits in the app bar instead of floating over the conversation rows; in portrait the list ends with room for the button (#130, ZHA-7968).
+- Large text (font scale 1.5 and up): the Chat filter chips wrap instead of being cut off, the attach sheet shows two sources per row so "Dokumen" fits, and the thread title may take two lines (#130, ZHA-7968).
+
+### Changed
+
+- iOS build: `EXPO_MODULES_SCAN_TIMEOUT_MS` sets the Expo module scan timeout (default 5000 ms) through `patches/expo-modules-autolinking+58.1.0.patch`, after a Release build failed when the scan timed out; no app code changed (#124, ZHA-7945).
+- Docs: reminder push measured on the Meizu Mblu 21 (#128, ZHA-7944).
+
+## 0.8.1 - 2026-11-26
+
+### Fixed
+
+- Calls: Answer on the incoming-call notification opens Kaitech and joins the call. Until now it did nothing while the phone kept ringing, because Android 12 and later do not let a notification broadcast open an app (#126, ZHA-7944).
+- Chat: opening a conversation from a notification after several messages arrived while Kaitech was closed shows the newest message instead of stopping at the last one already on the phone (#126, ZHA-7944).
+
+### Changed
+
+- E2E: `scripts/push-latency.mjs` and the phone flows `.maestro/local/push-message-open.yaml` and `push-call-answer.yaml` measure and repeat Android push on a physical phone; the results on the Meizu Mblu 21 are in [Releases](releases.md#android-push-on-a-physical-phone-zha-7944) (#126, ZHA-7944).
+- E2E: the chat fling check fails on half-empty frames (#119, ZHA-7919).
+
+### Known gaps
+
+- Android blocks every push, calls included, to an app the user force-stopped in Settings until it is opened again; [Install the APK](install-android.md#notifications) says so (ZHA-7944).
+- Push after hours of Doze, battery use, and phones other than the Meizu Mblu 21 are not measured (ZHA-7944).
+
+## 0.8.0 - 2026-11-26
+
+### Added
+
+- Chat: photos, videos, PDFs and other files preview like WhatsApp. A photo tile keeps its real shape and opens a full-screen viewer with pinch and double-tap zoom; a video shows its first frame, length and a play button and starts playing at once in the viewer; a PDF card shows its first page, page count and size and opens an in-app reader; other files show an icon per kind with a download control (progress with cancel, retry after a failure, share when done). The viewer swipes across every picture and video of the conversation, shares, and saves to the gallery. The same applies to threads, groups, channels and Coworker replies (#102, ZHA-7804).
+
+### Changed
+
+- Downloaded media, previews and their sizes are kept per account under the app cache and removed when the account is forgotten (#102, ZHA-7804).
+- E2E: `signed-in/chat-media.yaml` sends a photo, a video, a PDF and a document and checks every preview, the video playing, the swipe, the PDF reader and the document download, inside the message it sent and after clearing a leftover voice draft; it passed on the Meizu Mblu 21 (#102, ZHA-7804).
+
+### Known gaps
+
+- iOS: the media viewer, video playback and PDF reader compile in the IPA job but have not run on an iPhone or the simulator (ZHA-7804).
+
+## 0.7.1 - 2026-11-26
+
+Ships everything listed under 0.7.0, which was not published.
+
+### Changed
+
+- E2E: Android "Time to take action" is stretched to 30 s only in the chat cells, where the voice-note flow taps Undo after a discard; the rows cells keep the default Undo window they wait out (#121, ZHA-7842).
+
+## 0.7.0 - 2026-11-26
+
+Not published: Release run 45777800606 built every asset, but its rows cells failed because the E2E harness stretched every Undo bar to 30 s while the rows flows wait 15 s for it to commit. 0.7.1 ships these changes.
+
+### Added
+
+- Chat composer like WhatsApp in Kaitech colours: attach, the message field with an emoji/sticker/GIF button inside it, a camera button that hides while you type, and one button that is the microphone on an empty field and Send once there is text. The swaps animate on the UI thread, keep the row height, and respect Reduce motion (#106, ZHA-7842).
+- Voice notes: hold the microphone to record, slide left to cancel, slide up to lock for hands-free, pause, play the draft, resume, send, or discard with Undo. Recordings under one second show a hint instead of sending; a call, the app going to the background or the 30-minute limit pauses the note into a draft that survives a restart. Playback can seek, change speed, resume where it stopped, mark unplayed notes and play the next one (#106, ZHA-7842).
+- Emoji, sticker and GIF panel that replaces the keyboard at the keyboard's height, with search, recent and favourite stickers, and KLIPY stickers and GIFs fetched through the lab0 server (#106, ZHA-7842, ZHA-7807).
+- Attach sheet with gallery, camera, document and audio; the camera opens after the Kaitech permission card and the photo is previewed before sending (#106, ZHA-7842).
+- Setting "Tap to record" for people who cannot hold the button (#106, ZHA-7842).
+
+### Fixed
+
+- Chat: the session cookie is sent with sticker and GIF images only to the account's own server, and plain-http media from other hosts is not loaded (#106, ZHA-7842).
+
+### Known gaps
+
+- Meizu Mblu 21: recording and the attach menu still drop most frames, as before this release; the cost is the GPU time of the chat thread screen (12 to 25 ms per frame), not the composer (ZHA-7842).
+- GIFs work on lab0 only until KLIPY confirms the server proxy in writing. Location, polls and contact cards in the attach sheet wait for a server contract; voice notes show a computed waveform until ZHA-7850's stored waveform is read (ZHA-7842).
+- iOS: the composer, the voice-note module and the panel are not tested on an iPhone (ZHA-7277).
+## 0.6.1 - 2026-11-26
+
+### Changed
+
+- Android: the tab bar and the floating action button are drawn in React Native instead of Jetpack Compose (`@expo/ui` removed), which brings cold start on the Meizu Mblu 21 back to about 1.2 s from about 1.5 s (#99, ZHA-7439).
+- E2E: Android phone cells get a 4 GB emulator and record when adb loses the emulator; Maestro's driver port is pinned below the Android ephemeral range (#111, #117, ZHA-7851). Sign-in runs through a fresh Chrome (#113, ZHA-7882). The Coworker flows ask a real question instead of the text "undefined" (#114, ZHA-7439).
+- E2E: the layout check fails when the chat composer ends less than 8 dp above the navigation bar; the merge gate is the required CI checks, the reviewer's approval and the changed journey on a physical phone (#109, ZHA-7854; #116, ZHA-7546).
+
+### Fixed
+
+- Bottom sheets, the chat composer and the MoM sheets keep their gap above the gesture pill and the three-button navigation bar instead of sitting on it, and add no extra space while the keyboard is open (#109, ZHA-7854).
+- Android: the footer of sign-in and other form screens stays above the keyboard (#71, ZHA-7546).
+- Chat: the thread no longer flickers when a message is sent or when the list is flung fast (#104, ZHA-7803).
+- Calls: the app no longer crashes when a peer stops sharing their screen in a call (#105, ZHA-7832).
+
+### Known gaps
+
+- iOS below 26: the tab bar keeps its items on the home indicator edge, like UIKit; not checked on an iPhone (ZHA-7854).
+- iOS: dialogs on screens that need a signed-in account are not yet proven on the simulator; that waits for iOS sign-in in CI (ZHA-7277, follow-up ZHA-7797).
 ## 0.6.0 - 2026-11-25
 
 ### Added
@@ -26,6 +189,8 @@ Every release of Kaitech Mobile, newest first. Each version has one section, `##
 - Calls: the app can crash when a peer stops sharing their screen in a group call (ZHA-7832).
 
 ## 0.5.3 - 2026-11-25
+
+Not published: Release run 45588646628 built and checked every asset, but its last rows check waited behind other E2E runs after an emulator disconnect and a lab0 502 on the first attempt, so it was cancelled. 0.6.0, tagged after it, shipped these changes first.
 
 ### Fixed
 

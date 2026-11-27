@@ -44,6 +44,12 @@
     "accountNotTeam": "The Kaitech app is for team accounts.",
     "accountInactive": "This account is no longer active."
   },
+  "network": {
+    "offlineTitle": "No connection",
+    "offlineBody": "This loads by itself once you are back online.",
+    "offlineCached": "No connection. Showing what was loaded last.",
+    "refreshFailed": "Could not refresh. Showing what was loaded last."
+  },
   "wizard": {
     "skip": "Skip",
     "next": "Next",
@@ -1277,7 +1283,10 @@
     "dim": "Dim",
     "sampleTheirs": "See you at nine?",
     "sampleMine": "Sure, on my way.",
-    "failed": "Could not save. Try again."
+    "failed": "Could not save. Try again.",
+    "chat": "Chat",
+    "tapToRecord": "Tap to record",
+    "tapToRecordHint": "Tap the mic once to record hands-free, instead of holding it. Always on while a screen reader is running."
   },
   "profile": {
     "name": "Name",
@@ -1621,6 +1630,12 @@
       "body": "New messages, calls and a running recording show up in your notifications. Your phone asks for permission next.",
       "blockedTitle": "Notifications are off",
       "blockedBody": "Allow notifications for Kaitech in Settings."
+    },
+    "location": {
+      "title": "Use your location",
+      "body": "Kaitech reads your location only when you send a place or share it live in a chat. Your phone asks for permission next.",
+      "blockedTitle": "Location access is off",
+      "blockedBody": "Allow location access for Kaitech in Settings, then try again."
     }
   }
 }

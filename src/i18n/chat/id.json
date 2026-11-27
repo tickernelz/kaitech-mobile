@@ -114,11 +114,14 @@
     "closeSheet": "Tutup",
     "attachTitle": "Lampirkan",
     "source": {
+      "photos": "Galeri",
       "camera": "Kamera",
-      "photos": "Foto & video",
-      "files": "Dokumen"
+      "files": "Dokumen",
+      "audio": "Audio",
+      "location": "Lokasi",
+      "poll": "Polling"
     },
-    "micBusy": "Rapat sedang direkam. Selesaikan dulu untuk merekam pesan suara.",
+    "micBusy": "Mikrofon sedang dipakai rekaman rapat atau panggilan.",
     "uploading": "Mengunggah {{name}}",
     "uploadingPercent": "{{name}} · {{percent}}%",
     "tooBig_one": "{{names}} melebihi batas {{limit}}.",
@@ -138,13 +141,49 @@
     },
     "editing": "Mengedit pesan",
     "cancelEdit": "Batalkan edit",
-    "saveEdit": "Simpan perubahan"
+    "saveEdit": "Simpan perubahan",
+    "camera": "Ambil foto atau video",
+    "sendVoice": "Kirim pesan suara",
+    "cancelVoice": "Batal",
+    "slideToLock": "Geser ke atas untuk mengunci rekaman",
+    "showKeyboard": "Tampilkan keyboard",
+    "openPanel": "Emoji, stiker, dan GIF",
+    "recordFailed": "Pesan suara gagal direkam. Coba lagi.",
+    "micReady": "Izin diberikan. Tahan tombol mikrofon untuk merekam.",
+    "diskFull": "Ruang penyimpanan hampir penuh. Hapus beberapa berkas lalu coba lagi.",
+    "micFailed": "Mikrofon tidak bisa dimulai. Coba lagi.",
+    "voiceSendFailed": "Pesan suara gagal disiapkan. Rekamannya masih tersimpan, coba lagi.",
+    "voiceDiscarded": "Rekaman dibuang",
+    "shortHint": "Tahan untuk merekam, lepas untuk mengirim. Geser ke atas untuk merekam tanpa menahan.",
+    "recordHint": "Tahan untuk merekam. Atau gunakan aksi Rekam untuk merekam tanpa menahan.",
+    "discardVoice": "Buang rekaman",
+    "pauseVoice": "Jeda rekaman",
+    "resumeVoice": "Lanjutkan merekam",
+    "playDraft": "Putar rekaman",
+    "pauseDraft": "Jeda pemutaran",
+    "draftPosition": "{{position}} / {{duration}}",
+    "draftSeek": "Posisi rekaman",
+    "timeLeft": "sisa {{time}}",
+    "recordingElapsed": "Merekam, {{time}}",
+    "interrupted": {
+      "background": "Rekaman dijeda karena aplikasi ditutup. Drafnya aman.",
+      "call": "Rekaman dijeda karena ada panggilan masuk. Dengarkan, lanjutkan, atau kirim.",
+      "limit": "Batas 30 menit tercapai. Dengarkan dulu, lalu kirim.",
+      "device": "Perangkat audio berubah. Rekaman dijeda.",
+      "restored": "Pesan suara yang belum terkirim masih ada."
+    },
+    "cameraHint": "Tahan untuk membuka galeri",
+    "pickerNote": "Foto dan video dipilih lewat pemilih foto sistem. Kaitech tidak meminta akses ke seluruh galeri."
   },
   "voice": {
     "play": "Putar pesan suara",
     "pause": "Jeda pesan suara",
     "label": "Pesan suara",
-    "speed": "Kecepatan putar {{rate}} kali"
+    "speed": "Kecepatan putar {{rate}} kali",
+    "position": "Posisi pesan suara",
+    "unplayed": "Belum diputar",
+    "openChat": "Buka chat dengan {{name}}",
+    "close": "Hentikan dan tutup pemutar"
   },
   "actions": {
     "reply": "Balas",
@@ -171,7 +210,8 @@
     "meeting": "Jadwalkan rapat",
     "reactions": "Siapa yang bereaksi",
     "translate": "Terjemahkan",
-    "original": "Tampilkan asli"
+    "original": "Tampilkan asli",
+    "favoriteSticker": "Tambahkan ke stiker favorit"
   },
   "push": {
     "channel": "Pesan"
@@ -230,7 +270,8 @@
     "cancel": "Batal",
     "failed": "Belum berhasil. Coba lagi.",
     "forbidden": "Anda tidak punya akses untuk itu.",
-    "noTranslation": "Pesan ini sudah dalam bahasa Anda."
+    "noTranslation": "Pesan ini sudah dalam bahasa Anda.",
+    "stickerSaved": "Ditambahkan ke stiker favoritmu."
   },
   "emoji": {
     "title": "Reaksi",
@@ -390,10 +431,6 @@
     "cancelled": "Pesan terjadwal dihapus"
   },
   "extras": {
-    "emoji": "Emoji",
-    "gif": "GIF",
-    "gifSearch": "Cari GIF",
-    "gifSend": "Kirim GIF ini",
     "canned": "Balasan siap pakai",
     "later": "Kirim nanti",
     "laterEmpty": "Tulis pesan atau lampirkan berkas dulu.",
@@ -481,5 +518,192 @@
     "clearTitle": "Hapus semua bintang?",
     "clearBody": "Semua pesan berbintang kehilangan bintangnya. Pesannya tetap ada.",
     "confirm": "Hapus bintang"
+  },
+  "media": {
+    "play": "Putar video {{name}}",
+    "openPdf": "Buka PDF {{name}}",
+    "pages_one": "{{count}} halaman",
+    "pages_other": "{{count}} halaman",
+    "download": "Unduh {{name}}",
+    "cancel": "Batalkan unduhan {{name}}",
+    "retry": "Unduh lagi {{name}}",
+    "failed": "Gagal mengunduh. Ketuk untuk coba lagi.",
+    "progress": "{{received}} dari {{total}}",
+    "imageFailed": "Gambar gagal dimuat. Ketuk untuk coba lagi.",
+    "close": "Tutup",
+    "counter": "{{index}} dari {{count}}",
+    "save": "Simpan ke perangkat",
+    "saved": "Tersimpan di galeri",
+    "saveDenied": "Izinkan Kaitech menambah foto agar bisa menyimpan ke galeri.",
+    "saveFailed": "Berkas ini gagal disimpan.",
+    "mute": "Bisukan",
+    "unmute": "Bunyikan",
+    "playFailed": "Video ini tidak bisa diputar langsung.",
+    "downloadAndPlay": "Unduh lalu putar",
+    "pdfFailed": "PDF ini tidak bisa ditampilkan di aplikasi.",
+    "openElsewhere": "Buka di aplikasi lain",
+    "page": "Halaman {{page}} dari {{count}}",
+    "downloadingPdf": "Mengunduh PDF",
+    "share": "Bagikan",
+    "viewer": "Penampil media",
+    "playing": "Sedang diputar",
+    "paused": "Dijeda"
+  },
+  "panel": {
+    "emoji": "Emoji",
+    "sticker": "Stiker",
+    "gif": "GIF",
+    "backspace": "Hapus",
+    "gifSearch": "Search KLIPY",
+    "stickerSearch": "Search KLIPY",
+    "none": "Tidak ada hasil",
+    "noStickers": "Belum ada stiker di sini",
+    "recent": "Terakhir",
+    "providerStickers": "Cari stiker",
+    "closePreview": "Tutup pratinjau",
+    "closeTones": "Tutup pilihan warna kulit",
+    "favorite": "Tambah ke favorit",
+    "unfavorite": "Hapus dari favorit",
+    "favorites": "Favorit",
+    "full": "Tinggi penuh",
+    "half": "Setengah tinggi",
+    "handle": "Tinggi panel",
+    "kaitechStickers": "Stiker Kaitech",
+    "noEmoji": "Tidak ada emoji untuk \"{{query}}\".",
+    "openSettings": "Buka pengaturan",
+    "retry": "Coba lagi",
+    "searchGif": "Cari \"{{query}}\" di GIF",
+    "skinHint": "Tahan untuk memilih warna kulit",
+    "trending": "Populer",
+    "tone0": "Kuning bawaan",
+    "tone1": "Warna kulit terang",
+    "tone2": "Warna kulit agak terang",
+    "tone3": "Warna kulit sedang",
+    "tone4": "Warna kulit agak gelap",
+    "tone5": "Warna kulit gelap",
+    "state": {
+      "offline": {
+        "title": "Kamu sedang luring",
+        "body": "GIF butuh koneksi. Emoji dan stiker yang tersimpan tetap bisa dipakai."
+      },
+      "unavailable": {
+        "title": "GIF belum diaktifkan",
+        "body": "Admin perlu memasang kunci KLIPY di Pengaturan Chat lab0. Emoji dan stiker tetap bisa dipakai."
+      },
+      "server": {
+        "title": "GIF tidak bisa dimuat",
+        "body": "Server tidak menjawab (kode {{code}}). Coba lagi sebentar lagi."
+      },
+      "emptySearch": {
+        "title": "Tidak ada hasil untuk \"{{query}}\"",
+        "body": "Coba kata yang lebih pendek."
+      },
+      "noStickers": {
+        "title": "Belum ada stiker",
+        "body": "Admin bisa menambah paket di Pengaturan Chat."
+      }
+    }
+  },
+  "rich": {
+    "sticker": "Stiker",
+    "gif": "GIF",
+    "poll": "Polling",
+    "location": "Lokasi",
+    "liveLocation": "Lokasi langsung"
+  },
+  "poll": {
+    "newTitle": "Polling baru",
+    "question": "Pertanyaan",
+    "questionPlaceholder": "Tulis pertanyaan",
+    "options": "Pilihan",
+    "optionPlaceholder": "Pilihan {{number}}",
+    "optionLabel": "Pilihan {{number}}",
+    "removeOption": "Hapus pilihan {{number}}",
+    "optionsLeft_one": "Masih bisa menambah {{count}} pilihan",
+    "optionsLeft_other": "Masih bisa menambah {{count}} pilihan",
+    "multiple": "Boleh memilih lebih dari satu",
+    "send": "Kirim polling",
+    "problem": {
+      "tooLong": "Setiap pilihan paling banyak 100 karakter.",
+      "duplicate": "Setiap pilihan harus berbeda.",
+      "tooMany": "Polling paling banyak 12 pilihan."
+    },
+    "pickOne": "Pilih satu",
+    "pickMany": "Pilih satu atau lebih",
+    "closed": "Polling ditutup",
+    "optionState_one": "{{label}}, {{count}} suara, {{percent}} persen",
+    "optionState_other": "{{label}}, {{count}} suara, {{percent}} persen",
+    "viewVotes_one": "Lihat suara, {{count}} orang memilih",
+    "viewVotes_other": "Lihat suara, {{count}} orang memilih",
+    "noVotes": "Belum ada suara",
+    "votesTitle": "Suara",
+    "votes_one": "{{count}} suara",
+    "votes_other": "{{count}} suara",
+    "nobody": "Belum ada suara",
+    "someone": "Seseorang",
+    "close": "Tutup polling",
+    "keepOpen": "Biarkan terbuka",
+    "closeTitle": "Tutup polling ini?",
+    "closeBody": "Setelah ditutup tidak ada yang bisa memilih. Hasilnya tetap ada.",
+    "closedNow": "Polling ini sudah ditutup. Suaramu tidak dihitung."
+  },
+  "location": {
+    "pickTitle": "Kirim lokasi",
+    "current": "Kirim lokasi saat ini",
+    "accuracy": "Akurat hingga {{meters}} m",
+    "locating": "Mencari lokasimu…",
+    "thisPlace": "Kirim tempat ini",
+    "pinPlace": "Titik yang dipilih",
+    "search": "Cari tempat",
+    "noResults": "Tidak ada tempat untuk \"{{query}}\"",
+    "searchFailed": "Pencarian gagal. Coba lagi.",
+    "myLocation": "Ke lokasiku",
+    "zoomIn": "Perbesar",
+    "zoomOut": "Perkecil",
+    "attribution": "© kontributor OpenStreetMap",
+    "mapLabel": "Peta",
+    "unknownPlace": "Titik yang dipilih",
+    "live": "Bagikan lokasi langsung",
+    "liveTitle": "Bagikan lokasi langsung",
+    "liveFor": "Berapa lama?",
+    "liveNote": "Orang di chat ini melihat posisimu sampai kamu berhenti atau waktunya habis. Selama berjalan, Kaitech tetap mengirim lokasimu walau aplikasi ditutup dan menampilkan notifikasi.",
+    "duration": {
+      "15": "15 menit",
+      "60": "1 jam",
+      "480": "8 jam"
+    },
+    "share": "Bagikan",
+    "liveUntil": "Langsung sampai {{time}}",
+    "liveEnded": "Lokasi langsung berakhir",
+    "lastSeen": "Terakhir diperbarui {{time}}",
+    "endedBy": {
+      "stopped": "Berhenti dibagikan",
+      "expired": "Waktunya habis",
+      "left": "Keluar dari chat",
+      "deleted": "Dihapus"
+    },
+    "stop": "Berhenti berbagi",
+    "stopTitle": "Berhenti membagikan lokasi langsung?",
+    "stopBody": "Orang di chat ini tetap melihat tempat terakhir yang kamu bagikan.",
+    "keepSharing": "Tetap berbagi",
+    "openMap": "Buka peta",
+    "openApp": "Buka di aplikasi peta",
+    "noMapsApp": "Tidak ada aplikasi peta di HP ini yang bisa membuka tempat itu.",
+    "unavailable": "Lokasimu tidak tersedia. Nyalakan lokasi di pengaturan HP.",
+    "off": "Lokasi mati",
+    "sharingIn_one": "Membagikan lokasi langsung di {{count}} chat",
+    "sharingIn_other": "Membagikan lokasi langsung di {{count}} chat",
+    "notification": {
+      "title": "Membagikan lokasi langsung",
+      "body": "Orang di chat melihat posisimu. Ketuk Berhenti untuk mengakhirinya.",
+      "stop": "Berhenti"
+    },
+    "stopped": "Lokasi langsung dihentikan.",
+    "stopFailed": "Gagal menghentikan. Coba lagi.",
+    "updateRefused": "Lokasi langsung sudah berakhir di server.",
+    "you": "Kamu",
+    "coordinates": "Koordinat {{value}}",
+    "blockedTitle": "Akses lokasi mati",
+    "blockedBody": "Izinkan akses lokasi untuk Kaitech di Pengaturan, lalu coba lagi."
   }
 }

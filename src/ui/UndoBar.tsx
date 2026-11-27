@@ -3,14 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { AppState, StyleSheet, View } from 'react-native';
 import { Pressable } from './Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { pillCover } from '../layout/tabBar';
 import { useWindowClass } from '../layout/windowClass';
 import { radius, space, useTheme } from '../theme';
 import { FloatingSurface } from './FloatingSurface';
 import { useSurface } from './glass';
 import { Text } from './Text';
 import { flushUndo, primeUndoWindow, undoLast, useUndo, type UndoState } from './undo';
-
-const tabBarClearance = 76;
 
 export function UndoBar({ clearTabs }: { clearTabs: boolean }) {
   const shown = useUndo();
@@ -31,7 +30,7 @@ function Bar({ shown, clearTabs }: { shown: NonNullable<UndoState>; clearTabs: b
   const { windowClass } = useWindowClass();
   const glass = useSurface() === 'glass';
   const ink = glass ? colors.ink : colors.canvas;
-  const bottom = insets.bottom + (clearTabs && windowClass === 'compact' ? tabBarClearance : space.lg);
+  const bottom = clearTabs && windowClass === 'compact' ? pillCover(insets.bottom) + space.sm : insets.bottom + space.lg;
   const plain = shown.failed || shown.notice;
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom }]}>

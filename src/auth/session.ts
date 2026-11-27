@@ -109,6 +109,23 @@ export function onAccountForgotten(listener: (id: string) => void) {
   forgetListeners.add(listener);
 }
 
+const leaveHooks = new Set<(account: Account) => Promise<void>>();
+export const leaveHookMs = 4000;
+
+export function beforeAccountLeaves(hook: (account: Account) => Promise<void>): () => void {
+  leaveHooks.add(hook);
+  return () => leaveHooks.delete(hook);
+}
+
+async function leaving(id: string) {
+  const account = state.accounts.find((candidate) => candidate.id === id);
+  if (!account || !leaveHooks.size) return;
+  const all = Promise.all([...leaveHooks].map((hook) => hook(account).catch(() => undefined)));
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([all, new Promise<void>((resolve) => (timer = setTimeout(resolve, leaveHookMs)))]);
+  clearTimeout(timer);
+}
+
 async function forget(id: string) {
   await SecureStore.deleteItemAsync(tokenKey(id), secure);
   forgetListeners.forEach((listener) => listener(id));
@@ -133,6 +150,7 @@ export function renameAccount(id: string, name: string) {
 }
 
 export async function signOut(id: string): Promise<SignOutResult> {
+  await leaving(id);
   const account = state.accounts.find((candidate) => candidate.id === id);
   const token = await tokenFor(id);
   let result: SignOutResult = 'local';
@@ -149,6 +167,7 @@ export async function signOut(id: string): Promise<SignOutResult> {
 }
 
 export async function removeAccount(id: string) {
+  await leaving(id);
   await forget(id);
 }
 

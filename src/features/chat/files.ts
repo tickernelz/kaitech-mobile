@@ -1,17 +1,12 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import { newKey } from './chat';
-import { openedFolderName, orphanStaging, relativeStaged, stagingFolder } from './cleanup';
-
-const openedFolder = 'chat-opened';
+import { orphanStaging, relativeStaged, safeName, stagingFolder } from './cleanup';
+import { fetchFile, forgetFiles } from './media/download';
 
 function stagingDirectory(): Directory {
   const directory = new Directory(Paths.document, stagingFolder, newKey());
   directory.create({ intermediates: true, idempotent: true });
   return directory;
-}
-
-function safeName(name: string): string {
-  return name.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim().slice(-120) || 'file';
 }
 
 export function localFile(uri: string): File {
@@ -61,34 +56,16 @@ export function sweepStaging(referencedUris: string[]) {
   }
 }
 
-export function clearOpenedFiles() {
-  try {
-    const directory = new Directory(Paths.cache, openedFolder);
-    if (directory.exists) directory.delete();
-  } catch {
-    return;
-  }
+export function clearOpenedFiles(accountId: string) {
+  forgetFiles(accountId);
 }
 
-export async function downloadForOpening(
+export function downloadForOpening(
   key: { accountId: string; attachmentId: number; checksum: string | null },
   url: string,
   name: string,
   headers: Record<string, string>,
   fresh = false,
 ): Promise<File> {
-  const directory = new Directory(Paths.cache, openedFolder, openedFolderName(key.accountId, key.attachmentId, key.checksum));
-  const target = new File(directory, safeName(name));
-  if (!fresh && target.exists && (target.size ?? 0) > 0) return target;
-  directory.create({ intermediates: true, idempotent: true });
-  const partialUri = new File(directory, `${newKey()}.part`).uri;
-  try {
-    const downloaded = await File.downloadFileAsync(url, new File(partialUri), { headers, idempotent: true });
-    if (target.exists) target.delete();
-    await downloaded.move(target);
-    return new File(target.uri);
-  } finally {
-    const leftover = new File(partialUri);
-    if (leftover.exists) leftover.delete();
-  }
+  return fetchFile(key, url, name, headers, fresh);
 }

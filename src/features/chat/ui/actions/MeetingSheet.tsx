@@ -12,6 +12,7 @@ import { meetingBusy, meetingDraft, scheduleMeeting, type Busy, type MeetingDraf
 import { failureText } from './failure';
 import { PersonChips, PersonSearch } from './PersonSearch';
 import { WhenPicker } from './WhenPicker';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../../ui/touch';
 
 const durations = [15, 30, 45, 60, 90];
 
@@ -106,9 +107,9 @@ export function MeetingSheet({ channelId, messageId, onClose, onDone }: { channe
           <Text variant="label" tone="inkSoft" style={styles.gap}>
             {t('meeting.duration')}
           </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.row}>
             {durations.map((minutes) => (
-              <Pressable key={minutes} accessibilityRole="button" accessibilityState={{ selected: duration === minutes }} onPress={() => setDuration(minutes)} style={chip(duration === minutes)}>
+              <Pressable key={minutes} accessibilityRole="button" accessibilityState={{ selected: duration === minutes }} onPress={() => setDuration(minutes)} hitSlop={chipSlop} style={chip(duration === minutes)}>
                 <Text variant="footnote" tone={duration === minutes ? 'selectInk' : 'ink'}>
                   {t('meeting.minutes', { count: minutes })}
                 </Text>
@@ -120,9 +121,9 @@ export function MeetingSheet({ channelId, messageId, onClose, onDone }: { channe
               <Text variant="label" tone="inkSoft" style={styles.gap}>
                 {t('meeting.free')}
               </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.row}>
                 {draft.value.slots.map((slot, index) => (
-                  <Pressable key={slot.start} accessibilityRole="button" accessibilityState={{ selected: start === slot.start }} onPress={() => setStart(slot.start)} style={chip(start === slot.start)} testID={`meeting-slot-${index}`}>
+                  <Pressable key={slot.start} accessibilityRole="button" accessibilityState={{ selected: start === slot.start }} onPress={() => setStart(slot.start)} hitSlop={chipSlop} style={chip(start === slot.start)} testID={`meeting-slot-${index}`}>
                     <Text variant="footnote" tone={start === slot.start ? 'selectInk' : 'ink'}>
                       {slotFormat.format(slot.start)}
                     </Text>
@@ -146,6 +147,7 @@ export function MeetingSheet({ channelId, messageId, onClose, onDone }: { channe
 const styles = StyleSheet.create({
   pad: { padding: space.xl },
   gap: { marginTop: space.sm },
-  row: { gap: space.xs },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  row: { gap: space.xs, paddingVertical: chipBand.paddingVertical },
+  chipBar: { marginVertical: chipBand.marginVertical },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
 });

@@ -7,6 +7,7 @@ import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
 import { stopWork, type Work } from '../../coworker';
 import { failureText } from '../actions/failure';
+import { touchTarget } from '../../../../ui/touch';
 
 export function WorkBar({ works, onPress }: { works: Work[]; onPress: () => void }) {
   const { t } = useTranslation('chat');
@@ -65,7 +66,7 @@ export function WorkSheet({ works, myUserId, onClose, onJump, onNotice }: { work
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  bar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 40, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
+  bar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touchTarget, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
   pad: { padding: space.lg },
   item: { borderRadius: radius.md },
 });

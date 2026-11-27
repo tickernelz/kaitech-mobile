@@ -13,6 +13,7 @@ import type { Person } from '../../messageActions';
 import { createChannel, searchPeople, startChat } from '../../newConversation';
 import { failureText } from '../actions/failure';
 import { PersonChips, PersonSearch } from '../actions/PersonSearch';
+import { touchTarget } from '../../../../ui/touch';
 
 const kinds = ['chat', 'channel'] as const;
 type Kind = (typeof kinds)[number];
@@ -103,5 +104,5 @@ export function NewConversationSheet({ onClose, onOpen }: { onClose: () => void;
 
 const styles = StyleSheet.create({
   tabs: { flexDirection: 'row', gap: space.xs, paddingBottom: space.sm },
-  tab: { flex: 1, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  tab: { flex: 1, minHeight: touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
 });

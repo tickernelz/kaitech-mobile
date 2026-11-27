@@ -6,13 +6,13 @@ import { composeBody, mentionsInText, type ComposedMention } from './html';
 import { messagePatches } from './odoo';
 import type { Message } from './types';
 
-export type Failure = { code: string; detail: string | null };
+export type Failure = { code: string; detail: string | null; reason?: string | null };
 export type Result<T> = { ok: true; value: T } | ({ ok: false } & Failure);
 
 export type Person = { id: number; name: string };
 
 function failureOf(error: unknown): Failure {
-  if (error instanceof ApiError) return { code: error.code, detail: error.detail };
+  if (error instanceof ApiError) return { code: error.code, detail: error.detail, reason: error.reason };
   if (error instanceof AppError) return { code: error.code, detail: null };
   return { code: 'unknown', detail: null };
 }

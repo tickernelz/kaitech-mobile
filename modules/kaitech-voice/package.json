@@ -1,0 +1,13 @@
+{
+  "name": "kaitech-voice",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Joins voice note segments recorded across pauses into one file",
+  "main": "src/index.ts",
+  "files": [
+    "android",
+    "ios",
+    "src",
+    "expo-module.config.json"
+  ]
+}

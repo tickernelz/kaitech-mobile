@@ -1,0 +1,250 @@
+appId: io.kaitech.mobile
+name: Chat media - send a photo, a video, a PDF and a document, see each preview, play the video, read the PDF and download the document
+tags:
+  - signed-in
+  - chat-actions
+onFlowStart:
+  - runFlow: ../shared/orientation.yaml
+---
+- setAirplaneMode: disabled
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: (welcome-sign-in|tab-chat)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: welcome-sign-in
+    commands:
+      - runFlow: ../shared/sign-in.yaml
+- tapOn:
+    id: tab-button-chat
+- extendedWaitUntil:
+    visible:
+      text: ${PEER}
+    timeout: 60000
+- tapOn:
+    text: ${PEER}
+- extendedWaitUntil:
+    visible:
+      id: (composer-input|voice-paused)
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: voice-paused
+    commands:
+      - tapOn:
+          id: voice-discard
+          waitToSettleTimeoutMs: 500
+- extendedWaitUntil:
+    visible:
+      id: composer-input
+    timeout: 30000
+- runFlow:
+    file: ../shared/attach-device-file.yaml
+    env:
+      FILE: kaitech-e2e-photo.jpg
+- runFlow:
+    file: ../shared/attach-device-file.yaml
+    env:
+      FILE: kaitech-e2e-video.mp4
+- runFlow:
+    file: ../shared/attach-device-file.yaml
+    env:
+      FILE: kaitech-e2e-report.pdf
+- runFlow:
+    file: ../shared/attach-device-file.yaml
+    env:
+      FILE: kaitech-e2e-notes.docx
+- tapOn:
+    id: composer-input
+- inputText: ${RUN + ' m1'}
+- tapOn:
+    id: composer-send
+- extendedWaitUntil:
+    notVisible:
+      id: (pending-queued|pending-sending|pending-progress)
+    timeout: 180000
+- runFlow: ../shared/dismiss-keyboard.yaml
+- extendedWaitUntil:
+    visible:
+      id: media-video
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
+    timeout: 60000
+- extendedWaitUntil:
+    visible:
+      id: video-duration
+      text: 0:06
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
+    timeout: 60000
+- assertVisible:
+    id: media-photo
+    above:
+      id: media-video
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
+- scrollUntilVisible:
+    element:
+      id: pdf-preview
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
+    direction: UP
+    timeout: 60000
+- assertVisible:
+    text: .*2 (pages|halaman).*
+    childOf:
+      id: bubble-.*
+      containsDescendants:
+        - text: ${RUN + ' m1'}
+- scrollUntilVisible:
+    element:
+      id: media-file
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
+    direction: UP
+- assertVisible:
+    text: .*DOCX.*
+    childOf:
+      id: bubble-.*
+      containsDescendants:
+        - text: ${RUN + ' m1'}
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m1-previews
+- tapOn:
+    id: file-download
+    childOf:
+      id: bubble-.*
+      containsDescendants:
+        - text: ${RUN + ' m1'}
+- extendedWaitUntil:
+    visible:
+      id: attachment-share
+      childOf:
+        id: media-file
+        childOf:
+          id: bubble-.*
+          containsDescendants:
+            - text: ${RUN + ' m1'}
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: media-video
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
+    direction: DOWN
+- tapOn:
+    id: media-video
+    childOf:
+      id: bubble-.*
+      containsDescendants:
+        - text: ${RUN + ' m1'}
+- extendedWaitUntil:
+    visible:
+      id: media-viewer
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: video-state
+      text: (Playing|Sedang diputar)
+    timeout: 45000
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m2-video-playing
+- tapOn:
+    id: viewer-close
+- scrollUntilVisible:
+    element:
+      id: media-photo
+      above:
+        id: media-video
+        childOf:
+          id: bubble-.*
+          containsDescendants:
+            - text: ${RUN + ' m1'}
+    direction: UP
+- tapOn:
+    id: media-photo
+    above:
+      id: media-video
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
+- extendedWaitUntil:
+    visible:
+      id: viewer-photo
+    timeout: 10000
+- assertVisible:
+    id: viewer-counter
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m3-photo-viewer
+- copyTextFrom:
+    id: viewer-counter
+- runFlow:
+    when:
+      true: ${maestro.copiedText.startsWith('1 ')}
+    commands:
+      - swipe:
+          direction: LEFT
+- runFlow:
+    when:
+      true: ${!maestro.copiedText.startsWith('1 ')}
+    commands:
+      - swipe:
+          direction: RIGHT
+- extendedWaitUntil:
+    notVisible:
+      id: viewer-counter
+      text: ${maestro.copiedText}
+    timeout: 10000
+- tapOn:
+    id: viewer-close
+- scrollUntilVisible:
+    element:
+      id: media-pdf
+      childOf:
+        id: bubble-.*
+        containsDescendants:
+          - text: ${RUN + ' m1'}
+    direction: DOWN
+- tapOn:
+    id: media-pdf
+    childOf:
+      id: bubble-.*
+      containsDescendants:
+        - text: ${RUN + ' m1'}
+- extendedWaitUntil:
+    visible:
+      id: pdf-page-1
+    timeout: 60000
+- assertVisible:
+    text: (Page|Halaman) 1 (of|dari) 2
+- runFlow:
+    file: ../shared/screenshot.yaml
+    env:
+      SCREEN: m4-pdf-reader
+- tapOn:
+    id: pdf-close
+- assertVisible:
+    id: composer-input

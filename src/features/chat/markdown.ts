@@ -653,7 +653,10 @@ export function isFlatList(block: Extract<MdBlock, { kind: 'list' }>): boolean {
 }
 
 export function bodyShape(html: string): 'plain' | 'rich' | 'table' {
-  const blocks = bodyBlocks(html);
+  return blocksShape(bodyBlocks(html));
+}
+
+export function blocksShape(blocks: MdBlock[]): 'plain' | 'rich' | 'table' {
   if (blocks.some((block) => block.kind === 'table')) return 'table';
   return blocks.every((block) => block.kind === 'text' || (block.kind === 'list' && isFlatList(block))) ? 'plain' : 'rich';
 }

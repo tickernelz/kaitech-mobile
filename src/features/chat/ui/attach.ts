@@ -5,7 +5,8 @@ import { stageFile } from '../files';
 import { notify } from '../../../ui/dialog';
 import { askPermission } from '../../../ui/permission';
 
-export const attachSources = ['camera', 'photos', 'files'] as const;
+export const attachSources = ['photos', 'camera', 'files', 'audio'] as const;
+export const galleryLimit = 30;
 export type AttachSource = (typeof attachSources)[number];
 export type Picked = { uri: string; name: string; mimetype: string; size: number; voice: false; durationMs: null };
 
@@ -20,8 +21,8 @@ const mediaName = (asset: ImagePicker.ImagePickerAsset, index: number, prefix: s
 const mediaType = (asset: ImagePicker.ImagePickerAsset) => asset.mimeType ?? (asset.type === 'video' ? 'video/mp4' : 'image/jpeg');
 
 async function choose(source: AttachSource): Promise<Chosen[]> {
-  if (source === 'files') {
-    const result = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true });
+  if (source === 'files' || source === 'audio') {
+    const result = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true, ...(source === 'audio' ? { type: 'audio/*' } : {}) });
     return result.canceled ? [] : result.assets.map((asset) => ({ uri: asset.uri, name: asset.name, mimeType: asset.mimeType ?? 'application/octet-stream', size: asset.size }));
   }
   if (source === 'camera') {
@@ -29,7 +30,7 @@ async function choose(source: AttachSource): Promise<Chosen[]> {
     const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images', 'videos'], quality: 0.8 });
     return result.canceled ? [] : result.assets.map((asset, index) => ({ uri: asset.uri, name: mediaName(asset, index, 'camera'), mimeType: mediaType(asset), size: asset.fileSize }));
   }
-  const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsMultipleSelection: true, quality: 0.8 });
+  const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsMultipleSelection: true, selectionLimit: galleryLimit, quality: 0.8 });
   return result.canceled ? [] : result.assets.map((asset, index) => ({ uri: asset.uri, name: mediaName(asset, index, 'media'), mimeType: mediaType(asset), size: asset.fileSize }));
 }
 

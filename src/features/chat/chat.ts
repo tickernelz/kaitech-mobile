@@ -2,6 +2,7 @@ import { randomUUID } from 'expo-crypto';
 import { addNetworkStateListener, getNetworkStateAsync } from 'expo-network';
 import { useSyncExternalStore } from 'react';
 import { AppState } from 'react-native';
+import { isOnline } from '../../api/network';
 import type { Account } from '../../auth/oauth';
 import { onAccountForgotten } from '../../auth/session';
 import { ChatClient, errorCode, sendErrorFrom } from './api';
@@ -34,7 +35,7 @@ import { isShownWork, workFrom, workOf, type Work } from './coworker';
 import { featuresFromSession, noFeatures, urgentLeftFrom, type ChatFeatures } from './features';
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
-import type { Conversation, Member, Mention, Message, Pending, PendingFile, Reaction } from './types';
+import type { Conversation, Member, Mention, Message, Pending, PendingFile, Reaction, Rich } from './types';
 import { setUploadProgress } from './progress';
 import { onPresenceChange, userInApp } from '../call/presence';
 import { notePhotoList, notePhotos } from '../people/photos';
@@ -72,6 +73,7 @@ export type ChatState = {
   threads: Record<number, Thread>;
   pending: Pending[];
   delivered: Delivered[];
+  sent: Record<number, string>;
   online: boolean;
   realtime: RealtimeState;
   openChannels: number[];
@@ -101,6 +103,7 @@ let state: ChatState = {
   threads: {},
   pending: [],
   delivered: [],
+  sent: {},
   online: true,
   realtime: 'closed',
   openChannels: [],
@@ -181,12 +184,21 @@ function notePeople(store: unknown) {
   noteStatuses(state.accountId, store);
 }
 
+const deliveredListeners = new Set<(sent: Sent) => void>();
+
+export function onDelivered(listener: (sent: Sent) => void): () => void {
+  deliveredListeners.add(listener);
+  return () => deliveredListeners.delete(listener);
+}
+
 function delivered(sent: Sent) {
   const { pending } = sent;
+  deliveredListeners.forEach((listener) => listener(sent));
   notePeople(sent.data);
   const urgentLeft = urgentLeftFrom(sent.data);
   if (urgentLeft !== null) setFeatures({ urgentLeft });
   pending.files.forEach((file) => dropFile(file.uri));
+  if (state.sent[sent.messageId] !== pending.key) set({ sent: { ...state.sent, [sent.messageId]: pending.key } });
   const message = messagesFromStore(sent.data, state.partnerId).find((item) => item.id === sent.messageId);
   if (message) {
     upsertMessages(pending.channelId, [message]);
@@ -312,12 +324,15 @@ function onNotifications(notifications: Notification[]) {
     for (const listener of realtimeListeners) listener(notification);
     noteInvitations(notification.payload);
     if (notification.type === 'discuss.channel/new_message') {
-      const payload = notification.payload as { data?: unknown; id?: unknown };
+      const payload = notification.payload as { data?: unknown; id?: unknown; temporary_id?: unknown };
       const channelId = typeof payload.id === 'number' ? payload.id : 0;
       notePeople(payload.data);
       const messages = messagesFromStore(payload.data, state.partnerId).filter((message) => message.channelId === channelId);
       if (!channelId || !messages.length) continue;
+      const own = ownSend(payload.temporary_id, messages);
+      if (own) set({ sent: { ...state.sent, [own.messageId]: own.key } });
       upsertMessages(channelId, messages);
+      if (own) void confirmSend(own.key, own.messageId);
       const known = touchConversation(channelId, messages[messages.length - 1]);
       if (!known) void refreshConversations();
       if (active && state.openChannels.includes(channelId)) scheduleRead(channelId);
@@ -436,6 +451,7 @@ export function startChat(account: Account) {
     threads: {},
     pending,
     delivered: [],
+    sent: {},
     openChannels: [],
     invited: [],
     archivedSummary: null,
@@ -473,6 +489,7 @@ export function startChat(account: Account) {
             mentionTokens: Object.fromEntries(mentions.filter((mention) => mention.token).map((mention) => [String(mention.id), mention.token as string])),
             files,
             urgent: item.urgent === true,
+            ...(item.rich ? { rich: item.rich } : {}),
           });
         } catch (error) {
           throw sendErrorFrom(error);
@@ -492,7 +509,7 @@ export function startChat(account: Account) {
   void refreshConversations();
   void flush();
   const network = addNetworkStateListener((network) => {
-    const online = network.isConnected !== false && network.isInternetReachable !== false;
+    const online = isOnline(network);
     const wasOnline = state.online;
     set({ online });
     if (online !== wasOnline) realtime?.reconnectNow();
@@ -501,7 +518,7 @@ export function startChat(account: Account) {
       void refreshConversations();
     }
   });
-  void getNetworkStateAsync().then((network) => set({ online: network.isConnected !== false && network.isInternetReachable !== false }));
+  void getNetworkStateAsync().then((network) => set({ online: isOnline(network) }));
   const stopPresence = onPresenceChange((next) => {
     const nowActive = userInApp(next);
     if (nowActive === active) return;
@@ -525,12 +542,12 @@ export function stopChat() {
   stop();
   leaving = new Set();
   refreshAsked = false;
-  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], openChannels: [], invited: [], archivedSummary: null, archived: null, archivedCursor: null, features: noFeatures, starred: 0 });
+  set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], sent: {}, openChannels: [], invited: [], archivedSummary: null, archived: null, archivedCursor: null, features: noFeatures, starred: 0 });
 }
 
 onAccountForgotten((id) => {
   if (state.accountId === id) stopChat();
-  clearOpenedFiles();
+  clearOpenedFiles(id);
   void forgetChatAccount(id, { pendingFor, dropFile, forgetDrafts, forgetAccount });
 });
 
@@ -754,7 +771,7 @@ async function markRead(channelId: number) {
   }
 }
 
-export type Outgoing = { channelId: number; text: string; parentId: number | null; mentions: Mention[]; files: Omit<PendingFile, 'key' | 'attachmentId' | 'ownershipToken'>[]; urgent?: boolean };
+export type Outgoing = { channelId: number; text: string; parentId: number | null; mentions: Mention[]; files: Omit<PendingFile, 'key' | 'attachmentId' | 'ownershipToken'>[]; urgent?: boolean; rich?: Rich };
 
 export function newKey(): string {
   return randomUUID();
@@ -770,7 +787,7 @@ export function takeSendStart(key: string): number | undefined {
 
 export async function send(outgoing: Outgoing, startedAt?: number): Promise<string | null> {
   if (!outbox || !state.accountId) return null;
-  if (!outgoing.text.trim() && !outgoing.files.length) return null;
+  if (!outgoing.rich && !outgoing.text.trim() && !outgoing.files.length) return null;
   const key = newKey();
   if (startedAt !== undefined) sendStarts.set(key, startedAt);
   const item: Pending = {
@@ -784,6 +801,7 @@ export async function send(outgoing: Outgoing, startedAt?: number): Promise<stri
     createdAt: Date.now(),
     attempts: 0,
     ...(outgoing.urgent ? { urgent: true } : {}),
+    ...(outgoing.rich ? { rich: outgoing.rich, text: '', mentions: [], files: [] } : {}),
     state: 'queued',
     error: null,
   };
@@ -795,6 +813,19 @@ export async function send(outgoing: Outgoing, startedAt?: number): Promise<stri
 export async function retrySend(key: string) {
   await outbox?.retry(key);
   void flush();
+}
+
+function ownSend(temporaryId: unknown, messages: Message[]): { key: string; messageId: number } | null {
+  if (typeof temporaryId !== 'string' || !state.pending.some((item) => item.key === temporaryId)) return null;
+  const mine = messages.filter((message) => message.authorId === state.partnerId);
+  if (!mine.length) return null;
+  return { key: temporaryId, messageId: Math.max(...mine.map((message) => message.id)) };
+}
+
+async function confirmSend(key: string, messageId: number) {
+  const confirmed = await outbox?.confirm(key);
+  confirmed?.files.forEach((file) => dropFile(file.uri));
+  if (confirmed) deliveredListeners.forEach((listener) => listener({ pending: confirmed, messageId, data: null }));
 }
 
 export async function discardSend(key: string) {
