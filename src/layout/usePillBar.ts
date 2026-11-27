@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePendingActivities } from '../features/activity/useActivityOverview';
 import { duration, easing, spring } from '../theme/motion';
 import { useReduceMotion } from '../theme/reduceMotion';
-import { useSeeThrough } from '../ui/glass';
 import { pillBottom, pillCover, pillWidth } from './tabBar';
 import { badgeText, tabs, type TabName } from './tabs';
 import { useTab } from './useTab';
@@ -29,7 +28,6 @@ export type PillBarState = {
   sideInsets: { left: number; right: number };
   badge: string | undefined;
   reduceMotion: boolean;
-  seeThrough: boolean;
 };
 
 function tick() {
@@ -42,7 +40,6 @@ export function usePillBar(): PillBarState {
   const insets = useSafeAreaInsets();
   const window = useWindowDimensions();
   const reduceMotion = useReduceMotion();
-  const seeThrough = useSeeThrough();
   const keyboard = useKeyboardState((state) => state.isVisible);
   const count = usePendingActivities();
   const badge = badgeText(count);
@@ -95,6 +92,5 @@ export function usePillBar(): PillBarState {
     sideInsets: { left: insets.left, right: insets.right },
     badge,
     reduceMotion,
-    seeThrough,
   };
 }

@@ -6,7 +6,10 @@ import { Pressable } from '../../../ui/Pressable';
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';
-import { FloatingSurface } from '../../../ui/FloatingSurface';
+import { GlassCapsule } from '../../../ui/GlassCapsule';
+import { pill as pillSize } from '../../../ui/pill';
+import { useSeeThrough, useSurface } from '../../../ui/glass';
+import { glassMaterial } from '../../../ui/glassMaterial';
 import { Text } from '../../../ui/Text';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Slider } from '../../../ui/Slider';
@@ -82,11 +85,12 @@ export function RoundButton({
   active,
   danger,
   busy,
-  size = 52,
+  size = pillSize.call.button,
+  well,
   testID,
-}: Look & { onPress: () => void; onStage: boolean; size?: number; testID?: string }) {
+}: Look & { onPress: () => void; onStage: boolean; size?: number; well?: string; testID?: string }) {
   const { colors } = useTheme();
-  const fill = danger ? colors.danger : active ? (onStage ? colors.onStage : colors.primary) : 'transparent';
+  const fill = danger ? colors.danger : active ? (onStage ? colors.onStage : colors.primary) : (well ?? 'transparent');
   const ink = danger ? colors.onPrimary : active ? (onStage ? colors.stage : colors.onPrimary) : onStage ? colors.onStage : colors.ink;
   return (
     <Pressable
@@ -108,6 +112,7 @@ export function CallPill({
   state,
   onStage,
   vertical,
+  size = pillSize.call.button,
   shown,
   motion,
   onAction,
@@ -117,31 +122,38 @@ export function CallPill({
   state: ControlState;
   onStage: boolean;
   vertical: boolean;
+  size?: number;
   shown: boolean;
   motion: AnimatedStyle<ViewStyle>;
   onAction: (action: CallAction) => void;
   onTouch: () => void;
 }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const look = useLook();
+  const liquid = useSurface() === 'glass';
+  const seeThrough = useSeeThrough();
+  const tone = onStage ? 'dark' : scheme;
+  const well = !liquid && seeThrough ? glassMaterial(tone).well : undefined;
   return (
     <Animated.View
       pointerEvents={shown ? 'box-none' : 'none'}
       importantForAccessibility={shown ? 'auto' : 'no-hide-descendants'}
       accessibilityElementsHidden={!shown}
       style={motion}>
-      <FloatingSurface
-        solid={onStage ? colors.stageScrim : colors.surface2}
+      <GlassCapsule
+        liquid
+        tone={tone}
+        solid={{ backgroundColor: onStage ? colors.stageScrim : colors.surface2 }}
         overMedia={onStage}
         onTouchStart={onTouch}
         style={[styles.pill, vertical ? styles.pillColumn : styles.pillRow]}
         testID="call-controls">
         {actions.map((action) => (
           <View key={action} style={action === 'hangup' ? (vertical ? styles.endColumn : styles.endRow) : null}>
-            <RoundButton {...look(action, state)} onStage={onStage} onPress={() => onAction(action)} testID={`call-${action}`} />
+            <RoundButton {...look(action, state)} onStage={onStage} well={well} size={size} onPress={() => onAction(action)} testID={`call-${action}`} />
           </View>
         ))}
-      </FloatingSurface>
+      </GlassCapsule>
     </Animated.View>
   );
 }
@@ -242,11 +254,11 @@ export function MoreSheet({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   round: { borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
-  pill: { borderRadius: radius.pill, padding: space.sm, gap: space.sm, alignItems: 'center' },
+  pill: { borderRadius: radius.pill, padding: pillSize.call.padding, gap: pillSize.call.gap, alignItems: 'center' },
   pillRow: { flexDirection: 'row' },
   pillColumn: { flexDirection: 'column' },
-  endRow: { marginLeft: space.sm },
-  endColumn: { marginTop: space.sm },
+  endRow: { marginLeft: pillSize.call.endGap },
+  endColumn: { marginTop: pillSize.call.endGap },
   backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.sm, maxHeight: '70%' },
   grabber: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, marginBottom: space.sm },
