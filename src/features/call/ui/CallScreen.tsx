@@ -153,8 +153,8 @@ export function CallScreen() {
 
   const title = call.channelName || call.callerName;
   const subtitle =
-    call.phase === 'outgoing'
-      ? t('calling')
+    call.phase === 'outgoing' || (call.phase === 'active' && call.waiting)
+      ? t(call.waiting ?? 'calling')
       : call.phase === 'connecting'
         ? t('connecting')
         : call.phase === 'reconnecting'
@@ -368,6 +368,7 @@ function FullScreenNotice() {
 const endedReasons = [
   'left',
   'declined',
+  'unanswered',
   'disconnected',
   'removed',
   'microphone',

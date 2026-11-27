@@ -8,7 +8,7 @@ import { radius, space, type as typography, useTheme } from '../../../theme';
 import { haptic } from '../../../ui/haptic';
 import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
-import { attachmentUrl, isCallNotice, isRemoved, type ReadState } from '../odoo';
+import { attachmentUrl, callNoticeKey, isCallNotice, isRemoved, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
 import type { Attachment, Message, Pending, PendingFile, Rich } from '../types';
 import { useChatFormat } from './format';
@@ -173,11 +173,13 @@ export const MessageBubble = memo(function MessageBubble({
   const text = rich ? richLabel(t, rich) : bodyPreview(message.body);
   if (isCallNotice(message)) {
     const call = message.call;
-    const label = [t(call?.ongoing ? 'thread.callOngoing' : 'thread.call'), call && !call.ongoing ? t('thread.callMinutes', { count: Math.max(1, call.minutes) }) : null, time].filter(Boolean).join(' · ');
+    const key = callNoticeKey(call, mine);
+    const minutes = key === 'thread.call' && call ? t('thread.callMinutes', { count: Math.max(1, call.minutes) }) : null;
+    const label = [t(key), minutes, time].filter(Boolean).join(' · ');
     return (
       <View style={[styles.notice, styles.callRow]} accessible={!call?.ongoing} accessibilityLabel={label} testID={`call-notice-${message.id}`}>
         <View style={[styles.noticePill, styles.callNotice, { backgroundColor: colors.surface2 }]} testID={`call-notice-${message.id}-pill`}>
-          <Icon name="phone" size={16} color={colors.inkSoft} />
+          <Icon name="phone" size={16} color={key === 'thread.callMissed' ? colors.danger : colors.inkSoft} />
           <Text variant="footnote" tone="inkSoft">
             {label}
           </Text>

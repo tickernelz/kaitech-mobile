@@ -13,6 +13,7 @@ import { allPendingFileUris, cachedConversations, dropConversation, cachedMessag
 import { composeBody, mentionsInText } from './html';
 import { bodyPreview } from './markdown';
 import {
+  callNoticeChanges,
   channelInfoFromStore,
   conversationFrom,
   conversationPage,
@@ -353,6 +354,7 @@ function onNotifications(notifications: Notification[]) {
     if (notification.type !== 'mail.record/insert') continue;
     const data = notification.payload;
     patchMessages(messagePatches(data));
+    reloadCallNotices(data);
     for (const message of fullMessages(data, state.partnerId)) {
       if (state.threads[message.channelId]?.messages.some((existing) => existing.id === message.id)) upsertMessages(message.channelId, [message]);
     }
@@ -390,6 +392,31 @@ function onNotifications(notifications: Notification[]) {
       });
       if (typing.typing) setTimeout(() => expireTyping(typing.channelId), typingMs + 100);
     }
+  }
+}
+
+function reloadCallNotices(data: unknown) {
+  const { messageIds, endedHistoryIds } = callNoticeChanges(data);
+  if (!messageIds.length && !endedHistoryIds.length) return;
+  const started = new Set(messageIds);
+  const ended = new Set(endedHistoryIds);
+  for (const thread of Object.values(state.threads)) {
+    for (const message of thread.messages) {
+      if (started.has(message.id) || (message.callHistoryId !== undefined && ended.has(message.callHistoryId))) void reloadMessage(message.channelId, message.id);
+    }
+  }
+}
+
+async function reloadMessage(channelId: number, messageId: number) {
+  const current = client;
+  if (!current) return;
+  try {
+    const page = await current.messages(channelId, { around: messageId, limit: 2 });
+    if (client !== current) return;
+    notePeople(page.data);
+    upsertMessages(channelId, messagesFromStore(page.data, state.partnerId).filter((message) => message.id === messageId));
+  } catch {
+    return;
   }
 }
 

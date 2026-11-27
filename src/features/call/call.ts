@@ -7,7 +7,7 @@ import { conversationById, getChat, invitedChannels } from '../chat/chat';
 import { CallClient, type Joined, type SessionValues } from './api';
 import { loadClient, loadLiveKit, type LiveParticipant, type LiveRoom } from './livekit';
 import { callNative, onCallAction, type CallAction } from './native';
-import { invitationChannels, invitationsFrom, peopleFrom, sessionIdsFrom, type Invitation } from './odoo';
+import { invitationChannels, invitationsFrom, invitedIdsFrom, peopleFrom, sessionIdsFrom, type Invitation } from './odoo';
 import { notePhotos } from '../people/photos';
 import { ensureCamera, ensureMicrophone } from './permissions';
 import { accountFromPush } from './account';
@@ -22,6 +22,8 @@ import { onAudioRouteChange, proximityNative } from './proximityNative';
 import { userInApp } from './presence';
 
 export type CallPhase = 'idle' | 'incoming' | 'outgoing' | 'connecting' | 'active' | 'reconnecting' | 'ended';
+
+export type CallWaiting = 'calling' | 'ringing' | 'alone';
 
 export type CallPerson = {
   sid: string;
@@ -49,6 +51,7 @@ export type CallState = {
   callerPartnerId: number | null;
   callId: number;
   startedAt: number;
+  waiting: CallWaiting | null;
   endedReason: string | null;
   ringing: boolean;
   answering: boolean;
@@ -82,6 +85,7 @@ const idle: CallState = {
   callerPartnerId: null,
   callId: 0,
   startedAt: 0,
+  waiting: null,
   endedReason: null,
   ringing: false,
   answering: false,
@@ -119,6 +123,15 @@ let shareStarting = false;
 const tracks = new Map<string, unknown>();
 let volumes = new Map<number, number>();
 const tuned = new Set<string>();
+let placing = false;
+let invited = new Set<number>();
+let ringTimer: ReturnType<typeof setTimeout> | null = null;
+let invitationsGoneTimer: ReturnType<typeof setTimeout> | null = null;
+let unsureChecks = 0;
+let ringDeadline = 0;
+const ringLimitMs = 45_000;
+const joinGraceMs = 4_000;
+const unsureCheckLimit = 3;
 
 export function callState(): CallState {
   return state;
@@ -250,6 +263,77 @@ function collect() {
   collectTracks();
   collectPeople();
   syncScreen();
+  noteAnswer();
+}
+
+function noteAnswer() {
+  if (!room || state.startedAt || !room.remoteParticipants.size) return;
+  if (state.phase !== 'active' && state.phase !== 'reconnecting') return;
+  stopRingWait();
+  publish({ startedAt: Date.now(), waiting: null });
+}
+
+function ringsOthers(channelId: number): boolean {
+  return conversationById(getChat(), channelId)?.type !== 'channel';
+}
+
+function waitingFor(channelId: number): CallWaiting {
+  if (!placing || !ringsOthers(channelId)) return 'alone';
+  return invited.size ? 'ringing' : 'calling';
+}
+
+function stopRingWait() {
+  if (ringTimer) clearTimeout(ringTimer);
+  if (invitationsGoneTimer) clearTimeout(invitationsGoneTimer);
+  ringTimer = null;
+  invitationsGoneTimer = null;
+}
+
+function checkAgain(started: number, delayMs = joinGraceMs) {
+  stopRingWait();
+  ringTimer = setTimeout(() => {
+    ringTimer = null;
+    void endIfAlone(started);
+  }, delayMs);
+}
+
+async function endIfAlone(started: number) {
+  const api = sessionClient();
+  const session = joined;
+  if (stale(started) || state.startedAt || !api || !session) return;
+  const store = await api.ping(session.channelId, session.sessionId, [...known]).catch(() => null);
+  if (stale(started) || state.startedAt) return;
+  const others = store ? sessionIdsFrom(store, session.channelId).added.filter((id) => id !== session.sessionId) : [];
+  if (store && !others.length) {
+    void finish('unanswered');
+    return;
+  }
+  if (store && Date.now() < ringDeadline) {
+    checkAgain(started, ringDeadline - Date.now());
+    return;
+  }
+  unsureChecks += 1;
+  if (unsureChecks > unsureCheckLimit) {
+    void finish('unanswered');
+    return;
+  }
+  checkAgain(started);
+}
+
+function trackInvitations(payload: unknown) {
+  if (!placing || state.startedAt || (state.phase !== 'outgoing' && state.phase !== 'active')) return;
+  const change = invitedIdsFrom(payload, state.channelId);
+  if (!change.added.length && !change.removed.length) return;
+  for (const id of change.added) invited.add(id);
+  for (const id of change.removed) invited.delete(id);
+  if (state.waiting !== 'alone') publish({ waiting: waitingFor(state.channelId) });
+  if (invited.size || !change.removed.length) return;
+  const started = generation;
+  if (invitationsGoneTimer) clearTimeout(invitationsGoneTimer);
+  invitationsGoneTimer = setTimeout(() => {
+    invitationsGoneTimer = null;
+    void endIfAlone(started);
+  }, joinGraceMs);
 }
 
 function syncScreen() {
@@ -311,11 +395,14 @@ export async function startCall(input: { channelId: number; channelName: string 
     return;
   }
   if (started !== generation) return;
+  placing = true;
+  invited = new Set();
   publish({
     ...idle,
     phase: 'outgoing',
     channelId: input.channelId,
     channelName: input.channelName,
+    waiting: 'calling',
     version: state.version + 1,
   });
   await connect(api, input.channelId, started);
@@ -383,7 +470,17 @@ async function connect(api: CallClient, channelId: number, started: number) {
       return;
     }
     collect();
-    publish({ phase: 'active', startedAt: Date.now(), muted: false, cameraOn: false, speaker: false, recording: instance.isRecording });
+    const answered = instance.remoteParticipants.size > 0;
+    publish({ phase: 'active', startedAt: answered ? Date.now() : 0, waiting: answered ? null : waitingFor(channelId), muted: false, cameraOn: false, speaker: false, recording: instance.isRecording });
+    if (!answered && placing && ringsOthers(channelId)) {
+      stopRingWait();
+      unsureChecks = 0;
+      ringDeadline = Date.now() + ringLimitMs;
+      ringTimer = setTimeout(() => {
+        ringTimer = null;
+        void endIfAlone(started);
+      }, ringLimitMs);
+    }
     if (instance.isRecording) void lookUpRecorder();
     void callNative()?.setInCall(true);
     void callNative()?.startCall(state.channelName || state.callerName, i18n.t('call:inCall'), channelId);
@@ -488,6 +585,7 @@ async function finish(reason: string) {
   const session = joined;
   stopRinging();
   stopPing();
+  stopRingWait();
   publish({ phase: 'ended', endedReason: reason });
   await teardown();
   if (api && session) await api.leave(session.channelId, session.sessionId).catch(() => undefined);
@@ -533,6 +631,9 @@ function reset() {
   generation += 1;
   stopRinging();
   stopPing();
+  stopRingWait();
+  placing = false;
+  invited = new Set();
   callAccount = null;
   state = { ...idle, pictureInPicture: state.pictureInPicture, version: state.version + 1 };
   listeners.forEach((listener) => listener());
@@ -899,6 +1000,7 @@ function ring(invitation: Invitation, account: Account) {
   cancelIdle();
   generation += 1;
   callAccount = account;
+  placing = false;
   publish({
     ...idle,
     phase: 'incoming',
@@ -925,6 +1027,7 @@ function inAppRing() {
 
 export function onNotification(type: string, payload: unknown) {
   if (joined && absorbPeople(payload)) collectPeople();
+  if (type === 'mail.record/insert') trackInvitations(payload);
   for (const channelId of invitationChannels(type, payload)) void lookForInvitations(channelId);
 }
 

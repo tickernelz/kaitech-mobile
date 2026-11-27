@@ -87,6 +87,8 @@
     "openPerson": "Buka {{name}}",
     "callOngoing": "Panggilan berlangsung",
     "callJoin": "Gabung",
+    "callMissed": "Panggilan tak terjawab",
+    "callUnanswered": "Tidak dijawab",
     "callMinutes_one": "{{count}} mnt",
     "callMinutes_other": "{{count}} mnt",
     "removed": "Pesan ini sudah dihapus",
