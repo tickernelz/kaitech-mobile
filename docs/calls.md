@@ -43,6 +43,31 @@ CallStyle notification. Answering from the notification opens the app and joins:
 is not. iOS has the in-app ring only: VoIP push and CallKit need an Apple Developer account and entitlements the
 unsigned build does not have, so there the app must be open to ring (marked unverified).
 
+## Screen off at the ear
+
+In a voice call the screen turns off when the phone is held to the ear and turns on when it moves away, like the phone
+app (ZHA-7992). `src/features/call/proximity.ts` (`screenOffNearEar`) decides it from the call state alone, and
+`call.ts` sends the answer to the local Expo module `KaitechProximity` (`modules/kaitech-call`) on every state change,
+app state change, call screen change and audio route change. The screen turns off only while all of these hold:
+
+- the call is active (or reconnecting, so a network blip at the ear does not light the screen);
+- nobody shows video: your camera and screen share are off, and no one else has a camera or screen share on;
+- the audio plays from the earpiece: not the speaker, a Bluetooth device, or a wired or USB headset;
+- the call screen is open, the app is in the foreground, and the call is not in picture-in-picture.
+
+The audio route is read from the platform, not from the app's own speaker choice, because Android and iOS move a call
+to a headset on their own: Android `AudioManager.getCommunicationDevice()` (API 31 and later; earlier versions read
+`isBluetoothScoOn`, `isSpeakerphoneOn` and `isWiredHeadsetOn`), iOS the first output of
+`AVAudioSession.currentRoute`. A route change (`OnCommunicationDeviceChangedListener`, an audio device added or
+removed, `AVAudioSession.routeChangeNotification`) re-runs the decision.
+
+Android holds a `PROXIMITY_SCREEN_OFF_WAKE_LOCK` (`kaitech:call-proximity`, permission `WAKE_LOCK`) only when
+`PowerManager.isWakeLockLevelSupported` says the phone has the sensor, and releases it with
+`RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY`, so a phone still at the ear stays dark until it moves away. The module also lets
+go on its own when the activity pauses, enters picture-in-picture or is destroyed. iOS sets
+`UIDevice.isProximityMonitoringEnabled` and the system turns the screen off. Without the module or the sensor the
+call goes on with the screen on.
+
 ## Calls with more people
 
 Every conversation type (direct chat, group, channel) has one LiveKit room, and the call button shows in all three (`ThreadView.tsx`). Who rings differs, and that is Odoo core, not the app: `discuss.channel._should_invite_members_to_join_call` invites the other members only when the first person joins and only when the conversation is not a channel. A group rings the other members; a channel rings nobody, so members join from the "Call in progress" notice in the thread (`MessageBubble.tsx`, `call-notice-<id>-join`) or the call button. That notice is the same pill as an ended call's notice, one footnote line high; Join reaches 48 dp to touch through padding cancelled by a negative margin, inside a call-notice row that is 48 dp tall for both (ZHA-8058). Call notices that follow each other on one day collapse into the newest (`src/features/chat/threadRows.ts`); until ZHA-7721 the oldest stayed, so a second call that day showed the first call's ended notice and no Join.
