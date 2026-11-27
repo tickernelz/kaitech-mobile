@@ -71,7 +71,12 @@
     "faceId": "Face ID",
     "touchId": "Touch ID",
     "biometric": "biometrics",
-    "unavailable": "Set up a screen lock on this device first."
+    "passcode": "the device screen lock",
+    "unavailable": "Set up a screen lock on this device first.",
+    "signOut": "Sign out",
+    "signOutTitle": "Sign out to open Kaitech?",
+    "signOutBody": "You will need to sign in again. Kaitech removes this device's data for every account.",
+    "noScreenLock": "This device no longer has a screen lock, so Kaitech cannot be unlocked. Sign out to use it again."
   },
   "tabs": {
     "chat": "Chat",
