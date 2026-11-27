@@ -58,6 +58,20 @@ it('offers signing out when the device no longer has a screen lock, and clears t
   expect(lock.lockEnabled()).toBe(false);
 });
 
+it('keeps the lock, stops the busy button and says so when signing out fails', async () => {
+  mockDevice.level = 0;
+  mockAuthenticate.mockImplementationOnce(async () => ({ success: true }));
+  expect(await lock.setLockEnabled(true, 'Unlock', 'Cancel')).toBe(true);
+  mockSignOut.mockImplementationOnce(async () => 'revoked').mockImplementationOnce(async () => {
+    throw new Error('keychain unavailable');
+  });
+  await render(<LockScreen />);
+  await act(async () => fireEvent.press(await screen.findByTestId('lock-sign-out')));
+  expect(await screen.findByTestId('lock-sign-out-failed')).toBeTruthy();
+  expect(screen.getByTestId('lock-sign-out')).toBeEnabled();
+  expect(lock.lockEnabled()).toBe(true);
+});
+
 it('keeps the lock when the person cancels signing out', async () => {
   mockDevice.level = 0;
   mockDialogAnswer = null;
