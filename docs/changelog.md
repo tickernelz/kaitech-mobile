@@ -2,6 +2,12 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## Unreleased
+
+### Changed
+
+- Floating capsules in the light theme (tab bar, call controls, chat composer): the pale purple glass sat at 1.14:1 against the screen and its buttons at 1.14:1 against the capsule, so both blended into white. The glass colour is now a deeper lavender at a higher opacity from one token, at 1.33:1 against the screen and 1.26:1 for a button against the capsule, while every label and icon on it keeps its contrast over light and dark content. The dark theme is unchanged (#151, ZHA-8064).
+
 ## 0.12.0 - 2026-11-27
 
 ### Changed
