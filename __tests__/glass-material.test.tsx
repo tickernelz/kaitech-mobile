@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react-native';
-import { createRef, type ComponentRef } from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Platform, Text } from 'react-native';
 import { colorsFor, type Scheme } from '../src/theme/tokens';
 import { materialColors } from '../src/theme/material';
 import { glassMaterial, type Thickness } from '../src/ui/glassMaterial';
@@ -9,7 +8,7 @@ let mockSeeThrough = true;
 let mockSurface: 'glass' | 'solid' = 'solid';
 jest.mock('../src/ui/glass', () => ({ useSeeThrough: () => mockSeeThrough, useSurface: () => mockSurface }));
 
-const { BlurTarget, GlassCapsule } = require('../src/ui/GlassCapsule') as typeof import('../src/ui/GlassCapsule');
+const { GlassCapsule } = require('../src/ui/GlassCapsule') as typeof import('../src/ui/GlassCapsule');
 
 type Rgb = [number, number, number];
 
@@ -117,16 +116,6 @@ describe('GlassCapsule', () => {
     await render(capsule());
     expect(screen.getByTestId('glass-blur')).toBeTruthy();
     expect(Object.assign({}, ...[screen.getByTestId('glass-backdrop').props.style].flat()).borderRadius).toBe(22);
-  });
-
-  test('on Android the capsule blurs only with a blur target, so the composer and call controls stay tint only', async () => {
-    Platform.OS = 'android';
-    const view = await render(capsule());
-    expect(screen.queryByTestId('glass-blur')).toBeNull();
-    expect(screen.getByTestId('glass-tint')).toBeTruthy();
-    const target = createRef<ComponentRef<typeof View>>();
-    await view.rerender(<BlurTarget.Provider value={target}>{capsule()}</BlurTarget.Provider>);
-    expect(screen.getByTestId('glass-blur')).toBeTruthy();
   });
 
   test('uses the system Liquid Glass only where asked and available', async () => {

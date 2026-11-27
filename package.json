@@ -102,6 +102,9 @@
         "buildFromSource": [
           "expo-audio",
           "expo-location"
+        ],
+        "exclude": [
+          "expo-blur"
         ]
       }
     }
