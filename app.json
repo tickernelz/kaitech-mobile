@@ -2,7 +2,7 @@
   "expo": {
     "name": "Kaitech",
     "slug": "kaitech-mobile",
-    "version": "0.14.3",
+    "version": "0.14.4",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
