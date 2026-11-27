@@ -2,6 +2,16 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.10.3 - 2026-11-27
+
+### Fixed
+
+- Chat: a wide table in a message can be scrolled sideways on Android, so you can reach its last column. Before, the long press on the message held every finger movement and the table never scrolled. Holding a table still opens the message actions. Measured on the Meizu Mblu 21 with a six-column table: scroll position stayed at 0 on 0.10.2, and reached 252 after a drag and 485 (the last column) after a fling on this build (#142, ZHA-7977).
+
+### Known gaps
+
+- iOS: no device check; the change is shared code covered by unit tests (ZHA-7977).
+
 ## 0.10.2 - 2026-11-27
 
 ### Fixed
