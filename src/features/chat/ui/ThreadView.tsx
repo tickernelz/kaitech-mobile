@@ -115,6 +115,8 @@ export function ThreadView({
   }, []);
   const [sheet, setSheet] = useState<{ kind: SheetKind; message: Message } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [overlap, setOverlap] = useState(0);
+  const content = useMemo(() => [styles.content, { paddingBottom: space.md + overlap }], [overlap]);
   const features = useChat((state) => state.features);
   const myUserId = useChat((state) => state.userId);
   const seeTranslations = useAutoTranslate(features.translateAuto && !!features.translateLanguage);
@@ -486,15 +488,15 @@ export function ThreadView({
             ListHeaderComponent={thread.loadingOlder ? <ActivityIndicator style={styles.older} color={colors.primary} /> : null}
             ListEmptyComponent={empty}
             drawDistance={drawDistance}
-            contentContainerStyle={styles.content}
+            contentContainerStyle={content}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
             testID="thread-list"
           />
         </View>
         {accountId ? (
-          <View style={styles.composerWrap}>
-            <Composer key={channelId} ref={composer} accountId={accountId} channelId={channelId} messages={thread.messages} onSent={onSent} onNotice={setNotice} />
+          <View pointerEvents="box-none" style={[styles.composerWrap, { marginTop: -overlap }]}>
+            <Composer key={channelId} ref={composer} accountId={accountId} channelId={channelId} messages={thread.messages} onSent={onSent} onNotice={setNotice} onOverlap={setOverlap} />
           </View>
         ) : null}
       </KeyboardAvoidingView>

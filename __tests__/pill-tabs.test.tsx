@@ -54,7 +54,7 @@ jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync:
 jest.mock('../src/features/activity/useActivityOverview', () => ({ usePendingActivities: () => mockPending }));
 jest.mock('../src/layout/windowClass', () => ({ useWindowClass: () => ({ windowClass: mockWindow }) }));
 jest.mock('../src/theme/reduceMotion', () => ({ useReduceMotion: () => mockReduceMotion }));
-jest.mock('../src/ui/glass', () => ({ useSeeThrough: () => mockSeeThrough }));
+jest.mock('../src/ui/glass', () => ({ useSeeThrough: () => mockSeeThrough, useSurface: () => 'solid' }));
 
 require('../src/i18n');
 const { PillTabs } = require('../src/layout/PillTabs') as typeof import('../src/layout/PillTabs');
@@ -118,12 +118,15 @@ describe('floating pill tab bar (shared behaviour, iOS below 26 look)', () => {
     for (const name of ['chat', 'discovery', 'mom', 'activity']) expect(screen.getByTestId(`tab-label-${name}`, hidden)).toBeTruthy();
   });
 
-  test('the capsule is slightly see-through without a shadow, and solid with its shadow when Reduce Transparency or Increase Contrast is on', async () => {
+  test('the capsule is blurred glass with a full edge and a soft shadow, and solid with its shadow when Reduce Transparency or Increase Contrast is on', async () => {
     const view = await render(tree());
-    expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}D1$/i);
-    expect(flat('navigation-bar').shadowOpacity).toBeUndefined();
+    expect(flat('navigation-bar')).toMatchObject({ borderWidth: 1, boxShadow: expect.any(String) });
+    expect(flat('navigation-bar').backgroundColor).toBeUndefined();
+    expect(flat('glass-tint').backgroundColor).toMatch(/^#[0-9A-F]{6}[0-9A-F]{2}$/i);
+    expect(screen.getByTestId('glass-blur', hidden)).toBeTruthy();
     mockSeeThrough = false;
     await act(async () => view.rerender(tree()));
+    expect(screen.queryByTestId('glass-backdrop', hidden)).toBeNull();
     expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}$/i);
     expect(flat('navigation-bar').shadowOpacity).toBeGreaterThan(0);
   });
@@ -239,12 +242,14 @@ describe('Android Material 3 Expressive pill', () => {
     expect(mockSpring).toHaveBeenCalledWith(3);
   });
 
-  test('the tonal capsule is see-through without a shadow, and solid with its elevation when legibility settings ask for it', async () => {
+  test('the tonal capsule is glass with a full edge and a soft shadow, and solid with its elevation when legibility settings ask for it', async () => {
     const view = await render(material());
-    expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}EB$/i);
+    expect(flat('navigation-bar')).toMatchObject({ borderWidth: 1, boxShadow: expect.any(String) });
     expect(flat('navigation-bar').elevation).toBeUndefined();
+    expect(flat('glass-tint').backgroundColor).toMatch(/^#[0-9A-F]{6}[0-9A-F]{2}$/i);
     mockSeeThrough = false;
     await act(async () => view.rerender(material()));
+    expect(screen.queryByTestId('glass-backdrop', hidden)).toBeNull();
     expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}$/i);
     expect(flat('navigation-bar').elevation).toBe(3);
   });

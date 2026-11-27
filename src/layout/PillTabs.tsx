@@ -1,9 +1,11 @@
+import { BlurTargetView } from 'expo-blur';
 import { TabList, TabSlot, TabTrigger, Tabs, defaultTabsSlotRender } from 'expo-router/ui';
-import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react';
-import { StyleSheet } from 'react-native';
+import { useCallback, useEffect, useLayoutEffect, useRef, type ComponentRef, type ReactNode, type RefObject } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
+import { BlurTarget } from '../ui/GlassCapsule';
 import { duration, easing } from '../theme/motion';
 import { useReduceMotion } from '../theme/reduceMotion';
 import { NavRail } from './NavRail';
@@ -35,6 +37,7 @@ export function PillTabs() {
   const { windowClass } = useWindowClass();
   const rail = windowClass !== 'compact';
   const started = useRef(false);
+  const backdrop = useRef<ComponentRef<typeof View>>(null);
   useEffect(() => {
     started.current = true;
   }, []);
@@ -62,8 +65,18 @@ export function PillTabs() {
           ))}
         </TabList>
         {rail ? <NavRail /> : null}
-        <TabSlot style={styles.fill} renderFn={render} />
-        {rail ? null : <PillBar />}
+        {Platform.OS === 'android' ? (
+          <BlurTargetView ref={backdrop} style={styles.fill}>
+            <TabSlot style={styles.fill} renderFn={render} />
+          </BlurTargetView>
+        ) : (
+          <TabSlot style={styles.fill} renderFn={render} />
+        )}
+        {rail ? null : (
+          <BlurTarget.Provider value={Platform.OS === 'android' ? backdrop : null}>
+            <PillBar />
+          </BlurTarget.Provider>
+        )}
       </Tabs>
     </TabBarSpace>
   );

@@ -9,6 +9,7 @@ const mockDiscard = jest.fn();
 const mockStartLocked = jest.fn();
 const mockKeyboard = { isVisible: false, height: 0 };
 let mockVoiceState: { phase: string; locked?: boolean; reason?: string | null } = { phase: 'idle' };
+let mockSeeThrough = true;
 
 jest.mock('react-native-reanimated', () => {
   const { View } = jest.requireActual('react-native');
@@ -37,6 +38,7 @@ jest.mock('react-native-reanimated', () => {
     withTiming: (value: unknown) => value,
   };
 });
+jest.mock('../src/ui/glass', () => ({ useSeeThrough: () => mockSeeThrough, useSurface: () => 'solid' }));
 jest.mock('react-native-worklets', () => ({ scheduleOnRN: (fn: (...args: unknown[]) => void, ...args: unknown[]) => fn(...args) }));
 jest.mock('react-native-keyboard-controller', () => ({
   KeyboardController: { dismiss: jest.fn(async () => undefined) },
@@ -120,6 +122,7 @@ beforeEach(() => {
   mockKeyboard.isVisible = false;
   mockKeyboard.height = 0;
   mockSend.mockClear();
+  mockSeeThrough = true;
 });
 
 describe('adaptive composer', () => {
@@ -246,5 +249,48 @@ describe('adaptive composer', () => {
     await fireEvent(screen.getByTestId('composer-input'), 'focus');
     expect(screen.queryByTestId('composer-keyboard')).toBeNull();
     expect(screen.getByTestId('composer-panel-toggle')).toBeTruthy();
+  });
+});
+
+describe('floating composer', () => {
+  const flat = (testID: string) => Object.assign({}, ...[screen.getByTestId(testID, hidden).props.style].flat(3).filter(Boolean));
+  const within = (child: string, parent: string) => {
+    let node: ReturnType<typeof screen.getByTestId> | null = screen.getByTestId(child, hidden);
+    while (node && node.props.testID !== parent) node = node.parent;
+    return node !== null;
+  };
+
+  it('has no solid bar behind it: only the glass capsule and the send button carry a surface', async () => {
+    await show();
+    expect(flat('composer').backgroundColor).toBeUndefined();
+    expect(flat('composer').borderTopWidth).toBeUndefined();
+    expect(screen.getByTestId('composer').props.pointerEvents).toBe('box-none');
+    expect(flat('composer-capsule')).toMatchObject({ borderWidth: 1, boxShadow: expect.any(String) });
+    expect(within('composer-input', 'composer-capsule')).toBe(true);
+    expect(within('composer-attach', 'composer-capsule')).toBe(true);
+    expect(within('composer-camera', 'composer-capsule')).toBe(true);
+    expect(within('composer-send', 'composer-capsule') || within('composer-mic', 'composer-capsule')).toBe(false);
+  });
+
+  it('reports how far it floats over the list: gap, everything above the panel, and the bottom inset', async () => {
+    const onOverlap = jest.fn();
+    await render(createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent: jest.fn(), onOverlap }));
+    await fireEvent(screen.getByTestId('composer-float'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 60 } } });
+    expect(onOverlap).toHaveBeenLastCalledWith(8 + 60 + 8);
+    await fireEvent(screen.getByTestId('composer-float'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 104 } } });
+    expect(onOverlap).toHaveBeenLastCalledWith(8 + 104 + 8);
+  });
+
+  it('turns solid with a hairline edge when Reduce Transparency or high contrast is on', async () => {
+    mockSeeThrough = false;
+    await show();
+    expect(screen.queryByTestId('glass-backdrop', hidden)).toBeNull();
+    expect(flat('composer-capsule')).toMatchObject({ backgroundColor: expect.stringMatching(/^#[0-9A-F]{6}$/i), borderWidth: StyleSheet.hairlineWidth });
+  });
+
+  it('a recording row sits in the same glass capsule, so it stays readable over the chat', async () => {
+    mockVoiceState = { phase: 'recording', locked: true };
+    await show();
+    expect(screen.getByTestId('composer-voice-capsule', hidden)).toBeTruthy();
   });
 });

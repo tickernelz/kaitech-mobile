@@ -6,7 +6,9 @@ import { Pressable } from '../../../ui/Pressable';
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../../../theme';
-import { FloatingSurface } from '../../../ui/FloatingSurface';
+import { GlassCapsule } from '../../../ui/GlassCapsule';
+import { useSeeThrough, useSurface } from '../../../ui/glass';
+import { glassMaterial } from '../../../ui/glassMaterial';
 import { Text } from '../../../ui/Text';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Slider } from '../../../ui/Slider';
@@ -83,10 +85,11 @@ export function RoundButton({
   danger,
   busy,
   size = 52,
+  well,
   testID,
-}: Look & { onPress: () => void; onStage: boolean; size?: number; testID?: string }) {
+}: Look & { onPress: () => void; onStage: boolean; size?: number; well?: string; testID?: string }) {
   const { colors } = useTheme();
-  const fill = danger ? colors.danger : active ? (onStage ? colors.onStage : colors.primary) : 'transparent';
+  const fill = danger ? colors.danger : active ? (onStage ? colors.onStage : colors.primary) : (well ?? 'transparent');
   const ink = danger ? colors.onPrimary : active ? (onStage ? colors.stage : colors.onPrimary) : onStage ? colors.onStage : colors.ink;
   return (
     <Pressable
@@ -122,26 +125,32 @@ export function CallPill({
   onAction: (action: CallAction) => void;
   onTouch: () => void;
 }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const look = useLook();
+  const liquid = useSurface() === 'glass';
+  const seeThrough = useSeeThrough();
+  const tone = onStage ? 'dark' : scheme;
+  const well = !liquid && seeThrough ? glassMaterial(tone).well : undefined;
   return (
     <Animated.View
       pointerEvents={shown ? 'box-none' : 'none'}
       importantForAccessibility={shown ? 'auto' : 'no-hide-descendants'}
       accessibilityElementsHidden={!shown}
       style={motion}>
-      <FloatingSurface
-        solid={onStage ? colors.stageScrim : colors.surface2}
+      <GlassCapsule
+        liquid
+        tone={tone}
+        solid={{ backgroundColor: onStage ? colors.stageScrim : colors.surface2 }}
         overMedia={onStage}
         onTouchStart={onTouch}
         style={[styles.pill, vertical ? styles.pillColumn : styles.pillRow]}
         testID="call-controls">
         {actions.map((action) => (
           <View key={action} style={action === 'hangup' ? (vertical ? styles.endColumn : styles.endRow) : null}>
-            <RoundButton {...look(action, state)} onStage={onStage} onPress={() => onAction(action)} testID={`call-${action}`} />
+            <RoundButton {...look(action, state)} onStage={onStage} well={well} onPress={() => onAction(action)} testID={`call-${action}`} />
           </View>
         ))}
-      </FloatingSurface>
+      </GlassCapsule>
     </Animated.View>
   );
 }

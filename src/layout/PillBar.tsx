@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { radius, useTheme, type Colors } from '../theme';
+import { GlassCapsule } from '../ui/GlassCapsule';
 import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
 import { PillBadge } from './PillBadge';
@@ -15,10 +16,10 @@ function Glyph({ tab, bar, colors, slot }: { tab: PillTab; bar: PillBarState; co
   return (
     <Animated.View style={[styles.glyph, { width: slot }, place]}>
       <View style={styles.icon}>
-        <Icon name={tabIcons[tab.name]} color={tab.focused ? colors.selectInk : colors.inkSoft} variant={tab.focused ? 'fill' : 'line'} />
+        <Icon name={tabIcons[tab.name]} color={tab.focused ? colors.selectInk : colors.ink} variant={tab.focused ? 'fill' : 'line'} />
         {tab.name === 'activity' ? <PillBadge text={bar.badge} fill={colors.danger} ink={colors.onPrimary} edge={colors.surface} reduceMotion={bar.reduceMotion} style={styles.badge} /> : null}
       </View>
-      <Text numberOfLines={1} maxFontSizeMultiplier={1.2} style={[styles.label, { color: tab.focused ? colors.selectInk : colors.inkSoft }]} testID={`tab-label-${tab.name}`}>
+      <Text numberOfLines={1} maxFontSizeMultiplier={1.2} style={[styles.label, { color: tab.focused ? colors.selectInk : colors.ink }]} testID={`tab-label-${tab.name}`}>
         {tab.label}
       </Text>
     </Animated.View>
@@ -28,7 +29,7 @@ function Glyph({ tab, bar, colors, slot }: { tab: PillTab; bar: PillBarState; co
 export function PillBar() {
   const { colors, scheme } = useTheme();
   const bar = usePillBar();
-  const { position, pressScale, hidden, cover, width, seeThrough } = bar;
+  const { position, pressScale, hidden, cover, width } = bar;
   const slot = (width - 2 * pillPadding) / bar.items.length;
   const lift = useAnimatedStyle(() => ({ opacity: 1 - hidden.get(), transform: [{ translateY: hidden.get() * cover }] }));
   const lens = useAnimatedStyle(() => {
@@ -41,9 +42,10 @@ export function PillBar() {
       pointerEvents={bar.keyboard ? 'none' : 'box-none'}
       testID="tab-bar"
       style={[styles.wrap, { bottom: bar.bottom, paddingLeft: bar.sideInsets.left, paddingRight: bar.sideInsets.right }, lift]}>
-      <View
+      <GlassCapsule
         accessibilityRole="tablist"
-        style={[styles.capsule, { width, borderColor: colors.line }, seeThrough ? { backgroundColor: `${colors.surface}D1` } : [scheme === 'dark' ? styles.shadowDark : styles.shadowLight, { backgroundColor: colors.surface }]]}
+        solid={[scheme === 'dark' ? styles.shadowDark : styles.shadowLight, styles.edge, { backgroundColor: colors.surface, borderColor: colors.line }]}
+        style={[styles.capsule, { width }]}
         testID="navigation-bar">
         <View style={styles.track} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Animated.View style={[styles.lens, { width: slot, backgroundColor: colors.select }, lens]} testID="tab-highlight" />
@@ -64,14 +66,15 @@ export function PillBar() {
             style={[styles.slot, { width: slot }]}
           />
         ))}
-      </View>
+      </GlassCapsule>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  capsule: { height: pillHeight, padding: pillPadding, borderRadius: radius.pill, flexDirection: 'row', borderWidth: StyleSheet.hairlineWidth },
+  capsule: { height: pillHeight, padding: pillPadding, borderRadius: radius.pill, flexDirection: 'row' },
+  edge: { borderWidth: StyleSheet.hairlineWidth },
   shadowLight: { shadowColor: '#000000', shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   shadowDark: { shadowColor: '#000000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   track: { position: 'absolute', top: pillPadding, left: pillPadding, right: pillPadding, bottom: pillPadding },
