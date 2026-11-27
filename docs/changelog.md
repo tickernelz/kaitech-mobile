@@ -2,6 +2,13 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## Unreleased
+
+### Fixed
+
+- Chat composer: while typing, the emoji button sat about 3 dp from the end of the message capsule, almost against the send button; it now sits as far in as the attach button on the other end (14 dp from the edge) whether the field is empty, has text, or the emoji panel is open, and every button in the capsule is at least 48 dp. The send button takes the capsule's own shadow, so the two read as one row (#150, ZHA-8058).
+- Chat: a "Call in progress" notice was almost twice as tall as an ended call's notice. Both are now the same pill; Join still takes a 48 dp touch without making the pill bigger (#150, ZHA-8058).
+
 ## 0.12.0 - 2026-11-27
 
 ### Changed

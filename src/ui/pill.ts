@@ -3,10 +3,12 @@ import { touchTarget } from './touch';
 
 export const glassEdge = 1;
 const composerHeight = 52;
+const composerInside = composerHeight - 2 * glassEdge;
+const composerIcon = 24;
 
 export const pill = {
   tab: { height: 68, padding: space.sm, labelGap: 4 },
-  composer: { height: composerHeight, button: composerHeight, gap: space.sm, inside: composerHeight - 2 * glassEdge },
+  composer: { height: composerHeight, button: composerHeight, gap: space.sm, inside: composerInside, icon: composerIcon, inset: (composerInside - composerIcon) / 2 },
   call: { button: 56, gap: space.sm, padding: space.sm, endGap: space.sm },
 } as const;
 
