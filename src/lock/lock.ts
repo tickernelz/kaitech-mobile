@@ -85,6 +85,10 @@ export async function unlock(prompt: string, cancel: string): Promise<boolean> {
   return ok;
 }
 
+export async function deviceHasScreenLock(): Promise<boolean> {
+  return (await LocalAuthentication.getEnrolledLevelAsync()) !== LocalAuthentication.SecurityLevel.NONE;
+}
+
 export function resetLock() {
   Storage.removeItemSync(enabledKey);
   set({ enabled: false, locked: false });

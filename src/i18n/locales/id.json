@@ -72,7 +72,11 @@
     "touchId": "Touch ID",
     "biometric": "biometrik",
     "passcode": "kunci layar perangkat",
-    "unavailable": "Atur kunci layar perangkat dulu."
+    "unavailable": "Atur kunci layar perangkat dulu.",
+    "signOut": "Keluar",
+    "signOutTitle": "Keluar untuk membuka Kaitech?",
+    "signOutBody": "Anda perlu masuk lagi. Kaitech menghapus data semua akun di perangkat ini.",
+    "noScreenLock": "Perangkat ini tidak lagi memakai kunci layar, jadi Kaitech tidak bisa dibuka. Keluar untuk memakainya lagi."
   },
   "tabs": {
     "chat": "Chat",
