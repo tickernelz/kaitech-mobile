@@ -2,7 +2,10 @@ import { screenOffNearEar, type ProximityInput } from '../src/features/call/prox
 
 const mockScreenOff: boolean[] = [];
 const mockRooms: MockRoom[] = [];
-const mockNative = { proximity: true as boolean, route: 'earpiece' as string, routeFails: false };
+const mockNative = { proximity: true as boolean, route: 'earpiece' as string, routeFails: false, routeReads: 0 };
+const mockRouteListeners: (() => void)[] = [];
+const mockAppListeners: (() => void)[] = [];
+let mockAppState = 'active';
 
 type Handler = () => void;
 
@@ -83,10 +86,17 @@ jest.mock('expo-sqlite/kv-store', () => ({
 }));
 jest.mock('expo', () => ({
   ...jest.requireActual('expo'),
+  EventEmitter: class {
+    addListener(_name: string, listener: () => void) {
+      mockRouteListeners.push(listener);
+      return { remove: () => undefined };
+    }
+  },
   requireOptionalNativeModule: (name: string) =>
     name === 'KaitechProximity' && mockNative.proximity
       ? {
           audioRoute: () => {
+            mockNative.routeReads += 1;
             if (mockNative.routeFails) throw new Error('no audio manager');
             return mockNative.route;
           },
@@ -94,7 +104,6 @@ jest.mock('expo', () => ({
             mockScreenOff.push(enabled);
             return Promise.resolve(enabled);
           },
-          addListener: () => ({ remove: () => undefined }),
         }
       : null,
 }));
@@ -239,6 +248,12 @@ async function flush() {
 }
 
 async function activeCall() {
+  const { AppState } = require('react-native') as typeof import('react-native');
+  Object.defineProperty(AppState, 'currentState', { configurable: true, get: () => mockAppState });
+  jest.spyOn(AppState, 'addEventListener').mockImplementation((_type, listener) => {
+    mockAppListeners.push(listener as () => void);
+    return { remove: () => undefined };
+  });
   const call = require('../src/features/call/call') as typeof import('../src/features/call/call');
   await call.startCall({ channelId: 5, channelName: 'Team' });
   await flush();
@@ -257,7 +272,10 @@ describe('the call keeps the proximity lock in step', () => {
     jest.resetModules();
     mockScreenOff.length = 0;
     mockRooms.length = 0;
-    Object.assign(mockNative, { proximity: true, route: 'earpiece', routeFails: false });
+    mockRouteListeners.length = 0;
+    mockAppListeners.length = 0;
+    mockAppState = 'active';
+    Object.assign(mockNative, { proximity: true, route: 'earpiece', routeFails: false, routeReads: 0 });
   });
 
   afterEach(async () => {
@@ -303,14 +321,37 @@ describe('the call keeps the proximity lock in step', () => {
     await call.toggleSpeaker();
     expect(mockScreenOff).toEqual([true, false, true]);
     mockNative.route = 'bluetooth';
-    call.setCallSurface(true);
+    mockRouteListeners.forEach((listener) => listener());
     expect(mockScreenOff).toEqual([true, false, true, false]);
+    mockNative.route = 'earpiece';
+    mockRouteListeners.forEach((listener) => listener());
+    expect(mockScreenOff).toEqual([true, false, true, false, true]);
+  });
+
+  it('lets go when the app goes to the background and takes it back when you return', async () => {
+    await activeCall();
+    mockAppState = 'background';
+    mockAppListeners.forEach((listener) => listener());
+    expect(mockScreenOff).toEqual([true, false]);
+    mockAppState = 'active';
+    mockAppListeners.forEach((listener) => listener());
+    expect(mockScreenOff).toEqual([true, false, true]);
   });
 
   it('lets go when you leave the call screen', async () => {
     const { call } = await activeCall();
     call.setCallSurface(false);
     expect(mockScreenOff).toEqual([true, false]);
+  });
+
+  it('reads the audio route only when nothing else already keeps the screen on', async () => {
+    const { call } = await activeCall();
+    await call.toggleCamera();
+    await flush();
+    const reads = mockNative.routeReads;
+    call.setCallSurface(true);
+    mockRouteListeners.forEach((listener) => listener());
+    expect(mockNative.routeReads).toBe(reads);
   });
 
   it('keeps the call working when the phone has no proximity module or cannot read the route', async () => {

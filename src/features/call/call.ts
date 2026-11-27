@@ -846,13 +846,17 @@ let screenOff = false;
 function syncProximity() {
   const native = proximityNative();
   if (!native) return;
-  let route: AudioRoute = 'unknown';
-  try {
-    route = native.audioRoute();
-  } catch {
-    route = 'unknown';
+  const input = { ...state, onCallScreen: screenSurface, inApp: userInApp(AppState.currentState) };
+  let wanted = screenOffNearEar({ ...input, route: 'earpiece' });
+  if (wanted) {
+    let route: AudioRoute = 'unknown';
+    try {
+      route = native.audioRoute();
+    } catch {
+      route = 'unknown';
+    }
+    wanted = screenOffNearEar({ ...input, route });
   }
-  const wanted = screenOffNearEar({ ...state, route, onCallScreen: screenSurface, inApp: userInApp(AppState.currentState) });
   if (wanted === screenOff) return;
   screenOff = wanted;
   void native.setScreenOff(wanted).catch(() => undefined);
