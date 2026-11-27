@@ -164,6 +164,11 @@ object MessageNotifications {
       "voice" -> if (push.duration > 0) context.getString(R.string.kaitech_message_voice_length, clock(push.duration)) else context.getString(R.string.kaitech_message_voice)
       "file" -> if (push.fileName.isNotBlank()) context.getString(R.string.kaitech_message_file_named, push.fileName) else context.getString(R.string.kaitech_message_file)
       MISSED_CALL -> context.getString(R.string.kaitech_message_missed_call)
+      "poll" -> captioned(context.getString(R.string.kaitech_message_poll), detailOf(body))
+      "location" -> captioned(context.getString(R.string.kaitech_message_location), detailOf(body))
+      "live_location" -> context.getString(R.string.kaitech_message_live_location)
+      "sticker" -> context.getString(R.string.kaitech_message_sticker)
+      "gif" -> context.getString(R.string.kaitech_message_gif)
       else -> body.ifBlank { context.getString(R.string.kaitech_message_new) }
     }
     return if (push.mention) context.getString(R.string.kaitech_message_mention, base) else base
@@ -177,6 +182,8 @@ object MessageNotifications {
 
   private fun captioned(label: String, caption: String) = if (caption.isBlank()) label else "$label: $caption"
 
+  private fun detailOf(preview: String) = if (preview.contains(": ")) preview.substringAfter(": ").trim() else ""
+
   private fun clock(seconds: Int) = "%d:%02d".format(seconds / 60, seconds % 60)
 
   fun shortcutId(key: String) = "conversation:$key"
@@ -188,7 +195,7 @@ object MessageNotifications {
     val manager = context.getSystemService(NotificationManager::class.java) ?: return
     val unread = thread.lines.count { !it.mine }
     val builder = NotificationCompat.Builder(context, channel)
-      .setSmallIcon(context.applicationInfo.icon)
+      .setSmallIcon(CallNotifications.smallIcon(context))
       .setCategory(NotificationCompat.CATEGORY_MESSAGE)
       .setGroup(GROUP)
       .setAutoCancel(true)
@@ -297,7 +304,7 @@ object MessageNotifications {
 
   private fun neutral(context: Context, channel: String, unread: Int): android.app.Notification =
     NotificationCompat.Builder(context, channel)
-      .setSmallIcon(context.applicationInfo.icon)
+      .setSmallIcon(CallNotifications.smallIcon(context))
       .setContentTitle(context.getString(R.string.kaitech_message_hidden_title))
       .setContentText(context.resources.getQuantityString(R.plurals.kaitech_message_count, unread.coerceAtLeast(1), unread.coerceAtLeast(1)))
       .build()
@@ -315,7 +322,7 @@ object MessageNotifications {
     val count = text.resources.getQuantityString(R.plurals.kaitech_message_count, unread, unread)
     val chats = text.resources.getQuantityString(R.plurals.kaitech_message_chats, threads.size, threads.size)
     val builder = NotificationCompat.Builder(context, MESSAGES)
-      .setSmallIcon(context.applicationInfo.icon)
+      .setSmallIcon(CallNotifications.smallIcon(context))
       .setCategory(NotificationCompat.CATEGORY_MESSAGE)
       .setGroup(GROUP)
       .setGroupSummary(true)

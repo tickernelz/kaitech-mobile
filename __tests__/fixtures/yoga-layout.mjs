@@ -1,4 +1,4 @@
-import { loadYoga, Align, Direction, Display, Edge, FlexDirection, Gutter, Justify, MeasureMode, PositionType, Wrap } from 'yoga-layout/load';
+import { loadYoga, Align, Direction, Display, Edge, FlexDirection, Gutter, Justify, MeasureMode, Overflow, PositionType, Wrap } from 'yoga-layout/load';
 
 const charWidth = 8;
 const lineHeight = 20;
@@ -13,6 +13,7 @@ const edges = { Left: Edge.Left, Right: Edge.Right, Top: Edge.Top, Bottom: Edge.
 function apply(node, style) {
   const set = (key, fn) => style[key] !== undefined && fn(style[key]);
   set('display', (v) => node.setDisplay(v === 'none' ? Display.None : Display.Flex));
+  set('overflow', (v) => node.setOverflow(v === 'scroll' ? Overflow.Scroll : v === 'hidden' ? Overflow.Hidden : Overflow.Visible));
   set('position', (v) => node.setPositionType(v === 'absolute' ? PositionType.Absolute : PositionType.Relative));
   set('flexDirection', (v) => node.setFlexDirection(enums.flexDirection[v]));
   set('alignItems', (v) => node.setAlignItems(enums.align[v]));
@@ -41,9 +42,10 @@ function build(Yoga, spec, out) {
   apply(node, spec.style || {});
   if (spec.text !== undefined) {
     const length = spec.text.length * charWidth;
+    const line = spec.style.lineHeight ?? lineHeight;
     node.setMeasureFunc((width, widthMode) => {
-      if (widthMode === MeasureMode.Undefined || length <= width) return { width: widthMode === MeasureMode.Exactly ? width : length, height: lineHeight };
-      return { width, height: Math.ceil(length / width) * lineHeight };
+      if (widthMode === MeasureMode.Undefined || length <= width) return { width: widthMode === MeasureMode.Exactly ? width : length, height: line };
+      return { width, height: Math.ceil(length / width) * line };
     });
   } else {
     spec.children.forEach((child, index) => node.insertChild(build(Yoga, child, out), index));
@@ -65,8 +67,12 @@ const results = input.map(({ width, tree }) => {
   const boxes = {};
   for (const [id, node] of tagged) {
     let left = 0;
-    for (let at = node; at; at = at.getParent()) left += at.getComputedLeft();
-    boxes[id] = { left, width: node.getComputedWidth() };
+    let top = 0;
+    for (let at = node; at; at = at.getParent()) {
+      left += at.getComputedLeft();
+      top += at.getComputedTop();
+    }
+    boxes[id] = { left, width: node.getComputedWidth(), top, height: node.getComputedHeight() };
   }
   root.freeRecursive();
   return boxes;

@@ -6,6 +6,7 @@ import { radius, space, useTheme } from '../../../../theme';
 import { Icon } from '../../../../ui/icons';
 import { Text } from '../../../../ui/Text';
 import type { Person, Result } from '../../messageActions';
+import { chipBand, chipHeight, chipRowGap, chipSlop, touchTarget } from '../../../../ui/touch';
 
 export function PersonChips({ people, onRemove, testID }: { people: Person[]; onRemove?: (person: Person) => void; testID?: string }) {
   const { t } = useTranslation('chat');
@@ -20,6 +21,7 @@ export function PersonChips({ people, onRemove, testID }: { people: Person[]; on
           accessibilityLabel={onRemove ? t('pick.remove', { name: person.name }) : person.name}
           disabled={!onRemove}
           onPress={() => onRemove?.(person)}
+          hitSlop={chipSlop}
           style={[styles.chip, { borderColor: colors.line, backgroundColor: colors.surface2 }]}>
           <Text variant="footnote" numberOfLines={1}>
             {person.name}
@@ -102,6 +104,6 @@ const styles = StyleSheet.create({
   wrap: { gap: space.xs },
   input: { minHeight: 44, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
   result: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.md },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, maxWidth: '100%' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.xs, rowGap: chipRowGap, ...chipBand },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: chipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, maxWidth: '100%' },
 });

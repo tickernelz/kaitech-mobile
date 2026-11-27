@@ -13,10 +13,11 @@ import { bucketsOf } from '../../voice/levels';
 import type { Interruption } from '../../voice/machine';
 import { seekVoice, toggleVoice, useVoice } from '../../voicePlayer';
 import { useChatFormat } from '../format';
-import { buttonSize } from './Controls';
+import { insideSize } from './Controls';
 import { cancelDistance } from './gesture';
 import { useVoiceClock, voiceLimitMs, voiceWarnMs, type ClockStore } from '../../voice/clock';
 import type { VoiceRecorder } from './useVoiceRecorder';
+import { reach } from '../../../../ui/touch';
 
 const barPitch = 5;
 const barWidth = 3;
@@ -24,6 +25,7 @@ const barMin = 3;
 const barMax = 32;
 const seekStepMs = 5000;
 const trashIcon = 24;
+const draftPlaySize = 36;
 
 export function voiceRowPhase(voice: VoiceRecorder): 'held' | 'locked' | 'paused' | null {
   const state = voice.state;
@@ -187,6 +189,7 @@ function DraftBox({ voice, channelId }: { voice: VoiceRecorder; channelId: numbe
         accessibilityRole="button"
         accessibilityLabel={mine && player.playing ? t('composer.pauseDraft') : t('composer.playDraft')}
         onPress={() => uri && void toggleVoice(id, uri)}
+        hitSlop={reach(draftPlaySize, draftPlaySize)}
         style={[styles.play, { backgroundColor: colors.primary }]}
         testID="voice-draft-play">
         <Icon name={mine && player.playing ? 'pause' : 'play'} size={20} color={colors.onPrimary} />
@@ -284,16 +287,16 @@ export const voiceMotion = motion;
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  row: { flex: 1, flexDirection: 'row', alignItems: 'center', minHeight: buttonSize, gap: space.xs },
-  action: { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2, alignItems: 'center', justifyContent: 'center' },
+  row: { flex: 1, flexDirection: 'row', alignItems: 'center', minHeight: insideSize, gap: space.xs },
+  action: { width: insideSize, height: insideSize, borderRadius: insideSize / 2, alignItems: 'center', justifyContent: 'center' },
   timer: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingLeft: space.sm },
   tabular: { fontVariant: ['tabular-nums'] },
   dot: { width: 10, height: 10, borderRadius: 5 },
   chip: { paddingHorizontal: space.sm, paddingVertical: 2, borderRadius: radius.pill },
   slide: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs },
   wave: { flex: 1, height: barMax, justifyContent: 'center' },
-  draft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: buttonSize, borderRadius: buttonSize / 2, paddingLeft: 4, paddingRight: space.md },
-  play: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  draft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: insideSize, borderRadius: insideSize / 2, paddingLeft: 4, paddingRight: space.md },
+  play: { width: draftPlaySize, height: draftPlaySize, borderRadius: draftPlaySize / 2, alignItems: 'center', justifyContent: 'center' },
   banner: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.md, paddingHorizontal: space.md, paddingVertical: space.sm },
   trash: { width: trashIcon, height: trashIcon },
   discard: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 120, justifyContent: 'center', paddingLeft: space.sm },

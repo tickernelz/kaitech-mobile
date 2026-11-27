@@ -1,5 +1,5 @@
 import { photoFrom, type Photo } from '../people/photo';
-import { richOf } from './rich';
+import { richOf, richPreview } from './rich';
 import type { Attachment, CallRecord, Conversation, ConversationType, LastMessage, Member, Message, Reaction, ServerMedia } from './types';
 
 type Raw = Record<string, unknown>;
@@ -216,14 +216,14 @@ export function messagesFromStore(data: unknown, myPartnerId: number): Message[]
       starred: raw.starred === true,
       urgent: Array.isArray(raw.kaitech_chat_urgent_partner_ids) && raw.kaitech_chat_urgent_partner_ids.length > 0,
       pinnedAt: text(raw.pinned_at) || null,
-      ...richField(raw),
+      ...richField(raw, partners),
     });
   }
   return messages.sort((a, b) => a.id - b.id);
 }
 
-function richField(raw: Raw): Pick<Message, 'rich'> {
-  const rich = richOf(raw);
+function richField(raw: Raw, partners: Map<number | null, string>): Pick<Message, 'rich'> {
+  const rich = richOf(raw, partners as Map<number, string>);
   return rich ? { rich } : {};
 }
 
@@ -238,6 +238,7 @@ export function editedBody(html: string): { body: string; edited: boolean } {
 export type MessagePatch = Partial<Pick<Message, 'body' | 'edited' | 'attachments' | 'pinnedAt' | 'starred' | 'translation' | 'translated'>> & { rich?: Message['rich'] };
 
 export function messagePatches(data: unknown): Map<number, MessagePatch> {
+  const partners = new Map(records(data, 'res.partner').map((partner) => [id(partner.id), text(partner.name)]));
   const attachments = new Map<number, Attachment>();
   for (const raw of records(data, 'ir.attachment')) {
     const attachment = attachmentFrom(raw);
@@ -252,9 +253,9 @@ export function messagePatches(data: unknown): Map<number, MessagePatch> {
     if ('attachment_ids' in raw) patch.attachments = ids(raw.attachment_ids).map((attachmentId) => attachments.get(attachmentId)).filter((item): item is Attachment => item !== undefined);
     if ('pinned_at' in raw) patch.pinnedAt = text(raw.pinned_at) || null;
     if ('starred' in raw) patch.starred = raw.starred === true;
-    if ('kaitech_chat_kind' in raw) {
-      const rich = richOf(raw);
-      if (rich || !raw.kaitech_chat_kind) patch.rich = rich ?? undefined;
+    if ('kaitech_chat_kind' in raw || 'kaitech_chat_poll' in raw || 'kaitech_chat_location' in raw) {
+      const rich = richOf(raw, partners as Map<number, string>);
+      if (rich || raw.kaitech_chat_kind === false) patch.rich = rich ?? undefined;
     }
     if (Object.keys(patch).length) patches.set(messageId, patch);
   }
@@ -395,6 +396,7 @@ export function lastMessageOf(message: Message, plain: string): LastMessage {
     call: isCallNotice(message),
     type: message.type,
     date: message.date,
+    ...(message.rich ? { rich: richPreview(message.rich) } : {}),
   };
 }
 

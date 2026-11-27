@@ -7,6 +7,7 @@ import Storage from 'expo-sqlite/kv-store';
 import * as TaskManager from 'expo-task-manager';
 import { useSyncExternalStore } from 'react';
 import { AppState, Platform } from 'react-native';
+import { isOnline } from '../../api/network';
 import { ApiError } from '../../api/odoo';
 import { invalidate } from '../../api/resource';
 import { call, headers } from '../../auth/oauth';
@@ -340,7 +341,7 @@ async function syncBackgroundTask() {
 }
 
 Network.addNetworkStateListener((state) => {
-  if (state.isConnected === false || state.isInternetReachable === false) {
+  if (!isOnline(state)) {
     for (const controller of inFlight.keys()) controller.abort();
     return;
   }

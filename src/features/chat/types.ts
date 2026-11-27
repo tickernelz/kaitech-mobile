@@ -12,7 +12,10 @@ export type LastMessage = {
   call: boolean;
   type: string;
   date: number;
+  rich?: RichPreview;
 };
+
+export type RichPreview = { kind: 'poll' | 'location' | 'liveLocation' | 'sticker' | 'gif'; detail: string };
 
 export type Conversation = {
   id: number;
@@ -75,7 +78,34 @@ export type Sticker = { source: 'pack' | 'provider'; id: number | string; packId
 
 export type GifMedia = { provider: string; id: string; title: string; gif: Media | null; mp4: Media | null; preview: Media | null };
 
-export type Rich = { sticker: Sticker } | { gif: GifMedia };
+export type Voter = { id: number; name: string };
+
+export type PollOption = { id: number; label: string; votes: number; voters: Voter[] };
+
+export type Poll = { question: string; multiple: boolean; closed: boolean; closedAt: number | null; votersCount: number; options: PollOption[] };
+
+export type EndReason = 'stopped' | 'expired' | 'left' | 'deleted';
+
+export type Place = {
+  latitude: number;
+  longitude: number;
+  accuracy: number | null;
+  name: string;
+  address: string;
+  live: boolean;
+  liveUntil: number | null;
+  liveMinutes?: number;
+  ended: boolean;
+  endedAt: number | null;
+  endReason: EndReason | null;
+  seq: number;
+  updatedAt: number | null;
+  map: string | null;
+};
+
+export type MediaRich = { sticker: Sticker } | { gif: GifMedia };
+
+export type Rich = MediaRich | { poll: Poll } | { location: Place };
 
 export type Mention = { id: number; name: string; token: string | null };
 

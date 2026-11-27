@@ -2,6 +2,140 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.13.0 - 2026-11-27
+
+### Changed
+
+- App icon and splash: the icon is now the kaitech.io favicon mark on Android (adaptive background, foreground and monochrome) and on iOS (any, dark and tinted, compiled from the Icon Composer stack), and the splash uses the same mark. The retired icon assets are gone (#146, ZHA-8004).
+- Floating capsules in the light theme (tab bar, call controls, chat composer): the pale purple glass sat at 1.14:1 against the screen and its buttons at 1.14:1 against the capsule, so both blended into white. The glass colour is now a deeper lavender at a higher opacity from one token, at 1.33:1 against the screen and 1.26:1 for a button against the capsule, while every label and icon on it keeps its contrast over light and dark content. The dark theme is unchanged (#151, ZHA-8064).
+
+### Fixed
+
+- Chat composer: while typing, the emoji button sat about 3 dp from the end of the message capsule, almost against the send button; it now sits as far in as the attach button on the other end (14 dp from the edge) whether the field is empty, has text, or the emoji panel is open, and every button in the capsule is at least 48 dp. The send button takes the capsule's own shadow, so the two read as one row (#150, ZHA-8058).
+- Chat: a "Call in progress" notice was almost twice as tall as an ended call's notice. Both are now the same pill; Join still takes a 48 dp touch without making the pill bigger (#150, ZHA-8058).
+- Lists: a refresh indicator could stay up after the refresh finished because the native call that releases it ran before the view had mounted; it is retried until it takes effect (#145, ZHA-7439).
+
+### Known gaps
+
+- iOS: no device check. The iOS 26 icon stack is compiled and present in the release IPA, but the glass look behind sign-in has still not been seen (ZHA-7277). The IPA measures 26,751,577 bytes at 144a8b3, +8.6% on the 24,623,415 byte baseline (limit +15%); its JS bundle is 9,702,966 bytes, +5.9% on 9,159,155.
+
+## 0.12.0 - 2026-11-27
+
+### Changed
+
+- Tab bar, call controls and the chat composer: all three are now floating glass capsules in Kaitech colours with a thin edge and a soft shadow, so they stand apart from a white or dark background instead of blending into it. iOS below 26 blurs what is behind them; Android uses a tinted glass without blur, because blur added about 3 ms per frame while scrolling on the Meizu Mblu 21. With Reduce Transparency or high contrast on they turn solid (#141, ZHA-7978).
+- Chat composer: it floats over the conversation with no bar behind it, so the messages scroll up to the bottom edge and the last message still ends above the capsule. Attach, emoji, camera and the text line now sit on one centre line with the send button (#141, ZHA-7978).
+- Larger pills: the tab bar is 68 dp tall instead of 64, the composer 52 dp instead of 44, and call buttons 56 dp instead of 52, from one shared size set; on phones narrower than 360 dp the five call buttons shrink to fit, never below 44 dp (#141, ZHA-7978).
+
+### Known gaps
+
+- Opening and closing the keyboard in a conversation measured about 1.8 ms more per frame at the 90th percentile on the Meizu Mblu 21 (34.3 against 32.5 ms, 6 alternating rounds), about 1 to 2 extra janky frames per keyboard open; the floating composer was kept by choice. Typing, scrolling, tab switches and cold start were not worse (#141, ZHA-7978).
+- iOS: no device check. Unit tests cover the iOS below 26 blur capsule and the Release IPA builds (+0.05%); the iOS 26 Liquid Glass look behind sign-in has not been seen (ZHA-7277).
+
+## 0.11.0 - 2026-11-27
+
+### Added
+
+- Chat: swipe a message right to reply to it, like WhatsApp; a short swipe, swiping back, or a cancelled gesture does not reply, and deleted messages and system notices cannot be swiped. Long-pressing a message, sending, and adding a reaction now vibrate. Dragging a voice note's waveform still seeks instead of swiping the message (#131, ZHA-7967).
+- App lock: a phone with only a screen PIN (no fingerprint enrolled) can now turn app lock on; before, Settings showed no app lock at all on such a phone (#110, ZHA-7439).
+
+### Changed
+
+- Chat: the format bar (bold, italic, code, link, quote, list) appears only while text is selected, so typing keeps the full thread height; all six actions fit on a 411 dp screen. The thread title gets about 207 dp instead of 163 dp, so "Uji Chat Web (ZHA-7238)" fits without being cut. Measured on the Meizu Mblu 21 (#131, ZHA-7967).
+
+### Fixed
+
+- App lock: when the device's screen lock was removed while app lock was on, every unlock failed and only clearing app data helped; the lock screen now says why and offers sign-out behind a confirm (#139, ZHA-7439).
+- Lists: data invalidated while it was still loading (for example the MoM list right after an upload finished) is refetched at once instead of showing the older answer until the stale timer ran out (#115, ZHA-7439).
+
+### Known gaps
+
+- Chat scroll on the Meizu Mblu 21 measured 28.8% janky frames with swipe-to-reply against 27.2% without (slow UI thread 1557 against 1561, 3 alternating rounds on the 0.9.0 base); the gap sits inside the per-pass spread but is not proven regression-free (#131, ZHA-7967).
+- iOS: swipe-to-reply against the iOS back gesture has no device check; the changes are shared code covered by unit tests (#131, ZHA-7967).
+
+## 0.10.3 - 2026-11-27
+
+### Fixed
+
+- Chat: a wide table in a message can be scrolled sideways on Android, so you can reach its last column. Before, the long press on the message held every finger movement and the table never scrolled. Holding a table still opens the message actions. Measured on the Meizu Mblu 21 with a six-column table: scroll position stayed at 0 on 0.10.2, and reached 252 after a drag and 485 (the last column) after a fling on this build (#142, ZHA-7977).
+
+### Known gaps
+
+- iOS: no device check; the change is shared code covered by unit tests (ZHA-7977).
+
+## 0.10.2 - 2026-11-27
+
+### Fixed
+
+- Touch targets: every control a finger can tap now takes at least 44 by 44 dp. A settings row with a switch (Tap to record, Out of office, Picture in picture, App lock and the others) flips when you tap anywhere on the row, and a screen reader hears it as one switch. Filter chips in Chat, Search and Activity, GIF chips, emoji categories, reaction pills, voice note controls and the other small controls keep their look but accept taps up to 44 dp, without taking taps meant for the control next to them. Measured on the Meizu Mblu 21: taps 2.9 to 4.6 dp outside a chip's drawn edge selected it in 0 of 5 cases on 0.8.0 and 5 of 5 on this build; tapping a switch row's text flipped the switch in 0 of 3 cases before and 3 of 3 after (#133, ZHA-7965).
+- Existing controls that took taps from a neighbour no longer do: the composer's emoji/keyboard button (2 dp of the text field), the format bar's hide button (4 dp of the last format action), the media and PDF viewer bar buttons (4 dp of each other) and the poll option remove button (8 dp of its field) (#133, ZHA-7965).
+- Files: the detail line of a PDF or file card takes two lines instead of cutting off, and a long file name breaks after `_`, `-` or `.` instead of inside a word (#133, ZHA-7965).
+
+### Changed
+
+- A message with reactions or a thread link is 8 dp taller, wrapped rows of reactions are 12 dp apart, and the emoji category row and the GIF chip row each have 4 dp more space below, so the taps below a pill or chip stay with it (#133, ZHA-7965).
+
+### Known gaps
+
+- The composer text field measures 43.4 dp (the 44 dp field minus its 1 px border), and on screens narrower than 396 dp each emoji category is the panel width divided by nine, under 44 dp (#133, ZHA-7965).
+- iOS: no device check; the changes are shared code covered by unit tests (ZHA-7965).
+
+## 0.10.1 - 2026-11-27
+
+### Fixed
+
+- Launch: on Android a cold start no longer shows an empty light screen for about 0.4 s between the splash and the first screen, in the dark and the light theme. The splash now stays until the first screen has laid out and leaves without a fade on Android, and the account's saved theme applies before the first frame. Measured on the Meizu Mblu 21 (15 recordings each, the same 0.8.0 native build with the old and the new JS): empty light frames in 15 of 15 cold starts before, in 0 of 15 after. A cold start opens the Chat list; reopening the app while it still runs returns to the screen you left, as before (#132, ZHA-7964).
+
+### Known gaps
+
+- Launch, measured on the Mblu 21: the Chat list shows a median 1790 ms after the splash appears against 1681 ms before, with overlapping ranges (1484-1883 and 1550-1892 ms); the cause of the difference is not proven. `am start -W` TotalTime rises from a median 1495 to 2002 ms because the first frame drawn is now the Chat list instead of the empty screen (#132, ZHA-7964).
+- Launch: with the phone in the light theme and the account set to Dark, 3 of 8 cold starts still show 2 to 3 light splash frames (45-65 ms) right after the Chat list first appears; fixing it needs the account's night mode applied natively before the activity starts (ZHA-7964).
+
+## 0.10.0 - 2026-11-26
+
+### Changed
+
+- Tabs: on phones the tabs sit in a capsule that floats at the bottom of the screen, slightly see-through, with its own look per platform on the Kaitech colours. Android follows Material 3 Expressive: the selected tab opens into a wide slot with its label beside the filled icon, and the indicator stretches while it slides to the next tab and squeezes while a tab is held. iOS below 26 follows the iOS 26 system bar: equal slots with labels under the icons and a lens that slides between tabs. iOS 26 and later keep the system Liquid Glass bar. Tablets keep the side rail (#125, ZHA-7950).
+- Tabs: switching tabs gives a light haptic, the Activity badge pops when it appears or its number changes, and the incoming tab screen fades in on the background colour, so nothing flashes white. Reduce Motion turns every animation into an instant change; Reduce Transparency, Increase Contrast and Android high contrast text make the capsule solid. While the keyboard is up the capsule slides away (#125, ZHA-7950).
+- Chat, Discovery, MoM and both Activity lists end with room for the floating capsule, and the New chat button and the undo bar sit above it (#125, ZHA-7950).
+
+### Known gaps
+
+- Tabs, measured on the Meizu Mblu 21 against 0.9.0: scrolling and cold start are unchanged, and the worst frame on a tab switch drops from 46-150 ms to 34-38 ms, but each switch now animates about 65 frames instead of jumping in about 9, so about 3 more frames per switch arrive late (88-119 against 31-41 over 20 switches). Neither build meets the ZHA-7946 jank target for tab switches (#125, ZHA-7950).
+- iOS: no device. The capsule for iOS below 26 is covered only by unit tests, CI simulators run iOS 26 (the unchanged system bar), and the Liquid Glass bar behind sign-in has not been seen (ZHA-7950, ZHA-7277).
+
+## 0.9.0 - 2026-11-26
+
+### Added
+
+- Chat: polls. Poll in the attach sheet asks a question with 2 to 12 options and an "allow more than one answer" switch. The bubble shows each option with its count and a bar; tapping votes, changes or takes back a vote at once and puts it back when the server refuses (a closed poll, offline). View votes lists who chose what, and the author can close the poll. Every device updates live (#123, ZHA-7807).
+- Chat: locations. Location in the attach sheet asks through the Kaitech permission card first, then opens a full-screen OpenStreetMap map drawn by the app (no map SDK or key; tiles come through the lab0 server) to send the current position, a point under the pin, or a search result. The bubble shows a map preview with the place name or address and opens a full map with Open in maps app (#123, ZHA-7807).
+- Chat: live location for 15 minutes, 1 hour or 8 hours. Android keeps sending through a foreground service with a notification and a Stop button; the phone posts a new point after moving 20 m or every 2 minutes, the server ends the share when its time is up, and signing out stops it. Measured on the Meizu Mblu 21: about 28 mAh an hour (0.6% of the battery per hour) with the screen off (#123, ZHA-7807).
+- Chat: the conversation list, reply quotes and Android notifications show short labels for polls, locations, live locations, stickers and GIFs (#123, ZHA-7807).
+
+### Changed
+
+- Chat: stickers and GIFs in a conversation play only while their bubble is on screen and the app is in front; a GIF plays as a short silent video (video cache capped at 100 MB). A long press on a poll or location opens the message actions, and a pack sticker in a conversation can be added to favourites (#123, ZHA-7807).
+- Chat: cached messages keep polls and locations in a field older builds ignore, so installing an older build over this one does not crash on them (#123, ZHA-7807).
+
+### Known gaps
+
+- iOS: live location sends only while Kaitech is open, and polls, locations and live location have not run on an iPhone (ZHA-7807, ZHA-7277).
+- Live location uses high GPS accuracy, like WhatsApp; a battery-saving mode is not offered (ZHA-7807).
+
+## 0.8.2 - 2026-11-26
+
+### Fixed
+
+- MoM and Discovery tell empty, failed and offline apart. Offline with nothing loaded shows "No connection" instead of the empty text ("Belum ada rekaman rapat"), a failed load shows the error with Retry, and data already on screen gets a banner saying it is what was loaded last; both tabs reload once when the connection returns (#130, ZHA-7968).
+- Chat: in landscape on a phone the New button sits in the app bar instead of floating over the conversation rows; in portrait the list ends with room for the button (#130, ZHA-7968).
+- Large text (font scale 1.5 and up): the Chat filter chips wrap instead of being cut off, the attach sheet shows two sources per row so "Dokumen" fits, and the thread title may take two lines (#130, ZHA-7968).
+
+### Changed
+
+- iOS build: `EXPO_MODULES_SCAN_TIMEOUT_MS` sets the Expo module scan timeout (default 5000 ms) through `patches/expo-modules-autolinking+58.1.0.patch`, after a Release build failed when the scan timed out; no app code changed (#124, ZHA-7945).
+- Docs: reminder push measured on the Meizu Mblu 21 (#128, ZHA-7944).
+
 ## 0.8.1 - 2026-11-26
 
 ### Fixed

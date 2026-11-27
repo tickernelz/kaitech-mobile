@@ -28,7 +28,7 @@ function rolesFor(scheme: Scheme): MaterialColors {
     surfaceContainerLow: dark ? c.surface : c.canvas,
     surfaceContainer: dark ? c.surface : c.surface2,
     surfaceContainerHigh: c.surface2,
-    surfaceContainerHighest: c.line,
+    surfaceContainerHighest: c.glass,
     inverseSurface: c.ink,
     inverseOnSurface: c.canvas,
     error: c.dangerInk,

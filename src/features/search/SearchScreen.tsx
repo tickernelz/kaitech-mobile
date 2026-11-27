@@ -16,6 +16,7 @@ import { Icon, type IconName } from '../../ui/icons';
 import { IconButton } from '../../ui/IconButton';
 import { StateView } from '../discovery/ui';
 import { joinChannel, preview, searchDirectory, type DirectoryHits } from './people';
+import { chipHeight, chipSlop, shortfall, touchTarget } from '../../ui/touch';
 
 type Filter = 'all' | 'chat' | 'discovery' | 'mom' | 'people';
 type Hit = { key: string; icon: IconName; title: string; detail: string; open: () => void; more?: boolean };
@@ -179,7 +180,7 @@ export function SearchScreen() {
         <IconButton icon="close" label={t('search.close')} onPress={() => router.back()} testID="search-close" />
       </View>
       <View style={styles.filters}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityRole="tablist" testID="search-filter" keyboardShouldPersistTaps="handled">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipBar} contentContainerStyle={styles.chips} accessibilityRole="tablist" testID="search-filter" keyboardShouldPersistTaps="handled">
           {filters.map((value) => {
             const on = value === filter;
             return (
@@ -188,6 +189,7 @@ export function SearchScreen() {
                 accessibilityRole="tab"
                 accessibilityState={{ selected: on }}
                 onPress={() => setFilter(value)}
+                hitSlop={chipSlop}
                 style={[styles.chip, { backgroundColor: on ? colors.select : colors.surface, borderColor: on ? colors.select : colors.line }]}
                 testID={`search-filter-${value}`}>
                 <Text variant="footnote" style={{ color: on ? colors.selectInk : colors.ink }}>
@@ -284,9 +286,10 @@ const styles = StyleSheet.create({
   box: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: space.lg },
   input: { flex: 1, minHeight: 44 },
   filters: { paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
-  chips: { flexDirection: 'row', gap: space.xs, paddingHorizontal: space.lg },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  list: { padding: space.lg, gap: space.xs, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
+  chipBar: { marginTop: -shortfall(chipHeight) },
+  chips: { flexDirection: 'row', gap: space.xs, paddingHorizontal: space.lg, paddingVertical: shortfall(chipHeight) },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  list: { padding: space.lg, paddingTop: space.lg - shortfall(chipHeight), gap: space.xs, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   ask: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg, borderRadius: radius.pill, marginBottom: space.md },
   section: { paddingTop: space.md, paddingBottom: space.xs },
   hit: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingVertical: space.sm, borderRadius: radius.md },

@@ -87,12 +87,12 @@ name: Coworker media - voice note, video and a document to the Coworker, then op
 - takeScreenshot: m5-uploading
 - extendedWaitUntil:
     visible:
-      text: laporan-lembur.pdf
+      text: laporan-.*lembur.*pdf
     timeout: 120000
 - extendedWaitUntil:
     notVisible:
       id: coworker-working
-    timeout: 600000
+    timeout: 300000
 - takeScreenshot: m6-reply
 - scrollUntilVisible:
     element:

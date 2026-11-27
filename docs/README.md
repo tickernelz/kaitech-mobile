@@ -8,6 +8,7 @@
 | [Install the IPA](install-ios.md) | re-signing and installing the unsigned iOS build, iOS limits |
 | [Store accounts](store-accounts.md) | what waits for Google Play and Apple Developer accounts |
 | [App identity](app-identity.md) | application ids, certificate fingerprint, `assetlinks.json` |
+| [Branding](branding.md) | logo source, app icon, adaptive and themed icons, iOS Icon Composer package, splash, regenerating the assets |
 | [Development](development.md) | setup and commands, languages, sign-in, icons and splash |
 | [CI](ci.md) | workflows, artifacts, fast path and cache, performance gate, release steps, GitHub secrets |
 | [E2E](e2e.md) | Maestro flows, device matrix, screenshots, tablet configuration gate, signed-in flows |

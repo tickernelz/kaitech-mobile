@@ -6,6 +6,7 @@ import { SectionList, StyleSheet, View, type NativeScrollEvent, type NativeSynth
 import { Pressable } from '../../ui/Pressable';
 import type { Resource } from '../../api/resource';
 import { useSession } from '../../auth/session';
+import { useTabBarSpace } from '../../layout/tabBar';
 import { readableWidth } from '../../layout/windowClass';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
@@ -21,6 +22,7 @@ import { useDueLabel } from './due';
 import { iconOfCategory } from './icons';
 import { byModel, filtered, overviewLimit, tally, type Activity, type Filter, type Meeting, type Overview } from './odoo';
 import { ScheduleSheet, type ScheduleMode } from './ScheduleSheet';
+import { chipBand, chipHeight, chipRowGap, chipSlop, touchTarget } from '../../ui/touch';
 
 const filters: Filter[] = ['all', 'overdue', 'today', 'planned'];
 
@@ -35,6 +37,7 @@ export function OdooActivities({
 }) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
+  const tabSpace = useTabBarSpace();
   const router = useRouter();
   const { active } = useSession();
   const due = useDueLabel();
@@ -73,7 +76,7 @@ export function OdooActivities({
       <SectionList
         sections={sections}
         keyExtractor={(activity) => String(activity.id)}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: space.lg + tabSpace }]}
         stickySectionHeadersEnabled={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -90,6 +93,7 @@ export function OdooActivities({
                     accessibilityRole="tab"
                     accessibilityState={{ selected: on }}
                     onPress={() => setFilter(key)}
+                    hitSlop={chipSlop}
                     style={[styles.chip, { backgroundColor: on ? colors.select : colors.surface, borderColor: on ? colors.select : colors.line }]}
                     testID={`activities-filter-${key}`}>
                     <Text variant="footnote" style={{ color: on ? colors.selectInk : key === 'overdue' && counts.overdue ? colors.dangerInk : colors.ink }}>
@@ -219,10 +223,10 @@ export function OdooActivities({
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  list: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
+  list: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   head: { gap: space.md, paddingBottom: space.sm },
-  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
-  chip: { minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  filters: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.xs, rowGap: chipRowGap, ...chipBand },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   block: { gap: space.sm },
   footer: { paddingTop: space.md, textAlign: 'center' },
   section: { paddingTop: space.md, paddingBottom: space.xs, paddingHorizontal: space.xs },

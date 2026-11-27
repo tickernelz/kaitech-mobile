@@ -48,8 +48,9 @@ import { FloatingTile } from './FloatingTile';
 import { ScreenStage, type PipTarget } from './ScreenStage';
 import { useAutoHide } from './useAutoHide';
 import { confirm } from '../../../ui/dialog';
+import { touchTarget } from '../../../ui/touch';
+import { callButtonSize, callPillThickness } from '../../../ui/pill';
 
-const pillSize = 68;
 const scrimSize = 72;
 const edge = space.lg;
 const wideMin = 840;
@@ -102,6 +103,8 @@ export function CallScreen() {
     crowd: call.people.length > 2,
     blur: blurSupported(),
   });
+  const button = callButtonSize(controls.pill.length, vertical ? height - insets.top - insets.bottom - 2 * edge : width - insets.left - insets.right - 2 * space.sm);
+  const pillSize = callPillThickness(button);
   const state: ControlState = {
     muted: call.muted || call.deaf,
     cameraOn: call.cameraOn,
@@ -287,7 +290,7 @@ export function CallScreen() {
             </Text>
           ) : null}
           {call.cameraBlocked && !call.cameraOn ? (
-            <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings()} testID="call-camera-blocked">
+            <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings()} style={styles.notice} testID="call-camera-blocked">
               <Text variant="footnote" tone="warnInk" accessibilityLiveRegion="polite">
                 {t('cameraBlocked.notice')}
               </Text>
@@ -317,7 +320,7 @@ export function CallScreen() {
       ) : null}
 
       <View pointerEvents="box-none" style={vertical ? [styles.railDock, { right: insets.right + edge }] : [styles.barDock, { bottom: pillBottom, left: insets.left, right: insets.right }]}>
-        <CallPill actions={controls.pill} state={state} onStage={onStage} vertical={vertical} shown={hide.shown} motion={hide.bottom} onAction={onAction} onTouch={hide.poke} />
+        <CallPill actions={controls.pill} state={state} onStage={onStage} vertical={vertical} size={button} shown={hide.shown} motion={hide.bottom} onAction={onAction} onTouch={hide.poke} />
       </View>
 
       <MoreSheet
@@ -354,7 +357,7 @@ function FullScreenNotice() {
   }, []);
   if (!needed) return null;
   return (
-    <Pressable accessibilityRole="button" onPress={() => void openFullScreenIntentSettings()} testID="call-fullscreen-notice">
+    <Pressable accessibilityRole="button" onPress={() => void openFullScreenIntentSettings()} style={styles.notice} testID="call-fullscreen-notice">
       <Text variant="footnote" tone="warnInk">
         {t('fullScreen.title')} — {t('fullScreen.body')}. {t('fullScreen.action')}
       </Text>
@@ -392,6 +395,7 @@ function endedKey(reason: string | null): `ended.${EndedReason}` {
 }
 
 const styles = StyleSheet.create({
+  notice: { minHeight: touchTarget, justifyContent: 'center' },
   fill: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center' },
   grid: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignContent: 'center', overflow: 'hidden' },

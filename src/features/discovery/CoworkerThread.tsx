@@ -28,7 +28,7 @@ import { chatAttachments } from './files';
 import { ItemsContext, ThreadContext, type Thread } from './kt/place';
 import { Markdown } from './Markdown';
 import { sourceBlocks } from '../chat/markdown';
-import { FormatBar, FormatToggle, useMarkup } from '../chat/ui/FormatBar';
+import { FormatBar, useMarkup } from '../chat/ui/FormatBar';
 import { RichText } from '../chat/ui/RichText';
 import { flushDrafts, openConversation, readDraft, useOpenConversation, writeDraft } from './store';
 import { viewConversation } from './viewing';
@@ -36,6 +36,7 @@ import { entriesOf, mergeItems, stepCount, stepLine, type Entry } from './thread
 import { IconButton } from '../../ui/IconButton';
 import { StateView, useErrorText } from './ui';
 import { notify } from '../../ui/dialog';
+import { touchTarget } from '../../ui/touch';
 
 const bottomSlack = 48;
 const pollMs = 2500;
@@ -458,7 +459,6 @@ export function CoworkerThread({
         ) : (
           <>
             <IconButton icon="attach" label={t('discovery.thread.attach')} onPress={() => setSheet(true)} testID={`${testID}-attach`} />
-            {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
             <TextInput
               ref={input}
               value={draft}
@@ -483,7 +483,7 @@ export function CoworkerThread({
       </View>
       {markup.showBar && !voice.recording ? (
         <View style={[styles.formatBar, { backgroundColor: colors.canvas }]}>
-          <FormatBar onApply={markup.apply} onHide={markup.hide} />
+          <FormatBar onApply={markup.apply} />
         </View>
       ) : null}
       <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} />
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
   bubble: { borderRadius: radius.card, paddingHorizontal: space.lg, paddingVertical: space.md, maxWidth: '88%' },
   mine: { alignSelf: 'flex-end', borderBottomRightRadius: radius.sm },
   theirs: { alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: radius.sm },
-  steps: { borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
+  steps: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   failure: { borderRadius: radius.card, padding: space.lg, gap: space.xs },
   pendingWrap: { gap: space.xs },
   status: { alignSelf: 'flex-end' },

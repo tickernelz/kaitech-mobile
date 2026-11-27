@@ -36,6 +36,11 @@ object CallNotifications {
     manager.createNotificationChannel(active)
   }
 
+  @android.annotation.SuppressLint("DiscouragedApi")
+  fun smallIcon(context: Context): Int =
+    context.resources.getIdentifier("notification_icon", "drawable", context.packageName).takeIf { it != 0 }
+      ?: context.applicationInfo.icon
+
   private fun person(name: String): Person = Person.Builder().setName(name.ifBlank { "Kaitech" }).build()
 
   private fun pending(context: Context, requestCode: Int, intent: Intent): PendingIntent {
@@ -54,7 +59,7 @@ object CallNotifications {
 
   private fun publicVersion(context: Context): Notification =
     NotificationCompat.Builder(context, CALL_CHANNEL)
-      .setSmallIcon(context.applicationInfo.icon)
+      .setSmallIcon(smallIcon(context))
       .setContentTitle(context.getString(R.string.kaitech_call_hidden_title))
       .setPriority(NotificationCompat.PRIORITY_MIN)
       .setSilent(true)
@@ -70,7 +75,7 @@ object CallNotifications {
     val fullScreen = pending(context, RING_ID + 100, CallIntents.openIntent(context, answer = false, ring))
     val answer = pending(context, RING_ID + 2, CallIntents.openIntent(context, answer = true, ring))
     val builder = NotificationCompat.Builder(context, RING_CHANNEL)
-      .setSmallIcon(context.applicationInfo.icon)
+      .setSmallIcon(smallIcon(context))
       .setContentTitle(ring.title)
       .setContentText(ring.body)
       .setCategory(NotificationCompat.CATEGORY_CALL)
@@ -98,7 +103,7 @@ object CallNotifications {
     ensureChannels(context)
     val open = pending(context, CALL_ID, CallIntents.openIntent(context, answer = false, call.ring()))
     val builder = NotificationCompat.Builder(context, CALL_CHANNEL)
-      .setSmallIcon(context.applicationInfo.icon)
+      .setSmallIcon(smallIcon(context))
       .setContentTitle(call.title)
       .setContentText(call.body)
       .setCategory(NotificationCompat.CATEGORY_CALL)
@@ -129,7 +134,7 @@ object CallNotifications {
   fun silent(context: Context, title: String, text: String): Notification {
     ensureChannels(context)
     return NotificationCompat.Builder(context, CALL_CHANNEL)
-      .setSmallIcon(context.applicationInfo.icon)
+      .setSmallIcon(smallIcon(context))
       .setContentTitle(title)
       .setContentText(text)
       .setPriority(NotificationCompat.PRIORITY_MIN)

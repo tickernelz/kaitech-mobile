@@ -17,8 +17,10 @@ import { useChatFormat } from '../format';
 import { fetchAttachment, fileKey, fileName, presentFile, shareFile } from '../useOpenAttachment';
 import { ProgressRing } from './ProgressRing';
 import { Zoomable } from './Zoomable';
+import { touchTarget } from '../../../../ui/touch';
 
 const pageGap = space.sm;
+const barSlop = { top: 8, bottom: 8, left: 0, right: 0 };
 
 type Opened = { uri: string; pages: number; ratio: number };
 
@@ -77,7 +79,7 @@ const PdfPage = memo(function PdfPage({ session, source, page, width, ratio }: {
 function Bar({ icon, label, onPress, testID }: { icon: IconName; label: string; onPress: () => void; testID: string }) {
   const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} hitSlop={8} onPress={onPress} testID={testID} style={styles.barButton}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} hitSlop={barSlop} onPress={onPress} testID={testID} style={styles.barButton}>
       <Icon name={icon} color={colors.onStage} />
     </Pressable>
   );
@@ -225,5 +227,5 @@ const styles = StyleSheet.create({
   pages: { paddingHorizontal: space.sm, paddingTop: space.sm },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
   centerText: { textAlign: 'center' },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touchTarget, paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill },
 });

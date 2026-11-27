@@ -1,20 +1,24 @@
 import { router } from 'expo-router';
-import { memo, type ReactNode } from 'react';
+import { memo, useCallback, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, type as typography, useTheme } from '../../../theme';
+import { haptic } from '../../../ui/haptic';
 import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
 import { attachmentUrl, callNoticeKey, isCallNotice, isRemoved, type ReadState } from '../odoo';
 import { useUploadProgress } from '../progress';
-import type { Attachment, Message, Pending, PendingFile } from '../types';
+import type { Attachment, Message, Pending, PendingFile, Rich } from '../types';
 import { useChatFormat } from './format';
 import { Icon } from '../../../ui/icons';
 import { UploadProgress } from './MediaControls';
+import { LocationCard } from './LocationCard';
+import { PollCard } from './PollCard';
 import { RichMedia, richLabel } from './RichMedia';
-import { RichText } from './RichText';
+import { LONG_PRESS_MS, RichText } from './RichText';
+import { SwipeReply } from './SwipeReply';
 import { MediaAttachment } from './media/Tiles';
 import { tileMax } from '../media/kind';
 import { VoiceNote } from './VoiceNote';
@@ -26,9 +30,14 @@ import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
 import { AgentSaid } from './coworker/Cards';
 import type { AgentCard, CardStore } from '../coworker';
+import { reachBelow, shortfall, touchTarget } from '../../../ui/touch';
 
 export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
+const reactionHeight = 32;
+const reactionGap = space.xs;
+const reactionSlop = reachBelow(reactionHeight, reactionGap);
+const faceSlop = { top: 2, bottom: touchTarget - faceSize - 2, left: shortfall(faceSize), right: shortfall(faceSize) };
 
 const mediaWidth = Math.min(tileMax.width, Math.round(readableWidth * 0.8) - 2 * space.md);
 
@@ -64,6 +73,7 @@ function Frame({
   testID,
   failed,
   bare,
+  interactive = false,
 }: {
   mine: boolean;
   children: ReactNode;
@@ -72,12 +82,14 @@ function Frame({
   testID?: string;
   failed?: boolean;
   bare?: boolean;
+  interactive?: boolean;
 }) {
   const { colors } = useTheme();
   return (
     <Pressable
       onLongPress={onLongPress}
-      delayLongPress={300}
+      delayLongPress={LONG_PRESS_MS}
+      accessible={!interactive}
       accessibilityLabel={label}
       accessibilityHint={onLongPress ? undefined : undefined}
       accessibilityActions={onLongPress ? [{ name: 'longpress' }] : undefined}
@@ -122,6 +134,7 @@ export const MessageBubble = memo(function MessageBubble({
   origin,
   hasThread,
   onLongPress,
+  onReply,
   onQuotePress,
   onReact,
   onOpenThread,
@@ -137,6 +150,7 @@ export const MessageBubble = memo(function MessageBubble({
   origin: string;
   hasThread: boolean;
   onLongPress: (message: Message) => void;
+  onReply?: (message: Message) => void;
   onQuotePress: (id: number) => void;
   onReact: (message: Message, content: string) => void;
   onOpenThread: (message: Message) => void;
@@ -146,6 +160,10 @@ export const MessageBubble = memo(function MessageBubble({
   const { t, i18n } = useTranslation('chat');
   const { colors } = useTheme();
   const { clock } = useChatFormat();
+  const hold = useCallback(() => {
+    haptic.start();
+    onLongPress(message);
+  }, [onLongPress, message]);
   const removed = isRemoved(message);
   const shownBody = message.translated && message.translation ? message.translation.body : message.body;
   const blocks = removed ? [] : bodyBlocks(shownBody);
@@ -159,8 +177,8 @@ export const MessageBubble = memo(function MessageBubble({
     const minutes = key === 'thread.call' && call ? t('thread.callMinutes', { count: Math.max(1, call.minutes) }) : null;
     const label = [t(key), minutes, time].filter(Boolean).join(' · ');
     return (
-      <View style={styles.notice} accessible={!call?.ongoing} accessibilityLabel={label} testID={`call-notice-${message.id}`}>
-        <View style={[styles.noticePill, styles.callNotice, { backgroundColor: colors.surface2 }]}>
+      <View style={[styles.notice, styles.callRow]} accessible={!call?.ongoing} accessibilityLabel={label} testID={`call-notice-${message.id}`}>
+        <View style={[styles.noticePill, styles.callNotice, { backgroundColor: colors.surface2 }]} testID={`call-notice-${message.id}-pill`}>
           <Icon name="phone" size={16} color={key === 'thread.callMissed' ? colors.danger : colors.inkSoft} />
           <Text variant="footnote" tone="inkSoft">
             {label}
@@ -169,7 +187,7 @@ export const MessageBubble = memo(function MessageBubble({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('thread.callJoin')}
-              hitSlop={8}
+              style={styles.join}
               onPress={() => {
                 const live = callState();
                 const busy = live.phase !== 'idle' && live.phase !== 'ended';
@@ -214,7 +232,7 @@ export const MessageBubble = memo(function MessageBubble({
         ]);
   const body = (
     <>
-      <Frame mine={mine} onLongPress={() => onLongPress(message)} label={label} testID={`bubble-${message.id}`} bare={rich !== undefined && 'sticker' in rich && !quote}>
+      <Frame mine={mine} onLongPress={hold} label={label} testID={`bubble-${message.id}`} bare={rich !== undefined && 'sticker' in rich && !quote} interactive={rich !== undefined && ('poll' in rich || 'location' in rich)}>
         {(showAuthor || (agent && agentTag)) && !mine ? (
           <View style={styles.authorRow}>
             {showAuthor ? (
@@ -235,13 +253,19 @@ export const MessageBubble = memo(function MessageBubble({
         <QuoteBlock quote={quote} mine={mine} onPress={message.parentId ? () => onQuotePress(message.parentId as number) : undefined} />
         <Attachments attachments={message.attachments} origin={origin} mine={mine} meta={{ title: message.author, channelId: message.channelId, messageId: message.id }} />
         {rich ? (
-          <RichMedia rich={rich} origin={origin} testID={`rich-${message.id}`} />
+          'poll' in rich ? (
+            <PollCard message={message} poll={rich.poll} mine={mine} onLongPress={hold} />
+          ) : 'location' in rich ? (
+            <LocationCard message={message} place={rich.location} mine={mine} onLongPress={hold} />
+          ) : (
+            <RichMedia rich={rich} origin={origin} messageId={message.id} testID={`rich-${message.id}`} />
+          )
         ) : agent && !removed && !message.translated ? (
           <AgentSaid store={agent} messageId={message.id}>
-            {blocks.length ? <RichText blocks={blocks} color={colors.ink} tint={colors.surface2} /> : null}
+            {blocks.length ? <RichText blocks={blocks} color={colors.ink} tint={colors.surface2} onLongPress={hold} /> : null}
           </AgentSaid>
         ) : blocks.length ? (
-          <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} />
+          <RichText blocks={blocks} color={mine ? colors.selectInk : colors.ink} tint={mine ? colors.surface : colors.surface2} onLongPress={hold} />
         ) : null}
         {message.translated && message.translation ? (
           <Text variant="label" tone="inkFaint" testID={`translated-${message.id}`}>
@@ -269,7 +293,7 @@ export const MessageBubble = memo(function MessageBubble({
         </View>
       </Frame>
       {message.reactions.length || hasThread ? (
-        <View style={[styles.under, mine ? styles.wrapMine : styles.wrapTheirs]}>
+        <View style={[styles.under, mine ? styles.wrapMine : styles.wrapTheirs]} pointerEvents="box-none">
           {message.reactions.map((reaction) => (
             <Pressable
               key={reaction.content}
@@ -277,6 +301,7 @@ export const MessageBubble = memo(function MessageBubble({
               accessibilityLabel={t('thread.reaction', { emoji: reaction.content, count: reaction.count })}
               accessibilityState={{ selected: reaction.mine }}
               onPress={() => onReact(message, reaction.content)}
+              hitSlop={reactionSlop}
               style={[styles.reaction, { backgroundColor: reaction.mine ? colors.select : colors.surface, borderColor: reaction.mine ? colors.focus : colors.line }]}>
               <Text variant="footnote">
                 {reaction.content} {reaction.count}
@@ -284,7 +309,7 @@ export const MessageBubble = memo(function MessageBubble({
             </Pressable>
           ))}
           {hasThread ? (
-            <Pressable accessibilityRole="button" onPress={() => onOpenThread(message)} style={[styles.reaction, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+            <Pressable accessibilityRole="button" onPress={() => onOpenThread(message)} hitSlop={reactionSlop} style={[styles.reaction, { backgroundColor: colors.surface, borderColor: colors.line }]}>
               <Icon name="thread" size={16} color={colors.link} />
               <Text variant="footnote" style={{ color: colors.link }}>
                 {t('thread.openSubThread')}
@@ -295,14 +320,22 @@ export const MessageBubble = memo(function MessageBubble({
       ) : null}
     </>
   );
+  const swipeable = (row: ReactNode) =>
+    onReply && !removed ? (
+      <SwipeReply message={message} onReply={onReply}>
+        {row}
+      </SwipeReply>
+    ) : (
+      row
+    );
   if (face === 'none' || mine) {
-    return (
+    return swipeable(
       <View style={[styles.wrap, mine ? styles.wrapMine : styles.wrapTheirs]} testID={`message-${message.id}`}>
         {body}
-      </View>
+      </View>,
     );
   }
-  return (
+  return swipeable(
     <View style={[styles.wrap, styles.withFace]} testID={`message-${message.id}`}>
       {face === 'show' ? (
         <Pressable
@@ -310,6 +343,7 @@ export const MessageBubble = memo(function MessageBubble({
           accessibilityLabel={t('thread.openPerson', { name: message.author })}
           disabled={!message.authorId}
           onPress={() => message.authorId && router.push({ pathname: '/person/[id]', params: { id: String(message.authorId), name: message.author } })}
+          hitSlop={faceSlop}
           testID={`message-${message.id}-author`}>
           <Avatar name={message.author} seed={message.authorId ?? 0} partnerId={message.authorId} size={faceSize} />
         </Pressable>
@@ -317,7 +351,7 @@ export const MessageBubble = memo(function MessageBubble({
         <View style={styles.faceSpace} />
       )}
       <View style={styles.faceColumn}>{body}</View>
-    </View>
+    </View>,
   );
 });
 
@@ -343,6 +377,13 @@ function PendingFileRow({ file }: { file: PendingFile }) {
   );
 }
 
+function PendingRich({ rich, channelId, origin }: { rich: Rich; channelId: number; origin: string }) {
+  const message = { id: 0, channelId };
+  if ('poll' in rich) return <PollCard message={message} poll={rich.poll} mine pending />;
+  if ('location' in rich) return <LocationCard message={message} place={rich.location} mine pending />;
+  return <RichMedia rich={rich} origin={origin} testID="pending-rich" />;
+}
+
 export const PendingBubble = memo(function PendingBubble({
   pending,
   offline,
@@ -364,7 +405,7 @@ export const PendingBubble = memo(function PendingBubble({
   return (
     <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`}>
       <Frame mine label={label} failed={failed} testID="bubble-pending" bare={pending.rich !== undefined && 'sticker' in pending.rich}>
-        {pending.rich ? <RichMedia rich={pending.rich} origin={origin} testID="pending-rich" /> : null}
+        {pending.rich ? <PendingRich rich={pending.rich} channelId={pending.channelId} origin={origin} /> : null}
         {pending.files.map((file) => (
           <PendingFileRow key={file.key} file={file} />
         ))}
@@ -377,7 +418,7 @@ export const PendingBubble = memo(function PendingBubble({
         </View>
       </Frame>
       {failed ? (
-        <View style={[styles.under, styles.wrapMine]}>
+        <View style={[styles.failedActions, styles.wrapMine]}>
           <Pressable accessibilityRole="button" onPress={() => onRetry(pending.key)} style={[styles.action, { borderColor: colors.line }]} testID="pending-retry">
             <Icon name="retry" size={16} color={colors.link} />
             <Text variant="footnote" style={{ color: colors.link }}>
@@ -396,6 +437,11 @@ export const PendingBubble = memo(function PendingBubble({
   );
 });
 
+const callTouch = 48;
+const callLine = typography.footnote.lineHeight;
+const joinBand = Math.ceil((callTouch - callLine) / 2);
+const callRowPad = Math.max(space.sm, Math.ceil((callTouch - callLine - 2 * space.xs) / 2));
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
@@ -411,19 +457,22 @@ const styles = StyleSheet.create({
   mine: { borderBottomRightRadius: radius.sm },
   plain: { borderWidth: 0 },
   theirs: { borderBottomLeftRadius: radius.sm },
-  quoteBox: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
+  quoteBox: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
   file: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48, width: 260, maxWidth: '100%' },
   pendingFile: { minWidth: 200 },
   meta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
   time: { fontWeight: '400' },
   removed: { fontStyle: 'italic' },
-  under: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
-  reaction: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 32, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  under: { flexDirection: 'row', flexWrap: 'wrap', columnGap: reactionGap, rowGap: reactionSlop.top + reactionSlop.bottom, paddingTop: reactionSlop.top, paddingBottom: reactionSlop.bottom },
+  failedActions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
+  reaction: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: reactionHeight, minWidth: touchTarget, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   notice: { paddingHorizontal: space.xxl, paddingVertical: space.sm, alignItems: 'center' },
   noticePill: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.md, overflow: 'hidden' },
-  callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs },
+  callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, overflow: 'visible' },
+  callRow: { paddingVertical: callRowPad },
+  join: { paddingVertical: joinBand, marginVertical: -joinBand, paddingHorizontal: space.sm, marginHorizontal: -space.sm },
   withFace: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm, paddingLeft: space.sm },
   faceSpace: { width: faceSize },
   faceColumn: { flex: 1, alignItems: 'flex-start' },

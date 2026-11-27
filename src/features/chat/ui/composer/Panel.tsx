@@ -13,6 +13,7 @@ import { EmojiTab } from './panel/EmojiTab';
 import { GifTab } from './panel/GifTab';
 import { StickerTab } from './panel/StickerTab';
 import { lastPanelTab, panelTabs, rememberPanelTab, handleOutcome, type PanelTab } from './panel/logic';
+import { reach } from '../../../../ui/touch';
 
 const tabIcons: Record<PanelTab, IconName> = { emoji: 'emoji', sticker: 'sticker', gif: 'gif' };
 function tabEnter() {
@@ -125,6 +126,7 @@ export function ComposerPanel({
                 accessibilityLabel={t(`panel.${key}`)}
                 accessibilityState={{ selected }}
                 onPress={() => choose(key)}
+                hitSlop={reach(tabHeight, tabWidth)}
                 style={[styles.tab, selected && { backgroundColor: colors.select }]}
                 testID={`panel-tab-${key}`}>
                 <Icon name={tabIcons[key]} variant={selected ? 'fill' : 'line'} color={selected ? colors.selectInk : colors.inkSoft} />
@@ -137,11 +139,14 @@ export function ComposerPanel({
   );
 }
 
+const tabWidth = 64;
+const tabHeight = 40;
+
 const styles = StyleSheet.create({
   panel: { flex: 1 },
   handleArea: { height: 16, alignItems: 'center', justifyContent: 'center' },
   handle: { width: 32, height: 4, borderRadius: radius.pill },
   content: { flex: 1, paddingHorizontal: space.sm, gap: space.xs },
   tabs: { flexDirection: 'row', justifyContent: 'center', gap: space.lg, borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: space.xs },
-  tab: { minWidth: 64, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  tab: { minWidth: tabWidth, height: tabHeight, borderRadius: tabHeight / 2, alignItems: 'center', justifyContent: 'center' },
 });

@@ -12,9 +12,13 @@ import { noteEmoji, recentEmoji, rememberSkin, searchEmoji, skinFor, skinTones, 
 import type { Sticker } from '../../../types';
 import { StickerCell } from './StickerCell';
 import { emojiColumns, emojiRows, type EmojiRow, type EmojiSection } from './logic';
+import { reachBelow, touchTarget } from '../../../../../ui/touch';
 
 const toneLabels = ['panel.tone0', 'panel.tone1', 'panel.tone2', 'panel.tone3', 'panel.tone4', 'panel.tone5'] as const;
 const cellSize = 46;
+const categoryWidth = 36;
+const categoryHeight = 32;
+const categorySlop = reachBelow(categoryHeight, space.xs);
 const headerHeight = 32;
 const holdMs = 420;
 
@@ -161,9 +165,12 @@ export function EmojiTab({
                     setActive(section);
                     list.current?.scrollToIndex({ index: headers[index], animated: false });
                   }}
-                  style={[styles.category, selected && { backgroundColor: colors.select }]}
+                  hitSlop={categorySlop}
+                  style={styles.category}
                   testID={`emoji-tab-${section}`}>
-                  <Icon name={sectionIcons[section]} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
+                  <View style={[styles.categoryMark, selected && { backgroundColor: colors.select }]}>
+                    <Icon name={sectionIcons[section]} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
+                  </View>
                 </Pressable>
               );
             })}
@@ -228,10 +235,11 @@ export function EmojiTab({
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  search: { flex: 1, height: 40, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
+  search: { flex: 1, height: touchTarget, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
   square: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  categories: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: space.xs },
-  category: { width: 36, height: 32, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  categories: { flexDirection: 'row', paddingTop: categorySlop.top, paddingBottom: categorySlop.bottom },
+  category: { flex: 1, height: categoryHeight, alignItems: 'center', justifyContent: 'center' },
+  categoryMark: { width: categoryWidth, height: categoryHeight, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   header: { height: headerHeight, lineHeight: headerHeight, fontWeight: '600', paddingHorizontal: space.xs },
   row: { flexDirection: 'row' },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },

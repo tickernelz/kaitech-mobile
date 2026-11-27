@@ -6,7 +6,7 @@ import { onPresenceChange, userInApp } from '../features/call/presence';
 
 export const lockAfterMs = 5 * 60 * 1000;
 
-export type LockMethod = 'faceId' | 'touchId' | 'biometric';
+export type LockMethod = 'faceId' | 'touchId' | 'biometric' | 'passcode';
 
 type LockState = { enabled: boolean; locked: boolean };
 
@@ -49,12 +49,13 @@ export function lockEnabled(): boolean {
 }
 
 export async function lockMethod(): Promise<LockMethod | null> {
-  const [hardware, enrolled, types] = await Promise.all([
+  const [hardware, enrolled, level, types] = await Promise.all([
     LocalAuthentication.hasHardwareAsync(),
     LocalAuthentication.isEnrolledAsync(),
+    LocalAuthentication.getEnrolledLevelAsync(),
     LocalAuthentication.supportedAuthenticationTypesAsync(),
   ]);
-  if (!hardware || !enrolled) return null;
+  if (!hardware || !enrolled) return level === LocalAuthentication.SecurityLevel.NONE ? null : 'passcode';
   if (Platform.OS !== 'ios') return 'biometric';
   if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) return 'faceId';
   if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) return 'touchId';
@@ -82,6 +83,10 @@ export async function unlock(prompt: string, cancel: string): Promise<boolean> {
   const ok = await authenticate(prompt, cancel);
   if (ok) set({ locked: false });
   return ok;
+}
+
+export async function deviceHasScreenLock(): Promise<boolean> {
+  return (await LocalAuthentication.getEnrolledLevelAsync()) !== LocalAuthentication.SecurityLevel.NONE;
 }
 
 export function resetLock() {
