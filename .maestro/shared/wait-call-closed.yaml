@@ -1,0 +1,21 @@
+appId: io.kaitech.mobile
+name: Wait until the call screen has closed and the thread has settled
+---
+- evalScript: ${output.closeBy = Date.now() + 15000}
+- repeat:
+    while:
+      true: ${Date.now() < output.closeBy}
+      visible:
+        id: call-screen
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 1000
+- evalScript: ${output.settleBy = Date.now() + 2000}
+- repeat:
+    while:
+      true: ${Date.now() < output.settleBy}
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 500
+- assertNotVisible:
+    id: call-screen

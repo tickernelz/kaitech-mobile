@@ -169,9 +169,23 @@ function reactionsFromStore(data: unknown, myPartnerId: number): Map<number, Rea
   return byMessage;
 }
 
-function callOf(historyIds: number[], calls: Map<number, CallRecord>): { call?: CallRecord } {
+function callOf(historyIds: number[], calls: Map<number, CallRecord>): Pick<Message, 'call' | 'callHistoryId'> {
   const found = historyIds.map((historyId) => calls.get(historyId)).find((record) => record !== undefined);
-  return found ? { call: found } : {};
+  return { ...(found ? { call: found } : {}), ...(historyIds.length ? { callHistoryId: historyIds[0] } : {}) };
+}
+
+export function callNoticeChanges(data: unknown): { messageIds: number[]; endedHistoryIds: number[] } {
+  const present = (value: number | null): value is number => value !== null;
+  return {
+    messageIds: records(data, 'mail.message')
+      .filter((raw) => 'call_history_ids' in raw)
+      .map((raw) => id(raw.id))
+      .filter(present),
+    endedHistoryIds: records(data, 'discuss.call.history')
+      .filter((raw) => Boolean(text(raw.end_dt)))
+      .map((raw) => id(raw.id))
+      .filter(present),
+  };
 }
 
 export function messagesFromStore(data: unknown, myPartnerId: number): Message[] {

@@ -18,6 +18,7 @@ name: A placed call rings until someone joins and then counts from 00:00; an una
     visible:
       id: composer-input
     timeout: 30000
+- evalScript: ${output.placed = [0, 60000].map((ahead) => new Date(Date.now() + ahead)).map((at) => String(at.getHours()).padStart(2, '0') + '[.:]' + String(at.getMinutes()).padStart(2, '0')).join('|')}
 - tapOn:
     id: call-start
 - extendedWaitUntil:
@@ -55,13 +56,15 @@ name: A placed call rings until someone joins and then counts from 00:00; an una
     file: ../shared/screenshot.yaml
     env:
       SCREEN: ring-c3-no-answer
+- runFlow:
+    file: ../shared/wait-call-closed.yaml
 - extendedWaitUntil:
     visible:
       id: composer-input
     timeout: 15000
 - extendedWaitUntil:
     visible:
-      text: (No answer|Tidak dijawab) · .*
+      text: '(No answer|Tidak dijawab) · (${output.placed})'
     timeout: 15000
 - runFlow:
     file: ../shared/screenshot.yaml
@@ -87,6 +90,8 @@ name: A placed call rings until someone joins and then counts from 00:00; an una
     file: ../shared/screenshot.yaml
     env:
       SCREEN: ring-c5-declined
+- runFlow:
+    file: ../shared/wait-call-closed.yaml
 - extendedWaitUntil:
     visible:
       id: composer-input
@@ -115,7 +120,13 @@ name: A placed call rings until someone joins and then counts from 00:00; an una
       SCREEN: ring-c6-answered
 - tapOn:
     id: call-hangup
+- runFlow:
+    file: ../shared/wait-call-closed.yaml
 - extendedWaitUntil:
     visible:
       id: composer-input
     timeout: 15000
+- runScript:
+    file: ../scripts/call-peer-command.js
+    env:
+      PEER_ACTION: leave

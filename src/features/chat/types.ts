@@ -61,6 +61,7 @@ export type Message = {
   parentId: number | null;
   reactions: Reaction[];
   call?: CallRecord;
+  callHistoryId?: number;
   starred?: boolean;
   pinnedAt?: string | null;
   edited?: boolean;
