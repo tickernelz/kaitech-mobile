@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { BackHandler, Keyboard, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { radius, space, useTheme } from '../../../../theme';
@@ -27,9 +27,23 @@ export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] 
   const { height } = useWindowDimensions();
   const largeText = useLargeText();
   const reduce = useReducedMotion();
+  const inWindow = Platform.OS === 'android';
   const [mounted, setMounted] = useState(visible);
   const shown = useSharedValue(0);
+  const close = useRef(onClose);
   if (visible && !mounted) setMounted(true);
+  useEffect(() => {
+    close.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    if (!inWindow || !visible) return;
+    Keyboard.dismiss();
+    const back = BackHandler.addEventListener('hardwareBackPress', () => {
+      close.current();
+      return true;
+    });
+    return () => back.remove();
+  }, [inWindow, visible]);
   useEffect(() => {
     if (visible) {
       shown.set(reduce ? withTiming(1, { duration: duration.quick }) : withTiming(1, { duration: duration.hero, easing: easing.expo }));
@@ -37,51 +51,67 @@ export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] 
     }
     shown.set(
       withTiming(0, { duration: reduce ? duration.quick : duration.base, easing: easing.exit }, (done) => {
-        if (done) scheduleOnRN(setMounted, false);
+        if (done && !inWindow) scheduleOnRN(setMounted, false);
       }),
     );
-  }, [reduce, shown, visible]);
+  }, [inWindow, reduce, shown, visible]);
   const scrim = useAnimatedStyle(() => ({ opacity: Math.min(1, shown.get() * 1.8) }));
   const sheet = useAnimatedStyle(() => (reduce ? { opacity: shown.get() } : { transform: [{ translateY: (1 - shown.get()) * height }] }));
+  const content = (
+    <>
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }, scrim]}>
+        <Pressable style={styles.fill} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button" />
+      </Animated.View>
+      <Animated.View style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }, sheet]} accessibilityViewIsModal testID="attach-sheet">
+        <View style={[styles.handle, { backgroundColor: colors.lineStrong }]} />
+        <View style={styles.grid}>
+          {[
+            ...attachSources.filter((source) => source !== 'audio').map((source) => ({ key: source, icon: sourceIcons[source], label: t(`composer.source.${source}`), onPress: () => onPick(source) })),
+            ...tools,
+            ...attachSources.filter((source) => source === 'audio').map((source) => ({ key: source, icon: sourceIcons[source], label: t(`composer.source.${source}`), onPress: () => onPick(source) })),
+          ].map((item) => (
+            <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={item.label} onPress={item.onPress} style={[styles.item, largeText && styles.itemWide]} testID={`attach-${item.key}`}>
+              <View style={[styles.circle, { backgroundColor: colors.surface2 }]}>
+                <Icon name={item.icon} color={colors.ink} />
+              </View>
+              <Text variant="footnote" style={styles.center} numberOfLines={1}>
+                {item.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        {extras.length ? <View style={[styles.divider, { backgroundColor: colors.line }]} /> : null}
+        {extras.map((extra) => (
+          <SheetItem key={extra.key} icon={extra.icon} label={extra.label} detail={extra.detail} disabled={extra.disabled} onPress={extra.onPress} testID={`extra-${extra.key}`} />
+        ))}
+        <Text variant="label" tone="inkFaint" style={styles.note}>
+          {t('composer.pickerNote')}
+        </Text>
+      </Animated.View>
+    </>
+  );
+  if (inWindow) {
+    if (!mounted) return null;
+    return (
+      <View
+        pointerEvents={visible ? 'auto' : 'none'}
+        importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}
+        style={[styles.root, styles.inWindow, { height }]}
+        testID="attach-layer">
+        {content}
+      </View>
+    );
+  }
   return (
     <Overlay visible={mounted} transparent animationType="none" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <View style={styles.root}>
-        <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }, scrim]}>
-          <Pressable style={styles.fill} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button" />
-        </Animated.View>
-        <Animated.View style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }, sheet]} accessibilityViewIsModal testID="attach-sheet">
-          <View style={[styles.handle, { backgroundColor: colors.lineStrong }]} />
-          <View style={styles.grid}>
-            {[
-              ...attachSources.filter((source) => source !== 'audio').map((source) => ({ key: source, icon: sourceIcons[source], label: t(`composer.source.${source}`), onPress: () => onPick(source) })),
-              ...tools,
-              ...attachSources.filter((source) => source === 'audio').map((source) => ({ key: source, icon: sourceIcons[source], label: t(`composer.source.${source}`), onPress: () => onPick(source) })),
-            ].map((item) => (
-              <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={item.label} onPress={item.onPress} style={[styles.item, largeText && styles.itemWide]} testID={`attach-${item.key}`}>
-                <View style={[styles.circle, { backgroundColor: colors.surface2 }]}>
-                  <Icon name={item.icon} color={colors.ink} />
-                </View>
-                <Text variant="footnote" style={styles.center} numberOfLines={1}>
-                  {item.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          {extras.length ? <View style={[styles.divider, { backgroundColor: colors.line }]} /> : null}
-          {extras.map((extra) => (
-            <SheetItem key={extra.key} icon={extra.icon} label={extra.label} detail={extra.detail} disabled={extra.disabled} onPress={extra.onPress} testID={`extra-${extra.key}`} />
-          ))}
-          <Text variant="label" tone="inkFaint" style={styles.note}>
-            {t('composer.pickerNote')}
-          </Text>
-        </Animated.View>
-      </View>
+      <View style={styles.root}>{content}</View>
     </Overlay>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
+  inWindow: { position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 10, elevation: 10 },
   fill: { flex: 1 },
   sheet: { width: '100%', maxWidth: 560, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm },
   handle: { alignSelf: 'center', width: 32, height: 4, borderRadius: radius.pill, marginBottom: space.sm },
