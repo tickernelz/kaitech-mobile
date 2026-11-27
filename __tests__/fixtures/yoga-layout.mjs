@@ -1,4 +1,4 @@
-import { loadYoga, Align, Direction, Display, Edge, FlexDirection, Gutter, Justify, MeasureMode, PositionType, Wrap } from 'yoga-layout/load';
+import { loadYoga, Align, Direction, Display, Edge, FlexDirection, Gutter, Justify, MeasureMode, Overflow, PositionType, Wrap } from 'yoga-layout/load';
 
 const charWidth = 8;
 const lineHeight = 20;
@@ -13,6 +13,7 @@ const edges = { Left: Edge.Left, Right: Edge.Right, Top: Edge.Top, Bottom: Edge.
 function apply(node, style) {
   const set = (key, fn) => style[key] !== undefined && fn(style[key]);
   set('display', (v) => node.setDisplay(v === 'none' ? Display.None : Display.Flex));
+  set('overflow', (v) => node.setOverflow(v === 'scroll' ? Overflow.Scroll : v === 'hidden' ? Overflow.Hidden : Overflow.Visible));
   set('position', (v) => node.setPositionType(v === 'absolute' ? PositionType.Absolute : PositionType.Relative));
   set('flexDirection', (v) => node.setFlexDirection(enums.flexDirection[v]));
   set('alignItems', (v) => node.setAlignItems(enums.align[v]));
