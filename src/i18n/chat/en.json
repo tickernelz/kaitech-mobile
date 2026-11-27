@@ -134,10 +134,7 @@
       "code": "Code",
       "link": "Link",
       "quote": "Quote",
-      "list": "List",
-      "hide": "Hide formatting",
-      "show": "Show formatting",
-      "glyph": "Aa"
+      "list": "List"
     },
     "editing": "Editing message",
     "cancelEdit": "Cancel editing",

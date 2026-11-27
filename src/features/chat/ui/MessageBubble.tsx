@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
+import { haptic } from '../../../ui/haptic';
 import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
 import { attachmentUrl, isCallNotice, isRemoved, type ReadState } from '../odoo';
@@ -17,6 +18,7 @@ import { LocationCard } from './LocationCard';
 import { PollCard } from './PollCard';
 import { RichMedia, richLabel } from './RichMedia';
 import { LONG_PRESS_MS, RichText } from './RichText';
+import { SwipeReply } from './SwipeReply';
 import { MediaAttachment } from './media/Tiles';
 import { tileMax } from '../media/kind';
 import { VoiceNote } from './VoiceNote';
@@ -132,6 +134,7 @@ export const MessageBubble = memo(function MessageBubble({
   origin,
   hasThread,
   onLongPress,
+  onReply,
   onQuotePress,
   onReact,
   onOpenThread,
@@ -147,6 +150,7 @@ export const MessageBubble = memo(function MessageBubble({
   origin: string;
   hasThread: boolean;
   onLongPress: (message: Message) => void;
+  onReply?: (message: Message) => void;
   onQuotePress: (id: number) => void;
   onReact: (message: Message, content: string) => void;
   onOpenThread: (message: Message) => void;
@@ -156,7 +160,10 @@ export const MessageBubble = memo(function MessageBubble({
   const { t, i18n } = useTranslation('chat');
   const { colors } = useTheme();
   const { clock } = useChatFormat();
-  const hold = useCallback(() => onLongPress(message), [onLongPress, message]);
+  const hold = useCallback(() => {
+    haptic.start();
+    onLongPress(message);
+  }, [onLongPress, message]);
   const removed = isRemoved(message);
   const shownBody = message.translated && message.translation ? message.translation.body : message.body;
   const blocks = removed ? [] : bodyBlocks(shownBody);
@@ -311,14 +318,22 @@ export const MessageBubble = memo(function MessageBubble({
       ) : null}
     </>
   );
+  const swipeable = (row: ReactNode) =>
+    onReply && !removed ? (
+      <SwipeReply message={message} onReply={onReply}>
+        {row}
+      </SwipeReply>
+    ) : (
+      row
+    );
   if (face === 'none' || mine) {
-    return (
+    return swipeable(
       <View style={[styles.wrap, mine ? styles.wrapMine : styles.wrapTheirs]} testID={`message-${message.id}`}>
         {body}
-      </View>
+      </View>,
     );
   }
-  return (
+  return swipeable(
     <View style={[styles.wrap, styles.withFace]} testID={`message-${message.id}`}>
       {face === 'show' ? (
         <Pressable
@@ -334,7 +349,7 @@ export const MessageBubble = memo(function MessageBubble({
         <View style={styles.faceSpace} />
       )}
       <View style={styles.faceColumn}>{body}</View>
-    </View>
+    </View>,
   );
 });
 
