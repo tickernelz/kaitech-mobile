@@ -590,6 +590,7 @@ export const Composer = forwardRef<
           testID="composer-panel-clip">
           <View style={{ height: target }} testID={panel ? 'composer-panel-box' : undefined}>
             <ComposerPanel
+              shown={panel}
               origin={origin}
               full={full}
               searching={searching}

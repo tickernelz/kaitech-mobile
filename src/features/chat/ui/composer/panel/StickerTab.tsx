@@ -12,7 +12,7 @@ import type { Result } from '../../../messageActions';
 import { mediaSource } from '../../../rich';
 import type { Sticker } from '../../../types';
 import { useCookie } from '../../useCookie';
-import { usePaged, useVisiblePlaying } from './paging';
+import { usePaged, useVisiblePlaying, useWhenPanelShows } from './paging';
 import { MediaPreview } from './Preview';
 import { StickerCell } from './StickerCell';
 import { PanelState, Skeleton } from './states';
@@ -37,6 +37,10 @@ export function StickerTab({
   const [provider, setProvider] = useState(false);
   const [active, setActive] = useState<string | null>(null);
   const [preview, setPreview] = useState<Sticker | null>(null);
+  useWhenPanelShows(
+    () => undefined,
+    () => setPreview(null),
+  );
   const list = useRef<FlashListRef<StickerRow>>(null);
   const visible = useVisiblePlaying();
   const value = shelf?.ok ? shelf.value : null;
@@ -156,6 +160,10 @@ function ProviderStickers({ onPick, onSearching, onPreview }: { onPick: (sticker
   const { colors } = useTheme();
   const [query, setQuery] = useState('');
   const [width, setWidth] = useState(0);
+  useWhenPanelShows(
+    () => undefined,
+    () => setQuery(''),
+  );
   const page = usePaged(providerStickerPage, query, 'sticker');
   const visible = useVisiblePlaying();
   const problem = problemOf(page.failure);

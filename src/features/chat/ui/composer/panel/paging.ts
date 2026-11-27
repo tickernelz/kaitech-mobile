@@ -1,10 +1,27 @@
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import type { Attribution, Page } from '../../../composerExtras';
 import type { Failure, Result } from '../../../messageActions';
 import { failureText } from '../../actions/failure';
+
+export const PanelShown = createContext(true);
+
+export function useWhenPanelShows(shows: () => void, hides: () => void) {
+  const shown = useContext(PanelShown);
+  const calls = useRef({ shows, hides });
+  useEffect(() => {
+    calls.current = { shows, hides };
+  });
+  const was = useRef(shown);
+  useEffect(() => {
+    if (shown === was.current) return;
+    was.current = shown;
+    if (shown) calls.current.shows();
+    else calls.current.hides();
+  }, [shown]);
+}
 
 export const searchDelay = 350;
 export const maxPlaying = 8;
@@ -66,6 +83,7 @@ export function usePaged<T>(load: (query: string, position: string | null) => Pr
 
 export function useVisiblePlaying() {
   const reduce = useReducedMotion();
+  const shown = useContext(PanelShown);
   const [playing, setPlaying] = useState<Set<string>>(() => new Set());
   const [active, setActive] = useState(AppState.currentState === 'active');
   useEffect(() => {
@@ -76,5 +94,5 @@ export function useVisiblePlaying() {
     const keys = viewableItems.filter((entry) => entry.isViewable !== false && entry.key).map((entry) => entry.key as string);
     setPlaying(new Set(keys.slice(0, maxPlaying)));
   };
-  return { isPlaying: (key: string) => !reduce && active && playing.has(key), onViewableItemsChanged, viewabilityConfig: { itemVisiblePercentThreshold: 50 } };
+  return { isPlaying: (key: string) => shown && !reduce && active && playing.has(key), onViewableItemsChanged, viewabilityConfig: { itemVisiblePercentThreshold: 50 } };
 }

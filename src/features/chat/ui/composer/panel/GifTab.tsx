@@ -10,7 +10,7 @@ import { Text } from '../../../../../ui/Text';
 import { useChat } from '../../../chat';
 import { gifCategories, gifPage, type GifCategory } from '../../../composerExtras';
 import type { GifMedia } from '../../../types';
-import { usePaged, useVisiblePlaying } from './paging';
+import { usePaged, useVisiblePlaying, useWhenPanelShows } from './paging';
 import { MediaPreview } from './Preview';
 import { GifCell } from './StickerCell';
 import { PanelState, Skeleton } from './states';
@@ -27,6 +27,14 @@ export function GifTab({ initialQuery, onPick, onSearching }: { initialQuery: st
   const [categories, setCategories] = useState<GifCategory[]>([]);
   const [width, setWidth] = useState(0);
   const [preview, setPreview] = useState<GifMedia | null>(null);
+  useWhenPanelShows(
+    () => undefined,
+    () => {
+      setQuery('');
+      setCategory(null);
+      setPreview(null);
+    },
+  );
   const search = query.trim() || category?.query || '';
   const page = usePaged(gifPage, search, 'gif');
   const visible = useVisiblePlaying();
