@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type ComponentRef, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BackHandler, Keyboard, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -31,6 +31,9 @@ export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] 
   const [mounted, setMounted] = useState(visible);
   const shown = useSharedValue(0);
   const close = useRef(onClose);
+  const layer = useRef<ComponentRef<typeof View>>(null);
+  const [drop, setDrop] = useState(0);
+  const reachWindowBottom = () => layer.current?.measureInWindow((_x, y, _width, layerHeight) => setDrop((current) => Math.max(0, Math.round(current + height - (y + layerHeight)))));
   if (visible && !mounted) setMounted(true);
   useEffect(() => {
     close.current = onClose;
@@ -94,9 +97,11 @@ export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] 
     if (!mounted) return null;
     return (
       <View
+        ref={layer}
+        onLayout={reachWindowBottom}
         pointerEvents={visible ? 'auto' : 'none'}
         importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}
-        style={[styles.root, styles.inWindow, { height }]}
+        style={[styles.root, styles.inWindow, { height, bottom: -drop }]}
         testID="attach-layer">
         {content}
       </View>
