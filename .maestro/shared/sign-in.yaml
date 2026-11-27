@@ -76,6 +76,34 @@ name: Sign in on the server page and finish setup when the app is signed out
     visible:
       text: (Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
     timeout: 60000
+- runFlow:
+    when:
+      notVisible:
+        text: .*${LOGIN}.*
+    commands:
+      - tapOn:
+          text: .*(Bukan Anda|Not you|akun lain|another account).*
+      - extendedWaitUntil:
+          visible:
+            text: (Email|Password|Kata Sandi)
+          timeout: 60000
+      - tapOn:
+          text: (Email|Login)
+          index: 0
+      - inputText: ${LOGIN}
+      - hideKeyboard
+      - scrollUntilVisible:
+          element:
+            text: (Password|Kata Sandi)
+      - tapOn:
+          text: (Password|Kata Sandi)
+          index: 0
+      - inputText: ${PASSWORD}
+      - pressKey: Enter
+      - extendedWaitUntil:
+          visible:
+            text: (Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
+          timeout: 60000
 - scrollUntilVisible:
     element:
       text: (Sign in|Masuk)
