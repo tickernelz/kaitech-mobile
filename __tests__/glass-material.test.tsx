@@ -79,7 +79,9 @@ describe('glass stands apart from a plain screen', () => {
   test.each(oses)('on %s in light the button well stands apart from the capsule body', (os) => {
     const glass = glassMaterial('light', 'regular', os);
     for (const screenColor of screens('light')[os]) {
-      const body = over(glass.tint, parse(screenColor).rgb);
+      const ground = parse(screenColor).rgb;
+      const body = over(glass.tint, ground);
+      expect(contrast(body, ground)).toBeGreaterThanOrEqual(1.3);
       expect(contrast(over(glass.well, body), body)).toBeGreaterThanOrEqual(1.2);
     }
   });
