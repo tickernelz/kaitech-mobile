@@ -2,6 +2,20 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.14.0 - 2026-11-28
+
+### Added
+
+- Calls: in a voice call held to the ear, the screen turns off and ignores touches, and turns on again when the phone moves away, like the phone app. It only happens while the call screen is open, nobody shows a camera or screen share, and the sound plays from the earpiece; the speaker, a Bluetooth or wired headset, picture-in-picture, the background or the end of the call keep the screen on. Checked on the Meizu Mblu 21: the proximity screen-off lock was held 1.4 s after answering, released 0.8 s after the other person turned a camera on and 0.2 s after choosing the speaker or hanging up, and taken back when the camera or speaker went off (#144, ZHA-7992).
+
+### Fixed
+
+- App lock: when signing out from the lock screen fails, the Sign out button stops spinning and the lock screen says so, instead of spinning forever (#149, ZHA-7439).
+
+### Known gaps
+
+- iOS: the screen-off at the ear is built and compiled, not checked on a device (#144, ZHA-7992).
+
 ## 0.13.0 - 2026-11-27
 
 ### Changed
