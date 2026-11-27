@@ -104,6 +104,7 @@ jest.mock('../src/features/chat/ui/composer/LocationPicker', () => ({ LocationPi
 const { Composer } = require('../src/features/chat/ui/Composer') as typeof import('../src/features/chat/ui/Composer');
 const { DialogLayer } = require('../src/ui/Dialog') as typeof import('../src/ui/Dialog');
 const { pill } = require('../src/ui/pill') as typeof import('../src/ui/pill');
+const { measureRendered } = require('./fixtures/measure') as typeof import('./fixtures/measure');
 
 const hidden = { includeHiddenElements: true };
 
@@ -157,9 +158,9 @@ describe('adaptive composer', () => {
   it('keeps one pill-sized slot for mic and send so the row does not move', async () => {
     await show();
     const slot = screen.getByTestId('composer-send-slot', hidden);
-    expect(slot.props.style).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
+    expect(StyleSheet.flatten(slot.props.style)).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
     await fireEvent.changeText(screen.getByTestId('composer-input'), 'halo');
-    expect(screen.getByTestId('composer-send-slot', hidden).props.style).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
+    expect(StyleSheet.flatten(screen.getByTestId('composer-send-slot', hidden).props.style)).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
   });
 
   it('sends the typed text and goes back to the microphone', async () => {
@@ -214,7 +215,7 @@ describe('adaptive composer', () => {
     expect(mockDiscard).toHaveBeenCalledTimes(1);
     await fireEvent.press(screen.getByTestId('composer-send-voice'));
     expect(mockSendVoice).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('composer-send-slot', hidden).props.style).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
+    expect(StyleSheet.flatten(screen.getByTestId('composer-send-slot', hidden).props.style)).toMatchObject({ width: pill.composer.button, height: pill.composer.button });
   });
 
   it('shows the paused draft with its interruption banner and the send-voice button', async () => {
@@ -285,6 +286,40 @@ describe('adaptive composer', () => {
   });
 });
 
+describe('composer capsule spacing', () => {
+  const touch = 48;
+  const element = () => createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent: jest.fn() });
+  const states = {
+    empty: async () => undefined,
+    typing: async () => fireEvent.changeText(screen.getByTestId('composer-input'), 'Uji kapsul kaca light'),
+    panel: async () => fireEvent.press(screen.getByTestId('composer-panel-toggle')),
+  };
+  const cases = ([360, 411, 800] as const).flatMap((width) => [true, false].flatMap((seeThrough) => (Object.keys(states) as (keyof typeof states)[]).map((state) => [state, width, seeThrough] as const)));
+
+  it.each(cases)('%s at %i dp (see-through %s): end icons sit as far from the capsule edge as attach, and clear of the send button', async (state, width, seeThrough) => {
+    mockSeeThrough = seeThrough;
+    await render(element());
+    await states[state]();
+    await screen.rerender(element());
+    const box = measureRendered(screen.toJSON(), width);
+    const capsule = box['composer-capsule'];
+    const send = box['composer-send-slot'];
+    const ids = ['composer-attach', state === 'panel' ? 'composer-keyboard' : 'composer-panel-toggle', ...(state === 'typing' ? [] : ['composer-camera'])];
+    const icons = ids.map((id) => {
+      const left = box[id].left + (box[id].width - pill.composer.icon) / 2;
+      return { id, left, right: left + pill.composer.icon };
+    });
+    const lead = icons[0].left - capsule.left;
+    const trail = capsule.left + capsule.width - icons[icons.length - 1].right;
+    expect(lead).toBeGreaterThanOrEqual(12);
+    expect(trail).toBe(lead);
+    expect(send.left - icons[icons.length - 1].right).toBeGreaterThanOrEqual(lead + pill.composer.gap);
+    for (let i = 1; i < icons.length; i++) expect([icons[i].id, icons[i].left - icons[i - 1].right >= lead]).toEqual([icons[i].id, true]);
+    for (const id of ids) expect([id, Math.min(box[id].width, box[id].height) >= touch]).toEqual([id, true]);
+    expect([send.top, send.height]).toEqual([capsule.top, capsule.height]);
+  });
+});
+
 describe('floating composer', () => {
   const flat = (testID: string) => Object.assign({}, ...[screen.getByTestId(testID, hidden).props.style].flat(3).filter(Boolean));
   const within = (child: string, parent: string) => {
@@ -346,6 +381,12 @@ describe('floating composer', () => {
       const box = flat(id);
       expect([id, edge + (box.height ?? box.minHeight) / 2]).toEqual([id, centre]);
     }
+  });
+
+  it.each([true, false])('puts the send button on the capsule layer: same shadow, or none when solid (see-through %s)', async (seeThrough) => {
+    mockSeeThrough = seeThrough;
+    await show();
+    expect(flat('composer-send-slot').boxShadow).toBe(seeThrough ? flat('composer-capsule').boxShadow : undefined);
   });
 
   it('a recording row sits in the same glass capsule, so it stays readable over the chat', async () => {
