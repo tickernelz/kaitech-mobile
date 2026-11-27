@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useChat } from '../chat/chat';
 import { backgroundFor, useChatAppearance, type Background, type Scope } from './appearance';
 import { useDevicePhoto, useDim } from './devicePhoto';
@@ -27,5 +27,17 @@ export const BackgroundPaint = memo(function BackgroundPaint({ background, scope
 export function ChatBackground({ channelId }: { channelId: number }) {
   const accountId = useChat((state) => state.accountId);
   const { background, scope } = backgroundFor(useChatAppearance(accountId), channelId);
-  return <BackgroundPaint background={background} scope={scope} accountId={accountId} />;
+  const { height } = useWindowDimensions();
+  return (
+    <View pointerEvents="none" style={styles.clip} testID="chat-background">
+      <View style={[styles.pinned, { height }]}>
+        <BackgroundPaint background={background} scope={scope} accountId={accountId} />
+      </View>
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  clip: { ...StyleSheet.absoluteFill, overflow: 'hidden' },
+  pinned: { position: 'absolute', top: 0, left: 0, right: 0 },
+});

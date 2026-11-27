@@ -85,6 +85,8 @@ function Frame({
   interactive?: boolean;
 }) {
   const { colors } = useTheme();
+  const fill = mine ? colors.select : colors.surface;
+  const edge = mine && !failed ? null : failed ? colors.danger : colors.line;
   return (
     <Pressable
       onLongPress={onLongPress}
@@ -95,15 +97,21 @@ function Frame({
       accessibilityActions={onLongPress ? [{ name: 'longpress' }] : undefined}
       onAccessibilityAction={onLongPress ? () => onLongPress() : undefined}
       testID={testID}
-      style={[
-        styles.bubble,
-        mine ? styles.mine : styles.theirs,
-        bare
-          ? [styles.bare, failed && { borderColor: colors.danger }]
-          : [mine && !failed ? styles.plain : { borderColor: failed ? colors.danger : colors.line }, { backgroundColor: mine ? colors.select : colors.surface }],
-      ]}>
+      style={[styles.bubble, bare ? [styles.bare, failed && { borderColor: colors.danger }] : [edge ? { borderColor: edge } : styles.plain, { backgroundColor: fill }]]}>
+      {bare ? null : <Tail mine={mine} fill={fill} edge={edge} />}
       {children}
     </Pressable>
+  );
+}
+
+function Tail({ mine, fill, edge }: { mine: boolean; fill: string; edge: string | null }) {
+  const outset = edge ? StyleSheet.hairlineWidth : 0;
+  const side = mine ? 'right' : 'left';
+  return (
+    <>
+      {edge ? <View pointerEvents="none" style={[styles.tail, { [side]: -outset, bottom: -outset, backgroundColor: edge }]} testID="bubble-tail-edge" /> : null}
+      <View pointerEvents="none" style={[styles.tail, { [side]: 0, bottom: 0, backgroundColor: fill }]} testID="bubble-tail" />
+    </>
   );
 }
 
@@ -454,9 +462,8 @@ const styles = StyleSheet.create({
   wrapTheirs: { alignItems: 'flex-start' },
   bubble: { maxWidth: '80%', minWidth: 88, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   bare: { backgroundColor: 'transparent', borderColor: 'transparent', paddingHorizontal: 0, minWidth: 0 },
-  mine: { borderBottomRightRadius: radius.sm },
   plain: { borderWidth: 0 },
-  theirs: { borderBottomLeftRadius: radius.sm },
+  tail: { position: 'absolute', width: radius.card, height: radius.card, borderRadius: radius.sm },
   quoteBox: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
   file: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48, width: 260, maxWidth: '100%' },
