@@ -10,6 +10,7 @@ const mockStartLocked = jest.fn();
 const mockKeyboard = { isVisible: false, height: 0 };
 let mockVoiceState: { phase: string; locked?: boolean; reason?: string | null } = { phase: 'idle' };
 let mockSeeThrough = true;
+let mockInsetBottom = 0;
 
 jest.mock('react-native-reanimated', () => {
   const { View } = jest.requireActual('react-native');
@@ -46,7 +47,7 @@ jest.mock('react-native-keyboard-controller', () => ({
   useReanimatedKeyboardAnimation: () => ({ height: { get: () => 0 }, progress: { get: () => 0 } }),
 }));
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() }));
-jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
+jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: mockInsetBottom, left: 0, right: 0 }) }));
 const mockRequestCamera = jest.fn(async () => ({ granted: false, canAskAgain: true }));
 jest.mock('expo-image-picker', () => ({
   getCameraPermissionsAsync: jest.fn(async () => ({ granted: false, canAskAgain: true })),
@@ -124,6 +125,7 @@ beforeEach(() => {
   mockKeyboard.height = 0;
   mockSend.mockClear();
   mockSeeThrough = true;
+  mockInsetBottom = 0;
 });
 
 describe('adaptive composer', () => {
@@ -280,6 +282,21 @@ describe('floating composer', () => {
     expect(onOverlap).toHaveBeenLastCalledWith(8 + 60 + 8);
     await fireEvent(screen.getByTestId('composer-float'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 104 } } });
     expect(onOverlap).toHaveBeenLastCalledWith(8 + 104 + 8);
+  });
+
+  it('keeps the overlap when the keyboard opens, so ThreadView does not re-render mid-animation', async () => {
+    mockInsetBottom = 24;
+    const onOverlap = jest.fn();
+    const onSent = jest.fn();
+    const composer = () => createElement(Composer, { accountId: 'a', channelId: 12, messages: [], onSent, onOverlap });
+    await render(composer());
+    await fireEvent(screen.getByTestId('composer-float'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 60 } } });
+    expect(onOverlap).toHaveBeenLastCalledWith(8 + 60 + 24 + 8);
+    mockKeyboard.isVisible = true;
+    mockKeyboard.height = 300;
+    await screen.rerender(composer());
+    expect(Object.assign({}, ...[screen.getByTestId('composer').props.style].flat(3).filter(Boolean)).paddingBottom).toBe(8);
+    expect(onOverlap).toHaveBeenCalledTimes(1);
   });
 
   it('turns solid with a hairline edge when Reduce Transparency or high contrast is on', async () => {

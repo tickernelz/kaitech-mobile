@@ -412,46 +412,47 @@ export const Composer = forwardRef<
   const composeIn = useMotion(FadeIn.duration(duration.quick).delay(discarding ? 680 : 0));
   const groupOut = useMotion(FadeOut.duration(duration.quick));
   const bottom = useBottomInset(space.sm, keyboardVisible || panel);
+  const resting = useBottomInset(space.sm);
   const [floatHeight, setFloatHeight] = useState(0);
   useEffect(() => {
-    if (floatHeight) onOverlap?.(space.sm + floatHeight + bottom);
-  }, [bottom, floatHeight, onOverlap]);
+    if (floatHeight) onOverlap?.(space.sm + floatHeight + resting);
+  }, [floatHeight, onOverlap, resting]);
   const solidCapsule = { backgroundColor: colors.surface, borderColor: colors.line, borderWidth: StyleSheet.hairlineWidth };
 
   return (
     <View pointerEvents="box-none" style={[styles.container, { paddingBottom: bottom }]} testID="composer">
+      {queryText !== null && suggestions.length ? (
+        <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="mention-suggestions">
+          {suggestions.map((person) => (
+            <Pressable
+              key={person.id}
+              accessibilityRole="button"
+              onPress={() => pickMention(person)}
+              style={({ pressed }) => [styles.suggestion, pressed && { backgroundColor: colors.surface2 }]}
+              testID={`mention-${person.id}`}>
+              <Avatar name={person.name} seed={person.id} partnerId={person.id} size={32} />
+              <Text variant="callout" numberOfLines={1} style={styles.flex}>
+                {person.name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      {cannedText !== null && canned.length ? (
+        <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="canned-suggestions">
+          {canned.map((item) => (
+            <Pressable key={item.id} accessibilityRole="button" onPress={() => pickCanned(item)} style={({ pressed }) => [styles.suggestion, pressed && { backgroundColor: colors.surface2 }]} testID={`canned-${item.id}`}>
+              <Text variant="callout" style={styles.strong}>
+                {item.source}
+              </Text>
+              <Text variant="footnote" tone="inkSoft" numberOfLines={1} style={styles.flex}>
+                {item.substitution}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
       <View pointerEvents="box-none" style={styles.float} onLayout={(event) => setFloatHeight(event.nativeEvent.layout.height)} testID="composer-float">
-        {queryText !== null && suggestions.length ? (
-          <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="mention-suggestions">
-            {suggestions.map((person) => (
-              <Pressable
-                key={person.id}
-                accessibilityRole="button"
-                onPress={() => pickMention(person)}
-                style={({ pressed }) => [styles.suggestion, pressed && { backgroundColor: colors.surface2 }]}
-                testID={`mention-${person.id}`}>
-                <Avatar name={person.name} seed={person.id} partnerId={person.id} size={32} />
-                <Text variant="callout" numberOfLines={1} style={styles.flex}>
-                  {person.name}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
-        {cannedText !== null && canned.length ? (
-          <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="canned-suggestions">
-            {canned.map((item) => (
-              <Pressable key={item.id} accessibilityRole="button" onPress={() => pickCanned(item)} style={({ pressed }) => [styles.suggestion, pressed && { backgroundColor: colors.surface2 }]} testID={`canned-${item.id}`}>
-                <Text variant="callout" style={styles.strong}>
-                  {item.source}
-                </Text>
-                <Text variant="footnote" tone="inkSoft" numberOfLines={1} style={styles.flex}>
-                  {item.substitution}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
         {urgent ? (
           <View style={[styles.replyBar, { backgroundColor: colors.warnBand }]} testID="composer-urgent">
             <Icon name="alert" color={colors.warnInk} />
@@ -517,41 +518,41 @@ export const Composer = forwardRef<
                 {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} inRow onPress={() => setSheet(true)} testID="composer-attach" />}
                 {markup.showToggle ? <FormatToggle onPress={markup.show} /> : null}
                 <View style={[styles.field, editing && styles.fieldAlone]} testID="composer-field">
-                <TextInput
-                  ref={input}
-                  value={text}
-                  onChangeText={changeText}
-                  onSelectionChange={(event: TextInputSelectionChangeEvent) => {
-                    setCursor(event.nativeEvent.selection.end);
-                    markup.inputProps.onSelectionChange(event);
-                  }}
-                  onFocus={() => {
-                    if (panel && keyboardVisible) {
-                      reopening.current = false;
-                      setSearching(false);
-                      open.set(0);
-                      setPanel(false);
-                    } else if (panel) reopening.current = true;
-                    markup.inputProps.onFocus();
-                  }}
-                  onBlur={markup.inputProps.onBlur}
-                  placeholder={t('composer.placeholder')}
-                  placeholderTextColor={colors.inkSoft}
-                  multiline
-                  disableFullscreenUI
-                  submitBehavior={hardwareSubmit ? 'submit' : 'newline'}
-                  returnKeyType={hardwareSubmit ? 'send' : 'default'}
-                  onSubmitEditing={hardwareSubmit ? submit : undefined}
-                  accessibilityLabel={t('composer.placeholder')}
-                  testID="composer-input"
-                  style={[styles.input, { color: colors.ink }]}
-                />
-                <FieldButton
-                  icon={panel ? 'keyboard' : 'emoji'}
-                  label={panel ? t('composer.showKeyboard') : t('composer.openPanel')}
-                  onPress={panel ? showKeyboard : openPanel}
-                  testID={panel ? 'composer-keyboard' : 'composer-panel-toggle'}
-                />
+                  <TextInput
+                    ref={input}
+                    value={text}
+                    onChangeText={changeText}
+                    onSelectionChange={(event: TextInputSelectionChangeEvent) => {
+                      setCursor(event.nativeEvent.selection.end);
+                      markup.inputProps.onSelectionChange(event);
+                    }}
+                    onFocus={() => {
+                      if (panel && keyboardVisible) {
+                        reopening.current = false;
+                        setSearching(false);
+                        open.set(0);
+                        setPanel(false);
+                      } else if (panel) reopening.current = true;
+                      markup.inputProps.onFocus();
+                    }}
+                    onBlur={markup.inputProps.onBlur}
+                    placeholder={t('composer.placeholder')}
+                    placeholderTextColor={colors.inkSoft}
+                    multiline
+                    disableFullscreenUI
+                    submitBehavior={hardwareSubmit ? 'submit' : 'newline'}
+                    returnKeyType={hardwareSubmit ? 'send' : 'default'}
+                    onSubmitEditing={hardwareSubmit ? submit : undefined}
+                    accessibilityLabel={t('composer.placeholder')}
+                    testID="composer-input"
+                    style={[styles.input, { color: colors.ink }]}
+                  />
+                  <FieldButton
+                    icon={panel ? 'keyboard' : 'emoji'}
+                    label={panel ? t('composer.showKeyboard') : t('composer.openPanel')}
+                    onPress={panel ? showKeyboard : openPanel}
+                    testID={panel ? 'composer-keyboard' : 'composer-panel-toggle'}
+                  />
                 </View>
                 {editing ? null : <CameraSlot shown={mode === 'mic'} onPress={() => void pickFrom('camera')} onLongPress={() => void pickFrom('photos')} />}
               </GlassCapsule>
