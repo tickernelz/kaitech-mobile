@@ -2,6 +2,22 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.14.3 - 2026-11-27
+
+### Added
+
+- Developers: `scripts/phone-jank.mjs` measures late frames, p90 and p99 of the voice-note slide, the attach sheet and the locked recording on a physical phone, and fails above a limit (#140, ZHA-7946).
+
+### Fixed
+
+- Chat: holding the microphone anywhere on the button and sliding left now cancels the voice note on Android; before, starting on the right half of the button fired the system Back gesture, which paused the recording into a draft and closed the chat. Checked on the Meizu Mblu 21, whose right-edge gesture zone covers half of the button (#140, ZHA-7946).
+- Chat and Coworker: on Android the attach sheet opens inside the screen instead of in a separate window, so its first frame no longer stalls, and Back closes the sheet without leaving the conversation. On the Mblu 21 the worst frame while opening and closing it dropped from 77-89 ms to 18-25 ms, and the share of late frames from 5.8-6.2% to 3.2-4.6% (#140, #157, ZHA-7946).
+
+### Known gaps
+
+- Android: the attach sheet has not been checked with TalkBack; without a separate window, focus may move to the conversation behind the dimmed area while it is open (#140, ZHA-7946).
+- On the Mblu 21 the 90th-percentile frame time of the thread screen stays around 14-17 ms, above the 11.1 ms of a 90 Hz frame; the GPU takes 4-6 ms per frame, the rest is main-thread and render-thread work on this phone (ZHA-7946).
+
 ## 0.14.2 - 2026-11-27
 
 ### Fixed
