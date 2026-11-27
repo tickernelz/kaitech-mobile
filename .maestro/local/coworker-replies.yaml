@@ -33,7 +33,7 @@ name: Coworker quick replies - a kt-block reply is drawn as buttons and a tap se
 - extendedWaitUntil:
     visible:
       id: coworker-reply
-    timeout: 600000
+    timeout: 300000
 - scrollUntilVisible:
     element:
       id: kt-reply-0

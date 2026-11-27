@@ -15,6 +15,7 @@ jest.mock('../src/features/call/ui/RecordingCard', () => ({ RecordingCard: () =>
 jest.mock('../src/features/chat/ui/useOpenAttachment', () => ({ useOpenAttachment: () => () => undefined }));
 jest.mock('../src/features/chat/ui/useCookie', () => ({ useCookie: () => null }));
 jest.mock('../src/features/chat/ui/coworker/Cards', () => ({ AgentSaid: () => null }));
+jest.mock('../src/features/chat/ui/SwipeReply', () => ({ SwipeReply: ({ children }: { children: unknown }) => children }));
 
 type Box = { minWidth?: number; minHeight?: number; columnGap?: number; rowGap?: number; paddingTop?: number; paddingBottom?: number; marginBottom?: number };
 

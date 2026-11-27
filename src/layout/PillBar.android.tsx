@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { radius, space, useTheme, type MaterialColors } from '../theme';
+import { GlassCapsule } from '../ui/GlassCapsule';
 import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
 import { Text } from '../ui/Text';
@@ -64,7 +65,7 @@ function Slot({ tab, width, focusRing, ripple }: { tab: PillTab; width: number; 
 export function PillBar() {
   const { material } = useTheme();
   const bar = usePillBar();
-  const { position, pressScale, hidden, cover, width, selected, seeThrough } = bar;
+  const { position, pressScale, hidden, cover, width, selected } = bar;
   const { wide, narrow } = pillSlots(width, bar.items.length);
   const lift = useAnimatedStyle(() => ({ opacity: 1 - hidden.get(), transform: [{ translateY: hidden.get() * cover }] }));
   const morph = useAnimatedStyle(() => {
@@ -79,10 +80,7 @@ export function PillBar() {
       pointerEvents={bar.keyboard ? 'none' : 'box-none'}
       testID="tab-bar"
       style={[styles.wrap, { bottom: bar.bottom, paddingLeft: bar.sideInsets.left, paddingRight: bar.sideInsets.right }, lift]}>
-      <View
-        accessibilityRole="tablist"
-        style={[styles.capsule, { width }, seeThrough ? { backgroundColor: `${material.surfaceContainer}EB`, borderColor: material.outlineVariant, borderWidth: StyleSheet.hairlineWidth } : [styles.raised, { backgroundColor: material.surfaceContainer }]]}
-        testID="navigation-bar">
+      <GlassCapsule accessibilityRole="tablist" solid={[styles.raised, { backgroundColor: material.surfaceContainer }]} style={[styles.capsule, { width }]} testID="navigation-bar">
         <View style={styles.track} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Animated.View style={[styles.indicator, { width: wide, borderRadius: indicatorRadius, backgroundColor: material.secondaryContainer }, morph]} testID="tab-highlight" />
           {bar.items.map((tab) => (
@@ -92,7 +90,7 @@ export function PillBar() {
         {bar.items.map((tab) => (
           <Slot key={tab.name} tab={tab} width={tab.index === selected ? wide : narrow} focusRing={material.secondary} ripple={`${material.onSurface}1A`} />
         ))}
-      </View>
+      </GlassCapsule>
     </Animated.View>
   );
 }

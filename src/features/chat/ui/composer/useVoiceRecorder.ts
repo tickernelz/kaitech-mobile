@@ -3,14 +3,14 @@ import AudioModule from 'expo-audio/build/AudioModule';
 import type { AudioRecorder } from 'expo-audio/build/AudioModule.types';
 import { createRecordingOptions } from 'expo-audio/build/utils/options';
 import { File, Paths } from 'expo-file-system';
-import * as Haptics from 'expo-haptics';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppState, Platform, type GestureResponderEvent } from 'react-native';
+import { AppState, type GestureResponderEvent } from 'react-native';
 import { useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
 import { meetingRecording } from '../../../../audio/meeting';
 import { callState, subscribeCall } from '../../../call/call';
 import { notify } from '../../../../ui/dialog';
+import { haptic } from '../../../../ui/haptic';
 import { askPermission } from '../../../../ui/permission';
 import { deferUndoable } from '../../../../ui/undo';
 import { adoptFile } from '../../files';
@@ -32,17 +32,6 @@ const now = () => Date.now();
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const voiceOptions = createRecordingOptions({ ...RecordingPresets.HIGH_QUALITY, numberOfChannels: 1, bitRate: 64000, sampleRate: 44100, isMeteringEnabled: true, directory: 'document' });
-
-const quietly = (work: () => Promise<unknown>) => void work().catch(() => undefined);
-
-export const haptic = {
-  start: () => quietly(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)),
-  tick: () => quietly(() => Haptics.selectionAsync()),
-  lock: () => quietly(() => (Platform.OS === 'android' ? Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Confirm) : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light))),
-  reject: () => quietly(() => (Platform.OS === 'android' ? Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Reject) : Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning))),
-  error: () => quietly(() => (Platform.OS === 'android' ? Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Reject) : Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error))),
-  send: () => quietly(() => (Platform.OS === 'android' ? Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Confirm) : Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success))),
-};
 
 function callBusy(): boolean {
   const phase = callState().phase;

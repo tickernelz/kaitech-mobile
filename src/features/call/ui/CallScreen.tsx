@@ -49,8 +49,8 @@ import { ScreenStage, type PipTarget } from './ScreenStage';
 import { useAutoHide } from './useAutoHide';
 import { confirm } from '../../../ui/dialog';
 import { touchTarget } from '../../../ui/touch';
+import { callButtonSize, callPillThickness } from '../../../ui/pill';
 
-const pillSize = 68;
 const scrimSize = 72;
 const edge = space.lg;
 const wideMin = 840;
@@ -103,6 +103,8 @@ export function CallScreen() {
     crowd: call.people.length > 2,
     blur: blurSupported(),
   });
+  const button = callButtonSize(controls.pill.length, vertical ? height - insets.top - insets.bottom - 2 * edge : width - insets.left - insets.right - 2 * space.sm);
+  const pillSize = callPillThickness(button);
   const state: ControlState = {
     muted: call.muted || call.deaf,
     cameraOn: call.cameraOn,
@@ -318,7 +320,7 @@ export function CallScreen() {
       ) : null}
 
       <View pointerEvents="box-none" style={vertical ? [styles.railDock, { right: insets.right + edge }] : [styles.barDock, { bottom: pillBottom, left: insets.left, right: insets.right }]}>
-        <CallPill actions={controls.pill} state={state} onStage={onStage} vertical={vertical} shown={hide.shown} motion={hide.bottom} onAction={onAction} onTouch={hide.poke} />
+        <CallPill actions={controls.pill} state={state} onStage={onStage} vertical={vertical} size={button} shown={hide.shown} motion={hide.bottom} onAction={onAction} onTouch={hide.poke} />
       </View>
 
       <MoreSheet
