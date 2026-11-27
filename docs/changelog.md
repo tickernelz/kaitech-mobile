@@ -2,6 +2,27 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.14.4 - 2026-11-27
+
+### Added
+
+- Developers: `scripts/phone-jank.mjs` also measures scrolling a thread, opening and closing the emoji panel, and opening and closing a thread, and fails when a scenario does not end in the measured thread (#159, ZHA-7969).
+
+### Changed
+
+- Chat: on Android a conversation slides in from the right and back out, as in WhatsApp, instead of the system fade-and-stretch; nothing moves when reduced motion is on (#159, ZHA-7969).
+
+### Fixed
+
+- Chat: scrolling a conversation on Android no longer stutters. Message bubbles keep one corner radius and draw the small corner as a patch of their own colour, so the bubble shape is unchanged but Android no longer redraws each bubble on the CPU while the list moves. On the Meizu Mblu 21 late frames while scrolling dropped from 10.9% to 1.8% and the worst frame from 82 to 24 ms (#159, ZHA-7969).
+- Chat: the emoji panel opens without a stall on its first frame. The emoji grid stays ready after the panel first opens, and the chat background no longer resizes while the panel or keyboard moves; reopening the panel reloads saved stickers and recent emoji and starts with an empty search. On the Mblu 21 late frames dropped from 13.2% to 5.9% and the worst frame from 93 to 24 ms (#159, ZHA-7969).
+- Chat: opening and closing a conversation dropped from 11.1% to 6.6% late frames on the Mblu 21, and the attach sheet from 7.0% to 3.4% (#159, ZHA-7969).
+
+### Known gaps
+
+- On the Mblu 21 the emoji panel (5.6-5.9%) and opening and closing a conversation (6.6%) stay above the 5% late-frame target. This phone composes the taskbar, status bar and screen corners on the GPU every frame, so the app waits about 9 ms for a free buffer, and opening a conversation creates about 150 views at once (ZHA-7969).
+- With the GIF tab as the last tab, the emoji panel rebuilds the GIF grid on every open, as before (ZHA-7969).
+
 ## 0.14.3 - 2026-11-27
 
 ### Added
