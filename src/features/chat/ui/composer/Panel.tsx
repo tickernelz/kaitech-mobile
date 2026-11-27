@@ -13,6 +13,7 @@ import { EmojiTab } from './panel/EmojiTab';
 import { GifTab } from './panel/GifTab';
 import { StickerTab } from './panel/StickerTab';
 import { lastPanelTab, panelTabs, rememberPanelTab, handleOutcome, type PanelTab } from './panel/logic';
+import { PanelShown } from './panel/paging';
 import { reach } from '../../../../ui/touch';
 
 const tabIcons: Record<PanelTab, IconName> = { emoji: 'emoji', sticker: 'sticker', gif: 'gif' };
@@ -25,6 +26,7 @@ function tabEnter() {
 }
 
 export function ComposerPanel({
+  shown,
   origin,
   full,
   searching,
@@ -35,6 +37,7 @@ export function ComposerPanel({
   onSearching,
   onSize,
 }: {
+  shown: boolean;
   origin: string;
   full: boolean;
   searching: boolean;
@@ -54,11 +57,19 @@ export function ComposerPanel({
   const [shelfVersion, setShelfVersion] = useState(0);
   useEffect(() => {
     let live = true;
-    void stickerShelf().then((result) => live && setShelf(result));
+    void stickerShelf().then((result) => {
+      if (live) setShelf((current) => (JSON.stringify(current) === JSON.stringify(result) ? current : result));
+    });
     return () => {
       live = false;
     };
   }, [shelfVersion]);
+  const [seenShown, setSeenShown] = useState(shown);
+  if (shown !== seenShown) {
+    setSeenShown(shown);
+    if (shown) setShelfVersion((value) => value + 1);
+    else setGifQuery('');
+  }
   const choose = useCallback((next: PanelTab) => {
     setTab(next);
     rememberPanelTab(next);
@@ -80,6 +91,7 @@ export function ComposerPanel({
   };
   const stickers = shelf?.ok ? shelf.value.packs.flatMap((pack) => pack.stickers) : [];
   return (
+    <PanelShown.Provider value={shown}>
     <View style={[styles.panel, { backgroundColor: colors.canvas }]} testID="composer-panel">
       {searching ? null : (
         <View
@@ -109,7 +121,7 @@ export function ComposerPanel({
               choose('gif');
             }}
           />
-        ) : tab === 'sticker' ? (
+        ) : !shown ? null : tab === 'sticker' ? (
           <StickerTab shelf={shelf} origin={origin} onPick={onSticker} onSearching={onSearching} onShelfChanged={() => setShelfVersion((value) => value + 1)} />
         ) : (
           <GifTab initialQuery={gifQuery} onPick={onGif} onSearching={onSearching} />
@@ -136,6 +148,7 @@ export function ComposerPanel({
         </View>
       )}
     </View>
+    </PanelShown.Provider>
   );
 }
 

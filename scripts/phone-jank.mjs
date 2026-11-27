@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 
 const usage =
-  'usage: phone-jank.mjs --thread <channelId> [--scenario record-cancel|attach|record-lock] [--apk name=path ...] [--rounds 3] [--repeat 5] [--serial S] [--out result.json] [--max-janky 5] [--max-p90 11.1]';
+  'usage: phone-jank.mjs --thread <channelId> [--scenario record-cancel|attach|record-lock|panel|thread-scroll|thread-open] [--apk name=path ...] [--rounds 3] [--repeat 5] [--serial S] [--out result.json] [--max-janky 5] [--max-p90 11.1]';
 const pkg = 'io.kaitech.mobile';
 const settleMs = 1500;
 
@@ -125,6 +125,40 @@ const scenarios = {
       sleep(settleMs);
     };
   },
+  panel: () => {
+    const toggle = pressable('composer-panel-toggle');
+    return () => {
+      shell(`input tap ${toggle.x} ${toggle.y}`);
+      sleep(settleMs);
+      shell('input keyevent 4');
+      sleep(settleMs);
+    };
+  },
+  'thread-scroll': () => {
+    const list = centre('thread-list');
+    const high = list.top + Math.round((list.bottom - list.top) * 0.2);
+    const low = list.top + Math.round((list.bottom - list.top) * 0.8);
+    return () => {
+      for (const [from, to] of [[high, low], [high, low], [high, low], [low, high], [low, high], [low, high]]) {
+        shell(`input swipe ${list.x} ${from} ${list.x} ${to} 200`);
+        sleep(600);
+      }
+      sleep(settleMs);
+    };
+  },
+  'thread-open': () => {
+    shell('input keyevent 4');
+    sleep(settleMs);
+    const row = centre(`conversation-${thread}`);
+    shell(`input tap ${row.x} ${row.y}`);
+    sleep(settleMs);
+    return () => {
+      shell('input keyevent 4');
+      sleep(settleMs);
+      shell(`input tap ${row.x} ${row.y}`);
+      sleep(settleMs);
+    };
+  },
   'record-lock': () => {
     const mic = pressable('composer-mic');
     return () => {
@@ -169,6 +203,7 @@ function measure(scenario) {
   for (let index = 0; index < repeat; index += 1) step();
   const stats = parseGfxinfo(shell(`dumpsys gfxinfo ${pkg}`));
   if (!stats) fail('gfxinfo recorded no frames');
+  if (!nodes().has(`thread-${thread}`)) fail(`thread ${thread} was not open after ${scenario}; the numbers measured another screen`);
   return stats;
 }
 

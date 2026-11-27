@@ -12,6 +12,7 @@ import { noteEmoji, recentEmoji, rememberSkin, searchEmoji, skinFor, skinTones, 
 import type { Sticker } from '../../../types';
 import { StickerCell } from './StickerCell';
 import { emojiColumns, emojiRows, type EmojiRow, type EmojiSection } from './logic';
+import { useWhenPanelShows } from './paging';
 import { reachBelow, touchTarget } from '../../../../../ui/touch';
 
 const toneLabels = ['panel.tone0', 'panel.tone1', 'panel.tone2', 'panel.tone3', 'panel.tone4', 'panel.tone5'] as const;
@@ -58,6 +59,14 @@ export function EmojiTab({
   const [active, setActive] = useState<EmojiSection | null>(null);
   const [tones, setTones] = useState<{ emoji: string } | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  useWhenPanelShows(
+    () => setRecent((current) => (current.join(' ') === recentEmoji().join(' ') ? current : recentEmoji())),
+    () => {
+      setQuery('');
+      setTones(null);
+      setPreview(null);
+    },
+  );
   const list = useRef<FlashListRef<EmojiRow>>(null);
   const rows = useMemo(() => emojiRows(recent), [recent]);
   const headers = useMemo(() => rows.flatMap((row, index) => (row.type === 'header' ? [index] : [])), [rows]);
