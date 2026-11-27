@@ -35,37 +35,39 @@ function readPng(path: string): Png {
   for (let y = 0; y < height; y++) {
     const filter = raw[y * (stride + 1)];
     const line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    const row = y * stride;
+    const above = row - stride;
     for (let x = 0; x < stride; x++) {
-      const left = x >= channels ? data[y * stride + x - channels] : 0;
-      const up = y > 0 ? data[(y - 1) * stride + x] : 0;
-      const corner = y > 0 && x >= channels ? data[(y - 1) * stride + x - channels] : 0;
-      const p = left + up - corner;
-      const nearest =
-        Math.abs(p - left) <= Math.abs(p - up) && Math.abs(p - left) <= Math.abs(p - corner)
-          ? left
-          : Math.abs(p - up) <= Math.abs(p - corner)
-            ? up
-            : corner;
-      const predictor = [0, left, up, (left + up) >> 1, nearest][filter];
-      data[y * stride + x] = (line[x] + predictor) & 0xff;
+      const left = x >= channels ? data[row + x - channels] : 0;
+      const up = y > 0 ? data[above + x] : 0;
+      let predictor = 0;
+      if (filter === 1) predictor = left;
+      else if (filter === 2) predictor = up;
+      else if (filter === 3) predictor = (left + up) >> 1;
+      else if (filter === 4) {
+        const corner = y > 0 && x >= channels ? data[above + x - channels] : 0;
+        const p = left + up - corner;
+        const pa = Math.abs(p - left);
+        const pb = Math.abs(p - up);
+        const pc = Math.abs(p - corner);
+        predictor = pa <= pb && pa <= pc ? left : pb <= pc ? up : corner;
+      }
+      data[row + x] = (line[x] + predictor) & 0xff;
     }
   }
   return { width, height, channels, data };
 }
 
-function pixels(png: Png) {
-  const out: { x: number; y: number; rgb: string; alpha: number }[] = [];
-  for (let i = 0; i < png.width * png.height; i++) {
-    const at = i * png.channels;
-    const rgb = Array.from(png.data.subarray(at, at + 3), (v) => v.toString(16).padStart(2, '0'))
-      .join('')
-      .toUpperCase();
-    out.push({ x: i % png.width, y: Math.floor(i / png.width), rgb: `#${rgb}`, alpha: png.channels === 4 ? png.data[at + 3] : 255 });
-  }
-  return out;
+function alphaAt(png: Png, at: number) {
+  return png.channels === 4 ? png.data[at + 3] : 255;
 }
 
 const brand = seedColor.toUpperCase();
+const brandRgb = parseInt(brand.slice(1), 16);
+const brandR = (brandRgb >> 16) & 0xff;
+const brandG = (brandRgb >> 8) & 0xff;
+const brandB = brandRgb & 0xff;
+const safeRadius = (432 * 66) / 108 / 2;
 const app = JSON.parse(readFileSync(join(root, 'app.json'), 'utf8')).expo;
 const plugin = (name: string) => app.plugins.find((p: unknown) => Array.isArray(p) && p[0] === name)[1];
 
@@ -73,38 +75,64 @@ describe('brand assets', () => {
   it('fills the whole iOS and store icon square with the brand colour and carries no alpha', () => {
     const icon = readPng(asset('icon.png'));
     expect([icon.width, icon.height, icon.channels]).toEqual([1024, 1024, 3]);
-    const all = pixels(icon);
     for (const [x, y] of [[0, 0], [1023, 0], [0, 1023], [1023, 1023], [512, 8]]) {
-      expect(all[y * 1024 + x].rgb).toBe(brand);
+      const at = (y * icon.width + x) * icon.channels;
+      expect([icon.data[at], icon.data[at + 1], icon.data[at + 2]]).toEqual([brandR, brandG, brandB]);
     }
-    expect(new Set(all.map((p) => p.rgb)).has('#FFFFFF')).toBe(true);
+    let white = 0;
+    for (let at = 0; at < icon.data.length; at += icon.channels) {
+      if (icon.data[at] === 255 && icon.data[at + 1] === 255 && icon.data[at + 2] === 255) white++;
+    }
+    expect(white).toBeGreaterThan(0);
   });
 
   it('keeps every visible pixel of the adaptive foreground and monochrome layers inside the 66 dp safe circle', () => {
     for (const name of ['android-icon-foreground.png', 'android-icon-monochrome.png']) {
       const layer = readPng(asset(name));
       expect([layer.width, layer.height, layer.channels]).toEqual([432, 432, 4]);
-      const visible = pixels(layer).filter((p) => p.alpha > 0);
-      expect(visible.length).toBeGreaterThan(0);
-      const reach = Math.max(...visible.map((p) => Math.hypot(p.x + 0.5 - 216, p.y + 0.5 - 216)));
-      expect(reach).toBeLessThanOrEqual((432 * 66) / 108 / 2);
-      expect(visible.every((p) => p.rgb === '#FFFFFF')).toBe(true);
+      let visible = 0;
+      let reach = 0;
+      let tinted = 0;
+      for (let y = 0; y < layer.height; y++) {
+        for (let x = 0; x < layer.width; x++) {
+          const at = (y * layer.width + x) * layer.channels;
+          if (!layer.data[at + 3]) continue;
+          visible++;
+          reach = Math.max(reach, Math.hypot(x + 0.5 - layer.width / 2, y + 0.5 - layer.height / 2));
+          if (layer.data[at] !== 255 || layer.data[at + 1] !== 255 || layer.data[at + 2] !== 255) tinted++;
+        }
+      }
+      expect(visible).toBeGreaterThan(0);
+      expect(reach).toBeLessThanOrEqual(safeRadius);
+      expect(tinted).toBe(0);
     }
   });
 
   it('paints the adaptive background flat in the brand colour', () => {
     const background = readPng(asset('android-icon-background.png'));
     expect([background.width, background.height]).toEqual([432, 432]);
-    expect(new Set(pixels(background).map((p) => `${p.rgb}/${p.alpha}`))).toEqual(new Set([`${brand}/255`]));
+    let off = 0;
+    for (let at = 0; at < background.data.length; at += background.channels) {
+      if (background.data[at] !== brandR || background.data[at + 1] !== brandG || background.data[at + 2] !== brandB) off++;
+      if (alphaAt(background, at) !== 255) off++;
+    }
+    expect(off).toBe(0);
   });
 
   it('draws the notification and splash marks in white on transparent', () => {
     for (const [name, size] of [['notification-icon.png', 96], ['splash-icon.png', 1024]] as const) {
       const png = readPng(asset(name));
       expect([png.width, png.height, png.channels]).toEqual([size, size, 4]);
-      const all = pixels(png);
-      expect(all[0].alpha).toBe(0);
-      expect(all.filter((p) => p.alpha > 0).every((p) => p.rgb === '#FFFFFF')).toBe(true);
+      expect(alphaAt(png, 0)).toBe(0);
+      let visible = 0;
+      let tinted = 0;
+      for (let at = 0; at < png.data.length; at += png.channels) {
+        if (!png.data[at + 3]) continue;
+        visible++;
+        if (png.data[at] !== 255 || png.data[at + 1] !== 255 || png.data[at + 2] !== 255) tinted++;
+      }
+      expect(visible).toBeGreaterThan(0);
+      expect(tinted).toBe(0);
     }
   });
 
