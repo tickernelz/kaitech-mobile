@@ -195,7 +195,7 @@ object MessageNotifications {
     val manager = context.getSystemService(NotificationManager::class.java) ?: return
     val unread = thread.lines.count { !it.mine }
     val builder = NotificationCompat.Builder(context, channel)
-      .setSmallIcon(context.applicationInfo.icon)
+      .setSmallIcon(CallNotifications.smallIcon(context))
       .setCategory(NotificationCompat.CATEGORY_MESSAGE)
       .setGroup(GROUP)
       .setAutoCancel(true)
@@ -304,7 +304,7 @@ object MessageNotifications {
 
   private fun neutral(context: Context, channel: String, unread: Int): android.app.Notification =
     NotificationCompat.Builder(context, channel)
-      .setSmallIcon(context.applicationInfo.icon)
+      .setSmallIcon(CallNotifications.smallIcon(context))
       .setContentTitle(context.getString(R.string.kaitech_message_hidden_title))
       .setContentText(context.resources.getQuantityString(R.plurals.kaitech_message_count, unread.coerceAtLeast(1), unread.coerceAtLeast(1)))
       .build()
@@ -322,7 +322,7 @@ object MessageNotifications {
     val count = text.resources.getQuantityString(R.plurals.kaitech_message_count, unread, unread)
     val chats = text.resources.getQuantityString(R.plurals.kaitech_message_chats, threads.size, threads.size)
     val builder = NotificationCompat.Builder(context, MESSAGES)
-      .setSmallIcon(context.applicationInfo.icon)
+      .setSmallIcon(CallNotifications.smallIcon(context))
       .setCategory(NotificationCompat.CATEGORY_MESSAGE)
       .setGroup(GROUP)
       .setGroupSummary(true)

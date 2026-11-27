@@ -32,7 +32,7 @@ It needs Inkscape 1.x on `PATH`. The script writes the SVG sources to `assets/br
 - iOS and Android cut the icon shape themselves. `icon.png` is a full square without rounded corners and without alpha: the favicon's `rx="200"` corners are not part of the icon, and baked-in corners would show as a second, darker rim inside the system mask.
 - Android adaptive layers are 108 dp (432 px); the launcher shows the middle 72 dp (288 px) and every mask keeps a centred circle of 66 dp (264 px). The mark is drawn at 48% of the 72 dp visible part (128 by 140 px), so no pixel is more than 95 px from the centre, inside the 132 px radius of the safe circle. The unit test measures that radius on the real PNG.
 - The splash on Android 12 and later sits in a 288 dp canvas and is cut to a 192 dp circle. The mark is 96 dp tall there, so its corners stay about 65 dp from the centre. The splash background is `#441D65` in the light and the dark theme, the same colour as the launcher icon.
-- The notification icon is white on transparent; Android draws it in one colour. The mark is 80 of 96 px tall, which keeps it legible at 24 dp.
+- The notification icon is white on transparent; Android draws it in one colour. The mark is 80 of 96 px tall, which keeps it legible at 24 dp. The `expo-notifications` plugin turns it into the `notification_icon` drawable, and the message and call notifications of `modules/kaitech-call` use that drawable too (`CallNotifications.smallIcon`). They used the launcher icon before, which Android draws as a filled shape because a small icon is read by its alpha only.
 
 ## iOS appearances
 
