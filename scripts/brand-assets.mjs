@@ -1,62 +1,82 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = join(import.meta.dirname, '..');
-const brandDir = join(root, 'assets', 'brand');
-const k = 'M143.15 433L60.55 324.5V433H0.700001V187.3H60.55V295.1L142.45 187.3H212.8L117.6 307.7L216.3 433H143.15Z';
-const box = { x: 0.7, y: 187.3, w: 359.3, h: 245.7 };
+const assetsDir = join(root, 'assets');
+const brandDir = join(assetsDir, 'brand');
+const appIconDir = join(assetsDir, 'AppIcon.icon');
 
-function mark({ size, width, ink, bar, cx = size / 2, cy = size / 2 }) {
-  const s = width / box.w;
-  const tx = cx - (box.x + box.w / 2) * s;
-  const ty = cy - (box.y + box.h / 2) * s;
-  const fill = Array.isArray(bar) ? 'url(#bar)' : bar;
-  const gradient = Array.isArray(bar)
-    ? `<linearGradient id="bar" x1="236" y1="433" x2="360" y2="390" gradientUnits="userSpaceOnUse"><stop stop-color="${bar[0]}"/><stop offset="1" stop-color="${bar[1]}"/></linearGradient>`
-    : '';
-  return {
-    defs: gradient,
-    body: `<g transform="translate(${tx} ${ty}) scale(${s})"><path d="${k}" fill="${ink}"/><rect x="236" y="390" width="124" height="43" fill="${fill}"/></g>`,
-  };
+const k =
+  'M317.056 294.5C335.272 295.257 407.963 305.649 408.091 417.341V470.9C408.091 465.378 412.568 460.9 418.091 460.9H503.181V377.7H598.271V460.9H503.182V544.101H503.061C504.877 565.591 515.443 585.889 532.977 601.23C550.51 616.572 573.71 625.816 598.271 627.405V627.3H685.362C689.78 627.3 693.362 630.882 693.362 635.3V710.5H598.271V710.371C548.579 708.699 501.317 690.695 466.021 659.813C430.726 628.932 410.148 587.579 408.237 544.101H408.091V710.499C407.747 710.455 313.001 698.357 313.001 619.924L313 619.926V294.5H317.056ZM693.362 368.7C693.362 373.671 689.333 377.7 684.362 377.7H598.271V294.5H693.362V368.7Z';
+const box = { x: 313, y: 294.5, w: 380.362, h: 416 };
+
+const brand = '#441D65';
+const ink = '#FFFFFF';
+
+const iconMark = 0.48;
+const adaptiveVisible = 288;
+const notificationMark = 80 / 96;
+
+function mark(size, height, color = ink) {
+  const s = height / box.h;
+  const tx = size / 2 - (box.x + box.w / 2) * s;
+  const ty = size / 2 - (box.y + box.h / 2) * s;
+  return `<g transform="translate(${tx} ${ty}) scale(${s})"><path d="${k}" fill="${color}"/></g>`;
 }
 
-function background(size, from, to) {
-  return {
-    defs: `<linearGradient id="bg" x1="0" y1="0" x2="${size}" y2="${size}" gradientUnits="userSpaceOnUse"><stop stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient>`,
-    body: `<rect width="${size}" height="${size}" fill="url(#bg)"/>`,
-  };
+function fill(size, color = brand) {
+  return `<rect width="${size}" height="${size}" fill="${color}"/>`;
 }
 
-function svg(size, parts) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><defs>${parts.map((p) => p.defs).join('')}</defs>${parts.map((p) => p.body).join('')}</svg>\n`;
+function svg(size, ...parts) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${parts.join('')}</svg>\n`;
 }
-
-const light = { from: '#5A2A85', to: '#2E1146', ink: '#FFFFFF', bar: ['#C9A6EE', '#FF5A5A'] };
-const dark = { from: '#1E1429', to: '#0D0812', ink: '#F0EDF4', bar: ['#B18BD3', '#FF5A5A'] };
 
 const assets = {
-  'icon.png': svg(1024, [background(1024, light.from, light.to), mark({ size: 1024, width: 560, ink: light.ink, bar: light.bar })]),
-  'icon-dark.png': svg(1024, [background(1024, dark.from, dark.to), mark({ size: 1024, width: 560, ink: dark.ink, bar: dark.bar })]),
-  'icon-tinted.png': svg(1024, [background(1024, '#000000', '#000000'), mark({ size: 1024, width: 560, ink: '#FFFFFF', bar: '#BDBDBD' })]),
-  'android-icon-background.png': svg(432, [background(432, light.from, light.to)]),
-  'android-icon-foreground.png': svg(432, [mark({ size: 432, width: 220, ink: light.ink, bar: light.bar })]),
-  'android-icon-monochrome.png': svg(432, [mark({ size: 432, width: 220, ink: '#FFFFFF', bar: '#FFFFFF' })]),
-  'splash-icon.png': svg(1024, [mark({ size: 1024, width: 520, ink: '#200C30', bar: ['#441D65', '#FF5A5A'] })]),
-  'splash-icon-dark.png': svg(1024, [mark({ size: 1024, width: 520, ink: '#F0EDF4', bar: ['#B18BD3', '#FF5A5A'] })]),
-  'notification-icon.png': svg(96, [mark({ size: 96, width: 80, ink: '#FFFFFF', bar: '#FFFFFF' })]),
-  'favicon.png': svg(1024, [background(1024, light.from, light.to), mark({ size: 1024, width: 600, ink: light.ink, bar: light.bar })]),
+  'icon.png': { source: svg(1024, fill(1024), mark(1024, 1024 * iconMark)), opaque: true },
+  'android-icon-background.png': { source: svg(432, fill(432)), opaque: true },
+  'android-icon-foreground.png': { source: svg(432, mark(432, adaptiveVisible * iconMark)) },
+  'android-icon-monochrome.png': { source: svg(432, mark(432, adaptiveVisible * iconMark)) },
+  'splash-icon.png': { source: svg(1024, mark(1024, 1024)) },
+  'notification-icon.png': { source: svg(96, mark(96, 96 * notificationMark)) },
 };
 
-const sizes = { 'favicon.png': 48 };
+const srgb = (hex) =>
+  `srgb:${[1, 3, 5].map((i) => (parseInt(hex.slice(i, i + 2), 16) / 255).toFixed(5)).join(',')},1.00000`;
 
+const iconComposer = {
+  fill: { solid: srgb(brand) },
+  'fill-specializations': [{ appearance: 'dark', value: 'system-dark' }],
+  groups: [
+    {
+      layers: [{ 'image-name': 'mark.svg', name: 'mark', glass: true }],
+      shadow: { kind: 'neutral', opacity: 0.5 },
+      translucency: { enabled: true, value: 0.5 },
+    },
+  ],
+  'supported-platforms': { squares: 'shared' },
+};
+
+rmSync(brandDir, { recursive: true, force: true });
 mkdirSync(brandDir, { recursive: true });
-for (const [png, source] of Object.entries(assets)) {
+for (const [png, { source, opaque }] of Object.entries(assets)) {
   const svgPath = join(brandDir, png.replace(/\.png$/, '.svg'));
   writeFileSync(svgPath, source);
-  const size = sizes[png] ?? Number(/width="(\d+)"/.exec(source)[1]);
-  execFileSync('inkscape', [svgPath, '--export-type=png', `--export-filename=${join(root, 'assets', png)}`, `--export-width=${size}`], {
-    stdio: 'ignore',
-  });
+  execFileSync(
+    'inkscape',
+    [
+      svgPath,
+      '--export-type=png',
+      `--export-filename=${join(assetsDir, png)}`,
+      `--export-png-color-mode=${opaque ? 'RGB_8' : 'RGBA_8'}`,
+    ],
+    { stdio: 'ignore' },
+  );
 }
+
+rmSync(appIconDir, { recursive: true, force: true });
+mkdirSync(join(appIconDir, 'Assets'), { recursive: true });
+writeFileSync(join(appIconDir, 'Assets', 'mark.svg'), svg(1024, mark(1024, 1024 * iconMark)));
+writeFileSync(join(appIconDir, 'icon.json'), `${JSON.stringify(iconComposer, null, 2)}\n`);
