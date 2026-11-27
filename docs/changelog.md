@@ -2,6 +2,12 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.14.2 - 2026-11-27
+
+### Fixed
+
+- Calls: a person who answers but whose call takes more than about 16 seconds to connect is no longer hung up by the caller with "No answer" while the conversation records an answered call; the caller keeps ringing until the 45-second limit, and a person who never connects is still ended about 12 seconds after it (#155, ZHA-7966).
+
 ## 0.14.1 - 2026-11-27
 
 ### Fixed
