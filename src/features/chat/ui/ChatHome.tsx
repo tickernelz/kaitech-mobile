@@ -12,7 +12,6 @@ import { focusedMessage, selectChannel, selectedChannel, useSelectedChannel } fr
 import { ConversationList } from './ConversationList';
 import { NewConversationSheet } from './list/NewConversationSheet';
 import { ThreadView } from './ThreadView';
-import { VoiceMiniBar } from './VoiceNote';
 
 function toId(value: string | string[] | undefined): number | null {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -66,16 +65,8 @@ export function ChatHome() {
   );
 
   return (
-    <SafeAreaView edges={['top', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-chat">
-      <Panes
-        list={
-          <View style={styles.fill}>
-            <VoiceMiniBar />
-            <ConversationList selectedId={expanded ? selected : null} onOpen={open} onNew={() => setCreating(true)} />
-          </View>
-        }
-        detail={detail}
-      />
+    <SafeAreaView edges={['right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-chat">
+      <Panes list={<ConversationList selectedId={expanded ? selected : null} onOpen={open} onNew={() => setCreating(true)} />} detail={detail} />
       {creating ? (
         <NewConversationSheet
           onClose={() => setCreating(false)}
