@@ -33,11 +33,11 @@ Pixel values from Z-images were measured with Pillow on the original JPEGs at 1.
 | Rule | Value | Reference |
 |---|---|---|
 | Spacing scale | 4, 8, 12, 16, 24, 32, 40 (`space.xs` to `space.xxxl`); 2 for optical nudges inside one control (icon to label, badge to edge) | tokens; S uses 4, 8, 12, 16 for list and bubble padding |
-| Screen edge inset | 16 | Z2: WhatsApp avatars start 21 px (12 dp) from the edge, 47 dp wide, text at 125 px (74 dp); T `messagePaddingStart = 72`; S gutters 16 |
+| Screen edge inset | 16 | S `conversation_individual_left_gutter` and `dsl_settings_gutter` 16dp; Z2 WhatsApp is tighter, avatars 21 px (12 dp) from the edge |
 | Gap between related items (icon and its label, chips in a row) | 8 | M3 chips; Z2 WhatsApp chip gap 12 px (7 dp) |
 | Gap between groups (section to section) | 24 | M3 |
 | List row text inset | 16 + avatar + 12 = 76 with a 48 avatar; separators start at the text, not at the edge | Z2 (74 dp), T (72) |
-| **lint** | padding, margin and gap use `space.*` or 2 or 0; any other literal is a finding | |
+| **lint** | padding, margin and gap use `space.*`, 2 or 0; any other literal is a finding (`spacing-literal`); `spacing-off-scale` counts the literals whose value is also off the scale | |
 
 ## Radius
 
@@ -55,7 +55,7 @@ Pixel values from Z-images were measured with Pillow on the original JPEGs at 1.
 
 | Rule | Value | Reference |
 |---|---|---|
-| Border on any curved edge (radius above 0): cards, chips, bubbles, pills, fields | 1 dp, never `StyleSheet.hairlineWidth` | Z2: WhatsApp's unselected chip outline is 2 px at 1.70 px per dp (about 1 dp) and reads smooth; Z3: the Kaitech Tiket card outline is a single pixel (row 283 of `bd04be99`, one pixel at `#323136` between two background pixels), which aliases on the curve; ZHA-8109 is the device proof |
+| Border on any curved edge (radius above 0): cards, chips, bubbles, pills, fields | 1 dp, never `StyleSheet.hairlineWidth` | Z2: WhatsApp's unselected chip outline is 2 px at 1.70 px per dp (about 1 dp) and reads smooth; Z3: the Kaitech Tiket card outline is a single pixel (row 283 of `bd04be99`, one pixel at `#323136` between two background pixels), which aliases on the curve; device proof pending in ZHA-8109, which also adds the line width token and its own lint guard: once it merges, this rule refers to that token and stage 4 reuses that guard instead of adding a second one |
 | Straight full-width divider (list separators, app bar bottom) | `StyleSheet.hairlineWidth` allowed | S and T draw 1 px separators |
 | Selected, focused or error outline | 2 | M3 outlined text field; `TextField.android.tsx` |
 | Keyboard focus ring | 3, offset 2 | M3 focus indicator; `PillBar.android.tsx` |
@@ -82,11 +82,11 @@ Text goes through `<Text variant>` (`src/ui/Text.tsx`); `type` in `src/theme/ind
 | List row name | 16 to 17 | T `dialogs_namePaint` 17 |
 | Time and meta | 12 | S date 12sp; T `dialogs_timePaint` 12 |
 | Smallest text | 11 (badge counts only, M3 label small); nothing smaller | M3 |
-| Line height | from the variant; a literal must be 1.15 to 1.5 times its font size | |
+| Line height | from the variant; a literal must be one of the token line heights (16, 18, 20, 22, 24, 28, 40) or 1.18 to 1.5 times its font size | the token range: iOS display 40/34 = 1.18 to Android body 24/16 = 1.5 |
 | Emoji and recorder digits | 28, 32, 48, 64 allowed as display sizes for glyphs that are not words | `EmojiPicker`, `RecorderScreen` |
 | Font scale | every text row survives system font scale 2.0: rows use `minHeight`, never a fixed `height` around text | ZHA-8110 audit asks for one 2.0 sample per screen |
 | Weights | 400, 500, 600 for system text; Plus Jakarta Sans 600 to 800 only in display and title | `brandFaces` |
-| **lint** | `fontSize` literals outside `src/theme` must be on the scale above | |
+| **lint** | `fontSize` literals outside `src/theme` must be on the scale above; `lineHeight` literals follow the line height row | |
 
 ## Surfaces and elevation
 
@@ -106,7 +106,7 @@ Text goes through `<Text variant>` (`src/ui/Text.tsx`); `type` in `src/theme/ind
 | Allowed elevations | 0, 1, 3, 6, 8, 12 | M3 levels 0 to 5 |
 | Stacking order | `zIndex`, not elevation; elevation above 12 draws a heavy shadow on Android | |
 | Adjacent surfaces | each step differs by at least 1.10:1 luminance in both themes | today canvas to surface 1.10 / 1.12, surface to surface2 1.15 / 1.15 |
-| iOS shadow | one recipe: `0 6 20 -4`, black at 18% light / 45% dark | `glassMaterial.ts`, `PillBar.tsx` |
+| iOS shadow | one recipe: `0 6 20 -4`, black at 18% light / 45% dark | `glassMaterial.ts`; `PillBar.tsx` uses a second recipe (0, 6, blur 16, 12% / 45%) and is an audit item |
 | Cards | a card only where the item is a separate object; never a card inside a card; no coloured stripe on one side | ZHA-8110 design rules |
 | **lint** | elevation literals off the levels; colour literals outside `src/theme` except the wallpaper and icon mask files | |
 
@@ -152,7 +152,7 @@ The in-house set in `src/ui/icons` is the only icon source ([Development](develo
 |---|---|---|
 | Empty | 48 icon in `inkFaint`, one line in `headline`, one optional line in `callout` `inkSoft`, one optional action; centred, 32 from the top of the list area | decision for this standard; the audit checks every empty screen against it |
 | Loading a list | skeleton rows with the real row height; a spinner only inside a sheet or an inline load-more | `GifTab`, `StickerTab` skeletons |
-| Spinner | `ActivityIndicator` in `primary`, small (20) inline, large (36) for a whole sheet | 25 call sites use this today |
+| Spinner | `ActivityIndicator` in `primary`, small (20) inline, large (36) for a whole sheet | 29 call sites in 25 files use this today |
 | Error | `Banner` with `dangerBand` / `dangerInk`, icon 20, the cause in plain words and a retry action | `Banner.tsx` has warn and info tones; danger is the missing tone |
 | Offline | `Banner` warn tone, `cloudOff` icon, the queued count | `ConversationList.tsx` |
 | Pull to refresh | `Refresh` from `src/ui/Refresh` | lint rule in `eslint.config.js` |
@@ -186,7 +186,7 @@ One failure is in the tokens' use, not in the code style: white (`onPrimary`) on
 |---|---|---|
 | Reach | 48 on Android, 44 on iOS; the visible shape may be smaller, `hitSlop` or `reach()` makes up the rest | M3; Apple HIG; W 2.5.8 floor 24 |
 | Space between targets | 8, or their reaches must not overlap | M3 |
-| Chips | 32 visible, reach to 48 | M3 filter chip 32; Z2 WhatsApp chips 31 to 32 dp; ours are 36 (`chipHeight`) |
+| Chips | 32 to 36 visible, reach to 48 | M3 filter chip 32; Z2 WhatsApp chips 31 to 32 dp; ours are 36 (`chipHeight`), which passes; the reach stops at 44 through `touchTarget`, the gap below |
 | List rows | 72 minimum for two-line rows | Z1 WhatsApp row pitch 130 px = 76 dp; T `heightDefault` 70 plus separator; ours 76 |
 | Search field | 48 | Z2 WhatsApp 48 dp |
 | FAB | 56, radius 16 | M3; Z1 WhatsApp 55 dp; ours 56 (Z3) |
@@ -210,10 +210,10 @@ The script parses `src` with the TypeScript compiler (`src/theme` excluded) and 
 | color-literal | 18 | colour literal outside `src/theme` (wallpaper presets, plain backgrounds and the icon mask are content and excluded) |
 | font-size-literal | 28 | `fontSize` literal |
 | font-size-off-scale | 7 | of those, off the type scale (26, 30, 10, 4) |
-| line-height-off-scale | 2 | `lineHeight` literal off the scale and outside 1.15 to 1.5 times its font size |
+| line-height-off-scale | 2 | `lineHeight` literal not a token line height and outside 1.18 to 1.5 times its font size |
 | radius-literal | 49 | border radius literal |
 | radius-off-scale | 2 | off the radius scale and not half the element's size (5, 2) |
-| spacing-literal | 74 | padding, margin or gap literal other than 0 |
+| spacing-literal | 35 | padding, margin or gap literal other than 0 or 2 |
 | spacing-off-scale | 15 | of those, off the spacing scale (1, 3, 5, 6, 11, 14, 30) |
 | hairline-on-curve | 79 | `hairlineWidth` border in a style object that also sets a radius, in 57 files |
 | ripple-unclipped | 111 | Pressable with a radius in its own style and no `overflow: 'hidden'` |

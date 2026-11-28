@@ -10,7 +10,7 @@ const scale = {
   radius: [4, 6, 8, 10, 12, 14, 16, 28, 999],
   fontSize: [11, 12, 13, 14, 15, 16, 17, 22, 28, 32, 34, 48, 64],
   lineHeight: [16, 18, 20, 22, 24, 28, 40],
-  leading: [1.15, 1.5],
+  leading: [1.18, 1.5],
   iconSize: [16, 20, 24, 32, 48],
   duration: [0, 120, 180, 240, 300, 320, 600],
   elevation: [0, 1, 3, 6, 8, 12],
@@ -26,10 +26,10 @@ const rules = {
   'color-literal': 'colour literal outside src/theme',
   'font-size-literal': 'fontSize literal',
   'font-size-off-scale': 'fontSize literal off the type scale',
-  'line-height-off-scale': 'lineHeight literal off the type scale and outside 1.15 to 1.5 times its fontSize',
+  'line-height-off-scale': 'lineHeight literal not a token line height and outside 1.18 to 1.5 times its fontSize',
   'radius-literal': 'border radius literal',
   'radius-off-scale': 'border radius off the radius scale and not half of the element size',
-  'spacing-literal': 'padding, margin or gap literal other than 0',
+  'spacing-literal': 'padding, margin or gap literal other than 0 or 2',
   'spacing-off-scale': 'padding, margin or gap literal off the spacing scale',
   'hairline-on-curve': 'StyleSheet.hairlineWidth border in a style object that also sets a border radius',
   'ripple-unclipped': 'Pressable whose own style sets a border radius but not overflow hidden, so the Android ripple can paint past the curve',
@@ -84,10 +84,8 @@ function scan(file) {
         hit('radius-literal', prop, value);
         if (!scale.radius.includes(value) && !sizes.some((size) => size === value * 2)) hit('radius-off-scale', prop, value);
       }
-      if (spacing.test(key) && value !== 0) {
-        hit('spacing-literal', prop, value);
-        if (!scale.space.includes(Math.abs(value))) hit('spacing-off-scale', prop, value);
-      }
+      if (spacing.test(key) && !scale.space.includes(Math.abs(value))) hit('spacing-off-scale', prop, value);
+      if (spacing.test(key) && ![0, 2].includes(Math.abs(value))) hit('spacing-literal', prop, value);
       if (key === 'duration' && !scale.duration.includes(value)) hit('duration-off-scale', prop, value);
       if (key === 'elevation' && !scale.elevation.includes(value)) hit('elevation-off-scale', prop, value);
     }
