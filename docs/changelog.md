@@ -2,6 +2,21 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.18.0 - 2026-11-28
+
+### Added
+
+- Chat tab: the bottom bar, the tablet rail and the iOS 26 tab bar show how many conversations have unread messages, the same number as the Unread chip in the list, from one count over the chip's own filter rule; hidden at 0, "99+" above 99, and it follows reads and "Mark as unread" at once. Screen readers hear "Chat, 3 unread". The Chat badge is the primary purple so it stays apart from the red Activity badge. On the Meizu Mblu 21 the tab and the chip matched through 0, 2, 1 and 2 again, and chat list scrolling stayed at 1.4% janky frames against 1.3% on main (#169, ZHA-8108).
+
+### Changed
+
+- The Unread chip caps its number at "99+" like the tab; the tablet rails share the bar's badge, so the Android rail badge is 18 dp with 10 sp text instead of 16 dp and 11 sp (#169, ZHA-8108).
+
+### Known gaps
+
+- The Chat count covers the conversations already loaded in the list, as the chip always did; archived conversations are not counted and muted ones are (#169, ZHA-8108).
+- The badge was checked on the phone in dark theme only, and the tablet rails and the iOS tab bar only in unit tests (#169, ZHA-8108).
+
 ## 0.17.0 - 2026-11-28
 
 ### Added
