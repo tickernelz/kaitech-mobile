@@ -80,7 +80,7 @@ export function OdooActivities({
         stickySectionHeadersEnabled={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        refreshControl={<Refresh refreshing={items.loading && !!items.data} onRefresh={() => void items.refresh()} />}
+        refreshControl={<Refresh onRefresh={items.refresh} />}
         ListHeaderComponent={
           <View style={styles.head}>
             {header}

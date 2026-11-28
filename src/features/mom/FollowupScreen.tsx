@@ -87,7 +87,7 @@ export function FollowupScreen({ id }: { id: number }) {
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<Refresh refreshing={item.loading} onRefresh={() => void item.refresh()} />}>
+        refreshControl={<Refresh onRefresh={item.refresh} />}>
         <View style={styles.block}>
           <Text variant="title" testID="followup-name">
             {data.name}

@@ -489,7 +489,7 @@ export function startChat(account: Account) {
     starred: 0,
   };
   leaving = new Set();
-  refreshAsked = false;
+  dropRefreshAsked();
   listeners.forEach((listener) => listener());
   const current = client;
   void loadFeatures(current);
@@ -568,7 +568,7 @@ export function startChat(account: Account) {
 export function stopChat() {
   stop();
   leaving = new Set();
-  refreshAsked = false;
+  dropRefreshAsked();
   set({ accountId: null, conversations: [], threads: {}, pending: [], delivered: [], sent: {}, openChannels: [], invited: [], archivedSummary: null, archived: null, archivedCursor: null, features: noFeatures, starred: 0 });
 }
 
@@ -578,33 +578,49 @@ onAccountForgotten((id) => {
   void forgetChatAccount(id, { pendingFor, dropFile, forgetDrafts, forgetAccount });
 });
 
-let refreshAsked = false;
+let refreshAsked: { done: Promise<void>; settle: () => void } | null = null;
+
+function askRefresh(): Promise<void> {
+  if (!refreshAsked) {
+    let settle!: () => void;
+    const done = new Promise<void>((resolve) => (settle = resolve));
+    refreshAsked = { done, settle };
+  }
+  return refreshAsked.done;
+}
+
+function dropRefreshAsked() {
+  refreshAsked?.settle();
+  refreshAsked = null;
+}
 
 function refreshIfAsked(current: ChatClient) {
   if (refreshAsked && client === current && !state.listLoading) void refreshConversations();
 }
 
-export async function refreshConversations() {
+export async function refreshConversations(): Promise<void> {
   const current = client;
   const account = state.accountId;
   if (!current || !account) return;
-  if (state.listLoading) {
-    refreshAsked = true;
-    return;
-  }
-  refreshAsked = false;
+  if (state.listLoading) return askRefresh();
+  const answers = refreshAsked;
+  refreshAsked = null;
   set({ listLoading: true, listError: null });
   try {
-    const body = await current.conversations(null);
-    if (client !== current) return;
-    const page = conversationPage(body);
-    notePhotoList(account, conversationPhotos(body));
-    set({ conversations: listOrder(staying(page.conversations)), nextCursor: page.nextCursor, listLoaded: true, listLoading: false, archivedSummary: page.archived });
-    await storeConversations(account, page.conversations, true);
-  } catch (error) {
-    if (client === current) set({ listLoading: false, listError: errorCode(error) });
+    try {
+      const body = await current.conversations(null);
+      if (client !== current) return;
+      const page = conversationPage(body);
+      notePhotoList(account, conversationPhotos(body));
+      set({ conversations: listOrder(staying(page.conversations)), nextCursor: page.nextCursor, listLoaded: true, listLoading: false, archivedSummary: page.archived });
+      await storeConversations(account, page.conversations, true);
+    } catch (error) {
+      if (client === current) set({ listLoading: false, listError: errorCode(error) });
+    }
+    refreshIfAsked(current);
+  } finally {
+    answers?.settle();
   }
-  refreshIfAsked(current);
 }
 
 export async function loadMoreConversations() {
@@ -1011,10 +1027,22 @@ export function removalOf(channelId: number, kind: Removal): { apply: () => void
   };
 }
 
-export async function loadArchived(more = false) {
+let archivedRun: Promise<void> | null = null;
+
+export function loadArchived(more = false): Promise<void> {
   const current = client;
-  if (!current || state.archivedLoading || (more && !state.archivedCursor)) return;
+  if (!current) return Promise.resolve();
+  if (state.archivedLoading) return archivedRun ?? Promise.resolve();
+  if (more && !state.archivedCursor) return Promise.resolve();
   set({ archivedLoading: true });
+  const run = fetchArchived(current, more).finally(() => {
+    if (archivedRun === run) archivedRun = null;
+  });
+  archivedRun = run;
+  return run;
+}
+
+async function fetchArchived(current: ChatClient, more: boolean) {
   try {
     const page = conversationPage(await current.conversations(more ? state.archivedCursor : null, { archived: true }));
     if (client !== current) return;

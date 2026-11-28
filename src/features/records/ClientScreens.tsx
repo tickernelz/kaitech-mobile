@@ -43,7 +43,7 @@ export function MapScreen({ programme, id }: { programme: number; id: number }) 
       {!data ? (
         <StateView loading={map.loading || !map.error} error={map.error} onRetry={() => void map.refresh()} testID="map" />
       ) : (
-        <ScrollView contentContainerStyle={styles.content} refreshControl={<Refresh refreshing={map.loading} onRefresh={() => void map.refresh()} />}>
+        <ScrollView contentContainerStyle={styles.content} refreshControl={<Refresh onRefresh={map.refresh} />}>
           {data.nodes.length ? <KtDiagram block={architectureBlock(data, t('records.side'))} summary="" /> : null}
           {data.notes.map((note, index) => (
             <Text key={index} variant="callout">
@@ -81,7 +81,7 @@ export function DiagramScreen({ id }: { id: number }) {
       {!data ? (
         <StateView loading={diagram.loading || !diagram.error} error={diagram.error} onRetry={() => void diagram.refresh()} testID="diagram" />
       ) : (
-        <ScrollView contentContainerStyle={styles.content} refreshControl={<Refresh refreshing={diagram.loading} onRefresh={() => void diagram.refresh()} />}>
+        <ScrollView contentContainerStyle={styles.content} refreshControl={<Refresh onRefresh={diagram.refresh} />}>
           {data.block ? (
             <KtBlockView raw={JSON.stringify(data.block)} />
           ) : data.nodes.length ? (
@@ -153,7 +153,7 @@ export function KnowledgeScreen({ programme }: { programme: number }) {
 
   return (
     <Shell title={t('records.knowledge')} subtitle={data?.engagement_name} testID="knowledge-screen">
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" refreshControl={<Refresh refreshing={overview.loading && !!data} onRefresh={() => void overview.refresh()} />}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" refreshControl={<Refresh onRefresh={overview.refresh} />}>
         <TextField label={t('records.askKnowledge')} value={query} onChangeText={setQuery} onSubmitEditing={() => void search()} returnKeyType="search" testID="knowledge-query" />
         <Button label={t('records.search')} busy={busy === 'search'} disabled={!query.trim() || busy !== null} onPress={() => void search()} testID="knowledge-search" />
         {found ? (
@@ -221,7 +221,7 @@ export function WatchScreen({ id }: { id: number }) {
       {!data ? (
         <StateView loading={watch.loading || !watch.error} error={watch.error} onRetry={() => void watch.refresh()} testID="watch" />
       ) : (
-        <ScrollView contentContainerStyle={styles.content} refreshControl={<Refresh refreshing={watch.loading} onRefresh={() => void watch.refresh()} />}>
+        <ScrollView contentContainerStyle={styles.content} refreshControl={<Refresh onRefresh={watch.refresh} />}>
           {!data.messages.length ? <StateView empty={{ title: t('records.watchEmpty'), icon: 'chat' }} testID="watch-empty" /> : null}
           {data.messages.map((message) => {
             const at = parseServerDate(message.occurred_at);

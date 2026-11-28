@@ -21,7 +21,7 @@ export function RecordingHistoryScreen({ recording }: { recording: number }) {
     <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="recording-history">
       <Header title={t('mom.recordingMenu.history')} />
       {history.data ? (
-        <Scroll refreshing={history.loading} onRefresh={() => void history.refresh()}>
+        <Scroll onRefresh={history.refresh}>
           <Section>
             {history.data.length ? (
               history.data.map((line) => <Row key={line.id} title={[line.body, ...line.changes].filter(Boolean).join('\n') || '-'} detail={[line.author, line.date].filter(Boolean).join(' · ')} />)
@@ -79,7 +79,7 @@ function Departments({ board, card, meeting }: { board: MeetingRecordings; card:
   const toggle = (id: number) => setChosen((list) => (list.includes(id) ? list.filter((one) => one !== id) : [...list, id]));
   const changed = [...chosen].sort().join(',') !== card.clientDepartments.map((one) => one.id).sort().join(',');
   return (
-    <Scroll refreshing={false} onRefresh={() => undefined}>
+    <Scroll>
       {!board.isClient ? (
         <Section title={t('mom.recordingMenu.filedUnder')}>
           {[{ id: 0, name: t('mom.clientOrg.noDepartment') }, ...own].map((one) => {

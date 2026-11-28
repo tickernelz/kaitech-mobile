@@ -152,7 +152,7 @@ export function EditorScreen({ recording }: { recording: number }) {
         initialNumToRender={20}
         windowSize={7}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<Refresh refreshing={view.loading} onRefresh={() => void view.refresh()} />}
+        refreshControl={<Refresh onRefresh={view.refresh} />}
         ListHeaderComponent={
           <View style={styles.top}>
             {data.settled ? (

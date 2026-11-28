@@ -10,6 +10,7 @@ const listeners = new Map<string, Set<() => void>>();
 const idle: Entry = { at: 0, loading: false };
 const generations = new Map<string, number>();
 const invalidatedWhileLoading = new Set<string>();
+const inFlight = new Map<string, { generation: number; run: Promise<void> }>();
 
 function generationOf(key: string): number {
   return generations.get(key.slice(0, key.indexOf(':'))) ?? 0;
@@ -24,9 +25,7 @@ function put(key: string, next: Partial<Entry>) {
   notify(key);
 }
 
-export async function load<T>(key: string, fetcher: () => Promise<T>): Promise<void> {
-  if (entries.get(key)?.loading) return;
-  const generation = generationOf(key);
+async function fetchOnce<T>(key: string, generation: number, fetcher: () => Promise<T>): Promise<boolean> {
   put(key, { loading: true });
   let next: Partial<Entry>;
   try {
@@ -35,9 +34,24 @@ export async function load<T>(key: string, fetcher: () => Promise<T>): Promise<v
     next = { error, loading: false };
   }
   const outdated = invalidatedWhileLoading.delete(key) && next.at !== undefined;
-  if (generationOf(key) !== generation) return;
+  if (generationOf(key) !== generation) return false;
   put(key, outdated ? { ...next, at: 0 } : next);
-  if (outdated) await load(key, fetcher);
+  return outdated;
+}
+
+export function load<T>(key: string, fetcher: () => Promise<T>): Promise<void> {
+  const generation = generationOf(key);
+  const running = inFlight.get(key);
+  if (running && running.generation === generation) return running.run;
+  const run = fetchUntilCurrent(key, generation, fetcher).finally(() => {
+    if (inFlight.get(key)?.run === run) inFlight.delete(key);
+  });
+  inFlight.set(key, { generation, run });
+  return run;
+}
+
+async function fetchUntilCurrent<T>(key: string, generation: number, fetcher: () => Promise<T>) {
+  while (await fetchOnce(key, generation, fetcher));
 }
 
 export function update<T>(key: string, change: (current: T | undefined) => T) {

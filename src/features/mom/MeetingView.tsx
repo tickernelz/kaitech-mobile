@@ -258,7 +258,7 @@ export function MeetingView({ meeting, back }: { meeting: number; back: boolean 
   const scrolled = (body: ReactNode) => (
     <ScrollView
       contentContainerStyle={short ? styles.shortContent : styles.content}
-      refreshControl={<Refresh refreshing={detail.loading} onRefresh={() => void detail.refresh()} />}>
+      refreshControl={<Refresh onRefresh={detail.refresh} />}>
       {inner}
       {short ? <View style={styles.content}>{body}</View> : body}
     </ScrollView>

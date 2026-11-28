@@ -57,3 +57,21 @@ it('does not fetch again after a failed load that was invalidated while loading'
   await load('u1_a:mom.failing', fetcher);
   expect(fetcher).toHaveBeenCalledTimes(1);
 });
+
+it('lets a pull that lands while a load runs wait for that answer instead of settling at once', async () => {
+  let release!: (value: string) => void;
+  const fetcher = jest.fn(() => new Promise<string>((resolve) => (release = resolve)));
+  const running = load('u1_a:mom.pull', fetcher);
+  let pulled = false;
+  const pull = load('u1_a:mom.pull', fetcher).then(() => {
+    pulled = true;
+  });
+  for (let i = 0; i < 5; i += 1) await Promise.resolve();
+  expect(pulled).toBe(false);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  release('meetings');
+  await pull;
+  await running;
+  const { result } = await renderHook(() => useResource<string>('mom.pull', fetcher, 60_000));
+  expect(result.current.data).toBe('meetings');
+});

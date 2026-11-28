@@ -66,7 +66,7 @@ export function SectionsScreen({ programme, name }: { programme: number; name?: 
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<Refresh refreshing={groups.loading && !!groups.data} onRefresh={() => void groups.refresh()} />}>
+        refreshControl={<Refresh onRefresh={groups.refresh} />}>
         <Section>
           <Row
             title={t('records.programme')}

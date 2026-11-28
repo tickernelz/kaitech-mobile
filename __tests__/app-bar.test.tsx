@@ -97,7 +97,7 @@ describe('pull to refresh', () => {
   test('the Android indicator starts inside the list, so no pull depth shows a clipped circle', async () => {
     let drawn: { type: unknown; props: { progressViewOffset?: number } } | undefined;
     function Probe() {
-      drawn = Refresh({ refreshing: false, onRefresh: () => undefined }) as typeof drawn;
+      drawn = Refresh({ onRefresh: async () => undefined }) as typeof drawn;
       return null;
     }
     await render(<Probe />);

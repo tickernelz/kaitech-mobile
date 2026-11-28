@@ -46,7 +46,7 @@ export function RecordsScreen({ kind }: { kind: RecordKind }) {
         keyExtractor={(line) => String(line.id)}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<Refresh refreshing={page.loading && !!page.data} onRefresh={() => void page.refresh()} />}
+        refreshControl={<Refresh onRefresh={page.refresh} />}
         ListHeaderComponent={
           <View style={styles.head}>
             <TextField label={t('mom.records.search')} value={typed} onChangeText={setTyped} returnKeyType="search" autoCorrect={false} testID="mom-records-search" />

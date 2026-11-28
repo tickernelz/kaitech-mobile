@@ -54,10 +54,10 @@ function Notes({ meeting }: { meeting: number }) {
   const notes = useResource(assistKey('notes', meeting), (account) => manualNotes(account, meeting), 0);
   usePoll(!!notes.data?.pending, notes.refresh);
   if (!notes.data) return <StateView loading={!notes.error} error={notes.error} onRetry={() => void notes.refresh()} testID="assist-notes" />;
-  return <NotesForm key={notes.data.note ? notes.data.note.stamp : 'new'} data={notes.data} meeting={meeting} refreshing={notes.loading} onRefresh={() => void notes.refresh()} />;
+  return <NotesForm key={notes.data.note ? notes.data.note.stamp : 'new'} data={notes.data} meeting={meeting} onRefresh={notes.refresh} />;
 }
 
-function NotesForm({ data, meeting, refreshing, onRefresh }: { data: ManualNotes; meeting: number; refreshing: boolean; onRefresh: () => void }) {
+function NotesForm({ data, meeting, onRefresh }: { data: ManualNotes; meeting: number; onRefresh: () => Promise<unknown> }) {
   const { t } = useTranslation();
   const action = useAssistRun('notes', meeting);
   const { active } = useSession();
@@ -82,7 +82,7 @@ function NotesForm({ data, meeting, refreshing, onRefresh }: { data: ManualNotes
             { key: 'mine', label: t('mom.assist.notes.keepMine'), tone: 'primary' },
           ],
         }).then((picked) => {
-          if (picked === 'theirs') onRefresh();
+          if (picked === 'theirs') void onRefresh();
           if (picked === 'mine') void save(null);
         });
       } else notify(errorText(error));
@@ -104,7 +104,7 @@ function NotesForm({ data, meeting, refreshing, onRefresh }: { data: ManualNotes
   };
   const full = data.maxFiles > 0 && data.attachments.length >= data.maxFiles;
   return (
-    <Scroll refreshing={refreshing} onRefresh={onRefresh}>
+    <Scroll onRefresh={onRefresh}>
       <Text tone="inkSoft">{t('mom.assist.notes.hint')}</Text>
       {data.note ? (
         <Text variant="footnote" tone="inkSoft">
@@ -151,7 +151,7 @@ function Tasks({ meeting }: { meeting: number }) {
   const data = tasks.data;
   if (!data) return <StateView loading={!tasks.error} error={tasks.error} onRetry={() => void tasks.refresh()} testID="assist-tasks" />;
   return (
-    <Scroll refreshing={tasks.loading} onRefresh={() => void tasks.refresh()}>
+    <Scroll onRefresh={tasks.refresh}>
       {data.job && (data.job.label || data.job.message) ? (
         <Text variant="footnote" tone="inkSoft" accessibilityRole="alert">
           {[data.job.label, data.job.message].filter(Boolean).join(' · ')}

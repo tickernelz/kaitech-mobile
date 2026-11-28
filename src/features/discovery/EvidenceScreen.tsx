@@ -182,7 +182,7 @@ export function EvidenceScreen({ programme, initial = 'findings' }: { programme:
             onPress={() => (expanded ? setSelected(item.id) : router.push({ pathname: '/program/finding/[id]', params: { id: String(item.id), programme: String(programme) } }))}
           />
         )}
-        refreshControl={<Refresh refreshing={found.loading && !!found.data} onRefresh={() => void found.refresh()} />}
+        refreshControl={<Refresh onRefresh={found.refresh} />}
         ListEmptyComponent={
           <StateView
             loading={found.loading}
@@ -201,7 +201,7 @@ export function EvidenceScreen({ programme, initial = 'findings' }: { programme:
         renderItem={({ item }) => <EvidenceRow row={item} />}
         onEndReachedThreshold={0.5}
         onEndReached={() => void paged.more()}
-        refreshControl={<Refresh refreshing={paged.loading && paged.rows.length > 0} onRefresh={() => void paged.reload()} />}
+        refreshControl={<Refresh onRefresh={paged.reload} />}
         ListEmptyComponent={
           <StateView
             loading={paged.loading}
