@@ -84,7 +84,8 @@
     "discovery": "Discovery",
     "mom": "MoM",
     "activity": "Activity",
-    "profile": "Profile and settings"
+    "profile": "Profile and settings",
+    "unread": "{{count}} unread"
   },
   "settings": {
     "title": "Settings",

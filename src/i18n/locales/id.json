@@ -84,7 +84,8 @@
     "discovery": "Discovery",
     "mom": "MoM",
     "activity": "Aktivitas",
-    "profile": "Profil dan pengaturan"
+    "profile": "Profil dan pengaturan",
+    "unread": "{{count}} belum dibaca"
   },
   "settings": {
     "title": "Pengaturan",
