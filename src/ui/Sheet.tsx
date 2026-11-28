@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   sheet: { width: '100%', maxWidth: 560, maxHeight: '88%', borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.lg },
   body: { paddingHorizontal: space.lg, gap: space.xs },
   head: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm, paddingLeft: space.sm, paddingBottom: space.sm },
-  close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginTop: -space.sm },
+  close: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginTop: -space.sm },
   footer: { paddingHorizontal: space.lg, paddingTop: space.md, gap: space.sm },
   item: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 52, paddingHorizontal: space.sm, borderRadius: radius.md },
   dim: { opacity: 0.5 },

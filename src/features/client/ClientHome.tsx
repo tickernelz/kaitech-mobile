@@ -13,7 +13,7 @@ import { useLanguage } from '../../i18n';
 import { intlLocale } from '../../i18n/language';
 import { useTabBarSpace } from '../../layout/tabBar';
 import { HeaderActions } from '../../screens/HeaderActions';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { TopAppBar, useScrolledUnder } from '../../ui/AppBar';
 import { ConnectionBanner } from '../../ui/Banner';
 import { Button } from '../../ui/Button';
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   line: { minHeight: 56, paddingHorizontal: space.lg, paddingVertical: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.md },
   lineText: { flex: 1, gap: 2 },
   smallAction: { flexShrink: 0 },
-  foot: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: space.sm, paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.xs, gap: space.xs },
+  foot: { borderTopWidth: stroke.hairline, marginTop: space.sm, paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.xs, gap: space.xs },
   bone: { height: 14, borderRadius: radius.sm },
   boneSmall: { width: '40%', height: 12 },
 });

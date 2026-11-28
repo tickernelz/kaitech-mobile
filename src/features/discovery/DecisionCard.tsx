@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Text } from '../../ui/Text';
 import { answer, type Card } from './api';
@@ -141,10 +141,10 @@ export function DecisionCard({ card, onAnswered }: { card: Card; onAnswered?: (n
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: radius.card, borderWidth: 1, overflow: 'hidden', width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
+  card: { borderRadius: radius.card, borderWidth: stroke.thin, overflow: 'hidden', width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   band: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm },
   body: { padding: space.lg, gap: space.sm },
-  item: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm, gap: 2 },
+  item: { borderTopWidth: stroke.hairline, paddingTop: space.sm, gap: 2 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
   restated: { borderRadius: radius.md, padding: space.md, gap: space.xs },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.xs },

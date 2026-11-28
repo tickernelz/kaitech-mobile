@@ -4,7 +4,7 @@ import { ActivityIndicator, Linking, ScrollView, StyleSheet, View } from 'react-
 import { Overlay } from '../../../ui/Overlay';
 import { Pressable } from '../../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { Icon } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';
 import type { TranscriptItem } from '../api';
@@ -164,7 +164,7 @@ export const KtArtifact = memo(function KtArtifact({ block, place }: { block: Ar
 });
 
 const styles = StyleSheet.create({
-  card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, padding: space.md, gap: space.sm },
+  card: { borderWidth: stroke.thin, borderRadius: radius.md, padding: space.md, gap: space.sm },
   cardHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   mark: { width: 36, height: 36, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   bold: { fontWeight: '700' },
@@ -172,8 +172,8 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.lg },
   versionStrip: { flexGrow: 0, marginTop: chipBand.marginVertical },
   versions: { gap: space.sm, paddingHorizontal: space.lg, paddingTop: chipBand.paddingVertical, paddingBottom: space.sm },
-  version: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md },
-  stage: { flex: 1, marginHorizontal: space.lg, borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
+  version: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', justifyContent: 'center', borderWidth: stroke.thin, borderRadius: radius.pill, paddingHorizontal: space.md },
+  stage: { flex: 1, marginHorizontal: space.lg, borderWidth: stroke.thin, borderRadius: radius.sm, overflow: 'hidden' },
   frame: { flex: 1 },
   foot: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.lg },
 });

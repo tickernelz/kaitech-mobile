@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Icon } from '../../ui/icons';
 import { IconButton } from '../../ui/IconButton';
 import { Row, Section } from '../../ui/List';
@@ -129,6 +129,6 @@ const styles = StyleSheet.create({
   strong: { fontWeight: '600' },
   searchRow: { flexDirection: 'row', alignItems: 'flex-end', gap: space.xs },
   content: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.xxl, gap: space.md, width: '100%', maxWidth: 720, alignSelf: 'center' },
-  group: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  group: { borderRadius: radius.card, borderWidth: stroke.thin, overflow: 'hidden' },
   groupHead: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg },
 });

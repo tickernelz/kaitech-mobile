@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   top: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.sm, paddingBottom: space.sm },
   title: { flex: 1, minWidth: 0 },
-  barButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  barButton: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   pages: { paddingHorizontal: space.sm, paddingTop: space.sm },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
   centerText: { textAlign: 'center' },

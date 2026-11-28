@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { space, useTheme } from '../../../theme';
+import { space, stroke, useTheme } from '../../../theme';
 import { Sheet } from '../../../ui/Sheet';
 import { Text } from '../../../ui/Text';
 import { useChat } from '../chat';
@@ -48,7 +48,7 @@ export function VotesSheet({ poll, onClose }: { poll: Poll; onClose: () => void 
 
 const styles = StyleSheet.create({
   group: { paddingVertical: space.sm, gap: space.xs },
-  head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingBottom: space.xs, borderBottomWidth: StyleSheet.hairlineWidth },
+  head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingBottom: space.xs, borderBottomWidth: stroke.hairline },
   flex: { flex: 1 },
   person: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 44 },
   none: { paddingVertical: space.xs },

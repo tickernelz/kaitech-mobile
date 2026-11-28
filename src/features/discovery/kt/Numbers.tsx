@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { radius, space, useTheme, type Colors } from '../../../theme';
+import { radius, space, stroke, useTheme, type Colors } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';
 import { decimalsOf, signed, useNumbers, withUnit } from './format';
@@ -42,7 +42,7 @@ export const KtKpi = memo(function KtKpi({ block }: { block: KpiBlock }) {
           const value = typeof item.value === 'number' ? numbers.number(item.value, places, false) : item.value;
           const delta = item.delta;
           return (
-            <View key={index} style={[styles.kpi, index ? { borderTopColor: colors.line, borderTopWidth: StyleSheet.hairlineWidth } : null]}>
+            <View key={index} style={[styles.kpi, index ? { borderTopColor: colors.line, borderTopWidth: stroke.hairline } : null]}>
               <View style={shared.grow}>
                 <Text variant="footnote" tone="inkSoft">
                   {item.label}
@@ -149,7 +149,7 @@ export const KtCompare = memo(function KtCompare({ block }: { block: CompareBloc
             </Text>
           </View>
           {rows.map((row) => (
-            <View key={row.key} style={[styles.row, { borderTopColor: colors.line, borderTopWidth: StyleSheet.hairlineWidth }]}>
+            <View key={row.key} style={[styles.row, { borderTopColor: colors.line, borderTopWidth: stroke.hairline }]}>
               <View style={styles.labelCell}>
                 <Text variant="footnote">{row.label}</Text>
                 <View style={styles.bars}>
@@ -175,15 +175,15 @@ export const KtCompare = memo(function KtCompare({ block }: { block: CompareBloc
 });
 
 const styles = StyleSheet.create({
-  kpis: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md },
+  kpis: { borderWidth: stroke.thin, borderRadius: radius.md },
   kpi: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md, paddingVertical: space.sm },
   figure: { alignItems: 'flex-end', gap: 2 },
   value: { fontVariant: ['tabular-nums'] },
   change: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   bold: { fontWeight: '700' },
   pair: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  side: { flex: 1, gap: 2, borderWidth: 1, borderRadius: radius.md, padding: space.md },
-  grid: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
+  side: { flex: 1, gap: 2, borderWidth: stroke.thin, borderRadius: radius.md, padding: space.md },
+  grid: { borderWidth: stroke.thin, borderRadius: radius.sm, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center' },
   labelCell: { width: 168, paddingHorizontal: space.sm, paddingVertical: space.sm, gap: space.xs },
   numberCell: { width: 104, paddingHorizontal: space.sm, paddingVertical: space.sm, textAlign: 'right', fontVariant: ['tabular-nums'] },

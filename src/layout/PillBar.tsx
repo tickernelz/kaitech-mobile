@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { radius, useTheme, type Colors } from '../theme';
+import { radius, stroke, useTheme, type Colors } from '../theme';
 import { GlassCapsule } from '../ui/GlassCapsule';
 import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
@@ -75,7 +75,7 @@ export function PillBar() {
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   capsule: { height: pillHeight, padding: pillPadding, borderRadius: radius.pill, flexDirection: 'row' },
-  edge: { borderWidth: StyleSheet.hairlineWidth },
+  edge: { borderWidth: stroke.thin },
   shadowLight: { shadowColor: '#000000', shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   shadowDark: { shadowColor: '#000000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   track: { position: 'absolute', top: pillPadding, left: pillPadding, right: pillPadding, bottom: pillPadding },

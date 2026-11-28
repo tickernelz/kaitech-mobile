@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import { choose } from '../../../../ui/dialog';
 import { Icon } from '../../../../ui/icons';
 import { Overlay } from '../../../../ui/Overlay';
@@ -209,9 +209,9 @@ export function LocationPicker({ onClose, onSend }: { onClose: () => void; onSen
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   bar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.sm, paddingVertical: space.sm },
-  icon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  icon: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   search: { flex: 1, height: 44, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
-  panel: { borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: space.xs },
-  home: { position: 'absolute', right: space.sm, bottom: space.xl, width: 44, height: 44, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  panel: { borderTopWidth: stroke.hairline, paddingVertical: space.xs },
+  home: { position: 'absolute', right: space.sm, bottom: space.xl, width: 44, height: 44, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
   pad: { padding: space.lg },
 });

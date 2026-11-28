@@ -3,7 +3,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, TextInput, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { Sheet } from '../../../ui/Sheet';
 import { Text } from '../../../ui/Text';
 import type { EmojiCategory } from '../emoji/data';
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   search: { flex: 1, minHeight: 44, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
   tabs: { gap: space.xs, paddingVertical: space.sm },
-  tab: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  tab: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, justifyContent: 'center' },
   grid: { flex: 1, minHeight: 120 },
   cell: { flex: 1, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md },
   emoji: { fontSize: 28, lineHeight: 34 },

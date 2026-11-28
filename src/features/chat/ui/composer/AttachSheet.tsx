@@ -4,7 +4,7 @@ import { AccessibilityInfo, BackHandler, Keyboard, Platform, ScrollView, StyleSh
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import { duration, easing } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { useBottomInset } from '../../../../ui/insets';
@@ -154,6 +154,6 @@ const styles = StyleSheet.create({
   itemWide: { width: '50%' },
   circle: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
   center: { textAlign: 'center' },
-  divider: { height: StyleSheet.hairlineWidth, marginVertical: space.xs },
+  divider: { height: stroke.hairline, marginVertical: space.xs },
   note: { paddingTop: space.xs },
 });

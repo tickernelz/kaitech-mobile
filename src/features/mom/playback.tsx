@@ -6,7 +6,7 @@ import { Pressable } from '../../ui/Pressable';
 import { playbackUrl } from './api';
 import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { IconButton } from '../../ui/IconButton';
 import { Icon } from '../../ui/icons';
 import { Text } from '../../ui/Text';
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     padding: space.sm,
     paddingRight: space.lg,
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: stroke.thin,
     width: '100%',
     maxWidth: readableWidth,
   },

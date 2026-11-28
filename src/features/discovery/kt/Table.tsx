@@ -9,7 +9,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { rpc } from '../../../api/odoo';
 import { onAccountForgotten } from '../../../auth/session';
 import { randomUUID } from 'expo-crypto';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { Icon } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';
 import { sparkShape, sparkText } from './chartShape';
@@ -304,9 +304,9 @@ export const KtTable = memo(function KtTable({ block, place, exportable = true, 
 });
 
 const styles = StyleSheet.create({
-  grid: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
+  grid: { borderWidth: stroke.thin, borderRadius: radius.sm, overflow: 'hidden' },
   row: { flexDirection: 'row' },
-  divided: { borderTopWidth: StyleSheet.hairlineWidth },
+  divided: { borderTopWidth: stroke.hairline },
   head: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: space.sm, paddingVertical: space.sm, minHeight: touchTarget },
   cell: { paddingHorizontal: space.sm, paddingVertical: space.sm, justifyContent: 'center' },
   textCell: { paddingHorizontal: space.sm, paddingVertical: space.sm, alignSelf: 'center' },
@@ -314,6 +314,6 @@ const styles = StyleSheet.create({
   right: { textAlign: 'right' },
   bold: { fontWeight: '700' },
   spark: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 2 },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', justifyContent: 'center', borderWidth: stroke.thin, borderRadius: radius.pill, paddingHorizontal: 2 },
   more: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
 });

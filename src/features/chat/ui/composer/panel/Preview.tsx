@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
-import { radius, space, useTheme } from '../../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../../theme';
 import { duration, easing } from '../../../../../theme/motion';
 import { Overlay } from '../../../../../ui/Overlay';
 import { Pressable } from '../../../../../ui/Pressable';
@@ -59,5 +59,5 @@ const styles = StyleSheet.create({
   card: { borderRadius: radius.sheet, padding: space.lg, gap: space.lg, alignItems: 'center' },
   media: { width: previewSize, height: previewSize },
   actions: { flexDirection: 'row', gap: space.sm },
-  button: { minHeight: 44, minWidth: 96, paddingHorizontal: space.lg, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  button: { minHeight: 44, minWidth: 96, paddingHorizontal: space.lg, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
 });

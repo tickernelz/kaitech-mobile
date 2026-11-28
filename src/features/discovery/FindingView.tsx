@@ -5,7 +5,7 @@ import { Pressable } from '../../ui/Pressable';
 import { useResource } from '../../api/resource';
 import { useFormatters } from '../../i18n';
 import { readableWidth } from '../../layout/windowClass';
-import { space, useTheme } from '../../theme';
+import { space, stroke, useTheme } from '../../theme';
 import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
 import { finding as readFinding, type Finding } from './api';
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   content: { padding: space.lg, gap: space.md, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
-  side: { flexDirection: 'row', gap: space.md, padding: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
+  side: { flexDirection: 'row', gap: space.md, padding: space.md, borderBottomWidth: stroke.hairline },
   sideIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   ask: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg, borderRadius: 999 },
 });
