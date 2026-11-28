@@ -6,7 +6,7 @@ import { Pressable } from '../../ui/Pressable';
 import { radius, space, useTheme } from '../../theme';
 import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
-import { TextField } from '../../ui/TextField';
+import { SearchField } from '../../ui/SearchField';
 import { useBottomInset, useTopInset } from '../../ui/insets';
 
 const searchFrom = 12;
@@ -62,7 +62,7 @@ export function MoreSheet({
           </Text>
           {searchable ? (
             <View style={styles.search}>
-              <TextField
+              <SearchField
                 label={t('mom.records.search')}
                 value={query}
                 onChangeText={setQuery}

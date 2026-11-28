@@ -13,6 +13,7 @@ import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Check, Row, Section, ToggleRow } from '../../ui/List';
 import { Text } from '../../ui/Text';
+import { SearchField } from '../../ui/SearchField';
 import { TextField } from '../../ui/TextField';
 import { Header } from '../discovery/Header';
 import { Card, Segmented, StateView, useErrorText } from '../discovery/ui';
@@ -113,7 +114,7 @@ export function ClientOrgScreen() {
                   onChange={setDepartment}
                   testID="client-org-department"
                 />
-                <TextField label={t('mom.records.search')} value={typed} onChangeText={setTyped} autoCorrect={false} testID="client-org-search" />
+                <SearchField label={t('mom.records.search')} value={typed} onChangeText={setTyped} autoCorrect={false} testID="client-org-search" />
                 <Section title={t('mom.clientOrg.employeesShown', { shown: data.employees.length, total: data.employee_page.total })}>
                   {data.employees.length ? (
                     data.employees.map((one) => (

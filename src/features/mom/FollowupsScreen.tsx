@@ -10,7 +10,7 @@ import { space, useTheme } from '../../theme';
 import { IconButton } from '../../ui/IconButton';
 import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
-import { TextField } from '../../ui/TextField';
+import { SearchField } from '../../ui/SearchField';
 import { useCurrentProgramme } from '../discovery/Home';
 import { Header } from '../discovery/Header';
 import { Card, Segmented, StateView, useErrorText } from '../discovery/ui';
@@ -110,7 +110,7 @@ export function FollowupsScreen() {
             }}
             testID="followups-status"
           />
-          <TextField label={t('mom.records.search')} value={typed} onChangeText={setTyped} returnKeyType="search" autoCorrect={false} testID="followups-search" />
+          <SearchField label={t('mom.records.search')} value={typed} onChangeText={setTyped} returnKeyType="search" autoCorrect={false} testID="followups-search" />
           {owner || meeting ? (
             <View style={styles.filters}>
               {owner ? <SmallButton label={t('mom.followups.clearOwner', { name: ownerName })} onPress={() => filter({ owner: 0 })} testID="followups-clear-owner" /> : null}

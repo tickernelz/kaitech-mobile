@@ -8,6 +8,7 @@ import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Sheet, SheetItem } from '../../ui/Sheet';
 import { Text } from '../../ui/Text';
+import { SearchField } from '../../ui/SearchField';
 import { TextField } from '../../ui/TextField';
 import { useErrorText } from '../discovery/ui';
 import { DateGrid } from './DateGrid';
@@ -153,7 +154,7 @@ export function ScheduleSheet({ mode, onClose, onSaved }: { mode: ScheduleMode; 
           />
           {picking === 'person' ? (
             <View style={[styles.people, { borderColor: colors.line }]}>
-              <TextField label={t('activities.findPerson')} value={query} onChangeText={setQuery} autoFocus testID="activity-assignee-search" />
+              <SearchField label={t('activities.findPerson')} value={query} onChangeText={setQuery} autoFocus testID="activity-assignee-search" />
               {found.map((person) => (
                 <SheetItem
                   key={person.id}

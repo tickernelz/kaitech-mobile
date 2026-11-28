@@ -11,7 +11,7 @@ import { Button } from '../../ui/Button';
 import { IconButton } from '../../ui/IconButton';
 import { Icon } from '../../ui/icons';
 import { Text } from '../../ui/Text';
-import { TextField } from '../../ui/TextField';
+import { SearchField } from '../../ui/SearchField';
 import { Header } from '../discovery/Header';
 import { Chip, StateView } from '../discovery/ui';
 import { getViews, loadAction, readGroups, searchRecords, specOf, type Fields, type Group, type RecordValues, type Spec, type WindowAction } from './api';
@@ -227,7 +227,7 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
       <View style={styles.search}>
         <View style={styles.searchRow}>
           <View style={styles.fill}>
-            <TextField label={t('records.search')} value={query} onChangeText={setQuery} autoCorrect={false} returnKeyType="search" testID="list-search" />
+            <SearchField label={t('records.search')} value={query} onChangeText={setQuery} autoCorrect={false} returnKeyType="search" testID="list-search" />
           </View>
           {query ? <IconButton icon="close" label={t('records.clear')} onPress={() => setQuery('')} testID="list-search-clear" /> : null}
         </View>

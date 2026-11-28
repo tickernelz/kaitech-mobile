@@ -6,7 +6,7 @@ import { space } from '../../../theme';
 import { Button } from '../../../ui/Button';
 import { Sheet, SheetItem } from '../../../ui/Sheet';
 import { Text } from '../../../ui/Text';
-import { TextField } from '../../../ui/TextField';
+import { SearchField } from '../../../ui/SearchField';
 import { audioOutputs, chooseAudioOutput } from '../call';
 import { inviteToCall, searchInvitees, type Invitee } from '../invite';
 
@@ -51,7 +51,7 @@ export function InviteSheet({ channelId, onClose }: { channelId: number; onClose
 
   return (
     <Sheet title={t('invite')} detail={t('inviteHint')} onClose={onClose} testID="call-invite">
-      <TextField label={t('inviteSearch')} value={query} onChangeText={setQuery} autoCorrect={false} testID="call-invite-search" />
+      <SearchField label={t('inviteSearch')} value={query} onChangeText={setQuery} autoCorrect={false} testID="call-invite-search" />
       {found.map((person) => {
         const on = picked.some((item) => item.partnerId === person.partnerId);
         return <SheetItem key={person.partnerId} icon={on ? 'check' : 'people'} label={person.name} onPress={() => toggle(person)} testID={`call-invite-${person.partnerId}`} />;
