@@ -1,7 +1,7 @@
 import { Component, type ReactNode, useCallback, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
-import { radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
+import { blend, contrast, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';
 import type { Tone } from './read';
@@ -14,6 +14,15 @@ export const series = [
   ['#905D00', '#D3A056'],
   ['#357A3A', '#7DBD7F'],
 ] as const;
+
+const heatOpacity = [0.12, 0.25, 0.4, 0.75, 0.9, 1] as const;
+
+export function heatFill(level: number, known: boolean, colors: Colors): { fill: string; opacity: number; ink: string } {
+  if (!known) return { fill: colors.surface2, opacity: 1, ink: colors.inkSoft };
+  const opacity = heatOpacity[level];
+  const behind = blend(colors.primary, opacity, colors.surface);
+  return { fill: colors.primary, opacity, ink: contrast(colors.ink, behind) >= contrast(colors.onPrimary, behind) ? colors.ink : colors.onPrimary };
+}
 
 export function seriesColor(index: number, scheme: Scheme): string {
   return series[index % series.length][scheme === 'dark' ? 1 : 0];

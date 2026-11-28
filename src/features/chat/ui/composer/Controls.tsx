@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { radius, space, useTheme } from '../../../../theme';
 import { duration, easing, spring } from '../../../../theme/motion';
@@ -22,8 +22,8 @@ export const controlGap = pill.composer.gap;
 const lockIcon = 20;
 
 export function useSolidCapsule(): ViewStyle {
-  const { colors } = useTheme();
-  return { backgroundColor: colors.surface, borderColor: colors.line, borderWidth: glassEdge };
+  const { colors, material } = useTheme();
+  return { backgroundColor: Platform.OS === 'android' ? material.surfaceContainer : colors.surface, borderColor: colors.line, borderWidth: glassEdge };
 }
 
 export function useToward(target: number, ms: number = duration.base, curve = easing.standard) {

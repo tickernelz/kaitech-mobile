@@ -9,15 +9,9 @@ import { useNumbers } from './format';
 import type { Place } from './place';
 import type { ChartBlock, TableBlock } from './read';
 import { KtTable } from './Table';
-import { BlockTitle, seriesColor, Tool, useWidth, styles as shared } from './ui';
+import { BlockTitle, heatFill, seriesColor, Tool, useWidth, styles as shared } from './ui';
 
 const FONT = 11;
-
-function heatFill(level: number, known: boolean, colors: Colors): { fill: string; opacity: number; ink: string } {
-  if (!known) return { fill: colors.surface2, opacity: 1, ink: colors.inkSoft };
-  const opacity = [0.12, 0.25, 0.4, 0.58, 0.78, 1][level];
-  return { fill: colors.primary, opacity, ink: level >= 3 ? colors.onPrimary : colors.ink };
-}
 
 function CartesianView({ figure, scheme, colors }: { figure: Cartesian; scheme: Scheme; colors: Colors }) {
   return (

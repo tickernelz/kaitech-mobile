@@ -61,6 +61,24 @@ export function colorsFor(scheme: Scheme): Colors {
   return Object.fromEntries(Object.entries(pairs).map(([name, pair]) => [name, pair[index]])) as Colors;
 }
 
+function luminance(hex: string): number {
+  const [r, g, b] = [1, 3, 5].map((at) => {
+    const channel = parseInt(hex.slice(at, at + 2), 16) / 255;
+    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+export function contrast(a: string, b: string): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+export function blend(fill: string, opacity: number, base: string): string {
+  const mixed = [1, 3, 5].map((at) => Math.round(parseInt(fill.slice(at, at + 2), 16) * opacity + parseInt(base.slice(at, at + 2), 16) * (1 - opacity)));
+  return '#' + mixed.map((channel) => channel.toString(16).padStart(2, '0').toUpperCase()).join('');
+}
+
 export const avatarFills = ['#8E565F', '#3A775E', '#27767A', '#426D91', '#646393', '#7F5A81'] as const;
 
 export function avatarFill(seed: number): string {
