@@ -130,12 +130,12 @@ Contrast of the roles, from the WCAG formula on the tokens. Glass is the `glass`
 
 | Rule | Value | Reference |
 |---|---|---|
-| Border on any curved edge (radius above 0): cards, chips, bubbles, pills, fields | 1 dp, never `StyleSheet.hairlineWidth` | Z2: WhatsApp's unselected chip outline is 2 px at 1.70 px per dp (about 1 dp) and reads smooth; Z3: the Kaitech Tiket card outline is a single pixel (row 283 of `bd04be99`, one pixel at `#323136` between two background pixels), which aliases on the curve; device proof pending in ZHA-8109, which also adds the line width token and its own lint guard: once it merges, this rule refers to that token and stage 4 reuses that guard instead of adding a second one |
-| Straight full-width divider (list separators, app bar bottom) | `StyleSheet.hairlineWidth` allowed | S and T draw 1 px separators |
+| Border on any curved edge (radius above 0): cards, chips, bubbles, pills, fields | `stroke.thin` (1 dp rounded to the pixel, 2 px on the Mblu 21), never a one-pixel line | Z2: WhatsApp's unselected chip outline is 2 px at 1.70 px per dp (about 1 dp) and reads smooth; Z3: the Kaitech Tiket card outline is a single pixel (row 283 of `bd04be99`, one pixel at `#323136` between two background pixels), which aliases on the curve; ZHA-8109 moved every curved border to `stroke.thin` and proved it on the Mblu 21 |
+| Straight full-width divider (list separators, app bar bottom) | `stroke.hairline` (one pixel) allowed | S and T draw 1 px separators |
 | Selected, focused or error outline | 2 | M3 outlined text field; `TextField.android.tsx` |
 | Keyboard focus ring | 3, offset 2 | M3 focus indicator; `PillBar.android.tsx` |
 | Badge edge against the bar | 2 | `PillBadge.tsx` |
-| **lint** | `hairlineWidth` in a style object that also sets a border radius is a finding | |
+| **lint** | `StyleSheet.hairlineWidth` outside `src/theme`, or `stroke.hairline` in a style object that also sets a border radius, fails lint (`no-restricted-syntax`, ZHA-8109) | |
 
 ## Typography
 
@@ -202,12 +202,12 @@ The in-house set in `src/ui/icons` is the only icon source ([Development](develo
 
 | Rule | Value | Reference |
 |---|---|---|
-| Android press | ripple from `src/ui/Pressable`, ink at 10% (`1A`), clipped to the control's shape: `overflow: 'hidden'` on the curved Pressable itself | M3 pressed state layer 10%; ZHA-8109 (square ripple on round controls) |
+| Android press | ripple from `src/ui/Pressable`, ink at 10% (`1A`), its radius bounded to the shape: half the smaller side, half the `minHeight` of a pill, otherwise 24 dp, so it ends as a circle inside the curve | M3 pressed state layer 10%; ZHA-8109 (square ripple on round controls; a ripple clipped with `overflow: 'hidden'` cost 7.1% janky frames in the thread scroll, see `docs/architecture.md`) |
 | iOS press | opacity 0.8 | most used value in the code today (4 of 13); one value replaces 0.7, 0.75, 0.85 |
 | Hover and focus state layer | 8% and 10% | M3 |
 | Disabled | content and container at 0.38 opacity, no ripple, `accessibilityState.disabled` | M3; `IconButton.android.tsx` |
 | Keyboard focus | 3 dp ring in `focus` | M3 |
-| **lint** | a Pressable whose own style has a radius must clip (`overflow: 'hidden'`) or use a borderless ripple | |
+| **lint** | `Pressable` and the `Touchable*` controls come from `src/ui/Pressable`, never from `react-native`; an explicit `android_ripple` replaces the bounded one, so on a style with a radius it needs a `radius`, `borderless: true` or `overflow: 'hidden'` on that style | |
 
 ## Motion
 
@@ -270,30 +270,37 @@ One failure is in the tokens' use, not in the code style: white (`onPrimary`) on
 
 ## Measured today
 
-Counts on `main` at `1cbf970` (0.15.0), from
+Counts on `main` at `3dec149` (0.19.0), from
 
 ```bash
-node scripts/design-quality.mjs          # counts per rule
-node scripts/design-quality.mjs --list   # every hit as rule, file:line, value
+node scripts/design-quality.mjs          # counts per rule and message
+node scripts/design-quality.mjs --list   # every hit as rule, file:line, message
 node scripts/design-quality.mjs --contrast
 ```
 
-The script parses `src` with the TypeScript compiler (`src/theme` excluded) and needs no build. It is static: a value passed through a variable is not seen, and `ripple-unclipped` cannot see a parent that clips, so it is an upper bound.
+The script runs the lint rules of `lint/design.js` over `src` (`src/theme` excluded) with their exceptions switched off, so the counts and the lint guard come from one implementation. It is static: a value passed through a variable is not seen, and `design/ripple` reads only the style written on the Pressable and the `StyleSheet.create` sheets of the same file.
 
-| Rule | Count | Meaning |
-|---|---|---|
-| color-literal | 18 | colour literal outside `src/theme` (wallpaper presets, plain backgrounds and the icon mask are content and excluded) |
-| font-size-literal | 28 | `fontSize` literal |
-| font-size-off-scale | 7 | of those, off the type scale (26, 30, 10, 4) |
-| line-height-off-scale | 2 | `lineHeight` literal not a token line height and outside 1.18 to 1.5 times its font size |
-| radius-literal | 49 | border radius literal |
-| radius-off-scale | 2 | off the radius scale and not half the element's size (5, 2) |
-| spacing-literal | 35 | padding, margin or gap literal other than 0 or 2 |
-| spacing-off-scale | 15 | of those, off the spacing scale (1, 3, 5, 6, 11, 14, 30) |
-| hairline-on-curve | 79 | `hairlineWidth` border in a style object that also sets a radius, in 57 files |
-| ripple-unclipped | 111 | Pressable with a radius in its own style and no `overflow: 'hidden'` |
-| icon-size-off-scale | 28 | `Icon` size 12, 14, 18, 22, 28 or 40 |
-| duration-off-scale | 8 | animation duration 70, 80, 150, 160, 280 or 500 |
-| elevation-off-scale | 2 | elevation 10 and 40, used for stacking |
+| Rule | Message | Count | Meaning |
+|---|---|---|---|
+| design/spacing | literal | 14 | padding, margin or gap literal on the scale, written as a number instead of `space.*` |
+| design/spacing | offScale | 15 | padding, margin or gap literal off the spacing scale (1, 3, 5, 6, 11, 14, 30) |
+| design/radius | offScale | 2 | border radius off the radius scale and not half the element's size (5, 2) |
+| design/font-size | offScale | 6 | `fontSize` off the type scale (26, 30, 10, 4) |
+| design/line-height | offScale | 2 | `lineHeight` neither a token line height nor 1.18 to 1.5 times its font size |
+| design/elevation | offScale | 2 | elevation 10 and 40, used for stacking |
+| design/duration | offScale | 8 | animation duration 70, 80, 150, 160, 280 or 500 |
+| design/colour | literal | 17 | colour literal outside `src/theme` (wallpaper presets, plain backgrounds and the icon mask are content and excluded) |
+| design/icon-size | offScale | 28 | `Icon` size 12, 14, 18, 22, 28 or 40 |
+| design/ripple | unbounded | 0 | explicit `android_ripple` on a rounded, unclipped Pressable without a radius or `borderless` |
 
-Broader counts from the same commit, for scale: 264 `.tsx` files, 116 `hairlineWidth` uses in 71 files, 237 `radius.*` and 1002 `space.*` token uses.
+Two guards outside the script also stand at zero: `StyleSheet.hairlineWidth` outside `src/theme` and `stroke.hairline` on a curved style (`no-restricted-syntax`, from 79 curved hairlines at `1cbf970` to 0 after ZHA-8109), and `Pressable` or a `Touchable*` control imported from `react-native` outside `src/ui/Pressable` (`no-restricted-imports`).
+
+## Regression guard
+
+Every rule marked **lint** on this page fails `npm run lint`, the required `lint` check of CI. The rules live in `lint/design.js` and are switched on for `src/**/*.{ts,tsx}` outside `src/theme` in `eslint.config.js`; `__tests__/design-guard.test.ts` and `__tests__/stroke-guard.test.ts` show each rule failing on an example and passing the allowed forms.
+
+The 94 hits counted above, in 48 files, sit in `lint/design-exceptions.js`: for each file, the rule and the exact values allowed there. A hit whose value is not listed for its file fails, so a new literal in a listed file fails like anywhere else. An exception that no longer matches a hit fails too and names the entry to delete, so the list only shrinks: a fix removes its entry in the same change, and nothing is ever added to it. Inline disable comments are not used.
+
+The exceptions are not an audit waiver. They were taken as they stood when the guard landed, before the screen audit (ZHA-8113) graded any finding. When the audit grades a listed value A, the batch that fixes it deletes the entry; a listed value never keeps an A finding open.
+
+Cost: ESLint's `TIMING=all` puts the nine `design/*` rules at 68 ms together over the whole repository. Cold `npm run lint` (no `.expo/cache/eslint`), three runs each on a shared machine: 16.7 to 17.0 s before the guard at load 2.7, 17.5 to 18.0 s with it at load 4.6, and 19.2 to 22.2 s before it again at load 5.0, so the difference is within the machine's load noise.
