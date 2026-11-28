@@ -2,6 +2,17 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.14.6 - 2026-11-28
+
+### Fixed
+
+- MoM, Discovery and Activity: on Android the pull-to-refresh circle no longer appears over the first control of a list when the app reloads it by itself (opening a tab with data older than 30 seconds, reconnecting, polling). It covered "Record a meeting" in MoM, the counts card in Discovery and the filter chips in Activity; the circle now shows only for a pull. Checked on the Meizu Mblu 21 in dark theme, at 200% font size and in landscape (#163, ZHA-8086).
+- Lists: a pull that lands while the same list is already loading keeps the circle up until that load answers, instead of dropping it before the data arrives; this covers the Chat list and the archive too (#163, ZHA-8086).
+
+### Known gaps
+
+- The iOS spinner follows the same rule but has not been tried on an iPhone (#163, ZHA-8086).
+
 ## 0.14.5 - 2026-11-28
 
 ### Fixed
