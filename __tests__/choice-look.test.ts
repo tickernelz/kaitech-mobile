@@ -8,7 +8,7 @@ describe.each<Scheme>(['light', 'dark'])('%s choice look', (scheme) => {
   it('keeps the chip width when it turns on', () => {
     const off = { borderWidth: 1, ...choiceLook(false, colors, rest) };
     const on = { borderWidth: 1, paddingHorizontal: rest.paddingHorizontal, ...choiceLook(true, colors, rest) };
-    expect(on.paddingHorizontal + on.borderWidth).toBe(rest.paddingHorizontal + off.borderWidth);
+    expect(Number(on.paddingHorizontal) + Number(on.borderWidth)).toBe(rest.paddingHorizontal + Number(off.borderWidth));
   });
 
   it('marks the selected choice with an outline that reaches 3:1 against the fill it replaces and its own fill', () => {
