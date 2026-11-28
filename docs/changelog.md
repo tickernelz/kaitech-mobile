@@ -2,6 +2,17 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.15.3 - 2026-11-28
+
+### Fixed
+
+- Chat, Discovery, Activity and MoM: once a list scrolls under the top bar, the status bar above it takes the same colour as the bar, as in WhatsApp; before, only the bar changed and the status bar stayed the page colour. Both change on the same frame. On the Meizu Mblu 21 the status bar and the bar read the same pixel colour in light and dark theme, at the top and scrolled, on all four screens; chat list scrolling measured 0.49% janky frames against 0.61% before (#170, ZHA-8107).
+- Chat: the voice message mini player sits under the top bar instead of above it (#170, ZHA-8107).
+
+### Known gaps
+
+- The wide two-pane layout on tablets was checked in code only, not on a device (#170, ZHA-8107).
+
 ## 0.15.2 - 2026-11-28
 
 ### Fixed
