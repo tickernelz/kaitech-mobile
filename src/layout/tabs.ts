@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import type { IconName } from '../ui/icons';
 
 export type TabName = 'chat' | 'discovery' | 'mom' | 'activity';
@@ -13,9 +14,9 @@ export const routes: Record<TabName, { name: string; href: '/' | '/discovery' | 
 
 export const tabIcons = { chat: 'chat', discovery: 'compass', mom: 'minutes', activity: 'bell' } as const satisfies Record<TabName, IconName>;
 
-const countKeys: Partial<Record<TabName, string>> = { chat: 'tabs.unread', activity: 'activities.pending' };
+const countKeys = { chat: 'tabs.unread', discovery: null, mom: null, activity: 'activities.pending' } as const satisfies Record<TabName, string | null>;
 
-export function tabSpoken(t: (key: string, options?: { count: number }) => string, name: TabName, count: number): string {
+export function tabSpoken(t: TFunction, name: TabName, count: number): string {
   const label = t(`tabs.${name}`);
   const key = countKeys[name];
   return key && count > 0 ? `${label}, ${t(key, { count })}` : label;
