@@ -5,6 +5,21 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 const mockHaptic = jest.fn();
 jest.mock('expo-haptics', () => ({ impactAsync: (...args: unknown[]) => mockHaptic(...args), ImpactFeedbackStyle: { Medium: 'medium' } }));
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
+jest.mock('react-native-reanimated', () => ({
+  __esModule: true,
+  default: { createAnimatedComponent: (component: unknown) => component },
+  createAnimatedComponent: (component: unknown) => component,
+  isSharedValue: () => false,
+  useSharedValue: (value: unknown) => {
+    const { useRef } = jest.requireActual('react');
+    const ref = useRef(null);
+    if (!ref.current) {
+      let current = value;
+      ref.current = { get: () => current, set: (next: unknown) => (current = next) };
+    }
+    return ref.current;
+  },
+}));
 const mockReset = jest.fn();
 const mockSwipeProps: { current: Record<string, unknown> } = { current: {} };
 type MockSwipeableProps = {
@@ -37,6 +52,8 @@ jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
   };
 });
 
+require('react-native-gesture-handler/jestSetup');
+const { GestureHandlerRootView } = require('react-native-gesture-handler') as typeof import('react-native-gesture-handler');
 require('../src/i18n');
 const { RowActions } = require('../src/ui/RowActions') as typeof import('../src/ui/RowActions');
 type SheetAction = import('../src/ui/ActionSheet').SheetAction;
@@ -46,6 +63,7 @@ const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top:
 function row(actions: SheetAction[], start: string[] = [], end?: string[], id = 4) {
   return (
     <SafeAreaProvider initialMetrics={metrics}>
+      <GestureHandlerRootView>
       <RowActions title={`Room ${id}`} actions={actions} start={start} end={end} testID={`conversation-${id}`}>
         {(bind) => (
           <Pressable {...bind} testID="row" accessibilityLabel="Room 4">
@@ -53,6 +71,7 @@ function row(actions: SheetAction[], start: string[] = [], end?: string[], id = 
           </Pressable>
         )}
       </RowActions>
+      </GestureHandlerRootView>
     </SafeAreaProvider>
   );
 }

@@ -3,11 +3,13 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, type AccessibilityActionEvent, type AccessibilityActionInfo } from 'react-native';
 import { Pressable } from './Pressable';
+import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { useSharedValue, type SharedValue } from 'react-native-reanimated';
 import { radius, space, useTheme } from '../theme';
 import { ActionSheet, type SheetAction } from './ActionSheet';
 import { Icon } from './icons';
-import { swipeStart } from './swipeIntent';
+import { swipeStart, swipeVerdict } from './swipeIntent';
 import { Text } from './Text';
 
 export type RowBind = {
@@ -30,6 +32,32 @@ export function swipeActionsFor(actions: SheetAction[], keys: string[], more: Sh
 
 export function accessibilityActionsFor(actions: SheetAction[], moreLabel: string): AccessibilityActionInfo[] {
   return [{ name: 'longpress', label: moreLabel }, ...actions.map((action) => ({ name: action.key, label: action.label }))];
+}
+
+function useSidewaysGate(swipeEnabled: SharedValue<boolean>) {
+  const origin = useSharedValue({ x: 0, y: 0, decided: false });
+  return usePanGesture({
+    manualActivation: true,
+    onTouchesDown: (event) => {
+      'worklet';
+      const touch = event.changedTouches[0];
+      if (touch) origin.set({ x: touch.absoluteX, y: touch.absoluteY, decided: false });
+    },
+    onTouchesMove: (event) => {
+      'worklet';
+      const start = origin.get();
+      const touch = event.allTouches[0];
+      if (start.decided || !touch) return;
+      const verdict = swipeVerdict(touch.absoluteX - start.x, touch.absoluteY - start.y);
+      if (verdict === 'undecided') return;
+      origin.set({ ...start, decided: true });
+      if (verdict === 'scroll') swipeEnabled.set(false);
+    },
+    onFinalize: () => {
+      'worklet';
+      swipeEnabled.set(true);
+    },
+  });
 }
 
 function SwipePanel({
@@ -101,6 +129,8 @@ export function RowActions({
   const { t } = useTranslation();
   const { colors } = useTheme();
   const swipe = useRef<SwipeableMethods>(null);
+  const swipeEnabled = useSharedValue(true);
+  const sideways = useSidewaysGate(swipeEnabled);
   const [opened, setSheetFor] = useState<{ row: string; initial?: string } | null>(null);
   const [focusedRow, setFocusedRow] = useState<string | null>(null);
   const [armedRow, setArmedRow] = useState<string | null>(null);
@@ -135,8 +165,11 @@ export function RowActions({
   const endActions = swipeActionsFor(actions, end, more);
   return (
     <>
+      <GestureDetector gesture={sideways}>
+      <View collapsable={false}>
       <ReanimatedSwipeable
         ref={swipe}
+        enabled={swipeEnabled}
         onSwipeableOpenStartDrag={() => setArmedRow(testID)}
         friction={rowFriction}
         dragOffsetFromLeft={swipeStart}
@@ -169,6 +202,8 @@ export function RowActions({
           </View>
         </View>
       </ReanimatedSwipeable>
+      </View>
+      </GestureDetector>
       {sheet ? <ActionSheet title={title} subtitle={subtitle} actions={actions} initial={sheet.initial} onClose={() => setSheet(null)} /> : null}
     </>
   );

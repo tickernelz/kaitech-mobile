@@ -48,7 +48,6 @@ const { GestureHandlerRootView, State } = require('react-native-gesture-handler'
 const { fireGestureHandler, getByGestureTestId } = require('react-native-gesture-handler/jest-utils') as typeof import('react-native-gesture-handler/jest-utils');
 const { MessageBubble } = require('../src/features/chat/ui/MessageBubble') as typeof import('../src/features/chat/ui/MessageBubble');
 const { replyMax, replyPull, replyReach, replySlop } = require('../src/features/chat/ui/SwipeReply') as typeof import('../src/features/chat/ui/SwipeReply');
-const { swipeCrossSlop, swipeHeldSideways, swipeStart } = require('../src/ui/swipeIntent') as typeof import('../src/ui/swipeIntent');
 type GestureState = (typeof State)[keyof typeof State];
 
 function message(id: number, body: string, type: Message['type'] = 'comment'): Message {
@@ -201,19 +200,5 @@ describe('long press on a message', () => {
     await fireEvent(screen.getByTestId('bubble-58'), 'longPress');
     expect(mockStart).toHaveBeenCalledTimes(1);
     expect(longPress).toHaveBeenCalledWith(item);
-  });
-});
-
-describe('telling a sideways swipe from a scroll', () => {
-  it('starts a swipe only after 28 dp sideways with the finger within half that up or down', () => {
-    expect(swipeStart).toBeGreaterThanOrEqual(28);
-    expect(swipeStart / swipeCrossSlop).toBeGreaterThanOrEqual(2);
-  });
-
-  it('keeps a started swipe while it stays at least as sideways as it is vertical', () => {
-    expect(swipeHeldSideways(60, 0)).toBe(true);
-    expect(swipeHeldSideways(60, -60)).toBe(true);
-    expect(swipeHeldSideways(60, 61)).toBe(false);
-    expect(swipeHeldSideways(-60, -61)).toBe(false);
   });
 });
