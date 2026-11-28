@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
+import { selectedLook } from '../../../ui/pill';
 import { Pressable } from '../../../ui/Pressable';
 import { radius, space, useTheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
@@ -81,7 +82,7 @@ export function MessageActions({
                   close();
                   onReact(message, emoji);
                 }}
-                style={[styles.emoji, mineReaction && { backgroundColor: colors.select }]}>
+                style={[styles.emoji, mineReaction && selectedLook(colors)]}>
                 <Text style={styles.emojiText}>{emoji}</Text>
               </Pressable>
             );
