@@ -1788,6 +1788,8 @@
     "programmesSection": "Programmes",
     "programmes_one": "Member of {{count}} Programme",
     "programmes_other": "Member of {{count}} Programmes",
+    "programmesMore_one": "And {{count}} more Programme",
+    "programmesMore_other": "And {{count}} more Programmes",
     "historySection": "History",
     "history": {
       "system": "System",

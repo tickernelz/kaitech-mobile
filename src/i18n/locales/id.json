@@ -1788,6 +1788,8 @@
     "programmesSection": "Programme",
     "programmes_one": "Anggota {{count}} Programme",
     "programmes_other": "Anggota {{count}} Programme",
+    "programmesMore_one": "Dan {{count}} Programme lain",
+    "programmesMore_other": "Dan {{count}} Programme lain",
     "historySection": "Riwayat",
     "history": {
       "system": "Sistem",
