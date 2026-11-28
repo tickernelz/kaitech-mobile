@@ -33,7 +33,7 @@ export function ActivityScreen() {
     />
   );
   return (
-    <SafeAreaView edges={['top', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-activity">
+    <SafeAreaView edges={['right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-activity">
       <TopAppBar title={t('tabs.activity')} scrolled={bar.scrolled} actions={<HeaderActions />} />
       {source === 'odoo' ? (
         <OdooActivities items={odoo} header={header} onScroll={bar.onScroll} />
