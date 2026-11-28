@@ -1,3 +1,4 @@
+import { accessFrom, type Access } from './access';
 import { AppError, errorFromServer, type ServerError } from './errors';
 
 export const clientId = 'kaitech-mobile';
@@ -13,9 +14,10 @@ export type Account = {
   name: string;
   login: string;
   signedInAt: number;
+  access?: Access;
 };
 
-export type Grant = Omit<Account, 'id' | 'origin' | 'signedInAt'> & { token: string };
+export type Grant = Omit<Account, 'id' | 'origin' | 'signedInAt' | 'access'> & { token: string };
 
 export type SignInRequest = {
   origin: string;
@@ -155,6 +157,15 @@ export async function exchangeCode(
   });
   if (status !== 200) throw new AppError(errorFromServer(status, body as ServerError));
   return grantFrom(body);
+}
+
+export async function accessAtSignIn(origin: string, grant: Grant): Promise<Access | undefined> {
+  try {
+    const { status, body } = await call(`${origin}/kaitech_mobile/profile`, { method: 'GET', headers: headers(grant.db, grant.token) });
+    return status === 200 ? (accessFrom(body) ?? undefined) : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export type SessionCheck = 'valid' | 'ended' | 'unknown';

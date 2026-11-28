@@ -59,6 +59,6 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', paddingHorizontal: space.lg },
   bar: { width: '100%', maxWidth: 560, minHeight: 48, borderRadius: radius.pill, paddingLeft: space.lg, paddingRight: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.md },
   line: { paddingVertical: space.md },
-  action: { minHeight: 44, minWidth: 64, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md },
+  action: { borderRadius: radius.pill, minHeight: 44, minWidth: 64, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md },
   strong: { fontWeight: '600' },
 });

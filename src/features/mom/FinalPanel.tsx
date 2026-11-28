@@ -12,7 +12,7 @@ import { distribute, exportMinutes, finalize, nextStep, stepBlocker, type FinalT
 import { MoreSheet, type MoreAction, type MoreGroup } from './MoreSheet';
 import { SmallButton } from './parts';
 import { readableWidth } from '../../layout/windowClass';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Icon } from '../../ui/icons';
 import { Section } from '../../ui/List';
@@ -304,10 +304,10 @@ const styles = StyleSheet.create({
   content: { paddingBottom: space.xxl },
   body: { padding: space.lg, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   stages: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  stage: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: 1 },
-  table: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
+  stage: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin },
+  table: { borderWidth: stroke.thin, borderRadius: radius.sm, overflow: 'hidden' },
   tableRow: { flexDirection: 'row', gap: space.sm, paddingHorizontal: space.sm, paddingVertical: space.sm },
-  tableLine: { borderTopWidth: StyleSheet.hairlineWidth },
+  tableLine: { borderTopWidth: stroke.hairline },
   number: { width: 56 },
   cell: { flex: 1 },
   list: { gap: space.xs },

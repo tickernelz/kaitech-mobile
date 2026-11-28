@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import Storage from 'expo-sqlite/kv-store';
 import { useSyncExternalStore } from 'react';
 import { resetLock } from '../lock/lock';
+import { sameAccess, type Access } from './access';
 import { checkSession, revokeDevice, type Account, type Grant } from './oauth';
 
 export type SessionState = {
@@ -78,9 +79,9 @@ export function tokenFor(id: string): Promise<string | null> {
   return SecureStore.getItemAsync(tokenKey(id), secure);
 }
 
-export async function addAccount(origin: string, grant: Grant): Promise<Account> {
+export async function addAccount(origin: string, grant: Grant, access?: Access): Promise<Account> {
   const { token, ...rest } = grant;
-  const account: Account = { ...rest, id: accountId(origin, grant.db, grant.userId), origin, signedInAt: Date.now() };
+  const account: Account = { ...rest, id: accountId(origin, grant.db, grant.userId), origin, signedInAt: Date.now(), ...(access ? { access } : {}) };
   await SecureStore.setItemAsync(tokenKey(account.id), token, secure);
   set({
     accounts: [...state.accounts.filter((existing) => existing.id !== account.id), account],
@@ -147,6 +148,11 @@ export function accountKnown(id: string): boolean {
 export function renameAccount(id: string, name: string) {
   if (!state.accounts.some((account) => account.id === id && account.name !== name)) return;
   set({ accounts: state.accounts.map((account) => (account.id === id ? { ...account, name } : account)) });
+}
+
+export function noteAccess(id: string, access: Access | null) {
+  if (!access || !state.accounts.some((account) => account.id === id && !sameAccess(account.access, access))) return;
+  set({ accounts: state.accounts.map((account) => (account.id === id ? { ...account, access } : account)) });
 }
 
 export async function signOut(id: string): Promise<SignOutResult> {

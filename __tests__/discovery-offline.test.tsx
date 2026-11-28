@@ -81,6 +81,7 @@ it('shows a failed reload of an empty programme list as an error, not as empty',
   const { DiscoveryHome } = require('../src/features/discovery/Home') as typeof import('../src/features/discovery/Home');
   const view = await render(<DiscoveryHome />);
   await waitFor(() => expect(screen.getByTestId('discovery-programmes-empty')).toBeTruthy());
+  expect(screen.getByTestId('tab-discovery').props.edges.top).toBe('off');
   mockApi.programmes.mockRejectedValue(new Error('boom'));
   await act(async () => {
     await resource.load(`${mockAccount.id}:discovery.programmes`, () => mockApi.programmes());

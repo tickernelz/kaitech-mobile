@@ -1,5 +1,6 @@
 import type { Account } from '../../auth/oauth';
-import { route, rpc } from '../../api/odoo';
+import { bearer, route, rpc } from '../../api/odoo';
+import { openedChatId } from '../chat/directory';
 
 export type Presence = 'online' | 'away' | 'busy' | 'offline';
 
@@ -59,6 +60,10 @@ export async function personCard(account: Account, partnerId: number): Promise<P
     ? await rpc<Record<string, unknown>[]>(account, 'res.users', 'read', [[userIds[0]], ['kaitech_status_text']]).catch(() => [])
     : [];
   return { ...card, status: text(users[0]?.kaitech_status_text), title: text(detail.function), company: text(detail.parent_name) };
+}
+
+export async function openChat(account: Account, partnerId: number): Promise<number> {
+  return openedChatId(await bearer<unknown>(account, '/kaitech_mobile/chat/open', { method: 'POST', body: { partner_id: partnerId } }));
 }
 
 export async function chatWith(account: Account, partnerId: number): Promise<number> {

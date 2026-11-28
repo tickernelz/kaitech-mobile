@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Platform, ScrollView, StyleSheet, View, type TextInput, type TextInputSelectionChangeEvent, type TextStyle } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { useKeyboardState } from 'react-native-keyboard-controller';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { applyMarkup, markups, type Markup, type Selection } from '../markup';
 
@@ -75,7 +75,7 @@ export function FormatBar({ onApply, onSpace }: { onApply: (markup: Markup) => v
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  bar: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, minHeight: 44, marginTop: space.xs },
+  bar: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.pill, borderWidth: stroke.thin, minHeight: 44, marginTop: space.xs },
   actions: { flexGrow: 1, alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.xs, gap: 2 },
   action: { minHeight: 44, minWidth: 44, paddingHorizontal: space.sm, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   bold: { fontWeight: '700' },

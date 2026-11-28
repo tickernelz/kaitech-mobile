@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconButton } from '../../ui/IconButton';
-import { seesClientOrg, useMomAccess } from './access';
+import { useCan } from '../../auth/useAccess';
 import { MoreSheet } from './MoreSheet';
 import { StatusRow } from './StatusRow';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -51,7 +51,7 @@ export function MomHome() {
   const [selection, setSelection] = useState<{ account: string; meeting: number } | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const bar = useScrolledUnder();
-  const access = useMomAccess();
+  const momAdmin = useCan('mom.admin');
   const [removing, setRemoving] = useState<{ meeting: number; title: string } | null>(null);
   const selected = selection && selection.account === active?.id ? selection.meeting : null;
   const meetings = useResource(`mom.board.${limit}`, (account) => board(account, limit));
@@ -186,7 +186,7 @@ export function MomHome() {
   );
 
   return (
-    <SafeAreaView edges={expanded ? ['top', 'right', 'bottom'] : ['top', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-mom">
+    <SafeAreaView edges={expanded ? ['right', 'bottom'] : ['right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-mom">
       <Panes list={list} detail={detail} />
       {moreOpen ? (
         <MoreSheet
@@ -196,9 +196,7 @@ export function MomHome() {
               key: 'work',
               actions: [
                 { key: 'followups', icon: 'steps', label: t('mom.followups.title'), detail: t('mom.followups.menuDetail'), onPress: () => router.push('/mom/followups') },
-                ...(seesClientOrg(access)
-                  ? [{ key: 'clientOrg', icon: 'people' as const, label: t('mom.clientOrg.title'), detail: t('mom.clientOrg.menuDetail'), onPress: () => router.push('/mom/client-org') }]
-                  : []),
+                { key: 'clientOrg', icon: 'people' as const, label: t('mom.clientOrg.title'), detail: t('mom.clientOrg.menuDetail'), onPress: () => router.push('/mom/client-org') },
               ],
             },
             {
@@ -214,10 +212,8 @@ export function MomHome() {
               key: 'admin',
               title: t('mom.admin.group'),
               actions: [
-                ...(access?.manager || access?.system
-                  ? [{ key: 'keys', icon: 'lock' as const, label: t('mom.admin.keys.title'), onPress: () => router.push({ pathname: '/mom/admin/[part]', params: { part: 'keys' } }) }]
-                  : []),
-                ...(access?.system
+                { key: 'keys', icon: 'lock' as const, label: t('mom.admin.keys.title'), onPress: () => router.push({ pathname: '/mom/admin/[part]', params: { part: 'keys' } }) },
+                ...(momAdmin
                   ? [
                       { key: 'import', icon: 'cloudUpload' as const, label: t('mom.admin.import.title'), onPress: () => router.push({ pathname: '/mom/admin/[part]', params: { part: 'import' } }) },
                       { key: 'settings', icon: 'steps' as const, label: t('mom.admin.settings.title'), onPress: () => router.push({ pathname: '/mom/admin/[part]', params: { part: 'settings' } }) },

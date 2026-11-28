@@ -8,7 +8,7 @@ import { Pressable } from '../ui/Pressable';
 import { Text } from '../ui/Text';
 import { PillBadge } from './PillBadge';
 import { glyphLeft, labelRoom, openness, pillHeight, pillPadding, pillSlots } from './tabBar';
-import { tabIcons } from './tabs';
+import { badgeText, tabIcons } from './tabs';
 import { usePillBar, type PillBarState, type PillTab } from './usePillBar';
 
 const indicatorRadius = (pillHeight - 2 * pillPadding) / 2;
@@ -26,7 +26,14 @@ function Glyph({ tab, bar, material, wide, narrow }: { tab: PillTab; bar: PillBa
     <Animated.View style={[styles.glyph, place]}>
       <View style={styles.icon}>
         <Icon name={tabIcons[tab.name]} color={tab.focused ? material.onSecondaryContainer : material.onSurfaceVariant} variant={tab.focused ? 'fill' : 'line'} />
-        {tab.name === 'activity' ? <PillBadge text={bar.badge} fill={material.error} ink={material.onError} reduceMotion={bar.reduceMotion} style={styles.badge} /> : null}
+        <PillBadge
+          name={tab.name}
+          text={badgeText(tab.count)}
+          fill={tab.name === 'activity' ? material.error : material.primary}
+          ink={tab.name === 'activity' ? material.onError : material.onPrimary}
+          reduceMotion={bar.reduceMotion}
+          style={styles.badge}
+        />
       </View>
       <Animated.View style={words}>
         <Text

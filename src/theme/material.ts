@@ -29,7 +29,7 @@ function rolesFor(scheme: Scheme): MaterialColors {
     inverseSurface: c.ink,
     inverseOnSurface: c.canvas,
     error: c.dangerInk,
-    onError: dark ? c.canvas : c.onFill,
+    onError: c.onDanger,
     errorContainer: c.dangerBand,
     onErrorContainer: c.dangerInk,
     outline: c.edge,

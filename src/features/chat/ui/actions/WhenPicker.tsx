@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../../ui/Pressable';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import { Text } from '../../../../ui/Text';
 import { intlLocale } from '../../../../i18n/language';
 import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../../ui/touch';
@@ -91,5 +91,5 @@ const styles = StyleSheet.create({
   wrap: { gap: space.xs, paddingVertical: space.xs },
   row: { gap: space.xs, paddingVertical: chipBand.paddingVertical },
   chipBar: { marginVertical: chipBand.marginVertical },
-  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, justifyContent: 'center' },
 });

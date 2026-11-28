@@ -5,14 +5,15 @@ import { Platform, useWindowDimensions } from 'react-native';
 import { useKeyboardState } from 'react-native-keyboard-controller';
 import { useSharedValue, withSpring, withTiming, type SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePendingActivities } from '../features/activity/useActivityOverview';
 import { duration, easing, spring } from '../theme/motion';
 import { useReduceMotion } from '../theme/reduceMotion';
 import { pillBottom, pillCover, pillWidth } from './tabBar';
-import { badgeText, tabs, type TabName } from './tabs';
+import { useAccess } from '../auth/useAccess';
+import { tabSpoken, tabsFor, type TabName } from './tabs';
 import { useTab } from './useTab';
+import { useTabCounts } from './useTabCounts';
 
-export type PillTab = { name: TabName; index: number; focused: boolean; label: string; spoken: string; press: () => void; pressIn: () => void; pressOut: () => void };
+export type PillTab = { name: TabName; index: number; focused: boolean; label: string; spoken: string; count: number; press: () => void; pressIn: () => void; pressOut: () => void };
 
 export type PillBarState = {
   items: PillTab[];
@@ -26,7 +27,6 @@ export type PillBarState = {
   bottom: number;
   cover: number;
   sideInsets: { left: number; right: number };
-  badge: string | undefined;
   reduceMotion: boolean;
 };
 
@@ -41,9 +41,9 @@ export function usePillBar(): PillBarState {
   const window = useWindowDimensions();
   const reduceMotion = useReduceMotion();
   const keyboard = useKeyboardState((state) => state.isVisible);
-  const count = usePendingActivities();
-  const badge = badgeText(count);
-  const byName: Record<TabName, ReturnType<typeof useTab>> = { chat: useTab('chat'), discovery: useTab('discovery'), mom: useTab('mom'), activity: useTab('activity') };
+  const counts = useTabCounts();
+  const byName: Record<TabName, ReturnType<typeof useTab>> = { home: useTab('home'), chat: useTab('chat'), discovery: useTab('discovery'), mom: useTab('mom'), activity: useTab('activity') };
+  const tabs = tabsFor(useAccess());
   const selected = tabs.findIndex((name) => byName[name].focused);
   const position = useSharedValue(selected);
   const pressed = useSharedValue(-1);
@@ -57,13 +57,14 @@ export function usePillBar(): PillBarState {
     hidden.set(reduceMotion ? target : withTiming(target, { duration: keyboard ? duration.quick : duration.base, easing: keyboard ? easing.exit : easing.standard }));
   }, [keyboard, reduceMotion, hidden]);
   const items = tabs.map((name, index): PillTab => {
-    const label = t(`tabs.${name}`);
+    const count = counts[name];
     return {
       name,
       index,
       focused: byName[name].focused,
-      label,
-      spoken: name === 'activity' && badge ? `${label}, ${t('activities.pending', { count })}` : label,
+      label: t(`tabs.${name}`),
+      spoken: tabSpoken(t, name, count),
+      count,
       press: () => {
         if (byName[name].open()) tick();
       },
@@ -90,7 +91,6 @@ export function usePillBar(): PillBarState {
     bottom: pillBottom(insets.bottom),
     cover: pillCover(insets.bottom),
     sideInsets: { left: insets.left, right: insets.right },
-    badge,
     reduceMotion,
   };
 }

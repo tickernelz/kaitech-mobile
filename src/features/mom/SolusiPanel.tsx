@@ -7,7 +7,7 @@ import { KeyboardAvoidingView, useKeyboardState } from 'react-native-keyboard-co
 import { useResource } from '../../api/resource';
 import { localFile } from '../chat/files';
 import { useVoiceHold } from '../chat/ui/useVoiceHold';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Row, Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   strong: { fontWeight: '600' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  voice: { minHeight: 48, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.lg },
+  voice: { minHeight: 48, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.lg },
   scrim: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: { width: '100%', maxWidth: 560, maxHeight: '90%', borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingTop: space.lg, paddingHorizontal: space.lg },
   sheetBody: { gap: space.sm, paddingBottom: space.sm },

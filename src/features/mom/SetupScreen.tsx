@@ -7,7 +7,7 @@ import { Linking, StyleSheet, Switch, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { invalidate, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Check, Divider, Row, Section } from '../../ui/List';
 import { Screen } from '../../ui/Screen';
@@ -20,7 +20,6 @@ import { Segmented, StateView, useErrorText } from '../discovery/ui';
 import { uploadOptions } from './api';
 import { useMomFormat } from './parts';
 import { start, type StartResult } from './recorder';
-import { useMomAccess } from './access';
 import { importLark } from './records';
 import { adoptPicked, enqueue } from './uploads';
 
@@ -73,7 +72,6 @@ export function SetupScreen() {
   const [outcome, setOutcome] = useState<StartResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [lark, setLark] = useState<string | null>(null);
-  const access = useMomAccess();
   const errorText = useErrorText();
 
   const meetings = (options.data?.meetings ?? []).filter((meeting) => !meeting.signed);
@@ -198,7 +196,7 @@ export function SetupScreen() {
             <>
               <Button label={t('mom.setup.start')} onPress={() => void begin()} busy={busy} testID="setup-start" />
               <Button kind="plain" label={t('mom.setup.uploadFile')} onPress={() => void pick()} disabled={busy} testID="setup-upload-file" />
-              {access && !access.client ? <Button kind="plain" label={t('mom.setup.larkLink')} onPress={() => setLark('')} disabled={busy} testID="setup-lark" /> : null}
+              <Button kind="plain" label={t('mom.setup.larkLink')} onPress={() => setLark('')} disabled={busy} testID="setup-lark" />
             </>
           ) : (
             <>
@@ -311,7 +309,7 @@ export function SetupScreen() {
 
 const styles = StyleSheet.create({
   group: { gap: space.sm },
-  consent: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 64, padding: space.lg, borderRadius: radius.card, borderWidth: 1 },
+  consent: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 64, padding: space.lg, borderRadius: radius.card, borderWidth: stroke.thin },
   consentText: { flex: 1, gap: 2 },
   shrink: { flexShrink: 1 },
   switch: {
@@ -323,6 +321,6 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     paddingHorizontal: space.lg,
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: stroke.thin,
   },
 });

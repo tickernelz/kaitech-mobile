@@ -1,9 +1,11 @@
 import { Stack } from 'expo-router';
+import { TeamOnly } from '../../screens/Gate';
 import { useTheme } from '../../theme';
 
 export default function MomLayout() {
   const { colors } = useTheme();
   return (
+    <TeamOnly>
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
       <Stack.Screen name="[meeting]" />
       <Stack.Screen name="new" />
@@ -26,5 +28,6 @@ export default function MomLayout() {
       <Stack.Screen name="followup/edit" options={{ presentation: 'modal' }} />
       <Stack.Screen name="followup/new" options={{ presentation: 'modal' }} />
     </Stack>
+    </TeamOnly>
   );
 }

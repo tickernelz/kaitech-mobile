@@ -6,7 +6,7 @@ import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';
-import { radius, space, type as typography, useTheme } from '../../theme';
+import { radius, space, stroke, type as typography, useTheme } from '../../theme';
 import { RowActions } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
 import { textActions } from '../../ui/textActions';
@@ -283,12 +283,12 @@ export function SearchScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
-  box: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: space.lg },
+  box: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, borderRadius: radius.pill, borderWidth: stroke.thin, paddingHorizontal: space.lg },
   input: { flex: 1, minHeight: 44 },
   filters: { paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   chipBar: { marginTop: -shortfall(chipHeight) },
   chips: { flexDirection: 'row', gap: space.xs, paddingHorizontal: space.lg, paddingVertical: shortfall(chipHeight) },
-  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
   list: { padding: space.lg, paddingTop: space.lg - shortfall(chipHeight), gap: space.xs, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   ask: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg, borderRadius: radius.pill, marginBottom: space.md },
   section: { paddingTop: space.md, paddingBottom: space.xs },

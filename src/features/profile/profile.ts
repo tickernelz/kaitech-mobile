@@ -2,7 +2,8 @@ import { getCameraPermissionsAsync, launchCameraAsync, launchImageLibraryAsync, 
 import { bearer, bearerFile } from '../../api/odoo';
 import { load, update, useResource } from '../../api/resource';
 import type { Account } from '../../auth/oauth';
-import { accountKnown, renameAccount } from '../../auth/session';
+import { accessFrom } from '../../auth/access';
+import { accountKnown, noteAccess, renameAccount } from '../../auth/session';
 import { takeAppearance } from '../appearance/appearance';
 import { shrinkToJpeg } from '../media/shrink';
 import { photoFrom, type Photo } from '../people/photo';
@@ -44,6 +45,7 @@ function taken(account: Account, body: unknown): Profile {
   if (!accountKnown(account.id)) return profile;
   notePhoto(account.id, profile.partnerId, profile.photo);
   renameAccount(account.id, profile.name);
+  noteAccess(account.id, accessFrom(body));
   if (isRecord(body) && 'appearance' in body) takeAppearance(account.id, body.appearance);
   update<Profile>(`${account.id}:${path}`, () => profile);
   return profile;

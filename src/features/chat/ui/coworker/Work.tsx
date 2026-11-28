@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../../ui/Pressable';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import { Icon } from '../../../../ui/icons';
 import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
@@ -66,7 +66,7 @@ export function WorkSheet({ works, myUserId, onClose, onJump, onNotice }: { work
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  bar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touchTarget, paddingHorizontal: space.md, borderBottomWidth: StyleSheet.hairlineWidth },
+  bar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: touchTarget, paddingHorizontal: space.md, borderBottomWidth: stroke.hairline },
   pad: { padding: space.lg },
   item: { borderRadius: radius.md },
 });

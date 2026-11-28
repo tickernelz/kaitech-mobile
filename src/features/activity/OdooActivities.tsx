@@ -8,7 +8,7 @@ import type { Resource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { useTabBarSpace } from '../../layout/tabBar';
 import { readableWidth } from '../../layout/windowClass';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Refresh } from '../../ui/Refresh';
 import { RowActions } from '../../ui/RowActions';
@@ -226,11 +226,11 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   head: { gap: space.md, paddingBottom: space.sm },
   filters: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.xs, rowGap: chipRowGap, ...chipBand },
-  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
   block: { gap: space.sm },
   footer: { paddingTop: space.md, textAlign: 'center' },
   section: { paddingTop: space.md, paddingBottom: space.xs, paddingHorizontal: space.xs },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: stroke.thin },
   spaced: { marginBottom: space.sm },
   icon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
 });

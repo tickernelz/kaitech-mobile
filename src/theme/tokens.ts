@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { PixelRatio, Platform, StyleSheet } from 'react-native';
 
 export type Scheme = 'light' | 'dark';
 
@@ -7,13 +7,11 @@ const accents = {
     primary: ['#705289', '#DDB9F8'],
     primaryPressed: ['#7E6395', '#CDAAE8'],
     onPrimary: ['#FFFFFF', '#3F2358'],
-    onDanger: ['#FFFFFF', '#100F11'],
   },
   ios: {
     primary: ['#441D65', '#9358C7'],
     primaryPressed: ['#2F1447', '#7A4DB8'],
     onPrimary: ['#FFFFFF', '#FFFFFF'],
-    onDanger: ['#FFFFFF', '#FFFFFF'],
   },
 } as const;
 
@@ -30,6 +28,7 @@ const pairs = {
   inkFaint: ['#67656D', '#95939B'],
   ...accents[Platform.OS === 'android' ? 'android' : 'ios'],
   onFill: ['#FFFFFF', '#FFFFFF'],
+  onDanger: ['#FFFFFF', '#100F11'],
   select: ['#EDE7F5', '#2D2739'],
   selectInk: ['#2B1542', '#EEE9F6'],
   focus: ['#7A4DB0', '#A889DC'],
@@ -86,6 +85,8 @@ export function avatarFill(seed: number): string {
 }
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 40 } as const;
+
+export const stroke = { hairline: StyleSheet.hairlineWidth, thin: PixelRatio.roundToNearestPixel(1) } as const;
 
 export const radius =
   Platform.OS === 'android' ? ({ sm: 8, md: 12, card: 16, field: 14, sheet: 28, pill: 999 } as const) : ({ sm: 6, md: 10, card: 16, field: 14, sheet: 28, pill: 999 } as const);

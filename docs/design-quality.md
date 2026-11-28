@@ -88,30 +88,32 @@ Android uses the Material 3 roles generated from the seed `#441D65` (`src/theme/
 | Accent, no fill | FAB icon, links, active icons, progress, spinner, slider, radio dot | `primary` `#705289` / `#DDB9F8` | tint `#5F2E91` / `#C4A8EE` |
 | Commit, filled | the one action that sends or confirms: send, send voice, held recording, filled `Button`; unread count badges | `primary` fill, `onPrimary` `#FFFFFF` / `#3F2358` | tint fill, `#FFFFFF` / `#151418` |
 | Idle control on glass | mic, camera, emoji, attach, call toggles that are off | `inkSoft` (`onSurfaceVariant`) | `inkSoft` |
-| Destructive | decline, delete, active recording | `error` / `onError` | `danger` with the same pair |
+| Destructive | decline, delete, active recording, error badges | text on a fill: `dangerInk` `#B91C1E` / `#FF9E96` (`material.error`) with `onError` `#FFFFFF` / `#100F11`; icon only: `danger` `#E5383B` / `#F75D59` with a white icon | same tokens |
 | Brand | wordmark, splash, launcher and notification icon only | `#441D65`, `brandGradient` | same |
 
 | Rule | Value | Reference |
 |---|---|---|
-| Tokens | `colors.primary`, `onPrimary` and `primaryPressed` become per-platform pairs. Android: `#705289` / `#DDB9F8`, `onPrimary` `#FFFFFF` / `#3F2358`, pressed `#7E6395` / `#CDAAE8` (the `onPrimary` state layer at 10%). iOS: `#5F2E91` / `#C4A8EE`, `onPrimary` `#FFFFFF` / `#151418`, pressed equal to the tint (iOS press is opacity 0.8). `material.ts` takes `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer`, `inversePrimary` and `surfaceTint` from `seedPalettes` | ZHA-8126 |
-| `onDanger`, `onFill` | `onDanger` is the ink on a `danger` fill: Android `#FFFFFF` / `#100F11` (the M3 `onError` slot), iOS `#FFFFFF` until its own task. `onFill` is white for fills that are neither `primary` nor `danger`: avatar fills and `ok`. Text and spinners over photos and video use `onStage` | ZHA-8127 |
+| Tokens | `colors.primary`, `onPrimary` and `primaryPressed` become per-platform pairs. Android: `#705289` / `#DDB9F8`, `onPrimary` `#FFFFFF` / `#3F2358`, pressed `#7E6395` / `#CDAAE8` (the `onPrimary` state layer at 10%). iOS: `#5F2E91` / `#C4A8EE`, `onPrimary` `#FFFFFF` / `#151418`, pressed equal to the tint (iOS press is opacity 0.8). On Android `link` equals `primary`; on iOS `link` already is the tint. `material.ts` takes `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer`, `inversePrimary` and `surfaceTint` from `seedPalettes` | ZHA-8126 |
+| `onDanger`, `onFill` | `onDanger` `#FFFFFF` / `#100F11` is `onError`: text on a `dangerInk` fill (activity badges). `onFill` is white: icons on a `danger` fill (decline, hang up, recording) and on avatar and `ok` fills. Text and spinners over photos and video use `onStage` | ZHA-8127 |
 | Text on a see-through `primary` tint (heatmap cells) | ink or `onPrimary`, whichever contrasts more with the tint blended on `surface`; tint steps 0.12, 0.25, 0.4, 0.75, 0.9, 1 keep 4.5:1 on `canvas`, `surface` and `surface2` on both platforms | `heatFill` in `kt/ui.tsx`, `palette.test.ts` |
-| `onPrimary` | only on a `primary` fill; on `danger` use `onError` (Android) or the same pair on iOS, see [Contrast](#contrast) | dark `onPrimary` is no longer white |
-| Filled accents per region | one at rest: the composer shows send only while there is something to send; the chat list shows none apart from count badges | Zhafron 28 Nov: solid purple next to glass reads heavy |
-| Solid purple bands | no large `primary` fill behind text (table headers, banners); use `surface2` or `select` | |
+| `onPrimary` | only on a `primary` fill; text on a destructive fill is `onError` on `dangerInk` on both platforms, see [Contrast](#contrast) | dark `onPrimary` is no longer white |
+| Filled accents per region | a region is the screen body, or one floating layer (composer, tab bar, FAB, call controls); at rest each region holds at most one control filled with `primary`. Not counted: count badges, progress and slider fills, a filled `Button` in a sheet or dialog footer. Selected chips, segments, days and indicators are `select`, never `primary`. The composer shows send only while there is something to send | Zhafron 28 Nov: solid purple next to glass reads heavy |
+| Solid purple bands | no `primary` fill taller than 48 or wider than half the screen behind text, apart from a filled `Button` (table headers, banners, section bars); use `surface2` or `select` | |
 
 Contrast of the roles, from the WCAG formula on the tokens. Glass is the `glass` token `#D5D1DF` / `#343238`; the real backdrop moves with the content behind it, so the Mblu 21 screenshots are the final check.
 
 | Pair | Android light / dark | iOS light / dark | Floor |
 |---|---|---|---|
 | `onPrimary` on `primary` (send icon) | 6.45 / 7.77 | 9.19 / 8.89 | 4.5 for labels, 3 for icons |
-| `onPrimary` on pressed | 5.11 / 6.60 | as at rest | 3 |
+| `onPrimary` on pressed | 5.11 / 6.60 | 5.71 / 6.17 (whole control at opacity 0.8 over glass; fill against glass 4.10 / 4.51) | 3 |
 | `primary` against glass (send circle, FAB icon) | 4.30 / 7.45 | 6.13 / 6.14 | 3 |
 | `primary` on `canvas` | 5.87 / 11.26 | 8.36 / 9.27 | 4.5 as text |
 | `primary` on `surface`, `surface2` | 6.45, 5.61 / 10.09, 8.74 | 9.19, 8.00 / 8.31, 7.19 | 4.5 as text |
 | `primary` on `select` | 5.33 / 8.47 | 7.59 / 6.97 | 3 |
 | `inkSoft` on glass (idle icons) | 5.05 / 6.17 | same | 3 |
-| `selectInk` on `select` | 13.46 / 12.16 | same | 4.5 |
+| `selectInk` on `select` | 13.46 / 12.06 | same | 4.5 |
+| `onError` on `dangerInk` (destructive text on a fill) | 6.47 / 9.63 | same | 4.5 |
+| white on `danger` (icon only) | 4.23 / 3.15 | same | 3, icons only; fails 4.5, so never behind text |
 | Before: `#441D65` / `#9358C7` against glass | 8.71 / 2.69 | same | dark failed 3:1 |
 
 ### Composer and FAB

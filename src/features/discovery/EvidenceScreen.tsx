@@ -9,7 +9,7 @@ import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
 import { Panes } from '../../layout/Panes';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Refresh } from '../../ui/Refresh';
 import { RowActions } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   filters: { gap: space.xs, paddingBottom: space.sm },
   list: { padding: space.lg, gap: space.md, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
-  item: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.sm },
+  item: { borderRadius: radius.card, borderWidth: stroke.thin, padding: space.lg, gap: space.sm },
   meta: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
 });

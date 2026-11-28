@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react';
-import { Pressable as NativePressable, StyleSheet } from 'react-native';
+import { Pressable as NativePressable, StyleSheet, type ViewStyle } from 'react-native';
 import { colorsFor } from '../theme/tokens';
 import { useTheme } from '../theme';
 
@@ -24,11 +24,23 @@ export function stateLayerInk(container: unknown, fallback: string): string {
   return light < 0.18 ? darkInk : lightInk;
 }
 
+const fingertip = 24;
+
+function rippleRadius(style: Readonly<Partial<ViewStyle>> | null | undefined): number | undefined {
+  if (!style) return undefined;
+  const rounded = Object.entries(style).some(([key, value]) => /^border\w*Radius$/.test(key) && (typeof value === 'number' ? value > 0 : typeof value === 'string'));
+  if (!rounded) return undefined;
+  const sides = [style.width, style.height, style.minHeight].filter((side): side is number => typeof side === 'number');
+  return sides.length ? Math.min(...sides) / 2 : fingertip;
+}
+
 export function Pressable({ style, ...props }: Props) {
   const { material } = useTheme();
   if (props.android_ripple !== undefined) return <NativePressable style={style} {...props} />;
   const resting = typeof style === 'function' ? style({ pressed: false }) : style;
-  const ink = stateLayerInk(StyleSheet.flatten(resting)?.backgroundColor, material.onSurface);
+  const flat = StyleSheet.flatten(resting);
+  const ink = stateLayerInk(flat?.backgroundColor, material.onSurface);
+  const radius = rippleRadius(flat);
   const unpressed: Props['style'] = typeof style === 'function' ? (state) => style({ ...state, pressed: false }) : style;
-  return <NativePressable android_ripple={{ color: `${ink}1A` }} style={unpressed} {...props} />;
+  return <NativePressable android_ripple={radius === undefined ? { color: `${ink}1A` } : { color: `${ink}1A`, radius }} style={unpressed} {...props} />;
 }

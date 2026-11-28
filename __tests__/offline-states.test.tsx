@@ -48,7 +48,6 @@ jest.mock('../src/features/discovery/Home', () => ({ useCurrentProgramme: () => 
 jest.mock('../src/features/mom/recorder', () => ({ useRecording: () => null, clock: () => '', useRecorderClock: () => 0 }));
 jest.mock('../src/features/mom/uploads', () => ({ useUploads: () => [], discard: jest.fn(), dismiss: jest.fn(), retry: jest.fn() }));
 jest.mock('../src/features/mom/StatusRow', () => ({ StatusRow: () => null }));
-jest.mock('../src/features/mom/access', () => ({ useMomAccess: () => null, seesClientOrg: () => false }));
 jest.mock('../src/features/mom/MeetingView', () => ({ MeetingView: () => null }));
 jest.mock('../src/features/mom/RecorderScreen', () => ({ RecorderBar: () => null }));
 jest.mock('../src/features/mom/RemoveRecording', () => ({ RemoveRecording: () => null }));
@@ -130,6 +129,7 @@ describe('MomHome connection states', () => {
     mockBoard.mockResolvedValue({ meetings: [], total: 0 });
     const view = await render(<MomHome />);
     await waitFor(() => expect(screen.getByTestId('mom-meetings-empty')).toBeTruthy());
+    expect(screen.getByTestId('tab-mom').props.edges.top).toBe('off');
     mockBoard.mockRejectedValue(new TypeError('Network request failed'));
     await setNetwork({ isConnected: false });
     expect(screen.queryByTestId('mom-meetings-empty')).toBeNull();

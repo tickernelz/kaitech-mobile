@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 import Animated, { withTiming } from 'react-native-reanimated';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import { duration, useMotion } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { Pressable } from '../../../../ui/Pressable';
@@ -160,6 +160,6 @@ const styles = StyleSheet.create({
   handleArea: { height: 16, alignItems: 'center', justifyContent: 'center' },
   handle: { width: 32, height: 4, borderRadius: radius.pill },
   content: { flex: 1, paddingHorizontal: space.sm, gap: space.xs },
-  tabs: { flexDirection: 'row', justifyContent: 'center', gap: space.lg, borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: space.xs },
+  tabs: { flexDirection: 'row', justifyContent: 'center', gap: space.lg, borderTopWidth: stroke.hairline, paddingVertical: space.xs },
   tab: { minWidth: tabWidth, height: tabHeight, borderRadius: tabHeight / 2, alignItems: 'center', justifyContent: 'center' },
 });

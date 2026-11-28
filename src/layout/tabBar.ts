@@ -22,8 +22,8 @@ export function pillWidth(windowWidth: number, sideInsets: number): number {
 
 export function pillSlots(width: number, count: number): { wide: number; narrow: number } {
   const inner = width - 2 * pillPadding;
-  const wide = Math.round(inner * 0.4);
-  return { wide, narrow: (inner - wide) / (count - 1) };
+  const wide = Math.round(Math.max(inner * 0.4, inner / Math.max(count, 1)));
+  return { wide, narrow: count > 1 ? (inner - wide) / (count - 1) : wide };
 }
 
 export function labelRoom(wide: number): number {

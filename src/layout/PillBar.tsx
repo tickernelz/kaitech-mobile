@@ -1,13 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { radius, useTheme, type Colors } from '../theme';
+import { radius, stroke, useTheme, type Colors } from '../theme';
 import { GlassCapsule } from '../ui/GlassCapsule';
 import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
 import { PillBadge } from './PillBadge';
 import { pill } from '../ui/pill';
 import { pillHeight, pillPadding } from './tabBar';
-import { tabIcons } from './tabs';
+import { badgeText, tabIcons } from './tabs';
 import { usePillBar, type PillBarState, type PillTab } from './usePillBar';
 
 function Glyph({ tab, bar, colors, slot }: { tab: PillTab; bar: PillBarState; colors: Colors; slot: number }) {
@@ -18,7 +18,7 @@ function Glyph({ tab, bar, colors, slot }: { tab: PillTab; bar: PillBarState; co
     <Animated.View style={[styles.glyph, { width: slot }, place]}>
       <View style={styles.icon}>
         <Icon name={tabIcons[tab.name]} color={tab.focused ? colors.selectInk : colors.ink} variant={tab.focused ? 'fill' : 'line'} />
-        {tab.name === 'activity' ? <PillBadge text={bar.badge} fill={colors.danger} ink={colors.onDanger} edge={colors.surface} reduceMotion={bar.reduceMotion} style={styles.badge} /> : null}
+        <PillBadge name={tab.name} text={badgeText(tab.count)} fill={tab.name === 'activity' ? colors.dangerInk : colors.primary} ink={tab.name === 'activity' ? colors.onDanger : colors.onPrimary} edge={colors.surface} reduceMotion={bar.reduceMotion} style={styles.badge} />
       </View>
       <Text numberOfLines={1} maxFontSizeMultiplier={1.2} style={[styles.label, { color: tab.focused ? colors.selectInk : colors.ink }]} testID={`tab-label-${tab.name}`}>
         {tab.label}
@@ -75,7 +75,7 @@ export function PillBar() {
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   capsule: { height: pillHeight, padding: pillPadding, borderRadius: radius.pill, flexDirection: 'row' },
-  edge: { borderWidth: StyleSheet.hairlineWidth },
+  edge: { borderWidth: stroke.thin },
   shadowLight: { shadowColor: '#000000', shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   shadowDark: { shadowColor: '#000000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   track: { position: 'absolute', top: pillPadding, left: pillPadding, right: pillPadding, bottom: pillPadding },

@@ -28,7 +28,7 @@ export function IncomingCall() {
       </View>
       <View style={styles.actions}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('decline')} onPress={() => void decline()} style={[styles.round, { backgroundColor: colors.danger }]} testID="incoming-decline">
-          <Icon name="phoneEnd" size={32} color={colors.onDanger} />
+          <Icon name="phoneEnd" size={32} color={colors.onFill} />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={t('answer')} onPress={() => void answer()} style={[styles.round, { backgroundColor: colors.ok }]} testID="incoming-answer">
           <Icon name="phone" size={32} color={colors.onFill} />

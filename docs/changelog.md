@@ -2,6 +2,61 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.17.0 - 2026-11-28
+
+### Added
+
+- Roles: the app reads the account's role and capabilities from the server's profile at sign-in and on every profile refresh, and draws tabs and screens from them; it no longer asks the server for group membership (#175, ZHA-8099).
+- Client accounts: a Home tab with one card per Programme, from which the client opens an interview in the browser, sends a requested file, asks for a minutes correction and reports a to-do done, with loading, empty, failed, offline and refused states. Chat lists only the people of their own Programmes. A link to a team screen opens "This page is for the Kaitech team." with a way back to Home (#175, ZHA-8099).
+- Users (Settings, for admins and superadmins): search and role filter, a person's role, capabilities, Programmes and history, invite, deactivate and reactivate. Roles the actor may not give stay visible and disabled with the reason; a role change reads the person again first and stops, naming who changed it, when someone got there before (#175, ZHA-8099).
+- Users: the person screen names the Programmes the person is in under the count, and "And N more" for the rest (#182, ZHA-8099).
+
+### Changed
+
+- Settings for a client account leaves out Notifications and the password change, which the server refuses to client accounts, and Devices lists only the app's devices (#175, ZHA-8099).
+- Android: outlines on rounded elements (chips, pills, cards, bubbles, the composer) are 1 dp rounded to whole pixels instead of one device pixel, 2 px on the Meizu Mblu 21, so their curves no longer break into steps; straight dividers keep one pixel. Lint rejects a one-pixel line on a rounded style (#174, ZHA-8109).
+
+### Fixed
+
+- Android: pressing a round or pill element (icon buttons, chips, the Tickets entry, the composer buttons, message bubbles) no longer lights up a square. The ripple stays a circle inside the shape; on the Mblu 21 the corner pixels of the bounding box keep the background colour while held. Thread scrolling measured 1.9% janky frames against 1.3% on main in the same session, inside main's spread of 0.95-2.6% that day (#174, ZHA-8109).
+
+### Known gaps
+
+- iOS 26 and later: a link to a team tab opens nothing for a client account instead of the team-only page, because the system tab bar blocks navigation to hidden tabs (#175, ZHA-8099).
+- The interview link from Home was checked in Chrome on Android only; the iOS browser has not been checked on a device (#175, ZHA-8099).
+- An account whose first profile read fails counts as the team until the next profile read, so a client may briefly see team tabs whose calls the server refuses (#175, ZHA-8099).
+- Opening the minutes PDF from Home was tested in unit tests only; lab0 had no rendered minutes to open on a device (#175, ZHA-8099).
+- The thicker outlines were not checked on an iPhone, where they are 3 px, nor in dark theme on the phone; pills and cards get a circular ripple in their middle rather than one the full shape of the pill (#174, ZHA-8109).
+
+## 0.16.0 - 2026-11-28
+
+### Changed
+
+- Chat: Starred and Tickets above the conversation list share one row split into two cells, each its own button, instead of two stacked full-width rows; the space above the first conversation shrinks from 108 dp to 58 dp on the Meizu Mblu 21. A lone entry takes the whole row; at large font sizes or in a window under 360 dp the two cells stack instead of cutting their labels (#171, ZHA-8111).
+- Chat: Tickets have their own ticket icon (a notched stub with perforation) in that row and on ticket cards, instead of the Coworker sparkle; the down arrow that suggested the row would unfold is gone (#171, ZHA-8111).
+
+## 0.15.3 - 2026-11-28
+
+### Fixed
+
+- Chat, Discovery, Activity and MoM: once a list scrolls under the top bar, the status bar above it takes the same colour as the bar, as in WhatsApp; before, only the bar changed and the status bar stayed the page colour. Both change on the same frame. On the Meizu Mblu 21 the status bar and the bar read the same pixel colour in light and dark theme, at the top and scrolled, on all four screens; chat list scrolling measured 0.49% janky frames against 0.61% before (#170, ZHA-8107).
+- Chat: the voice message mini player sits under the top bar instead of above it (#170, ZHA-8107).
+
+### Known gaps
+
+- The wide two-pane layout on tablets was checked in code only, not on a device (#170, ZHA-8107).
+
+## 0.15.2 - 2026-11-28
+
+### Fixed
+
+- Chat: scrolling a conversation or the chat list no longer replies to a message or opens a row's actions by accident. As in WhatsApp, a swipe starts only after the finger moves 28 dp sideways while staying within 14 dp up or down; a drag that starts up or down stays a scroll for the whole touch, also in a list too short to scroll. Replying needs a 100 dp pull (was 80) and a row opens its actions after about 100 dp (was about 77). On the Meizu Mblu 21, 30 adb scroll strokes at 30 degrees from vertical opened 30 rows before and none after; deliberate swipes still replied and opened 10 of 10 (#168, ZHA-8106).
+- Docs: shape and colour language for controls (#177, ZHA-8126).
+
+### Known gaps
+
+- The scroll test draws straight lines with adb; a real thumb's curve was only approximated, and the swipe was not tried on an iPhone. Chat list scrolling measured 1.4% janky frames against 1.1% before, inside the per-run spread (#168, ZHA-8106).
+
 ## 0.15.1 - 2026-11-28
 
 ### Fixed

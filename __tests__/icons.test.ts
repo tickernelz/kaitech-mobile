@@ -112,6 +112,18 @@ describe('Kaitech icon set', () => {
     expect(new Set(ids).size).toBe(2);
   });
 
+  it('draws the ticket as its own glyph in both variants, with the perforation cut out of the fill', async () => {
+    expect(iconNames).toContain('ticket');
+    expect(glyphs.ticket.parts).not.toEqual(glyphs.sparkle.parts);
+    expect(plan('ticket', 'line', 20).cutouts).toHaveLength(0);
+    expect(plan('ticket', 'fill', 20).cutouts.length).toBeGreaterThan(0);
+    for (const variant of ['line', 'fill'] as const) {
+      const { unmount } = await render(createElement(Icon, { name: 'ticket', color: '#000', size: 16, variant }));
+      expect(screen.getByTestId('icon-ticket', hidden)).toBeTruthy();
+      await unmount();
+    }
+  });
+
   it('negative control: the line variant of a glyph with cut-outs draws no mask', async () => {
     await render(createElement(Icon, { name: 'doc', color: '#000' }));
     expect(JSON.stringify(screen.toJSON())).not.toMatch(/"mask":/);

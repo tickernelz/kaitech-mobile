@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { useTabBarSpace } from '../../../layout/tabBar';
+import { badgeText } from '../../../layout/tabs';
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { useLargeText, useWindowClass } from '../../../layout/windowClass';
 import { Banner } from '../../../ui/Banner';
 import { Fab } from '../../../ui/Fab';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { TopAppBar, useScrolledUnder } from '../../../ui/AppBar';
 import { Refresh } from '../../../ui/Refresh';
 import { Text } from '../../../ui/Text';
@@ -16,10 +17,12 @@ import { loadArchived, loadMoreConversations, refreshConversations, useChat } fr
 import { IconButton } from '../../../ui/IconButton';
 import { hasFeature } from '../features';
 import { listFilters, matches, type Filter } from '../listFilters';
+import { useUnreadConversations } from '../unread';
 import { pushSupported } from '../push';
 import type { Conversation } from '../types';
 import { Avatar } from './Avatar';
 import { useChatFormat } from './format';
+import { VoiceMiniBar } from './VoiceNote';
 import { previewText } from '../rich';
 import { Icon } from '../../../ui/icons';
 import { RowActions } from '../../../ui/RowActions';
@@ -27,6 +30,7 @@ import { conversationActions } from './conversationActions';
 import { refreshStarred } from '../starred';
 import { StarredSheet } from './thread/ListSheets';
 import { TicketsSheet } from './coworker/Tickets';
+import { ChatShortcuts } from './ChatShortcuts';
 import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 
 function usePreview() {
@@ -188,43 +192,19 @@ export function ConversationList({
     setInArchive(true);
     void loadArchived();
   };
-  const unreadTotal = useMemo(() => conversations.filter((conversation) => conversation.unread > 0).length, [conversations]);
+  const unreadTotal = useUnreadConversations();
   const bar = useScrolledUnder();
 
   const archiveBack = <IconButton icon="back" label={t('translation:row.back')} onPress={() => setInArchive(false)} testID="chat-archive-back" />;
 
-  const starredEntry =
-    filter === 'all' && starred > 0 ? (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${t('starredList.title')}, ${starred}`}
-        onPress={() => setInStarred(true)}
-        testID="chat-starred-open"
-        style={({ pressed }) => [styles.archiveEntry, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
-        <Icon name="star" size={20} color={colors.inkSoft} />
-        <Text variant="callout" style={styles.flex}>
-          {t('starredList.title')}
-        </Text>
-        <Text variant="footnote" tone="inkFaint">
-          {starred}
-        </Text>
-      </Pressable>
-    ) : null;
-
-  const ticketsEntry =
-    filter === 'all' && hasFeature(features, 'agents') ? (
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => setInTickets(true)}
-        testID="chat-tickets-open"
-        style={({ pressed }) => [styles.archiveEntry, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
-        <Icon name="sparkle" size={20} color={colors.inkSoft} />
-        <Text variant="callout" style={styles.flex}>
-          {t('tickets.title')}
-        </Text>
-        <Icon name="chevronDown" size={20} color={colors.inkFaint} />
-      </Pressable>
-    ) : null;
+  const shortcutCells = [
+    filter === 'all' && starred > 0
+      ? { key: 'starred', icon: 'star' as const, label: t('starredList.title'), count: starred, onPress: () => setInStarred(true), testID: 'chat-starred-open' }
+      : null,
+    filter === 'all' && hasFeature(features, 'agents')
+      ? { key: 'tickets', icon: 'ticket' as const, label: t('tickets.title'), onPress: () => setInTickets(true), testID: 'chat-tickets-open' }
+      : null,
+  ].filter((cell) => cell !== null);
 
   const archiveEntry =
     filter === 'all' && archivedSummary && archivedSummary.count > 0 ? (
@@ -262,7 +242,7 @@ export function ConversationList({
         {name === 'unread' && unreadTotal ? (
           <View style={[styles.count, { backgroundColor: on ? colors.onPrimary : colors.primary }]}>
             <Text variant="label" style={{ color: on ? colors.primary : colors.onPrimary }}>
-              {unreadTotal}
+              {badgeText(unreadTotal)}
             </Text>
           </View>
         ) : null}
@@ -286,8 +266,7 @@ export function ConversationList({
       ) : null}
       {!pushSupported ? <Banner tone="info" icon="bell" text={t('list.iosNoPush')} testID="chat-ios-push-note" /> : null}
       {archiveEntry}
-      {ticketsEntry}
-      {starredEntry}
+      <ChatShortcuts cells={shortcutCells} />
     </View>
   );
 
@@ -322,6 +301,7 @@ export function ConversationList({
           )
         }
       />
+      <VoiceMiniBar />
       <FlashList
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
@@ -363,16 +343,16 @@ const fabClearance = 56 + space.lg * 2;
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
-  archiveEntry: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
+  archiveEntry: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.md, borderWidth: stroke.thin },
   strong: { fontWeight: '600' },
   header: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.sm, gap: space.md },
   chipBar: { marginVertical: chipBand.marginVertical },
   chips: { gap: space.sm, paddingHorizontal: space.xs, paddingVertical: chipBand.paddingVertical },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  chip: { minHeight: chipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, flexDirection: 'row', alignItems: 'center', gap: space.xs },
   count: { minWidth: 18, minHeight: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingLeft: space.lg, minHeight: 76 },
-  rowBody: { flex: 1, paddingVertical: space.md, paddingRight: space.lg, gap: 2, borderBottomWidth: StyleSheet.hairlineWidth },
+  rowBody: { flex: 1, paddingVertical: space.md, paddingRight: space.lg, gap: 2, borderBottomWidth: stroke.hairline },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   badge: { minWidth: 22, height: 22, borderRadius: 11, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
   empty: { padding: space.xxl, alignItems: 'center' },

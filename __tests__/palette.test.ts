@@ -36,13 +36,14 @@ const text: [ColorName, ColorName[]][] = [
   ['dangerInk', ['dangerBand', 'surface']],
   ['infoInk', ['infoBand', 'surface']],
   ['onStage', ['stage']],
+  ['onDanger', ['dangerInk']],
 ];
 
 const controls: [ColorName, ColorName[]][] = [
   ['primary', ['canvas', 'surface', 'surface2', 'select']],
   ['edge', ['canvas', 'surface']],
   ['focus', ['surface', 'select']],
-  ['danger', ['surface', 'onDanger']],
+  ['danger', ['surface', 'onFill']],
 ];
 
 describe.each<Scheme>(['light', 'dark'])('%s palette', (scheme) => {

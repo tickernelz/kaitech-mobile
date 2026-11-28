@@ -1,0 +1,89 @@
+appId: io.kaitech.mobile
+name: Add a lab0 account from Settings on a phone that is already signed in
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: open-settings
+    timeout: 30000
+- tapOn:
+    id: open-settings
+- tapOn:
+    id: settings-accounts
+- tapOn:
+    id: settings-add-account
+- stopApp: com.android.chrome
+- tapOn:
+    id: sign-in-continue
+- extendedWaitUntil:
+    visible:
+      text: (Email|Password|Kata Sandi|Pilih user|Choose a user|Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
+    timeout: 60000
+- runFlow:
+    when:
+      visible:
+        text: (Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
+    commands:
+      - runFlow:
+          when:
+            notVisible:
+              text: .*${LOGIN}.*
+          commands:
+            - tapOn:
+                text: .*(Bukan Anda|Not you|akun lain|another account).*
+            - extendedWaitUntil:
+                visible:
+                  text: (Email|Password|Kata Sandi|Pilih user|Choose a user)
+                timeout: 60000
+- runFlow:
+    when:
+      visible:
+        text: .*(Gunakan user lain|Use another user).*
+    commands:
+      - tapOn:
+          text: .*(Gunakan user lain|Use another user).*
+      - extendedWaitUntil:
+          visible:
+            text: (Email|Password|Kata Sandi)
+          timeout: 60000
+- runFlow:
+    when:
+      visible:
+        text: (Password|Kata Sandi)
+    commands:
+      - tapOn:
+          text: (Email|Login)
+          index: 0
+      - eraseText: 80
+      - inputText: ${LOGIN}
+      - hideKeyboard
+      - scrollUntilVisible:
+          element:
+            text: (Password|Kata Sandi)
+      - tapOn:
+          text: (Password|Kata Sandi)
+          index: 0
+      - inputText: ${PASSWORD}
+      - pressKey: Enter
+      - tapOn:
+          text: (Lain kali|Not now|Never|Jangan pernah)
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            text: (Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
+          timeout: 60000
+- tapOn:
+    text: (Lain kali|Not now|Never|Jangan pernah)
+    optional: true
+- assertVisible:
+    text: .*${LOGIN}.*
+- scrollUntilVisible:
+    element:
+      text: (Sign in|Masuk)
+- tapOn:
+    text: (Sign in|Masuk)
+    index: -1
+- extendedWaitUntil:
+    visible:
+      id: (tab-chat|tab-home)
+    timeout: 60000

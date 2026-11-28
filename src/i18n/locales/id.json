@@ -84,7 +84,9 @@
     "discovery": "Discovery",
     "mom": "MoM",
     "activity": "Aktivitas",
-    "profile": "Profil dan pengaturan"
+    "profile": "Profil dan pengaturan",
+    "home": "Beranda",
+    "unread": "{{count}} belum dibaca"
   },
   "settings": {
     "title": "Pengaturan",
@@ -150,7 +152,11 @@
       "card_not_found": "Kartu ini sudah tidak tersedia.",
       "card_not_awaiting": "Kartu ini sudah dijawab.",
       "card_refused": "Kartu ini untuk orang lain.",
-      "search_too_long": "Maksimal 64 karakter."
+      "search_too_long": "Maksimal 64 karakter.",
+      "team_only": "Ini untuk tim Kaitech.",
+      "role_required": "Peranmu tidak bisa melakukan ini.",
+      "file_missing": "Pilih berkas dulu.",
+      "person_not_found": "Orang ini tidak ada di direktorimu."
     },
     "home": {
       "gates": "{{signed}} dari {{total}} gerbang diteken",
@@ -1641,6 +1647,185 @@
       "body": "Kaitech hanya membaca lokasimu saat kamu mengirim tempat atau membagikannya langsung di chat. Setelah ini HP-mu menanyakan izinnya.",
       "blockedTitle": "Akses lokasi mati",
       "blockedBody": "Izinkan akses lokasi untuk Kaitech di Pengaturan, lalu coba lagi."
+    }
+  },
+  "gate": {
+    "team": {
+      "title": "Halaman ini untuk tim Kaitech.",
+      "body": "Akun Anda melihat Program Anda di Beranda dan percakapan Anda di Chat."
+    },
+    "admin": {
+      "title": "Halaman ini untuk admin.",
+      "body": "Minta admin atau superadmin bila perlu mengubah akun."
+    },
+    "back": "Kembali",
+    "toHome": "Ke Beranda",
+    "toChat": "Ke Chat"
+  },
+  "home": {
+    "stage": "Tahap: {{stage}}",
+    "quiet": "Belum ada yang menunggu Anda di Program ini.",
+    "emptyTitle": "Belum ada Program",
+    "emptyBody": "Konsultan Anda membuka Program untuk Anda. Program muncul di sini setelah dibuka.",
+    "cancel": "Batal",
+    "interviews": {
+      "title": "Interview",
+      "row_one": "Interview, {{count}} pertanyaan tersisa",
+      "row_other": "Interview, {{count}} pertanyaan tersisa",
+      "until": "terbuka sampai {{day}}"
+    },
+    "documents": {
+      "title": "Dokumen yang diminta",
+      "send": "Kirim berkas",
+      "sent": "Berkas terkirim. Konsultan sedang memeriksanya.",
+      "handed": "Terkirim {{day}}, sedang diperiksa konsultan",
+      "broken": "Berkas tidak bisa dibaca. Kirim lagi."
+    },
+    "data": {
+      "title": "Izin data",
+      "through": "Jawab lewat interview Anda."
+    },
+    "minutes": {
+      "title": "Notulen",
+      "row": "{{subject}}, {{day}}",
+      "until": "koreksi sampai {{day}}",
+      "correct": "Minta koreksi",
+      "correctTitle": "Minta koreksi",
+      "correctBody": "Tulis apa yang perlu diubah dengan kata-kata Anda. Konsultan yang membetulkannya.",
+      "correctLabel": "Yang perlu diubah",
+      "correctSend": "Kirim",
+      "correctSent": "Koreksi diminta. Notulen revisi menyusul.",
+      "state": {
+        "arriving": "Sedang disiapkan",
+        "open": "Terbuka untuk koreksi",
+        "corrected": "Koreksi diminta, notulen revisi menyusul",
+        "approved": "Disetujui"
+      }
+    },
+    "todos": {
+      "title": "To-do",
+      "report": "Lapor selesai",
+      "reportTitle": "Laporkan selesai",
+      "reportBody": "Tambahkan catatan untuk konsultan bila perlu.",
+      "noteLabel": "Catatan (opsional)",
+      "reportSend": "Lapor selesai",
+      "reported": "Sudah dilaporkan. Konsultan sedang memeriksanya.",
+      "reportedOn": "Dilaporkan {{day}}, sedang diperiksa konsultan",
+      "sentBack": "Dikembalikan oleh konsultan",
+      "late": "terlambat, tenggat {{day}}",
+      "due": "tenggat {{day}}"
+    },
+    "published_one": "{{count}} dokumen terbit",
+    "published_other": "{{count}} dokumen terbit",
+    "team": "Menunggu anggota lain: {{people}}",
+    "teamMember": "{{person}} {{count}}"
+  },
+  "users": {
+    "title": "Pengguna",
+    "search": "Cari nama atau email",
+    "more": "Tampilkan {{count}} lagi",
+    "cancel": "Batal",
+    "inactive": "Nonaktif",
+    "saving": "Menyimpan…",
+    "filter": {
+      "all": "Semua",
+      "superadmin": "Superadmin",
+      "admin": "Admin",
+      "internal": "Internal",
+      "external": "External",
+      "inactive": "Nonaktif"
+    },
+    "none": {
+      "all": "Belum ada pengguna.",
+      "superadmin": "Tidak ada superadmin.",
+      "admin": "Belum ada admin.",
+      "internal": "Belum ada pengguna internal.",
+      "external": "Belum ada pengguna external.",
+      "inactive": "Tidak ada pengguna nonaktif."
+    },
+    "noneNamed": "Tidak ada pengguna bernama '{{name}}'.",
+    "role": {
+      "external": "External",
+      "internal": "Internal",
+      "admin": "Admin",
+      "superadmin": "Superadmin"
+    },
+    "roleHint": {
+      "external": "Hanya melihat Program tempat ia menjadi anggota",
+      "internal": "Memakai layar tim",
+      "admin": "Mengelola pengguna internal dan external",
+      "superadmin": "Memegang Settings Odoo dan semua kunci"
+    },
+    "roleSection": "Peran",
+    "roleRow": "Peran",
+    "roleTitle": "Peran {{name}}",
+    "roleNow": "Peran sekarang",
+    "roleUnavailable": "Tidak tersedia untuk akun ini",
+    "onlySuperadminMakes": "Hanya superadmin yang bisa menjadikan {{role}}",
+    "roleLocked": "{{role}}. Hanya superadmin yang mengubah admin atau superadmin.",
+    "selfRole": "Peranmu diubah oleh admin atau superadmin.",
+    "confirmTitle": "Jadikan {{name}} {{role}}?",
+    "confirmAction": "Jadikan {{role}}",
+    "confirmBody": {
+      "external": "Ia hanya akan melihat Program tempat ia menjadi anggota, di portal dan aplikasi.",
+      "internal": "Ia akan memakai layar tim: Discovery, MoM, dan Aktivitas.",
+      "admin": "Ia akan bisa mengelola pengguna internal dan eksternal.",
+      "superadmin": "Ia akan memegang Settings Odoo, semua kunci, dan semua akun."
+    },
+    "changed": "{{name}} sekarang {{role}}.",
+    "changedBy": "Peran sudah diubah oleh {{name}}.",
+    "changedElsewhere": "Peran sudah diubah oleh orang lain.",
+    "capabilitiesSection": "Kemampuan",
+    "capability": {
+      "architect": "Reviewing Architect",
+      "programmes_all": "Semua programme",
+      "wa_owner": "Pemilik WhatsApp",
+      "lesson_curator": "Kurator pelajaran",
+      "support_manager": "Manajer support",
+      "controller": "Controller",
+      "process_owner": "Process owner",
+      "sponsor": "Sponsor"
+    },
+    "programmesSection": "Programme",
+    "programmes_one": "Anggota {{count}} Programme",
+    "programmes_other": "Anggota {{count}} Programme",
+    "programmesMore_one": "Dan {{count}} Programme lain",
+    "programmesMore_other": "Dan {{count}} Programme lain",
+    "historySection": "Riwayat",
+    "history": {
+      "system": "Sistem",
+      "role": "{{actor}} mengubah peran dari {{from}} ke {{to}}",
+      "capabilityOn": "{{actor}} menyalakan {{capability}}",
+      "capabilityOff": "{{actor}} mematikan {{capability}}",
+      "invite": "{{actor}} mengundangnya sebagai {{to}}",
+      "deactivate": "{{actor}} menonaktifkan akun",
+      "reactivate": "{{actor}} mengaktifkan akun lagi",
+      "tokenRevoked": "Kunci dicabut"
+    },
+    "deactivate": "Nonaktifkan",
+    "reactivate": "Aktifkan lagi",
+    "deactivateTitle": "Nonaktifkan {{name}}?",
+    "deactivateBody": "Ia keluar dari semua perangkat dan kuncinya dicabut. Datanya tetap ada.",
+    "reactivateTitle": "Aktifkan {{name}} lagi?",
+    "reactivateBody": "Ia bisa masuk lagi. Perangkat dan kunci yang sudah dicabut tetap tercabut.",
+    "invite": {
+      "open": "Undang",
+      "title": "Undang orang",
+      "name": "Nama",
+      "email": "Email",
+      "role": "Peran",
+      "send": "Undang",
+      "sent": "Undangan terkirim ke {{email}}.",
+      "madeExternal": "Akun {{email}} dibuat. Konsultan membuka Program untuknya.",
+      "takenTitle": "Email sudah dipakai",
+      "takenBody": "{{email}} sudah punya akun.",
+      "openExisting": "Buka akun itu",
+      "hint": {
+        "external": "Tidak ada email yang dikirim. Konsultan membuka Program untuknya lewat kartu akses.",
+        "internal": "Odoo mengirim email undangan.",
+        "admin": "Odoo mengirim email undangan.",
+        "superadmin": "Odoo mengirim email undangan."
+      }
     }
   }
 }

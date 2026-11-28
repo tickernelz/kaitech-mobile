@@ -6,12 +6,12 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { radius, space, useTheme } from '../../../theme';
 import { haptic } from '../../../ui/haptic';
 import { Icon } from '../../../ui/icons';
+import { swipeCrossSlop, swipeHeldSideways, swipeStart } from '../../../ui/swipeIntent';
 import type { Message } from '../types';
 
-export const replySlop = 16;
-export const replyReach = 64;
-export const replyMax = 88;
-const verticalSlop = 12;
+export const replySlop = swipeStart;
+export const replyReach = 72;
+export const replyMax = 96;
 const settleMs = 180;
 
 export function replyPull(translationX: number): number {
@@ -40,18 +40,27 @@ function ReplyHint({ x, testID }: { x: SharedValue<number>; testID: string }) {
 export function SwipeReply({ message, onReply, children }: { message: Message; onReply: (message: Message) => void; children: ReactNode }) {
   const x = useSharedValue(0);
   const armed = useSharedValue(false);
+  const dropped = useSharedValue(false);
   const [dragged, setDragged] = useState(false);
   const reply = useCallback(() => onReply(message), [message, onReply]);
   const pan = usePanGesture({
     activeOffsetX: replySlop,
-    failOffsetY: [-verticalSlop, verticalSlop],
+    failOffsetY: [-swipeCrossSlop, swipeCrossSlop],
     testID: `message-${message.id}-swipe`,
     onActivate: () => {
       'worklet';
+      dropped.set(false);
       scheduleOnRN(setDragged, true);
     },
     onUpdate: (event) => {
       'worklet';
+      if (dropped.get()) return;
+      if (!swipeHeldSideways(event.translationX, event.translationY)) {
+        dropped.set(true);
+        armed.set(false);
+        x.set(withTiming(0, { duration: settleMs }));
+        return;
+      }
       const next = replyPull(event.translationX);
       x.set(next);
       if (next >= replyReach && !armed.get()) {
@@ -63,8 +72,9 @@ export function SwipeReply({ message, onReply, children }: { message: Message; o
     },
     onDeactivate: (event) => {
       'worklet';
-      const fire = armed.get() && !event.canceled;
+      const fire = armed.get() && !dropped.get() && !event.canceled;
       armed.set(false);
+      dropped.set(false);
       x.set(
         withTiming(0, { duration: settleMs }, (finished) => {
           'worklet';

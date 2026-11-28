@@ -5,7 +5,8 @@ import type { Attachment, Message } from '../types';
 import { isVisual } from './kind';
 
 export type ViewerSession = { accountId: string; origin: string; items: Attachment[]; index: number };
-export type PdfSession = { accountId: string; origin: string; attachment: Attachment };
+export type PdfSource = { url: string; headers: () => Promise<Record<string, string>> };
+export type PdfSession = { accountId: string; origin: string; attachment: Attachment; source?: PdfSource };
 
 let viewer: ViewerSession | null = null;
 let pdf: PdfSession | null = null;

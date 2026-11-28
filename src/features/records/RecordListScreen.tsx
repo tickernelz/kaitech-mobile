@@ -6,7 +6,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
-import { space, useTheme } from '../../theme';
+import { space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { IconButton } from '../../ui/IconButton';
 import { Icon } from '../../ui/icons';
@@ -333,6 +333,6 @@ const styles = StyleSheet.create({
   chips: { gap: space.sm },
   chipTarget: { minHeight: touchTarget, justifyContent: 'center' },
   listContent: { paddingHorizontal: space.lg, paddingBottom: space.xxl },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 60, paddingVertical: space.md, paddingHorizontal: space.sm, borderBottomWidth: StyleSheet.hairlineWidth },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 60, paddingVertical: space.md, paddingHorizontal: space.sm, borderBottomWidth: stroke.hairline },
   rowText: { flex: 1, gap: 2 },
 });

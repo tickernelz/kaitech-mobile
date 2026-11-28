@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { AccessibilityInfo, Modal, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useKeyboardState } from 'react-native-keyboard-controller';
-import { radius, space, useTheme } from '../theme';
+import { radius, space, stroke, useTheme } from '../theme';
 import { useReduceMotion } from '../theme/reduceMotion';
 import { answerDialog, useLayerOnTop, useOpenDialog, type DialogChoice, type OpenDialog } from './dialog';
 import { Icon } from './icons';
@@ -136,7 +136,7 @@ function DialogView({ dialog }: { dialog: OpenDialog }) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   scrim: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xl },
-  card: { width: '100%', maxWidth: 420, borderRadius: radius.sheet, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  card: { width: '100%', maxWidth: 420, borderRadius: radius.sheet, borderWidth: stroke.thin, overflow: 'hidden' },
   body: { paddingHorizontal: space.xl, paddingTop: space.xl, gap: space.lg },
   icon: { width: 48, height: 48, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   texts: { gap: space.sm },

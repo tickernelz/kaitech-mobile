@@ -191,7 +191,8 @@ const contrastChecks = [
   ['warnInk', 'warnBand', 4.5],
   ['dangerInk', 'dangerBand', 4.5],
   ['infoInk', 'infoBand', 4.5],
-  ['onDanger', 'danger', 4.5],
+  ['onDanger', 'dangerInk', 4.5],
+  ['onFill', 'danger', 3],
   ['canvas', 'dangerInk', 4.5],
 ];
 

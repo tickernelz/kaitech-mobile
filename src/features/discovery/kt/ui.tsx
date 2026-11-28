@@ -1,7 +1,7 @@
 import { Component, type ReactNode, useCallback, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
-import { blend, contrast, radius, space, useTheme, type Colors, type Scheme } from '../../../theme';
+import { blend, contrast, radius, space, stroke, useTheme, type Colors, type Scheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';
 import type { Tone } from './read';
@@ -156,7 +156,7 @@ export const styles = StyleSheet.create({
   title: { flexGrow: 1, flexShrink: 1, flexBasis: '60%' },
   grow: { flex: 1 },
   tools: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  tool: { minHeight: 36, flexDirection: 'row', alignItems: 'center', gap: space.xs, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md },
+  tool: { minHeight: 36, flexDirection: 'row', alignItems: 'center', gap: space.xs, borderWidth: stroke.thin, borderRadius: radius.pill, paddingHorizontal: space.md },
   status: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: space.xs, borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 2 },
   dot: { width: 8, height: 8, borderRadius: 4 },
   meter: { height: 8, borderRadius: radius.pill, overflow: 'hidden' },
