@@ -65,6 +65,7 @@ jest.mock('../src/features/chat/ui/thread/ListSheets', () => ({ StarredSheet: ()
 jest.mock('../src/features/chat/ui/coworker/Tickets', () => ({ TicketsSheet: () => null }));
 jest.mock('../src/ui/Refresh', () => ({ Refresh: () => null }));
 jest.mock('../src/ui/RowActions', () => ({ RowActions: () => null }));
+jest.mock('../src/features/chat/ui/VoiceNote', () => ({ VoiceMiniBar: () => null }));
 jest.mock('expo-router/native-tabs', () => {
   const { createElement } = require('react');
   const { Text: Words, View: Box } = require('react-native');
