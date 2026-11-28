@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { Linking, StyleSheet, View } from 'react-native';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
+import { useCan } from '../../auth/useAccess';
 import { Avatar } from '../../features/chat/ui/Avatar';
 import { idParam } from '../../features/discovery/params';
 import { StateView, useErrorText } from '../../features/discovery/ui';
-import { chatWith, personCard, type Presence } from '../../features/people/card';
+import { chatWith, openChat, personCard, type Presence } from '../../features/people/card';
 import { RowIcon, SettingsPage } from '../../screens/SettingsPage';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
@@ -29,6 +30,7 @@ function PersonScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { active } = useSession();
+  const team = useCan('team');
   const errorText = useErrorText();
   const params = useLocalSearchParams<{ id: string; name?: string }>();
   const partnerId = idParam(params.id);
@@ -44,7 +46,7 @@ function PersonScreen() {
     setBusy(true);
     setFailed(null);
     try {
-      const channel = await chatWith(active, partnerId);
+      const channel = await (team ? chatWith : openChat)(active, partnerId);
       router.dismissAll();
       router.navigate({ pathname: '/', params: { channel: String(channel) } });
     } catch (error) {

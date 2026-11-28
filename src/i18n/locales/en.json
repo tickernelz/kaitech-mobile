@@ -84,7 +84,8 @@
     "discovery": "Discovery",
     "mom": "MoM",
     "activity": "Activity",
-    "profile": "Profile and settings"
+    "profile": "Profile and settings",
+    "home": "Home"
   },
   "settings": {
     "title": "Settings",
@@ -150,7 +151,11 @@
       "card_not_found": "This card is no longer available.",
       "card_not_awaiting": "This card was already answered.",
       "card_refused": "This card is for someone else.",
-      "search_too_long": "64 characters at most."
+      "search_too_long": "64 characters at most.",
+      "team_only": "This is for the Kaitech team.",
+      "role_required": "Your role can't do this.",
+      "file_missing": "Choose a file first.",
+      "person_not_found": "This person isn't in your directory."
     },
     "home": {
       "gates": "{{signed}} of {{total}} gates signed",
@@ -1641,6 +1646,183 @@
       "body": "Kaitech reads your location only when you send a place or share it live in a chat. Your phone asks for permission next.",
       "blockedTitle": "Location access is off",
       "blockedBody": "Allow location access for Kaitech in Settings, then try again."
+    }
+  },
+  "gate": {
+    "team": {
+      "title": "This page is for the Kaitech team.",
+      "body": "Your account sees your Programmes on Home and your conversations in Chat."
+    },
+    "admin": {
+      "title": "This page is for admins.",
+      "body": "Ask an admin or a superadmin if you need a change to an account."
+    },
+    "back": "Go back",
+    "toHome": "Go to Home",
+    "toChat": "Go to Chat"
+  },
+  "home": {
+    "stage": "Stage: {{stage}}",
+    "quiet": "Nothing is waiting for you in this Programme.",
+    "emptyTitle": "No Programme yet",
+    "emptyBody": "Your consultant opens a Programme for you. It shows here once it is open.",
+    "cancel": "Cancel",
+    "interviews": {
+      "title": "Interview",
+      "row_one": "Interview, {{count}} question left",
+      "row_other": "Interview, {{count}} questions left",
+      "until": "open until {{day}}"
+    },
+    "documents": {
+      "title": "Requested documents",
+      "send": "Send file",
+      "sent": "File sent. Your consultant is checking it.",
+      "handed": "Sent {{day}}, your consultant is checking it",
+      "broken": "The file couldn't be read. Send it again."
+    },
+    "data": {
+      "title": "Data permission",
+      "through": "Answer it through your interview."
+    },
+    "minutes": {
+      "title": "Minutes",
+      "row": "{{subject}}, {{day}}",
+      "until": "corrections until {{day}}",
+      "correct": "Ask for a correction",
+      "correctTitle": "Ask for a correction",
+      "correctBody": "Say what should change, in your own words. Your consultant puts it right.",
+      "correctLabel": "What should change",
+      "correctSend": "Send",
+      "correctSent": "Correction asked. Revised minutes will follow.",
+      "state": {
+        "arriving": "Being prepared",
+        "open": "Open for corrections",
+        "corrected": "Correction asked, revised minutes will follow",
+        "approved": "Approved"
+      }
+    },
+    "todos": {
+      "title": "To-do",
+      "report": "Report done",
+      "reportTitle": "Report this done",
+      "reportBody": "Add a note for your consultant if you like.",
+      "noteLabel": "Note (optional)",
+      "reportSend": "Report done",
+      "reported": "Reported. Your consultant is checking it.",
+      "reportedOn": "Reported {{day}}, your consultant is checking it",
+      "sentBack": "Your consultant sent this back",
+      "late": "late, due {{day}}",
+      "due": "due {{day}}"
+    },
+    "published_one": "{{count}} document published",
+    "published_other": "{{count}} documents published",
+    "team": "Waiting for other members: {{people}}",
+    "teamMember": "{{person}} {{count}}"
+  },
+  "users": {
+    "title": "Users",
+    "search": "Search by name or email",
+    "more": "Show {{count}} more",
+    "cancel": "Cancel",
+    "inactive": "Inactive",
+    "saving": "Saving…",
+    "filter": {
+      "all": "All",
+      "superadmin": "Superadmin",
+      "admin": "Admin",
+      "internal": "Internal",
+      "external": "External",
+      "inactive": "Inactive"
+    },
+    "none": {
+      "all": "No users yet.",
+      "superadmin": "No superadmins.",
+      "admin": "No admins yet.",
+      "internal": "No internal users yet.",
+      "external": "No external users yet.",
+      "inactive": "No inactive users."
+    },
+    "noneNamed": "No user named '{{name}}'.",
+    "role": {
+      "external": "External",
+      "internal": "Internal",
+      "admin": "Admin",
+      "superadmin": "Superadmin"
+    },
+    "roleHint": {
+      "external": "Sees only the Programmes they belong to",
+      "internal": "Uses the team screens",
+      "admin": "Manages internal and external users",
+      "superadmin": "Holds Odoo Settings and every key"
+    },
+    "roleSection": "Role",
+    "roleRow": "Role",
+    "roleTitle": "Role of {{name}}",
+    "roleNow": "Current role",
+    "roleUnavailable": "Not available for this account",
+    "onlySuperadminMakes": "Only a superadmin can make someone {{role}}",
+    "roleLocked": "{{role}}. Only a superadmin changes an admin or a superadmin.",
+    "selfRole": "Your role is changed by an admin or a superadmin.",
+    "confirmTitle": "Make {{name}} {{role}}?",
+    "confirmAction": "Make {{role}}",
+    "confirmBody": {
+      "external": "They will see only the Programmes they belong to, in the portal and the app.",
+      "internal": "They will use the team screens: Discovery, MoM and Activity.",
+      "admin": "They will be able to manage internal and external users.",
+      "superadmin": "They will hold Odoo Settings, every key and every account."
+    },
+    "changed": "{{name}} is now {{role}}.",
+    "changedBy": "The role was already changed by {{name}}.",
+    "changedElsewhere": "The role was already changed by someone else.",
+    "capabilitiesSection": "Capabilities",
+    "capability": {
+      "architect": "Reviewing Architect",
+      "programmes_all": "Every programme",
+      "wa_owner": "WhatsApp owner",
+      "lesson_curator": "Lesson curator",
+      "support_manager": "Support manager",
+      "controller": "Controller",
+      "process_owner": "Process owner",
+      "sponsor": "Sponsor"
+    },
+    "programmesSection": "Programmes",
+    "programmes_one": "Member of {{count}} Programme",
+    "programmes_other": "Member of {{count}} Programmes",
+    "historySection": "History",
+    "history": {
+      "system": "System",
+      "role": "{{actor}} changed the role from {{from}} to {{to}}",
+      "capabilityOn": "{{actor}} turned on {{capability}}",
+      "capabilityOff": "{{actor}} turned off {{capability}}",
+      "invite": "{{actor}} invited them as {{to}}",
+      "deactivate": "{{actor}} deactivated the account",
+      "reactivate": "{{actor}} activated the account again",
+      "tokenRevoked": "Keys revoked"
+    },
+    "deactivate": "Deactivate",
+    "reactivate": "Activate again",
+    "deactivateTitle": "Deactivate {{name}}?",
+    "deactivateBody": "They are signed out of every device and their keys are revoked. Their data stays.",
+    "reactivateTitle": "Activate {{name}} again?",
+    "reactivateBody": "They can sign in again. Phones and keys revoked earlier stay revoked.",
+    "invite": {
+      "open": "Invite",
+      "title": "Invite someone",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "send": "Invite",
+      "sent": "Invitation sent to {{email}}.",
+      "madeExternal": "Account made for {{email}}. A consultant opens a Programme for them.",
+      "takenTitle": "Email already in use",
+      "takenBody": "{{email}} already has an account.",
+      "openExisting": "Open that account",
+      "hint": {
+        "external": "No email is sent. A consultant opens a Programme for them with an access card.",
+        "internal": "Odoo sends them an invitation email.",
+        "admin": "Odoo sends them an invitation email.",
+        "superadmin": "Odoo sends them an invitation email."
+      }
     }
   }
 }

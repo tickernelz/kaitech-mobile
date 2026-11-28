@@ -47,6 +47,7 @@ import { useBottomInset } from '../../../ui/insets';
 import { glassEdge, pill } from '../../../ui/pill';
 import { touchTarget } from '../../../ui/touch';
 import { hideWhen } from '../../../ui/cover';
+import { useCan } from '../../../auth/useAccess';
 
 type Staged = Outgoing['files'][number];
 
@@ -138,6 +139,7 @@ export const Composer = forwardRef<
   const [laterBusy, setLaterBusy] = useState(false);
   const [canned, setCanned] = useState<Canned[]>([]);
   const features = useChat((state) => state.features);
+  const team = useCan('team');
   const [saving, setSaving] = useState(false);
   const stash = useRef<{ text: string; mentions: Mention[]; parentId: number | null } | null>(null);
   const input = useRef<ComponentRef<typeof TextInput>>(null);
@@ -226,7 +228,7 @@ export const Composer = forwardRef<
     };
   }, [accountId, channelId, queryText]);
 
-  const cannedAt = cannedQuery(text, cursor);
+  const cannedAt = team ? cannedQuery(text, cursor) : null;
   const cannedText = cannedAt?.query ?? null;
   useEffect(() => {
     if (cannedText === null) return;
@@ -325,7 +327,7 @@ export const Composer = forwardRef<
     onNotice?.(t('extras.scheduled'));
   };
 
-  const extras: Extra[] = editing
+  const extras: Extra[] = editing || !team
     ? []
     : [
         { key: 'canned', icon: 'reply', label: t('extras.canned'), onPress: () => { setSheet(false); insertAtCursor('::'); input.current?.focus(); } },

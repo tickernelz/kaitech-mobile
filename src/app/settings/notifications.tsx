@@ -7,6 +7,7 @@ import { discussSettings, readMe, setChannelNotifications, writeMe, type Channel
 import { pictureInPictureSupported } from '../../features/call/call';
 import { setPictureInPictureAllowed, usePictureInPictureAllowed } from '../../features/call/pipSetting';
 import { useErrorText } from '../../features/discovery/ui';
+import { teamOnly } from '../../screens/Gate';
 import { RowIcon, SettingsPage } from '../../screens/SettingsPage';
 import { Check, Row, Section, ToggleRow } from '../../ui/List';
 import { Text } from '../../ui/Text';
@@ -14,7 +15,9 @@ import { Text } from '../../ui/Text';
 const channelChoices: ChannelNotifications[] = ['all', 'mentions', 'no_notif'];
 const deliveryChoices = ['inbox', 'email'] as const;
 
-export default function NotificationSettings() {
+export default teamOnly(NotificationSettings);
+
+function NotificationSettings() {
   const { t } = useTranslation();
   const { active } = useSession();
   const errorText = useErrorText();

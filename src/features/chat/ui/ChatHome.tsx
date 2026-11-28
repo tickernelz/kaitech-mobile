@@ -10,6 +10,8 @@ import { Text } from '../../../ui/Text';
 import { Wordmark } from '../../../ui/Wordmark';
 import { focusedMessage, selectChannel, selectedChannel, useSelectedChannel } from '../selection';
 import { ConversationList } from './ConversationList';
+import { useCan } from '../../../auth/useAccess';
+import { DirectorySheet } from './list/DirectorySheet';
 import { NewConversationSheet } from './list/NewConversationSheet';
 import { ThreadView } from './ThreadView';
 
@@ -28,6 +30,7 @@ export function ChatHome() {
   const expanded = windowClass === 'expanded';
   const selected = useSelectedChannel();
   const [creating, setCreating] = useState(false);
+  const team = useCan('team');
 
   const open = useCallback(
     (id: number, message?: number | null) => {
@@ -67,7 +70,16 @@ export function ChatHome() {
   return (
     <SafeAreaView edges={['right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-chat">
       <Panes list={<ConversationList selectedId={expanded ? selected : null} onOpen={open} onNew={() => setCreating(true)} />} detail={detail} />
-      {creating ? (
+      {creating && !team ? (
+        <DirectorySheet
+          onClose={() => setCreating(false)}
+          onOpen={(id) => {
+            setCreating(false);
+            open(id);
+          }}
+        />
+      ) : null}
+      {creating && team ? (
         <NewConversationSheet
           onClose={() => setCreating(false)}
           onOpen={(id) => {

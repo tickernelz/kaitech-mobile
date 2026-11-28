@@ -7,7 +7,7 @@ import { glyphSvg } from './glyph-svg.mjs';
 
 const root = join(import.meta.dirname, '..');
 const out = join(root, 'assets', 'tabs');
-const glyphs = { chat: 'chat', discovery: 'compass', mom: 'minutes', activity: 'bell' };
+const glyphs = { home: 'home', chat: 'chat', discovery: 'compass', mom: 'minutes', activity: 'bell' };
 const point = 24;
 const scales = [1, 2, 3];
 const work = mkdtempSync(join(tmpdir(), 'tab-icons-'));

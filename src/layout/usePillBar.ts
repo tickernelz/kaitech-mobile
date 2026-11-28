@@ -9,7 +9,8 @@ import { usePendingActivities } from '../features/activity/useActivityOverview';
 import { duration, easing, spring } from '../theme/motion';
 import { useReduceMotion } from '../theme/reduceMotion';
 import { pillBottom, pillCover, pillWidth } from './tabBar';
-import { badgeText, tabs, type TabName } from './tabs';
+import { useAccess } from '../auth/useAccess';
+import { badgeText, tabsFor, type TabName } from './tabs';
 import { useTab } from './useTab';
 
 export type PillTab = { name: TabName; index: number; focused: boolean; label: string; spoken: string; press: () => void; pressIn: () => void; pressOut: () => void };
@@ -43,7 +44,8 @@ export function usePillBar(): PillBarState {
   const keyboard = useKeyboardState((state) => state.isVisible);
   const count = usePendingActivities();
   const badge = badgeText(count);
-  const byName: Record<TabName, ReturnType<typeof useTab>> = { chat: useTab('chat'), discovery: useTab('discovery'), mom: useTab('mom'), activity: useTab('activity') };
+  const byName: Record<TabName, ReturnType<typeof useTab>> = { home: useTab('home'), chat: useTab('chat'), discovery: useTab('discovery'), mom: useTab('mom'), activity: useTab('activity') };
+  const tabs = tabsFor(useAccess());
   const selected = tabs.findIndex((name) => byName[name].focused);
   const position = useSharedValue(selected);
   const pressed = useSharedValue(-1);

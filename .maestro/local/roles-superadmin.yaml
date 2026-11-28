@@ -1,0 +1,105 @@
+appId: io.kaitech.mobile
+name: Superadmin account - admin to internal and back, invite an external person, deactivate and activate, history
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-chat
+    timeout: 30000
+- tapOn:
+    id: open-settings
+- tapOn:
+    id: settings-users
+- extendedWaitUntil:
+    visible:
+      id: users-screen
+    timeout: 20000
+- tapOn:
+    id: users-search
+- inputText: ZHA-8099
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: user-${ADMIN_ID}
+    timeout: 20000
+- tapOn:
+    id: user-${ADMIN_ID}
+- extendedWaitUntil:
+    visible:
+      id: user-role
+    timeout: 20000
+- tapOn:
+    id: user-role
+- tapOn:
+    id: user-role-internal
+- tapOn:
+    id: user-role-confirm-confirm
+- extendedWaitUntil:
+    visible:
+      text: (.* is now Internal\.|.* sekarang Internal\.)
+    timeout: 30000
+- tapOn:
+    id: user-role
+- tapOn:
+    id: user-role-admin
+- assertVisible:
+    id: user-role-confirm
+- takeScreenshot: s1-confirm-admin
+- tapOn:
+    id: user-role-confirm-confirm
+- extendedWaitUntil:
+    visible:
+      text: (.* is now Admin\.|.* sekarang Admin\.)
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: user-history-0
+- takeScreenshot: s2-history
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: user-${TARGET_ID}
+- extendedWaitUntil:
+    visible:
+      id: user-role
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: user-deactivate
+- tapOn:
+    id: user-deactivate
+- tapOn:
+    id: user-deactivate-confirm-confirm
+- extendedWaitUntil:
+    visible:
+      id: user-reactivate
+    timeout: 30000
+- takeScreenshot: s3-deactivated
+- tapOn:
+    id: user-reactivate
+- tapOn:
+    id: user-reactivate-confirm-confirm
+- extendedWaitUntil:
+    visible:
+      id: user-deactivate
+    timeout: 30000
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: users-invite
+- tapOn:
+    id: invite-name
+- inputText: Undangan Uji ${RUN}
+- tapOn:
+    id: invite-email
+- inputText: zha8099.${RUN}@uji.invalid
+- hideKeyboard
+- tapOn:
+    id: invite-role-external
+- tapOn:
+    id: invite-send
+- extendedWaitUntil:
+    visible:
+      id: user-role
+    timeout: 30000
+- takeScreenshot: s4-invited

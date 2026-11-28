@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../ui/Pressable';
 import { useSession } from '../auth/session';
+import { useCan } from '../auth/useAccess';
 import { radius, space, useTheme } from '../theme';
 import { IconButton } from '../ui/IconButton';
 import { Avatar } from '../features/chat/ui/Avatar';
@@ -12,9 +13,10 @@ export function HeaderActions() {
   const { material } = useTheme();
   const router = useRouter();
   const { active } = useSession();
+  const team = useCan('team');
   return (
     <View style={styles.row}>
-      <IconButton icon="search" label={t('search.open')} onPress={() => router.push('/search')} testID="open-search" />
+      {team ? <IconButton icon="search" label={t('search.open')} onPress={() => router.push('/search')} testID="open-search" /> : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('tabs.profile')}

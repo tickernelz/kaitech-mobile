@@ -9,6 +9,7 @@ import { parseServerDate } from '../../features/discovery/dates';
 import { useIdentity } from '../../features/account/useIdentity';
 import { StateView, useErrorText } from '../../features/discovery/ui';
 import { useFormatters } from '../../i18n';
+import { teamOnly } from '../../screens/Gate';
 import { SettingsPage } from '../../screens/SettingsPage';
 import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
@@ -18,7 +19,9 @@ import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 import { confirm } from '../../ui/dialog';
 
-export default function ApiKeySettings() {
+export default teamOnly(ApiKeySettings);
+
+function ApiKeySettings() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { active } = useSession();
