@@ -8,7 +8,7 @@ const mockOverview = jest.fn<Promise<Overview>, [unknown, string, string, number
 const mockDetail = jest.fn<Promise<Detail>, []>();
 const mockSetRole = jest.fn<Promise<Detail>, []>();
 const mockNotify = jest.fn();
-const mockConfirm = jest.fn<Promise<boolean>, []>();
+const mockConfirm = jest.fn<Promise<boolean>, [unknown]>();
 let mockAccount = { id: 'u2_a', origin: 'https://lab0.test', db: 'lab0', userId: 2, partnerId: 3, deviceId: 5, name: 'Admin', login: 'admin@example.com', signedInAt: 0, access: { role: 'admin', capabilities: ['mom.admin', 'team', 'users.manage'] } };
 
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined } }));
@@ -29,7 +29,7 @@ jest.mock('react-native/Libraries/Components/RefreshControl/RefreshControl', () 
   return { __esModule: true, default: Control };
 });
 jest.mock('../src/auth/session', () => ({ useSession: () => ({ active: mockAccount }), onAccountForgotten: () => undefined, accountKnown: () => true }));
-jest.mock('../src/ui/dialog', () => ({ notify: (text: string) => mockNotify(text), confirm: () => mockConfirm(), choose: jest.fn() }));
+jest.mock('../src/ui/dialog', () => ({ notify: (text: string) => mockNotify(text), confirm: (options: unknown) => mockConfirm(options), choose: jest.fn() }));
 jest.mock('../src/ui/Sheet', () => {
   const { View, Pressable, Text } = jest.requireActual('react-native');
   return {
@@ -109,7 +109,7 @@ describe('UserScreen', () => {
     await waitFor(() => expect(screen.getByTestId('user-role')).toBeTruthy());
     await fireEvent.press(screen.getByTestId('user-role'));
     expect(screen.getByTestId('user-role-admin')).toBeDisabled();
-    expect(screen.getByText('Only a superadmin can make someone Admin')).toBeTruthy();
+    expect(screen.getByText('Only a superadmin can make someone admin')).toBeTruthy();
     expect(screen.getByTestId('user-role-external')).not.toBeDisabled();
   });
 
@@ -118,15 +118,32 @@ describe('UserScreen', () => {
     await render(<UserScreen userId={9} />);
     await waitFor(() => expect(screen.getByTestId('user-programme-51')).toHaveTextContent('Duta Cemerlang'));
     expect(screen.getByTestId('user-programme-52')).toHaveTextContent('HKR');
-    expect(screen.getByTestId('user-programmes')).toHaveTextContent('Member of 3 Programmes');
-    expect(screen.getByTestId('user-programmes-more')).toHaveTextContent('And 1 more Programme');
+    expect(screen.getByTestId('user-programmes')).toHaveTextContent('Member of 3 programmes');
+    expect(screen.getByTestId('user-programmes-more')).toHaveTextContent('And 1 more programme');
   });
 
   it('shows only the count when the server sends no Programme names', async () => {
     mockDetail.mockResolvedValue(detailOf());
     await render(<UserScreen userId={9} />);
-    await waitFor(() => expect(screen.getByTestId('user-programmes')).toHaveTextContent('Member of 2 Programmes'));
+    await waitFor(() => expect(screen.getByTestId('user-programmes')).toHaveTextContent('Member of 2 programmes'));
     expect(screen.queryByTestId('user-programmes-more')).toBeNull();
+  });
+
+  it('says in a sentence that the person is in no programme', async () => {
+    mockDetail.mockResolvedValue(detailOf({ programmes: 0 }));
+    await render(<UserScreen userId={9} />);
+    await waitFor(() => expect(screen.getByTestId('user-programmes')).toHaveTextContent('Not a member of any programme yet.'));
+  });
+
+  it('keeps the deactivate button close by showing the five newest changes until asked for all', async () => {
+    const history = Array.from({ length: 7 }, (_, index) => ({ at: `2026-11-28 0${7 - index}:00:00`, actor: `Actor ${index}`, change: 'deactivate', via: 'app' }));
+    mockDetail.mockResolvedValue(detailOf({ history }));
+    await render(<UserScreen userId={9} />);
+    await waitFor(() => expect(screen.getByTestId('user-history-4')).toHaveTextContent(/Actor 4/));
+    expect(screen.queryByTestId('user-history-5')).toBeNull();
+    await fireEvent.press(screen.getByTestId('user-history-all'));
+    expect(screen.getByTestId('user-history-6')).toHaveTextContent(/Actor 6/);
+    expect(screen.queryByTestId('user-history-all')).toBeNull();
   });
 
   it('shows a superadmin read-only to an admin', async () => {
@@ -144,6 +161,7 @@ describe('UserScreen', () => {
     await waitFor(() => expect(screen.getByTestId('user-role')).toBeTruthy());
     await fireEvent.press(screen.getByTestId('user-role'));
     await act(async () => fireEvent.press(screen.getByTestId('user-role-external')));
+    expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({ title: 'Make Rina external?', confirm: 'Make external' }));
     await waitFor(() => expect(mockNotify).toHaveBeenCalledWith('The role was already changed by Khusnul.'));
     expect(mockSetRole).not.toHaveBeenCalled();
     await waitFor(() => expect(screen.getByTestId('user-role')).toHaveTextContent(/External/));

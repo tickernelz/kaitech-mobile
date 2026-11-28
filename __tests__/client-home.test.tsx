@@ -111,14 +111,27 @@ describe('ClientHome', () => {
     expect(screen.getByTestId('home-published-51')).toHaveTextContent('3 documents published');
     expect(screen.getByTestId('home-team-51')).toHaveTextContent('Waiting for other members: Rina 2, Budi 1');
     expect(screen.queryByText('Data permission')).toBeNull();
-    expect(screen.getByTestId('home-quiet-52')).toHaveTextContent('Nothing is waiting for you in this Programme.');
+    expect(screen.getByTestId('home-quiet-52')).toHaveTextContent('Nothing is waiting for you in this programme.');
+  });
+
+  it('names an interview by its subject and says where it stands, never how many questions are left', async () => {
+    const interviews = [
+      { invite_id: 3, questions_left: 0, summaries_waiting: 0, topic: 'Rantai pembelian', stage: 'answered', expires_on: '2026-12-05' },
+      { invite_id: 4, questions_left: 0, summaries_waiting: 0, expires_on: '' },
+    ];
+    mockHome.mockResolvedValue(homeFrom({ programmes: [{ ...raw.programmes[0], interviews }] }));
+    await render(<ClientHome />);
+    await waitFor(() => expect(screen.getByTestId('home-interview-3')).toBeTruthy());
+    expect(screen.getByTestId('home-interview-3')).toHaveTextContent('Rantai pembelianAll answered, your consultant is reviewing · open until Dec 5');
+    expect(screen.getByTestId('home-interview-4')).toHaveTextContent('Interview');
+    expect(screen.queryByText(/questions? left/)).toBeNull();
   });
 
   it('says so when no Programme is open yet', async () => {
     mockHome.mockResolvedValue([]);
     await render(<ClientHome />);
     await waitFor(() => expect(screen.getByTestId('home-empty')).toBeTruthy());
-    expect(screen.getByText('No Programme yet')).toBeTruthy();
+    expect(screen.getByText('No programme yet')).toBeTruthy();
   });
 
   it('shows a failed load with a retry that loads again', async () => {

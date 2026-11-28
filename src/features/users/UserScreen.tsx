@@ -22,6 +22,8 @@ import { deactivate, detail as readDetail, reactivate, setCapability, setRole } 
 import { capabilitiesFor, capabilityKind, lastRoleChange, needsSuperadmin, type Change, type Detail } from './door';
 import { RoleChip } from './UsersScreen';
 
+const historyPreview = 5;
+
 function useChangeText() {
   const { t } = useTranslation();
   const { language } = useLanguage();
@@ -55,7 +57,7 @@ function RoleSheet({ detail, actor, onPick, onClose }: { detail: Detail; actor: 
           <SheetItem
             key={role}
             label={t(`users.role.${role}`)}
-            detail={current ? t('users.roleNow') : allowed ? t(`users.roleHint.${role}`) : needsSuperadmin(actor, role) ? t('users.onlySuperadminMakes', { role: t(`users.role.${role}`) }) : t('users.roleUnavailable')}
+            detail={current ? t('users.roleNow') : allowed ? t(`users.roleHint.${role}`) : needsSuperadmin(actor, role) ? t('users.onlySuperadminMakes', { role: t(`users.roleInline.${role}`) }) : t('users.roleUnavailable')}
             selected={current}
             disabled={current || !allowed}
             onPress={() => onPick(role)}
@@ -88,6 +90,7 @@ export function UserScreen({ userId }: { userId: number }) {
   const loaded = useResource(`users.detail.${userId}`, (account) => readDetail(account, userId), 15_000);
   const [busy, setBusy] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
+  const [allHistory, setAllHistory] = useState(false);
   const person = loaded.data ?? null;
   if (!active) return null;
 
@@ -116,7 +119,7 @@ export function UserScreen({ userId }: { userId: number }) {
   const roleLabel = t(`users.role.${person.role}`);
   const pick = async (role: Role) => {
     setPicking(false);
-    const label = t(`users.role.${role}`);
+    const label = t(`users.roleInline.${role}`);
     const go = await confirm({
       title: t('users.confirmTitle', { name: person.name, role: label }),
       body: t(`users.confirmBody.${role}`),
@@ -147,6 +150,7 @@ export function UserScreen({ userId }: { userId: number }) {
   };
   const roleDetail = self ? t('users.selfRole') : person.may.setRole.length ? roleLabel : t('users.roleLocked', { role: roleLabel });
   const capabilities = capabilitiesFor[capabilityKind(person.role)];
+  const history = allHistory ? person.history : person.history.slice(0, historyPreview);
 
   return (
     <SettingsPage title={person.name} testID="user-screen">
@@ -180,7 +184,7 @@ export function UserScreen({ userId }: { userId: number }) {
         ))}
       </Section>
       <Section title={t('users.programmesSection')}>
-        <Row title={t('users.programmes', { count: person.programmes })} testID="user-programmes" />
+        <Row title={person.programmes ? t('users.programmes', { count: person.programmes }) : t('users.programmesNone')} testID="user-programmes" />
         {person.programmeList.map((programme) => (
           <View key={programme.id}>
             <Divider />
@@ -196,12 +200,18 @@ export function UserScreen({ userId }: { userId: number }) {
       </Section>
       {person.history.length ? (
         <Section title={t('users.historySection')}>
-          {person.history.map((change, index) => (
+          {history.map((change, index) => (
             <View key={`${change.at}-${index}`}>
               {index ? <Divider /> : null}
               <Row title={changeText(change)} testID={`user-history-${index}`} />
             </View>
           ))}
+          {history.length < person.history.length ? (
+            <>
+              <Divider />
+              <Row title={t('users.historyAll', { count: person.history.length })} tone="link" onPress={() => setAllHistory(true)} testID="user-history-all" />
+            </>
+          ) : null}
         </Section>
       ) : null}
       {person.may.deactivate || person.may.reactivate ? (
