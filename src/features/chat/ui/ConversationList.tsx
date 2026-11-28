@@ -22,6 +22,7 @@ import { pushSupported } from '../push';
 import type { Conversation } from '../types';
 import { Avatar } from './Avatar';
 import { useChatFormat } from './format';
+import { VoiceMiniBar } from './VoiceNote';
 import { previewText } from '../rich';
 import { Icon } from '../../../ui/icons';
 import { RowActions } from '../../../ui/RowActions';
@@ -324,6 +325,7 @@ export function ConversationList({
           )
         }
       />
+      <VoiceMiniBar />
       <FlashList
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
