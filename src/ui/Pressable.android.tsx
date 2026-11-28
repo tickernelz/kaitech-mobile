@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react';
-import { Pressable as NativePressable, StyleSheet } from 'react-native';
+import { Pressable as NativePressable, StyleSheet, type ViewStyle } from 'react-native';
 import { colorsFor } from '../theme/tokens';
 import { useTheme } from '../theme';
 
@@ -24,11 +24,23 @@ export function stateLayerInk(container: unknown, fallback: string): string {
   return light < 0.18 ? darkInk : lightInk;
 }
 
+const clipped = { overflow: 'hidden' } as const;
+
+function rounded(style: Readonly<Partial<ViewStyle>> | null | undefined): boolean {
+  if (!style) return false;
+  return Object.entries(style).some(([key, value]) => /^border\w*Radius$/.test(key) && (typeof value === 'number' ? value > 0 : typeof value === 'string'));
+}
+
 export function Pressable({ style, ...props }: Props) {
   const { material } = useTheme();
   if (props.android_ripple !== undefined) return <NativePressable style={style} {...props} />;
-  const resting = typeof style === 'function' ? style({ pressed: false }) : style;
-  const ink = stateLayerInk(StyleSheet.flatten(resting)?.backgroundColor, material.onSurface);
-  const unpressed: Props['style'] = typeof style === 'function' ? (state) => style({ ...state, pressed: false }) : style;
-  return <NativePressable android_ripple={{ color: `${ink}1A` }} style={unpressed} {...props} />;
+  const resting = StyleSheet.flatten(typeof style === 'function' ? style({ pressed: false }) : style);
+  const ink = stateLayerInk(resting?.backgroundColor, material.onSurface);
+  const color = `${ink}1A`;
+  if (!rounded(resting)) {
+    const unpressed: Props['style'] = typeof style === 'function' ? (state) => style({ ...state, pressed: false }) : style;
+    return <NativePressable android_ripple={{ color }} style={unpressed} {...props} />;
+  }
+  const shaped: Props['style'] = typeof style === 'function' ? (state) => [style({ ...state, pressed: false }), clipped] : [style, clipped];
+  return <NativePressable android_ripple={{ color, foreground: true }} style={shaped} {...props} />;
 }

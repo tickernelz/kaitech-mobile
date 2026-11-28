@@ -101,6 +101,32 @@ describe('Android pressables', () => {
     expect(drawn.plain.props.style({ pressed: true, hovered: false })).toEqual({ backgroundColor: 'white' });
     expect(drawn.own.props.style({ pressed: true, hovered: false })).toEqual({ backgroundColor: 'grey' });
   });
+
+  test('a rounded pressable clips its ripple to its own curve, so a circle or pill never ripples as a square', async () => {
+    type Drawn = { props: { android_ripple?: unknown; style: unknown } };
+    const drawn: Record<string, Drawn> = {};
+    function Probe(props: Parameters<typeof RipplePressable>[0] & { name: string }) {
+      const { name, ...rest } = props;
+      drawn[name] = RipplePressable(rest) as Drawn;
+      return null;
+    }
+    await render(
+      <>
+        <Probe name="pill" style={{ borderRadius: 999, backgroundColor: '#441D65' }} onPress={() => undefined} />
+        <Probe name="sheet" style={({ pressed }) => ({ borderTopLeftRadius: 28, backgroundColor: pressed ? 'grey' : 'white' })} onPress={() => undefined} />
+        <Probe name="square" style={{ padding: 4 }} onPress={() => undefined} />
+        <Probe name="shadowed" style={{ shadowRadius: 16, borderRadius: 0 }} onPress={() => undefined} />
+      </>,
+    );
+    expect(drawn.pill.props.android_ripple).toEqual({ color: '#F1F0F31A', foreground: true });
+    expect(StyleSheet.flatten(drawn.pill.props.style as object)).toEqual({ borderRadius: 999, backgroundColor: '#441D65', overflow: 'hidden' });
+    const sheet = drawn.sheet.props.style as (state: { pressed: boolean; hovered: boolean }) => object;
+    expect(drawn.sheet.props.android_ripple).toEqual({ color: '#1514181A', foreground: true });
+    expect(StyleSheet.flatten(sheet({ pressed: true, hovered: false }))).toEqual({ borderTopLeftRadius: 28, backgroundColor: 'white', overflow: 'hidden' });
+    expect(drawn.square.props.android_ripple).toEqual({ color: '#1514181A' });
+    expect(drawn.square.props.style).toEqual({ padding: 4 });
+    expect(drawn.shadowed.props.android_ripple).toEqual({ color: '#1514181A' });
+  });
 });
 
 describe('Android state layer colour', () => {
