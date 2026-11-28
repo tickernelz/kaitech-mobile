@@ -163,7 +163,7 @@ export function rowFrom(value: unknown): TicketRow | null {
 }
 
 export function lastSteps(ticket: Ticket, count = 3): Checkpoint[] {
-  return ticket.checkpoints.slice(-count);
+  return ticket.checkpoints.filter((step) => step.kind !== 'state').slice(-count);
 }
 
 export function ticketDetail(ticketId: number) {

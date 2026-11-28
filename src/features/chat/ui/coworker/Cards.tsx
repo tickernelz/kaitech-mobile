@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactElement, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../../ui/Pressable';
@@ -8,7 +8,7 @@ import { Text } from '../../../../ui/Text';
 import { DecisionCard } from '../../../discovery/DecisionCard';
 import { Markdown } from '../../../discovery/Markdown';
 import { agentCardsFor, createCardStore, decideWardmote, recordCards, type AgentCard, type CardStore, type RecordCard, type Wardmote } from '../../coworker';
-import { faceSize } from '../MessageBubble';
+import { MessageLane } from '../MessageBubble';
 import { TicketAskCard, TicketCard } from './Tickets';
 import { failureText } from '../actions/failure';
 import { touchTarget } from '../../../../ui/touch';
@@ -41,6 +41,45 @@ export function useRecordCards() {
     return out;
   }, []);
   return useCardStore<string, RecordCard | null>(load);
+}
+
+function hasAgentCards(card: AgentCard | undefined): boolean {
+  return !!card && (card.packets.length > 0 || !!card.wardmote || !!card.ticket || !!card.ticketAsk);
+}
+
+const noIds: number[] = [];
+
+export function useCardsShown(agents: CardStore<number, AgentCard> | null, records: CardStore<string, RecordCard | null> | null, messageId: number | null, urls: readonly string[]): boolean {
+  const ids = useMemo(() => (messageId === null ? noIds : [messageId]), [messageId]);
+  useCardVersion(agents, ids);
+  useCardVersion(records, urls);
+  return (messageId !== null && hasAgentCards(agents?.get(messageId))) || (!!records && urls.some((url) => !!records.get(url)));
+}
+
+export function MessageGroup({
+  agents,
+  records,
+  follows,
+  followsUrls,
+  self,
+  selfUrls,
+  startsGroup,
+  endsGroup,
+  children,
+}: {
+  agents: CardStore<number, AgentCard>;
+  records: CardStore<string, RecordCard | null>;
+  follows: number | null;
+  followsUrls: readonly string[];
+  self: number | null;
+  selfUrls: readonly string[];
+  startsGroup: boolean;
+  endsGroup: boolean;
+  children: (startsGroup: boolean, endsGroup: boolean) => ReactElement;
+}) {
+  const afterCards = useCardsShown(agents, records, follows, followsUrls);
+  const beforeCards = useCardsShown(agents, records, self, selfUrls);
+  return children(startsGroup || afterCards, endsGroup || beforeCards);
 }
 
 export const AgentSaid = memo(function AgentSaid({ store, messageId, children }: { store: CardStore<number, AgentCard>; messageId: number; children: ReactNode }) {
@@ -78,12 +117,14 @@ export const MessageCards = memo(function MessageCards({
   const agentCard = agents?.get(messageId);
   const recordList = records ? urls.map((url) => records.get(url)).filter((card): card is RecordCard => !!card) : [];
   const change = useCallback((next: AgentCard) => agents?.put(messageId, next), [agents, messageId]);
-  if (!(agentCard && (agentCard.packets.length || agentCard.wardmote || agentCard.ticket || agentCard.ticketAsk)) && !recordList.length) return null;
+  if (!hasAgentCards(agentCard) && !recordList.length) return null;
   return (
-    <View style={[styles.below, mine ? styles.belowMine : styles.belowTheirs, indent && styles.belowIndent]}>
-      {agentCard ? <AgentCards card={agentCard} onChange={change} /> : null}
-      <RecordCards cards={recordList} onOpen={onOpen} />
-    </View>
+    <MessageLane mine={mine} indent={indent}>
+      <View style={styles.column}>
+        {agentCard ? <AgentCards card={agentCard} onChange={change} /> : null}
+        <RecordCards cards={recordList} onOpen={onOpen} />
+      </View>
+    </MessageLane>
   );
 });
 
@@ -140,7 +181,7 @@ function WardmoteCard({ card, onChange }: { card: Wardmote; onChange: (next: War
 }
 
 export function AgentCards({ card, onChange }: { card: AgentCard; onChange: (next: AgentCard) => void }) {
-  if (!card.packets.length && !card.wardmote && !card.ticket && !card.ticketAsk) return null;
+  if (!hasAgentCards(card)) return null;
   return (
     <View style={styles.stack}>
       {card.ticket ? <TicketCard ticket={card.ticket} /> : null}
@@ -190,11 +231,8 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   link: { minHeight: touchTarget, justifyContent: 'center' },
   bold: { fontWeight: '600' },
-  stack: { gap: space.xs, marginTop: space.xs },
-  card: { borderWidth: stroke.thin, borderRadius: radius.card, padding: space.md, gap: 4, maxWidth: 420 },
+  stack: { gap: space.sm },
+  column: { width: '80%', gap: space.sm },
+  card: { borderWidth: stroke.thin, borderRadius: radius.card, padding: space.md, gap: space.xs },
   row: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
-  below: { paddingHorizontal: space.lg + space.md },
-  belowMine: { alignItems: 'flex-end' },
-  belowTheirs: { alignItems: 'flex-start' },
-  belowIndent: { paddingLeft: space.lg + space.sm * 2 + faceSize + space.md },
 });

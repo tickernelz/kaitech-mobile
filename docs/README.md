@@ -9,6 +9,7 @@
 | [Store accounts](store-accounts.md) | what waits for Google Play and Apple Developer accounts |
 | [App identity](app-identity.md) | application ids, certificate fingerprint, `assetlinks.json` |
 | [Branding](branding.md) | logo source, app icon, adaptive and themed icons, iOS Icon Composer package, splash, regenerating the assets |
+| [Design quality](design-quality.md) | measurable visual rules: spacing, radius, line width, type, surfaces, icons, states, motion, contrast, touch targets, and today's violation counts |
 | [Development](development.md) | setup and commands, languages, sign-in, icons and splash |
 | [CI](ci.md) | workflows, artifacts, fast path and cache, performance gate, release steps, GitHub secrets |
 | [E2E](e2e.md) | Maestro flows, device matrix, screenshots, tablet configuration gate, signed-in flows |
