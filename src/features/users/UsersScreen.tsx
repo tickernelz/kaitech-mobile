@@ -9,15 +9,18 @@ import { useResource } from '../../api/resource';
 import { roles, type Role } from '../../auth/access';
 import { useSession } from '../../auth/session';
 import { useAccess } from '../../auth/useAccess';
+import { readableWidth, useLargeText } from '../../layout/windowClass';
+import { SettingsHeader } from '../../screens/SettingsPage';
 import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { choose, notify } from '../../ui/dialog';
-import { IconButton } from '../../ui/IconButton';
 import { Pressable } from '../../ui/Pressable';
 import { Refresh } from '../../ui/Refresh';
+import { SearchField } from '../../ui/SearchField';
 import { Sheet } from '../../ui/Sheet';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
+import { chipBand, chipHeight, chipSlop, touchTarget } from '../../ui/touch';
 import { Avatar } from '../chat/ui/Avatar';
 import { StateView, useErrorText } from '../discovery/ui';
 import { findByEmail, invite, overview, pageSize } from './api';
@@ -139,6 +142,7 @@ export function UsersScreen() {
   const router = useRouter();
   const access = useAccess();
   const online = useOnline();
+  const largeText = useLargeText();
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
@@ -169,38 +173,43 @@ export function UsersScreen() {
   const empty =
     search !== '' ? { title: t('users.noneNamed', { name: search }), icon: 'search' as const } : { title: t(`users.none.${filter}`), icon: 'people' as const };
 
+  const chips = filters.map((name) => {
+    const selected = name === filter;
+    return (
+      <Pressable
+        key={name}
+        accessibilityRole="tab"
+        accessibilityState={{ selected }}
+        onPress={() => pickFilter(name)}
+        hitSlop={chipSlop}
+        style={[styles.filter, { borderColor: selected ? colors.focus : colors.line, backgroundColor: selected ? colors.select : colors.surface }]}
+        testID={`users-filter-${name}`}>
+        <Text variant="label" tone={selected ? 'selectInk' : 'ink'}>
+          {t(`users.filter.${name}`)}
+        </Text>
+      </Pressable>
+    );
+  });
+
   const header = (
     <View style={styles.head}>
-      <TextField label={t('users.search')} value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} returnKeyType="search" testID="users-search" />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters} accessibilityRole="tablist">
-        {filters.map((name) => {
-          const selected = name === filter;
-          return (
-            <Pressable
-              key={name}
-              accessibilityRole="tab"
-              accessibilityState={{ selected }}
-              onPress={() => pickFilter(name)}
-              style={[styles.filter, { borderColor: selected ? colors.focus : colors.line, backgroundColor: selected ? colors.select : colors.surface }]}
-              testID={`users-filter-${name}`}>
-              <Text variant="callout" tone={selected ? 'selectInk' : 'ink'}>
-                {t(`users.filter.${name}`)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      <SearchField label={t('users.search')} value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} returnKeyType="search" testID="users-search" />
+      {largeText ? (
+        <View style={[styles.filters, styles.wrap, styles.chipBar]} accessibilityRole="tablist">
+          {chips}
+        </View>
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.chipBar, styles.bleed]} contentContainerStyle={[styles.filters, styles.bleedContent]} accessibilityRole="tablist">
+          {chips}
+        </ScrollView>
+      )}
     </View>
   );
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="users-screen">
       <View style={styles.bar}>
-        <IconButton icon="back" label={t('settings.back')} onPress={() => router.back()} testID="settings-back" />
-        <Text variant="title" accessibilityRole="header" style={styles.fill} numberOfLines={1}>
-          {t('users.title')}
-        </Text>
-        <Button kind="secondary" label={t('users.invite.open')} onPress={() => setInviting(true)} testID="users-invite" />
+        <SettingsHeader title={t('users.title')} trailing={<Button kind="secondary" label={t('users.invite.open')} onPress={() => setInviting(true)} testID="users-invite" />} />
       </View>
       <FlatList
         data={error || (!people.length && loading) ? [] : people}
@@ -249,11 +258,15 @@ export function UsersScreen() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  bar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.sm },
+  bar: { paddingHorizontal: space.xl, paddingTop: space.lg, paddingBottom: space.md, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   head: { gap: space.md, paddingBottom: space.sm },
-  list: { paddingHorizontal: space.lg, paddingBottom: space.xxxl },
-  filters: { gap: space.sm, paddingVertical: space.xs },
-  filter: { minHeight: 36, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: space.md, justifyContent: 'center', overflow: 'hidden' },
+  list: { paddingHorizontal: space.xl, paddingBottom: space.xxxl, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
+  chipBar: { marginVertical: chipBand.marginVertical },
+  filters: { gap: space.xs, paddingVertical: chipBand.paddingVertical },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap' },
+  bleed: { marginHorizontal: -space.xl },
+  bleedContent: { paddingHorizontal: space.xl },
+  filter: { minHeight: chipHeight, minWidth: touchTarget, borderRadius: radius.pill, borderWidth: stroke.thin, paddingHorizontal: space.md, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   row: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
   rowText: { flex: 1, gap: 2 },
   separator: { height: stroke.hairline, marginLeft: space.xxxl + space.md },

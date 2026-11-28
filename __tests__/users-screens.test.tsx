@@ -135,6 +135,17 @@ describe('UserScreen', () => {
     await waitFor(() => expect(screen.getByTestId('user-programmes')).toHaveTextContent('Not a member of any programme yet.'));
   });
 
+  it('keeps the deactivate button close by showing the five newest changes until asked for all', async () => {
+    const history = Array.from({ length: 7 }, (_, index) => ({ at: `2026-11-28 0${7 - index}:00:00`, actor: `Actor ${index}`, change: 'deactivate', via: 'app' }));
+    mockDetail.mockResolvedValue(detailOf({ history }));
+    await render(<UserScreen userId={9} />);
+    await waitFor(() => expect(screen.getByTestId('user-history-4')).toHaveTextContent(/Actor 4/));
+    expect(screen.queryByTestId('user-history-5')).toBeNull();
+    await fireEvent.press(screen.getByTestId('user-history-all'));
+    expect(screen.getByTestId('user-history-6')).toHaveTextContent(/Actor 6/);
+    expect(screen.queryByTestId('user-history-all')).toBeNull();
+  });
+
   it('shows a superadmin read-only to an admin', async () => {
     mockDetail.mockResolvedValue(detailOf({ role: 'superadmin', may: { set_role: [], capabilities: false, deactivate: false, reactivate: false } }));
     await render(<UserScreen userId={9} />);

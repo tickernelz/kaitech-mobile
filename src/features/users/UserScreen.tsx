@@ -22,6 +22,8 @@ import { deactivate, detail as readDetail, reactivate, setCapability, setRole } 
 import { capabilitiesFor, capabilityKind, lastRoleChange, needsSuperadmin, type Change, type Detail } from './door';
 import { RoleChip } from './UsersScreen';
 
+const historyPreview = 5;
+
 function useChangeText() {
   const { t } = useTranslation();
   const { language } = useLanguage();
@@ -88,6 +90,7 @@ export function UserScreen({ userId }: { userId: number }) {
   const loaded = useResource(`users.detail.${userId}`, (account) => readDetail(account, userId), 15_000);
   const [busy, setBusy] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
+  const [allHistory, setAllHistory] = useState(false);
   const person = loaded.data ?? null;
   if (!active) return null;
 
@@ -147,6 +150,7 @@ export function UserScreen({ userId }: { userId: number }) {
   };
   const roleDetail = self ? t('users.selfRole') : person.may.setRole.length ? roleLabel : t('users.roleLocked', { role: roleLabel });
   const capabilities = capabilitiesFor[capabilityKind(person.role)];
+  const history = allHistory ? person.history : person.history.slice(0, historyPreview);
 
   return (
     <SettingsPage title={person.name} testID="user-screen">
@@ -196,12 +200,18 @@ export function UserScreen({ userId }: { userId: number }) {
       </Section>
       {person.history.length ? (
         <Section title={t('users.historySection')}>
-          {person.history.map((change, index) => (
+          {history.map((change, index) => (
             <View key={`${change.at}-${index}`}>
               {index ? <Divider /> : null}
               <Row title={changeText(change)} testID={`user-history-${index}`} />
             </View>
           ))}
+          {history.length < person.history.length ? (
+            <>
+              <Divider />
+              <Row title={t('users.historyAll', { count: person.history.length })} tone="link" onPress={() => setAllHistory(true)} testID="user-history-all" />
+            </>
+          ) : null}
         </Section>
       ) : null}
       {person.may.deactivate || person.may.reactivate ? (

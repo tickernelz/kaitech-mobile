@@ -1799,6 +1799,7 @@
     "programmesMore_one": "And {{count}} more programme",
     "programmesMore_other": "And {{count}} more programmes",
     "historySection": "History",
+    "historyAll": "See all {{count}}",
     "history": {
       "system": "System",
       "role": "{{actor}} changed the role from {{from}} to {{to}}",
