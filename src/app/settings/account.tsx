@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
+import { useCan } from '../../auth/useAccess';
 import { DateGrid } from '../../features/activity/DateGrid';
 import { isoDay } from '../../features/activity/odoo';
 import {
@@ -38,6 +39,7 @@ export default function AccountSettings() {
   const errorText = useErrorText();
   const me = useResource('account.me', readMe, 60_000);
   const options = useResource('account.choices', choices, 3_600_000);
+  const team = useCan('team');
   const [email, setEmail] = useState<string | null>(null);
   const [phone, setPhone] = useState<string | null>(null);
   const [open, setOpen] = useState<Open>(null);
@@ -113,7 +115,7 @@ export default function AccountSettings() {
       </Section>
       <Section title={t('account.preferences')}>
         <Row title={t('account.timezone')} detail={label(options.data?.tz, data.tz) || t('account.notSet')} trailing={more} onPress={() => setOpen('tz')} testID="account-timezone" />
-        {options.data?.calendarPrivacy.length ? (
+        {team && options.data?.calendarPrivacy.length ? (
           <Row
             title={t('account.calendarPrivacy')}
             detail={label(options.data.calendarPrivacy, data.calendarPrivacy)}
@@ -122,28 +124,32 @@ export default function AccountSettings() {
             testID="account-calendar-privacy"
           />
         ) : null}
-        <Row
-          title={t('account.signature')}
-          detail={plainSignature(data.signature).split('\n')[0] || t('account.notSet')}
-          trailing={more}
-          onPress={() => {
-            setSignature(plainSignature(data.signature));
-            setOpen('signature');
-          }}
-          testID="account-signature"
-        />
-      </Section>
-      <Section title={t('account.away')}>
-        <ToggleRow title={t('account.awayToggle')} detail={t('account.awayHint')} value={awayNow.on} onChange={(on) => setAway({ ...awayNow, on })} testID="account-away" />
-        {awayNow.on ? (
-          <View style={styles.fields}>
-            <Row title={t('account.awayFrom')} detail={awayNow.from || t('account.notSet')} trailing={more} onPress={() => setOpen('from')} testID="account-away-from" />
-            <Row title={t('account.awayTo')} detail={awayNow.to || t('account.notSet')} trailing={more} onPress={() => setOpen('to')} testID="account-away-to" />
-            <TextField label={t('account.awayMessage')} value={awayNow.message} onChangeText={(message) => setAway({ ...awayNow, message })} multiline style={styles.multi} testID="account-away-message" />
-          </View>
+        {team ? (
+          <Row
+            title={t('account.signature')}
+            detail={plainSignature(data.signature).split('\n')[0] || t('account.notSet')}
+            trailing={more}
+            onPress={() => {
+              setSignature(plainSignature(data.signature));
+              setOpen('signature');
+            }}
+            testID="account-signature"
+          />
         ) : null}
-        {awayChanged ? <Button label={t('account.save')} busy={busy} onPress={saveAway} testID="account-away-save" /> : null}
       </Section>
+      {team ? (
+        <Section title={t('account.away')}>
+          <ToggleRow title={t('account.awayToggle')} detail={t('account.awayHint')} value={awayNow.on} onChange={(on) => setAway({ ...awayNow, on })} testID="account-away" />
+          {awayNow.on ? (
+            <View style={styles.fields}>
+              <Row title={t('account.awayFrom')} detail={awayNow.from || t('account.notSet')} trailing={more} onPress={() => setOpen('from')} testID="account-away-from" />
+              <Row title={t('account.awayTo')} detail={awayNow.to || t('account.notSet')} trailing={more} onPress={() => setOpen('to')} testID="account-away-to" />
+              <TextField label={t('account.awayMessage')} value={awayNow.message} onChangeText={(message) => setAway({ ...awayNow, message })} multiline style={styles.multi} testID="account-away-message" />
+            </View>
+          ) : null}
+          {awayChanged ? <Button label={t('account.save')} busy={busy} onPress={saveAway} testID="account-away-save" /> : null}
+        </Section>
+      ) : null}
       {failed ? (
         <Text variant="footnote" tone="dangerInk" accessibilityLiveRegion="polite" testID="account-error">
           {failed}

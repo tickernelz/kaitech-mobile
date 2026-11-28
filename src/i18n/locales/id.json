@@ -1417,7 +1417,7 @@
     }
   },
   "account": {
-    "title": "Akun Odoo",
+    "title": "Kontak dan preferensi",
     "contact": "Kontak",
     "email": "Email",
     "phone": "Telepon",
@@ -1433,13 +1433,13 @@
     "awayFrom": "Dari",
     "awayTo": "Sampai",
     "awayMessage": "Pesan",
-    "language": "Bahasa akun Odoo",
+    "language": "Bahasa email dan notifikasi",
     "languageHint": "Dipakai untuk email dan notifikasi yang dikirim server kepadamu.",
     "appLanguage": "Bahasa aplikasi"
   },
   "security": {
     "thisPhone": "HP ini",
-    "account": "Akun Odoo",
+    "account": "Akun",
     "identity": {
       "title": "Pastikan ini kamu",
       "body": "Masukkan kata sandi Odoo untuk melanjutkan.",
@@ -1670,8 +1670,13 @@
     "cancel": "Batal",
     "interviews": {
       "title": "Interview",
-      "row_one": "Interview, {{count}} pertanyaan tersisa",
-      "row_other": "Interview, {{count}} pertanyaan tersisa",
+      "untitled": "Interview",
+      "stage": {
+        "summary_waits": "Ringkasan jawabanmu menunggu konfirmasi",
+        "asks": "Ada pertanyaan menunggu jawabanmu",
+        "answered": "Semua sudah dijawab, konsultan sedang meninjau",
+        "not_started": "Belum dimulai"
+      },
       "until": "terbuka sampai {{day}}"
     },
     "documents": {
