@@ -181,6 +181,18 @@ export function UserScreen({ userId }: { userId: number }) {
       </Section>
       <Section title={t('users.programmesSection')}>
         <Row title={t('users.programmes', { count: person.programmes })} testID="user-programmes" />
+        {person.programmeList.map((programme) => (
+          <View key={programme.id}>
+            <Divider />
+            <Row title={programme.name} testID={`user-programme-${programme.id}`} />
+          </View>
+        ))}
+        {person.programmes > person.programmeList.length && person.programmeList.length ? (
+          <>
+            <Divider />
+            <Row title={t('users.programmesMore', { count: person.programmes - person.programmeList.length })} testID="user-programmes-more" />
+          </>
+        ) : null}
       </Section>
       {person.history.length ? (
         <Section title={t('users.historySection')}>

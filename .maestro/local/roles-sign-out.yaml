@@ -29,6 +29,6 @@ name: Switch to a named account and sign it out of this phone
 - tapOn:
     id: sign-out-dialog-confirm
 - extendedWaitUntil:
-    visible:
-      id: (tab-chat|tab-home|welcome-sign-in)
+    notVisible:
+      text: ${NAME}
     timeout: 30000

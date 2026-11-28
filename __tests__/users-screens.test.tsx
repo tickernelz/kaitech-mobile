@@ -113,6 +113,22 @@ describe('UserScreen', () => {
     expect(screen.getByTestId('user-role-external')).not.toBeDisabled();
   });
 
+  it('names the Programmes the person is in and counts the ones past the list', async () => {
+    mockDetail.mockResolvedValue(detailOf({ programmes: 3, programme_list: [{ id: 51, name: 'Duta Cemerlang' }, { id: 52, name: 'HKR' }, { id: 'x', name: 3 }] }));
+    await render(<UserScreen userId={9} />);
+    await waitFor(() => expect(screen.getByTestId('user-programme-51')).toHaveTextContent('Duta Cemerlang'));
+    expect(screen.getByTestId('user-programme-52')).toHaveTextContent('HKR');
+    expect(screen.getByTestId('user-programmes')).toHaveTextContent('Member of 3 Programmes');
+    expect(screen.getByTestId('user-programmes-more')).toHaveTextContent('And 1 more Programme');
+  });
+
+  it('shows only the count when the server sends no Programme names', async () => {
+    mockDetail.mockResolvedValue(detailOf());
+    await render(<UserScreen userId={9} />);
+    await waitFor(() => expect(screen.getByTestId('user-programmes')).toHaveTextContent('Member of 2 Programmes'));
+    expect(screen.queryByTestId('user-programmes-more')).toBeNull();
+  });
+
   it('shows a superadmin read-only to an admin', async () => {
     mockDetail.mockResolvedValue(detailOf({ role: 'superadmin', may: { set_role: [], capabilities: false, deactivate: false, reactivate: false } }));
     await render(<UserScreen userId={9} />);

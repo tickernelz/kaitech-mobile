@@ -23,7 +23,9 @@ export type Change = {
 
 export type May = { setRole: Role[]; capabilities: boolean; deactivate: boolean; reactivate: boolean };
 
-export type Detail = Person & { history: Change[]; may: May };
+export type Programme = { id: number; name: string };
+
+export type Detail = Person & { programmeList: Programme[]; history: Change[]; may: May };
 
 export type Overview = { total: number; people: Person[]; actorRole: Role | null };
 
@@ -90,12 +92,18 @@ export function overviewFrom(value: unknown): Overview {
   };
 }
 
+function programmeFrom(value: unknown): Programme | null {
+  if (!isRecord(value) || typeof value.id !== 'number' || typeof value.name !== 'string') return null;
+  return { id: value.id, name: value.name };
+}
+
 export function detailFrom(value: unknown): Detail {
   const person = personFrom(value);
   if (!person || !isRecord(value)) throw new Error('detail_invalid');
   const may = isRecord(value.may) ? value.may : {};
   return {
     ...person,
+    programmeList: Array.isArray(value.programme_list) ? value.programme_list.map(programmeFrom).filter((programme): programme is Programme => programme !== null) : [],
     history: Array.isArray(value.history) ? value.history.map(changeFrom).filter((change): change is Change => change !== null) : [],
     may: {
       setRole: strings(may.set_role).map(roleOf).filter((role): role is Role => role !== null),
