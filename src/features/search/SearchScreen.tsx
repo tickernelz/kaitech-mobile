@@ -1,13 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, SectionList, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, SectionList, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
 import { readableWidth } from '../../layout/windowClass';
-import { radius, space, stroke, type as typography, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { RowActions } from '../../ui/RowActions';
+import { SearchField } from '../../ui/SearchField';
 import { Text } from '../../ui/Text';
 import { textActions } from '../../ui/textActions';
 import { search, type SearchHits } from '../discovery/api';
@@ -160,23 +161,16 @@ export function SearchScreen() {
   return (
     <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="search">
       <View style={styles.head}>
-        <View style={[styles.box, { backgroundColor: colors.surface, borderColor: colors.edge }]}>
-          <Icon name="search" color={colors.inkSoft} />
-          <TextInput
-            autoFocus
-            value={q}
-            onChangeText={(text) => setQ(text.slice(0, maxLength))}
-            placeholder={t('search.placeholder')}
-            placeholderTextColor={colors.inkFaint}
-            accessibilityLabel={t('search.placeholder')}
-            returnKeyType="search"
-            disableFullscreenUI
-            maxLength={maxLength}
-            selectionColor={colors.focus}
-            testID="search-input"
-            style={[typography.body, styles.input, { color: colors.ink }]}
-          />
-        </View>
+        <SearchField
+          label={t('search.placeholder')}
+          autoFocus
+          value={q}
+          onChangeText={(text) => setQ(text.slice(0, maxLength))}
+          returnKeyType="search"
+          maxLength={maxLength}
+          testID="search-input"
+          style={styles.fill}
+        />
         <IconButton icon="close" label={t('search.close')} onPress={() => router.back()} testID="search-close" />
       </View>
       <View style={styles.filters}>
@@ -283,16 +277,14 @@ export function SearchScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   head: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
-  box: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, borderRadius: radius.pill, borderWidth: stroke.thin, paddingHorizontal: space.lg },
-  input: { flex: 1, minHeight: 44 },
   filters: { paddingTop: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   chipBar: { marginTop: -shortfall(chipHeight) },
   chips: { flexDirection: 'row', gap: space.xs, paddingHorizontal: space.lg, paddingVertical: shortfall(chipHeight) },
-  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   list: { padding: space.lg, paddingTop: space.lg - shortfall(chipHeight), gap: space.xs, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
-  ask: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg, borderRadius: radius.pill, marginBottom: space.md },
+  ask: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.lg, borderRadius: radius.pill, marginBottom: space.md, overflow: 'hidden' },
   section: { paddingTop: space.md, paddingBottom: space.xs },
-  hit: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingVertical: space.sm, borderRadius: radius.md },
-  more: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space.sm, borderRadius: radius.md },
+  hit: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingVertical: space.sm, borderRadius: radius.md, overflow: 'hidden' },
+  more: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space.sm, borderRadius: radius.md, overflow: 'hidden' },
   hitIcon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
 });
