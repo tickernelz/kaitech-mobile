@@ -20,6 +20,7 @@ Every release of Kaitech Mobile, newest first. Each version has one section, `##
 - iOS 26 and later: a link to a team tab opens nothing for a client account instead of the team-only page, because the system tab bar blocks navigation to hidden tabs (#175, ZHA-8099).
 - The interview link from Home was checked in Chrome on Android only; the iOS browser has not been checked on a device (#175, ZHA-8099).
 - An account whose first profile read fails counts as the team until the next profile read, so a client may briefly see team tabs whose calls the server refuses (#175, ZHA-8099).
+- Opening the minutes PDF from Home was tested in unit tests only; lab0 had no rendered minutes to open on a device (#175, ZHA-8099).
 
 ## 0.16.0 - 2026-11-28
 
