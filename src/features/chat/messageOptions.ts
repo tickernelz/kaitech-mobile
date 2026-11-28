@@ -6,9 +6,9 @@ import type { ActionOptions } from './ui/MessageActions';
 
 export const recallMs = 24 * 60 * 60 * 1000;
 
-export type OptionsContext = { partnerId: number; features: ChatFeatures; channelType: string; inSubThread: boolean; now: number };
+export type OptionsContext = { partnerId: number; features: ChatFeatures; channelType: string; inSubThread: boolean; now: number; client?: boolean };
 
-export function messageOptions(message: Message, { partnerId, features, channelType, inSubThread, now }: OptionsContext): ActionOptions {
+export function messageOptions(message: Message, { partnerId, features, channelType, inSubThread, now, client }: OptionsContext): ActionOptions {
   const removed = isRemoved(message);
   const comment = message.type === 'comment';
   const mine = message.authorId === partnerId;
@@ -17,6 +17,7 @@ export function messageOptions(message: Message, { partnerId, features, channelT
   const editable = comment && !removed && (mine || features.isAdmin);
   const recallClosed = hasFeature(features, 'recall_limit') && mine && now - message.date > recallMs;
   const fromMessage = hasFeature(features, 'task_from_message') && comment && !removed;
+  if (client) return { emoji: !removed, reply: !removed, copy: text, delete: comment && !removed && mine && !recallClosed, reactions: message.reactions.length > 0 };
   return {
     emoji: !removed,
     reply: !removed,

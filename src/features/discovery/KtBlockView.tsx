@@ -2,7 +2,7 @@ import * as Clipboard from 'expo-clipboard';
 import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, ScrollView, StyleSheet, View } from 'react-native';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Icon } from '../../ui/icons';
 import { Text } from '../../ui/Text';
 import { MONO } from './kt/Catalog';
@@ -131,11 +131,11 @@ export const KtBlockView = memo(function KtBlockView({
 });
 
 const styles = StyleSheet.create({
-  block: { gap: space.sm, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm },
+  block: { gap: space.sm, borderTopWidth: stroke.hairline, paddingTop: space.sm },
   gap: { gap: space.sm },
   tools: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   sources: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.xs },
   source: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 3 },
-  raw: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, maxHeight: 280 },
+  raw: { borderWidth: stroke.thin, borderRadius: radius.sm, maxHeight: 280 },
   mono: { fontFamily: MONO, fontSize: 12, lineHeight: 18, padding: space.md },
 });

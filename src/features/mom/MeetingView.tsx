@@ -5,7 +5,7 @@ import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { useResource } from '../../api/resource';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
 import { Header } from '../discovery/Header';
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
   entry: { flexDirection: 'row', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.md, alignItems: 'flex-start' },
   entryText: { flex: 1, gap: space.xs },
   badge: { minWidth: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.xs },
-  item: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.xs },
+  item: { borderRadius: radius.card, borderWidth: stroke.thin, padding: space.lg, gap: space.xs },
   rowWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   segment: { flexDirection: 'row', gap: space.md, paddingVertical: space.sm, borderRadius: radius.md },
 });

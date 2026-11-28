@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { Button } from '../../../ui/Button';
 import { notify } from '../../../ui/dialog';
 import { Icon } from '../../../ui/icons';
@@ -105,9 +105,9 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   empty: { alignItems: 'center', justifyContent: 'center', gap: space.lg },
   bar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.sm, paddingVertical: space.sm },
-  icon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  recenter: { position: 'absolute', right: 8, bottom: 32, width: 44, height: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  panel: { borderTopWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.xs },
+  icon: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  recenter: { position: 'absolute', right: 8, bottom: 32, width: 44, height: 44, borderRadius: 22, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
+  panel: { borderTopWidth: stroke.hairline, padding: space.lg, gap: space.xs },
   bold: { fontWeight: '600' },
   actions: { flexDirection: 'row', gap: space.sm, marginTop: space.sm },
 });

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { useRouter } from 'expo-router';
-import { space, useTheme } from '../../../theme';
+import { radius, space, useTheme } from '../../../theme';
 import { Icon } from '../../../ui/icons';
 import { startCall } from '../call';
 
@@ -22,5 +22,5 @@ export function CallButton({ channelId, channelName }: { channelId: number; chan
 }
 
 const styles = StyleSheet.create({
-  button: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: space.xs },
+  button: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: space.xs },
 });

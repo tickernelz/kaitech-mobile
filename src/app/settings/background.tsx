@@ -9,7 +9,7 @@ import { backgroundFor, changeAppearance, plainColors, presetBackground, useChat
 import { pickDevicePhoto, setDim, useDevicePhoto, useDim } from '../../features/appearance/devicePhoto';
 import { Wallpaper, wallpapers } from '../../features/appearance/wallpapers';
 import { SettingsPage } from '../../screens/SettingsPage';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Icon, type IconName } from '../../ui/icons';
 import { Slider } from '../../ui/Slider';
 import { Text } from '../../ui/Text';
@@ -40,7 +40,7 @@ const Tile = memo(function Tile({
       accessibilityState={{ selected }}
       onPress={onPress}
       testID={testID}
-      style={[styles.tile, { borderColor: selected ? colors.primary : colors.line, borderWidth: selected ? 3 : StyleSheet.hairlineWidth, backgroundColor: colors.surface2 }]}>
+      style={[styles.tile, { borderColor: selected ? colors.primary : colors.line, borderWidth: selected ? 3 : stroke.thin, backgroundColor: colors.surface2 }]}>
       {children}
       {selected ? (
         <View style={[styles.tick, { backgroundColor: colors.primary }]}>
@@ -140,8 +140,8 @@ export default function BackgroundSettings() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  preview: { height: 200, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', padding: space.md, gap: space.sm, justifyContent: 'center' },
-  bubble: { maxWidth: '75%', borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm },
+  preview: { height: 200, borderRadius: radius.card, borderWidth: stroke.thin, overflow: 'hidden', padding: space.md, gap: space.sm, justifyContent: 'center' },
+  bubble: { maxWidth: '75%', borderRadius: radius.card, borderWidth: stroke.thin, paddingHorizontal: space.md, paddingVertical: space.sm },
   theirs: { alignSelf: 'flex-start', borderBottomLeftRadius: radius.sm },
   mine: { alignSelf: 'flex-end', borderBottomRightRadius: radius.sm },
   dim: { flexDirection: 'row', alignItems: 'center', gap: space.md },

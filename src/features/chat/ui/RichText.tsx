@@ -1,7 +1,7 @@
 import { memo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, PixelRatio, Platform, ScrollView, StyleSheet, Text as NativeText, View, type TextLayoutEvent, type TextStyle } from 'react-native';
-import { radius, space, type as typography, useTheme, type Colors } from '../../../theme';
+import { radius, space, stroke, type as typography, useTheme, type Colors } from '../../../theme';
 import { Pressable } from '../../../ui/Pressable';
 import type { Span } from '../html';
 import { isFlatList, type MdBlock } from '../markdown';
@@ -271,14 +271,14 @@ const styles = StyleSheet.create({
   quote: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs, gap: space.xs },
   codeBlock: { borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   codeText: { fontFamily: mono, fontSize: 14, lineHeight: 20 },
-  rule: { height: StyleSheet.hairlineWidth, marginVertical: space.xs },
+  rule: { height: stroke.hairline, marginVertical: space.xs },
   scroller: { flexGrow: 0, flexShrink: 0 },
   scrolled: { alignItems: 'flex-start' },
-  table: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
+  table: { borderWidth: stroke.thin, borderRadius: radius.sm, overflow: 'hidden' },
   row: { flexDirection: 'row' },
-  divider: { borderTopWidth: StyleSheet.hairlineWidth },
-  cell: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRightWidth: StyleSheet.hairlineWidth, fontSize: 15, lineHeight: 20 },
+  divider: { borderTopWidth: stroke.hairline },
+  cell: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRightWidth: stroke.hairline, fontSize: 15, lineHeight: 20 },
   column: { lineHeight: COLUMN_LINE, paddingVertical: 0 },
-  headBand: { position: 'absolute', top: 0, left: 0, right: 0, height: COLUMN_LINE, borderBottomWidth: StyleSheet.hairlineWidth },
+  headBand: { position: 'absolute', top: 0, left: 0, right: 0, height: COLUMN_LINE, borderBottomWidth: stroke.hairline },
   lastCell: { borderRightWidth: 0 },
 });

@@ -3,7 +3,7 @@ import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';
 import { useNumbers } from './format';
@@ -103,7 +103,7 @@ export const KtAccordion = memo(function KtAccordion({ block }: { block: Accordi
       <BlockTitle title={block.title} />
       <View style={[styles.accordion, { borderColor: colors.line }]}>
         {block.items.map((item, index) => (
-          <View key={index} style={index ? { borderTopColor: colors.line, borderTopWidth: StyleSheet.hairlineWidth } : null}>
+          <View key={index} style={index ? { borderTopColor: colors.line, borderTopWidth: stroke.hairline } : null}>
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ expanded: open[index] }}
@@ -150,7 +150,7 @@ export const KtOptions = memo(function KtOptions({ block }: { block: OptionsBloc
             ))}
           </View>
           {block.rows.map((row, index) => (
-            <View key={index} style={[styles.row, { borderTopColor: colors.line, borderTopWidth: StyleSheet.hairlineWidth }]}>
+            <View key={index} style={[styles.row, { borderTopColor: colors.line, borderTopWidth: stroke.hairline }]}>
               <Text variant="footnote" tone="inkSoft" style={styles.criterion}>
                 {row.label}
               </Text>
@@ -209,15 +209,15 @@ const styles = StyleSheet.create({
   check: { flexDirection: 'row', gap: space.sm, alignItems: 'flex-start' },
   box: { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   progress: { gap: space.xs },
-  accordion: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, overflow: 'hidden' },
+  accordion: { borderWidth: stroke.thin, borderRadius: radius.md, overflow: 'hidden' },
   fold: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 44, paddingHorizontal: space.md, paddingVertical: space.sm },
   turned: { transform: [{ rotate: '90deg' }] },
   foldBody: { paddingHorizontal: space.md, paddingBottom: space.md, paddingLeft: space.md + 24 },
-  grid: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, overflow: 'hidden' },
+  grid: { borderWidth: stroke.thin, borderRadius: radius.sm, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center' },
   criterion: { width: 120, paddingHorizontal: space.sm, paddingVertical: space.sm },
   option: { width: 132, paddingHorizontal: space.sm, paddingVertical: space.sm },
   language: { borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 4, justifyContent: 'center' },
-  code: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.sm, maxHeight: 360 },
+  code: { borderWidth: stroke.thin, borderRadius: radius.sm, maxHeight: 360 },
   mono: { fontFamily: MONO, fontSize: 13, lineHeight: 19, padding: space.md },
 });

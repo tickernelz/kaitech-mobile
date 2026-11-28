@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { PixelRatio, Platform, StyleSheet } from 'react-native';
 
 export type Scheme = 'light' | 'dark';
 
@@ -54,6 +54,8 @@ export function avatarFill(seed: number): string {
 }
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 40 } as const;
+
+export const stroke = { hairline: StyleSheet.hairlineWidth, thin: PixelRatio.roundToNearestPixel(1) } as const;
 
 export const radius =
   Platform.OS === 'android' ? ({ sm: 8, md: 12, card: 16, field: 14, sheet: 28, pill: 999 } as const) : ({ sm: 6, md: 10, card: 16, field: 14, sheet: 28, pill: 999 } as const);

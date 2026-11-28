@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useSession } from '../../auth/session';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Sheet, SheetItem } from '../../ui/Sheet';
 import { Text } from '../../ui/Text';
@@ -177,6 +177,6 @@ const styles = StyleSheet.create({
   facts: { gap: space.sm, paddingHorizontal: space.sm, paddingBottom: space.md },
   fact: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   primary: { gap: space.sm, paddingBottom: space.sm },
-  nested: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, padding: space.xs, gap: space.xs },
+  nested: { borderWidth: stroke.thin, borderRadius: radius.md, padding: space.xs, gap: space.xs },
   foot: { minHeight: space.lg, alignItems: 'center', justifyContent: 'center' },
 });

@@ -14,6 +14,11 @@ function tile(x1: number, y1: number, x2: number, y2: number, r = 3): string {
   return `M${x1} ${y2}V${y1 + r}A${r} ${r} 0 0 1 ${x1 + r} ${y1}H${x2 - r}A${r} ${r} 0 0 1 ${x2} ${y1 + r}V${y2 - r}A${r} ${r} 0 0 1 ${x2 - r} ${y2}Z`;
 }
 
+function ticketOutline(x1: number, y1: number, x2: number, y2: number, r: number, n: number): string {
+  const cy = (y1 + y2) / 2;
+  return `M${x1} ${cy - n}V${y1 + r}A${r} ${r} 0 0 1 ${x1 + r} ${y1}H${x2 - r}A${r} ${r} 0 0 1 ${x2} ${y1 + r}V${cy - n}A${n} ${n} 0 0 0 ${x2} ${cy + n}V${y2 - r}A${r} ${r} 0 0 1 ${x2 - r} ${y2}H${x1 + r}A${r} ${r} 0 0 1 ${x1} ${y2 - r}V${cy + n}A${n} ${n} 0 0 0 ${x1} ${cy - n}Z`;
+}
+
 function circle(cx: number, cy: number, r: number): string {
   return `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
 }
@@ -62,6 +67,7 @@ export const glyphs = {
   search: { parts: [line(circle(10.5, 10.5, 7)), line('M15.5 15.5 21 21')] },
   history: { parts: [line('M5.5 8.25A7.5 7.5 0 1 0 12 4.5'), dot('M12 2 8.5 4.5 12 7Z'), line('M12 8.5V12l2.5 2.5')] },
   chat: { parts: [body(bubble)] },
+  home: { parts: [body('M3 10.5 12 3l9 7.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z'), cut('M9.5 21v-5.5h5V21')] },
   thread: { parts: [body(bubble), cut('M7.5 9h9M7.5 13h5.5')] },
   reply: { parts: [line('M9 5 3 11l6 6'), line('M4 11h9a7 7 0 0 1 7 7v2')] },
   send: { parts: [body('M3 4l16.5 8L3 20l3.5-8Z'), cut('M6.5 12H12')] },
@@ -144,6 +150,7 @@ export const glyphs = {
   bellOff: { parts: [...bell, fullSlash] },
   retry: { parts: [line('M18.5 8.25A7.5 7.5 0 1 1 12 4.5'), dot('M12 2l3.5 2.5L12 7Z')] },
   hash: { parts: [line('M9 3v18M15 3v18M3 9h18M3 15h18')] },
+  ticket: { parts: [body(ticketOutline(2.5, 5.5, 21.5, 18.5, 2.5, 3)), cut('M15 8.5v2M15 13.5v2')] },
   sparkle: { parts: [body('M12 3c0 5 4 9 9 9-5 0-9 4-9 9 0-5-4-9-9-9 5 0 9-4 9-9Z')] },
   bulb: { parts: bulbParts },
   compass: { parts: [body(circle(12, 12, 9)), cut('M15.5 8.5l-2 5-5 2 2-5Z')] },

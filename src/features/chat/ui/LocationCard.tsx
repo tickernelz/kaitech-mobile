@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { confirm, notify } from '../../../ui/dialog';
 import { Icon } from '../../../ui/icons';
 import { Pressable } from '../../../ui/Pressable';
@@ -104,5 +104,5 @@ const styles = StyleSheet.create({
   badge: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   text: { flex: 1 },
   bold: { fontWeight: '600' },
-  stop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, minHeight: touchTarget, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  stop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, minHeight: touchTarget, borderRadius: radius.pill, borderWidth: stroke.thin },
 });

@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 import { AppError } from './errors';
-import { codeFromCallback, exchangeCode, redirectUriFor, signInUrl, type Account } from './oauth';
+import { accessAtSignIn, codeFromCallback, exchangeCode, redirectUriFor, signInUrl, type Account } from './oauth';
 import { createPkce } from './pkce';
 import { normalizeDatabase, normalizeServer } from './server';
 import { addAccount } from './session';
@@ -74,7 +74,7 @@ async function finish(url: string): Promise<Account> {
     redirectUri: pending.redirectUri,
     language: pending.language,
   });
-  return addAccount(pending.origin, grant);
+  return addAccount(pending.origin, grant, await accessAtSignIn(pending.origin, grant));
 }
 
 export function completeSignIn(url: string): Promise<Account> {

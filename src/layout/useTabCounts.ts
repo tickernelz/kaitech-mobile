@@ -6,5 +6,5 @@ import type { TabName } from './tabs';
 export function useTabCounts(): Record<TabName, number> {
   const chat = useUnreadConversations();
   const activity = usePendingActivities();
-  return useMemo(() => ({ chat, discovery: 0, mom: 0, activity }), [chat, activity]);
+  return useMemo(() => ({ home: 0, chat, discovery: 0, mom: 0, activity }), [chat, activity]);
 }

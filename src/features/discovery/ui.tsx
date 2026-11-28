@@ -4,7 +4,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { ApiError } from '../../api/odoo';
 import { AppError } from '../../auth/errors';
-import { radius, space, useTheme, type Colors } from '../../theme';
+import { radius, space, stroke, useTheme, type Colors } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
@@ -161,8 +161,8 @@ export function StateView({
 export const styles = StyleSheet.create({
   chip: { alignSelf: 'flex-start', borderRadius: radius.pill, paddingHorizontal: space.sm + 2, paddingVertical: 3 },
   segments: { gap: space.sm, paddingVertical: space.xs },
-  segment: { minHeight: 44, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.lg, justifyContent: 'center' },
-  card: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.sm },
+  segment: { minHeight: 44, borderRadius: radius.pill, borderWidth: stroke.thin, paddingHorizontal: space.lg, justifyContent: 'center' },
+  card: { borderRadius: radius.card, borderWidth: stroke.thin, padding: space.lg, gap: space.sm },
   state: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.xl },
   center: { textAlign: 'center' },
 });

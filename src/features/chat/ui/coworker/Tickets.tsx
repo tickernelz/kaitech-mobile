@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { Pressable } from '../../../../ui/Pressable';
@@ -84,6 +84,7 @@ export function TicketCard({ ticket: initial }: { ticket: Ticket }) {
         style={[styles.card, { borderColor: colors.line, backgroundColor: colors.surface }]}
         testID={`ticket-card-${ticket.id}`}>
         <View style={styles.head}>
+          <Icon name="ticket" size={16} color={colors.inkSoft} />
           <Text variant="label" tone="inkSoft">
             {ticket.number}
           </Text>
@@ -396,15 +397,15 @@ export function TicketsSheet({ onClose, onOpenThread }: { onClose: () => void; o
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   bold: { fontWeight: '600' },
-  card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.card, padding: space.md, gap: space.sm },
+  card: { borderWidth: stroke.thin, borderRadius: radius.card, padding: space.md, gap: space.sm },
   askText: { gap: space.xs },
   head: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.sm, paddingVertical: space.xs, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.sm, paddingVertical: space.xs, borderRadius: radius.pill, borderWidth: stroke.thin },
   options: { gap: space.sm, padding: space.lg },
   detail: { gap: space.sm, padding: space.lg },
   step: { flexDirection: 'row', gap: space.sm },
   scopes: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, paddingHorizontal: space.lg, paddingBottom: space.sm },
-  scope: { minHeight: tabHeight, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  scope: { minHeight: tabHeight, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin },
   pad: { padding: space.lg },
-  row: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.card, padding: space.md, gap: space.xs, marginHorizontal: space.lg, marginBottom: space.sm },
+  row: { borderWidth: stroke.thin, borderRadius: radius.card, padding: space.md, gap: space.xs, marginHorizontal: space.lg, marginBottom: space.sm },
 });

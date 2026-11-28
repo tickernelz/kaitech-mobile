@@ -740,5 +740,17 @@
     },
     "loading": "Memuat tiket…",
     "none": "Belum ada tiket di sini."
+  },
+  "directory": {
+    "title": "Percakapan baru",
+    "detail": "Orang di Program Anda",
+    "loading": "Memuat",
+    "empty": "Belum ada yang bisa diajak chat. Konsultan menambahkan Anda ke Program dulu.",
+    "retry": "Coba lagi",
+    "role": {
+      "Coworker": "Coworker",
+      "Lead": "Pemimpin Program",
+      "Team": "Tim Kaitech"
+    }
   }
 }

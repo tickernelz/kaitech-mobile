@@ -9,8 +9,9 @@ import { parseServerDate } from '../../features/discovery/dates';
 import { useIdentity } from '../../features/account/useIdentity';
 import { StateView, useErrorText } from '../../features/discovery/ui';
 import { useFormatters } from '../../i18n';
+import { teamOnly } from '../../screens/Gate';
 import { SettingsPage } from '../../screens/SettingsPage';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Check, Row, Section } from '../../ui/List';
 import { Sheet } from '../../ui/Sheet';
@@ -18,7 +19,9 @@ import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 import { confirm } from '../../ui/dialog';
 
-export default function ApiKeySettings() {
+export default teamOnly(ApiKeySettings);
+
+function ApiKeySettings() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { active } = useSession();
@@ -140,5 +143,5 @@ export default function ApiKeySettings() {
 
 const styles = StyleSheet.create({
   body: { gap: space.md, paddingBottom: space.sm },
-  key: { padding: space.md, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, marginBottom: space.md },
+  key: { padding: space.md, borderRadius: radius.md, borderWidth: stroke.thin, marginBottom: space.md },
 });

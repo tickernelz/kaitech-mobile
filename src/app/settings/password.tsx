@@ -5,6 +5,7 @@ import { markExpired, useSession } from '../../auth/session';
 import { changePassword, openPasswordChange } from '../../features/account/security';
 import { useIdentity } from '../../features/account/useIdentity';
 import { useErrorText } from '../../features/discovery/ui';
+import { teamOnly } from '../../screens/Gate';
 import { SettingsPage } from '../../screens/SettingsPage';
 import { space } from '../../theme';
 import { Button } from '../../ui/Button';
@@ -12,7 +13,9 @@ import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
 import { inform } from '../../ui/dialog';
 
-export default function PasswordSettings() {
+export default teamOnly(PasswordSettings);
+
+function PasswordSettings() {
   const { t } = useTranslation();
   const { active } = useSession();
   const errorText = useErrorText();

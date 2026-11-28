@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
-import { radius, space, type as typography, useTheme } from '../../../theme';
+import { radius, space, stroke, type as typography, useTheme } from '../../../theme';
 import { haptic } from '../../../ui/haptic';
 import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
@@ -128,7 +128,7 @@ function Tail({ mine, fill, edge }: { mine: boolean; fill: string; edge: string 
       style={[styles.tail, mine ? styles.tailMine : styles.tailTheirs]}
       testID="bubble-tail">
       <Path d={tailShape} fill={fill} />
-      {edge ? <Path d={tailOutline(StyleSheet.hairlineWidth)} stroke={edge} strokeWidth={StyleSheet.hairlineWidth} fill="none" testID="bubble-tail-edge" /> : null}
+      {edge ? <Path d={tailOutline(stroke.thin)} stroke={edge} strokeWidth={stroke.thin} fill="none" testID="bubble-tail-edge" /> : null}
     </Svg>
   );
 }
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   groupStart: { marginTop: space.sm },
   wrapMine: { alignItems: 'flex-end' },
   wrapTheirs: { alignItems: 'flex-start' },
-  bubble: { maxWidth: '80%', minWidth: 88, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
+  bubble: { maxWidth: '80%', minWidth: 88, borderRadius: radius.card, borderWidth: stroke.thin, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   bare: { backgroundColor: 'transparent', borderColor: 'transparent', paddingHorizontal: 0, minWidth: 0 },
   plain: { borderWidth: 0 },
   tail: { position: 'absolute', bottom: 0 },
@@ -532,8 +532,8 @@ const styles = StyleSheet.create({
   removed: { fontStyle: 'italic' },
   under: { flexDirection: 'row', flexWrap: 'wrap', columnGap: reactionGap, rowGap: reactionSlop.top + reactionSlop.bottom, paddingTop: reactionSlop.top, paddingBottom: reactionSlop.bottom },
   failedActions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.xs },
-  reaction: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: reactionHeight, minWidth: touchTarget, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
-  action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  reaction: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: reactionHeight, minWidth: touchTarget, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: stroke.thin },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin },
   notice: { paddingHorizontal: space.xxl, paddingVertical: space.sm, alignItems: 'center' },
   noticePill: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.md, overflow: 'hidden' },
   callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, overflow: 'visible' },

@@ -5,7 +5,7 @@ import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { GestureDetector, useExclusiveGestures, usePanGesture, useTapGesture } from 'react-native-gesture-handler';
 import Svg, { Path } from 'react-native-svg';
 import { Pressable } from '../../../ui/Pressable';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { bucketsOf } from '../voice/levels';
 import { closeVoice, cycleVoiceRate, seekVoice, seekVoiceFraction, toggleVoice, usePlayed, useVoice, type VoiceMeta } from '../voicePlayer';
@@ -204,8 +204,8 @@ const styles = StyleSheet.create({
   waveTouch: { height: waveHeight, justifyContent: 'center' },
   meta: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   unplayed: { width: 8, height: 8, borderRadius: 4 },
-  rate: { minWidth: rateWidth, minHeight: rateHeight, paddingHorizontal: space.xs, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  mini: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 44, paddingHorizontal: space.sm, borderBottomWidth: StyleSheet.hairlineWidth },
-  miniButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  rate: { minWidth: rateWidth, minHeight: rateHeight, paddingHorizontal: space.xs, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
+  mini: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 44, paddingHorizontal: space.sm, borderBottomWidth: stroke.hairline },
+  miniButton: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   miniTitle: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 44 },
 });

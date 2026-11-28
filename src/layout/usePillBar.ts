@@ -8,7 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { duration, easing, spring } from '../theme/motion';
 import { useReduceMotion } from '../theme/reduceMotion';
 import { pillBottom, pillCover, pillWidth } from './tabBar';
-import { tabSpoken, tabs, type TabName } from './tabs';
+import { useAccess } from '../auth/useAccess';
+import { tabSpoken, tabsFor, type TabName } from './tabs';
 import { useTab } from './useTab';
 import { useTabCounts } from './useTabCounts';
 
@@ -41,7 +42,8 @@ export function usePillBar(): PillBarState {
   const reduceMotion = useReduceMotion();
   const keyboard = useKeyboardState((state) => state.isVisible);
   const counts = useTabCounts();
-  const byName: Record<TabName, ReturnType<typeof useTab>> = { chat: useTab('chat'), discovery: useTab('discovery'), mom: useTab('mom'), activity: useTab('activity') };
+  const byName: Record<TabName, ReturnType<typeof useTab>> = { home: useTab('home'), chat: useTab('chat'), discovery: useTab('discovery'), mom: useTab('mom'), activity: useTab('activity') };
+  const tabs = tabsFor(useAccess());
   const selected = tabs.findIndex((name) => byName[name].focused);
   const position = useSharedValue(selected);
   const pressed = useSharedValue(-1);

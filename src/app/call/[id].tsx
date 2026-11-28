@@ -1,5 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { CallScreen } from '../../features/call/ui/CallScreen';
+import { TeamOnly } from '../../screens/Gate';
 import { DialogLayer } from '../../ui/Dialog';
 
 export default function CallRoute() {
@@ -8,7 +9,7 @@ export default function CallRoute() {
   if (!Number.isInteger(id) || id <= 0) return null;
   return (
     <>
-      <CallScreen />
+      <TeamOnly><CallScreen /></TeamOnly>
       <DialogLayer />
     </>
   );

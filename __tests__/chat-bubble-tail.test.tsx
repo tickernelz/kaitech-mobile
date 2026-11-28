@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react-native';
 import { processColor, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import type { Message, Pending } from '../src/features/chat/types';
 import { MessageBubble, PendingBubble, tailReach } from '../src/features/chat/ui/MessageBubble';
-import { colorsFor } from '../src/theme/tokens';
+import { colorsFor, stroke } from '../src/theme/tokens';
 
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined } }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
@@ -65,6 +65,11 @@ function tail() {
 
 const paint = (color: string) => processColor(color);
 
+function edgeWidth() {
+  const node = screen.queryByTestId('bubble-tail-edge', { includeHiddenElements: true });
+  return node ? Number(node.props.strokeWidth) : null;
+}
+
 describe('message bubble tail', () => {
   test.each([true, false])('mine=%s keeps one radius on every corner, so Android draws a rounded rect and not a path mask', async (mine) => {
     const style = flat((await sent(mine)).props.style);
@@ -93,6 +98,7 @@ describe('message bubble tail', () => {
     expect(drawn?.style.right).toBeUndefined();
     expect(drawn?.fill).toBe(paint(colors.surface));
     expect(drawn?.edge).toBe(paint(colors.line));
+    expect(edgeWidth()).toBe(stroke.thin);
   });
 
   test('a failed send keeps the danger edge on its tail', async () => {

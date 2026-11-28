@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Sheet, SheetItem } from '../../ui/Sheet';
 import { Text } from '../../ui/Text';
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   block: { gap: space.xs, paddingVertical: space.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.xs, rowGap: chipRowGap, paddingVertical: chipBand.paddingVertical },
   chipBar: { marginVertical: chipBand.marginVertical },
-  choice: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  people: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, padding: space.sm, gap: space.xs },
+  choice: { minHeight: chipHeight, minWidth: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
+  people: { borderWidth: stroke.thin, borderRadius: radius.md, padding: space.sm, gap: space.xs },
   note: { minHeight: 88, textAlignVertical: 'top' },
 });

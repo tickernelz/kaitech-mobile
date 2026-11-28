@@ -10,6 +10,28 @@ const systemUi = [
   { importNames: ['Modal'], message: 'Use Overlay from src/ui/Overlay: it carries the dialog layer, so a dialog opened inside shows above it on iOS.', owner: ['src/ui/Overlay.tsx', 'src/ui/Dialog.tsx'] },
 ];
 
+const restrictedSyntax = [
+  {
+    selector: "CallExpression[callee.name='require'][arguments.0.value='livekit-client']",
+    message: "require('livekit-client') bundles a second (UMD) copy of livekit-client; import it from src/features/call/liveKitClient instead.",
+  },
+  {
+    selector: "JSXOpeningElement[name.name=/^(FlatList|SectionList|FlashList|ScrollView)$/] > JSXAttribute[name.name='onRefresh']",
+    message: 'Pass refreshControl={<Refresh />} from src/ui/Refresh: its offset keeps the Android pull indicator whole inside the list.',
+  },
+];
+
+const strokeSyntax = [
+  {
+    selector: "MemberExpression[object.name='StyleSheet'][property.name='hairlineWidth']",
+    message: 'Use stroke from src/theme: stroke.thin for any edge with a border radius, stroke.hairline only for a straight divider.',
+  },
+  {
+    selector: "ObjectExpression:has(> Property[key.name=/^border\\w*Radius$/]) > Property MemberExpression[object.name='stroke'][property.name='hairline']",
+    message: 'A one-pixel line breaks up along a curve on Android; use stroke.thin on a style with a border radius.',
+  },
+];
+
 const ownersOf = (entry) => [entry.owner ?? []].flat();
 
 const restrictSystemUi = (file) => ({
@@ -39,17 +61,13 @@ module.exports = defineConfig([
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     rules: {
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: "CallExpression[callee.name='require'][arguments.0.value='livekit-client']",
-          message: "require('livekit-client') bundles a second (UMD) copy of livekit-client; import it from src/features/call/liveKitClient instead.",
-        },
-        {
-          selector: "JSXOpeningElement[name.name=/^(FlatList|SectionList|FlashList|ScrollView)$/] > JSXAttribute[name.name='onRefresh']",
-          message: 'Pass refreshControl={<Refresh />} from src/ui/Refresh: its offset keeps the Android pull indicator whole inside the list.',
-        },
-      ],
+      'no-restricted-syntax': ['error', ...restrictedSyntax, ...strokeSyntax],
+    },
+  },
+  {
+    files: ['src/theme/tokens.ts'],
+    rules: {
+      'no-restricted-syntax': ['error', ...restrictedSyntax],
     },
   },
   {

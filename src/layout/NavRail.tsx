@@ -3,14 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { radius, space, useTheme } from '../theme';
+import { radius, space, stroke, useTheme } from '../theme';
 import { duration, easing } from '../theme/motion';
 import { useReduceMotion } from '../theme/reduceMotion';
 import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
 import { Text } from '../ui/Text';
+import { useAccess } from '../auth/useAccess';
 import { PillBadge } from './PillBadge';
-import { badgeText, tabIcons, tabSpoken, tabs, type TabName } from './tabs';
+import { badgeText, tabIcons, tabSpoken, tabsFor, type TabName } from './tabs';
 import { useTab } from './useTab';
 import { useTabCounts } from './useTabCounts';
 
@@ -50,7 +51,7 @@ export function NavRail() {
       accessibilityRole="tablist"
       style={[styles.rail, { backgroundColor: colors.surface, borderColor: colors.line, width: railWidth + insets.left, paddingLeft: insets.left, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.lg }]}
       testID="navigation-rail">
-      {tabs.map((name) => (
+      {tabsFor(useAccess()).map((name) => (
         <RailItem key={name} name={name} count={counts[name]} />
       ))}
     </View>
@@ -60,7 +61,7 @@ export function NavRail() {
 const railWidth = 88;
 
 const styles = StyleSheet.create({
-  rail: { flexDirection: 'column', justifyContent: 'flex-start', gap: space.md, borderRightWidth: StyleSheet.hairlineWidth },
+  rail: { flexDirection: 'column', justifyContent: 'flex-start', gap: space.md, borderRightWidth: stroke.hairline },
   item: { alignItems: 'center', gap: space.xs, minHeight: 56, paddingHorizontal: space.xs },
   pill: { width: 64, height: 32, alignItems: 'center', justifyContent: 'center' },
   badge: { top: -2, right: 6 },

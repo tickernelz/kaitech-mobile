@@ -6,7 +6,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { Pressable } from '../../../ui/Pressable';
 import { KeyboardController, useKeyboardState, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import { useWindowClass } from '../../../layout/windowClass';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { duration, easing, spring, useMotion } from '../../../theme/motion';
 import { GlassCapsule, useGlassShadow } from '../../../ui/GlassCapsule';
 import { haptic } from '../../../ui/haptic';
@@ -47,6 +47,7 @@ import { useBottomInset } from '../../../ui/insets';
 import { glassEdge, pill } from '../../../ui/pill';
 import { touchTarget } from '../../../ui/touch';
 import { hideWhen } from '../../../ui/cover';
+import { useCan } from '../../../auth/useAccess';
 
 type Staged = Outgoing['files'][number];
 
@@ -138,6 +139,7 @@ export const Composer = forwardRef<
   const [laterBusy, setLaterBusy] = useState(false);
   const [canned, setCanned] = useState<Canned[]>([]);
   const features = useChat((state) => state.features);
+  const team = useCan('team');
   const [saving, setSaving] = useState(false);
   const stash = useRef<{ text: string; mentions: Mention[]; parentId: number | null } | null>(null);
   const input = useRef<ComponentRef<typeof TextInput>>(null);
@@ -226,7 +228,7 @@ export const Composer = forwardRef<
     };
   }, [accountId, channelId, queryText]);
 
-  const cannedAt = cannedQuery(text, cursor);
+  const cannedAt = team ? cannedQuery(text, cursor) : null;
   const cannedText = cannedAt?.query ?? null;
   useEffect(() => {
     if (cannedText === null) return;
@@ -325,7 +327,7 @@ export const Composer = forwardRef<
     onNotice?.(t('extras.scheduled'));
   };
 
-  const extras: Extra[] = editing
+  const extras: Extra[] = editing || !team
     ? []
     : [
         { key: 'canned', icon: 'reply', label: t('extras.canned'), onPress: () => { setSheet(false); insertAtCursor('::'); input.current?.focus(); } },
@@ -668,7 +670,7 @@ const styles = StyleSheet.create({
   capsuleButton: { width: pill.composer.inside, height: pill.composer.inside, borderRadius: pill.composer.inside / 2 },
   field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: pill.composer.inside },
   input: { flex: 1, fontSize: 16, lineHeight: inputLine, maxHeight: 132, minHeight: pill.composer.inside, textAlignVertical: 'bottom', paddingTop: (pill.composer.inside - inputLine) / 2, paddingBottom: (pill.composer.inside - inputLine) / 2 },
-  suggestions: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  suggestions: { borderRadius: radius.card, borderWidth: stroke.thin, overflow: 'hidden' },
   suggestion: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, paddingHorizontal: space.md },
   replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.sm, paddingLeft: space.md },
   staged: { gap: space.sm },

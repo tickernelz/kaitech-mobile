@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import type { IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
@@ -156,6 +156,6 @@ export function PickRow({ label, value, placeholder, onPress, testID }: { label:
 const styles = StyleSheet.create({
   field: { gap: space.xs },
   choices: { gap: space.sm, paddingVertical: space.xs },
-  choice: { minHeight: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
-  pick: { minHeight: 48, borderRadius: radius.field, borderWidth: 1, paddingHorizontal: space.md, justifyContent: 'center' },
+  choice: { minHeight: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, justifyContent: 'center' },
+  pick: { minHeight: 48, borderRadius: radius.field, borderWidth: stroke.thin, paddingHorizontal: space.md, justifyContent: 'center' },
 });
