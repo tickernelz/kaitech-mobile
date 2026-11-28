@@ -6,6 +6,8 @@ Every release of Kaitech Mobile, newest first. Each version has one section, `##
 
 ### Fixed
 
+- Client Home: an interview row is named by its topic and says where it stands (summary to confirm, questions waiting, all answered, not started) with its closing day, instead of "0 questions left"; it stays tappable while the interview is open. A client's contact settings show email, phone and time zone only, without the team's calendar privacy, signature and out of office; "Odoo account" reads "Account" (#194, ZHA-8138).
+
 - Users: the search field is the 48 dp search capsule shared with the Search screen, so its label is no longer clipped under the header; the list uses the same header and insets as the person screen and every Settings page; the role chips run to the screen edge so a cut chip shows the row scrolls, and wrap at large font sizes; a person's history shows the five newest entries with "See all", keeping Deactivate within reach (#193, ZHA-8139).
 - Indonesian wording on the Users, client Home and new conversation screens is consistent: role names inside a sentence are lower case ("Jadikan Rina admin?"), the external role reads "Eksternal" everywhere, and Program, Programme and programme are all "program". A person in no programme reads "Belum jadi anggota program mana pun." instead of "Anggota 0 Programme", and the Coworker row of a client's new conversation list says what it does ("Menjawab soal program Anda") instead of repeating "Coworker" (#191, ZHA-8140).
 
