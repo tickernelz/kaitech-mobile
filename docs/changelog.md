@@ -2,6 +2,35 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.16.0 - 2026-11-28
+
+### Changed
+
+- Chat: Starred and Tickets above the conversation list share one row split into two cells, each its own button, instead of two stacked full-width rows; the space above the first conversation shrinks from 108 dp to 58 dp on the Meizu Mblu 21. A lone entry takes the whole row; at large font sizes or in a window under 360 dp the two cells stack instead of cutting their labels (#171, ZHA-8111).
+- Chat: Tickets have their own ticket icon (a notched stub with perforation) in that row and on ticket cards, instead of the Coworker sparkle; the down arrow that suggested the row would unfold is gone (#171, ZHA-8111).
+
+## 0.15.3 - 2026-11-28
+
+### Fixed
+
+- Chat, Discovery, Activity and MoM: once a list scrolls under the top bar, the status bar above it takes the same colour as the bar, as in WhatsApp; before, only the bar changed and the status bar stayed the page colour. Both change on the same frame. On the Meizu Mblu 21 the status bar and the bar read the same pixel colour in light and dark theme, at the top and scrolled, on all four screens; chat list scrolling measured 0.49% janky frames against 0.61% before (#170, ZHA-8107).
+- Chat: the voice message mini player sits under the top bar instead of above it (#170, ZHA-8107).
+
+### Known gaps
+
+- The wide two-pane layout on tablets was checked in code only, not on a device (#170, ZHA-8107).
+
+## 0.15.2 - 2026-11-28
+
+### Fixed
+
+- Chat: scrolling a conversation or the chat list no longer replies to a message or opens a row's actions by accident. As in WhatsApp, a swipe starts only after the finger moves 28 dp sideways while staying within 14 dp up or down; a drag that starts up or down stays a scroll for the whole touch, also in a list too short to scroll. Replying needs a 100 dp pull (was 80) and a row opens its actions after about 100 dp (was about 77). On the Meizu Mblu 21, 30 adb scroll strokes at 30 degrees from vertical opened 30 rows before and none after; deliberate swipes still replied and opened 10 of 10 (#168, ZHA-8106).
+- Docs: shape and colour language for controls (#177, ZHA-8126).
+
+### Known gaps
+
+- The scroll test draws straight lines with adb; a real thumb's curve was only approximated, and the swipe was not tried on an iPhone. Chat list scrolling measured 1.4% janky frames against 1.1% before, inside the per-run spread (#168, ZHA-8106).
+
 ## 0.15.1 - 2026-11-28
 
 ### Fixed
