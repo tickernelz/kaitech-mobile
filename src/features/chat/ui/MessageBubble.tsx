@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { memo, useCallback, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
 import { radius, space, type as typography, useTheme } from '../../../theme';
@@ -30,14 +31,18 @@ import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
 import { AgentSaid } from './coworker/Cards';
 import type { AgentCard, CardStore } from '../coworker';
-import { reachBelow, shortfall, touchTarget } from '../../../ui/touch';
+import { reachBelow, touchTarget } from '../../../ui/touch';
 
 export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
 const reactionHeight = 32;
 const reactionGap = space.xs;
 const reactionSlop = reachBelow(reactionHeight, reactionGap);
-const faceSlop = { top: 2, bottom: touchTarget - faceSize - 2, left: shortfall(faceSize), right: shortfall(faceSize) };
+const faceTarget = 48;
+const faceSlop = { top: faceTarget - faceSize - 2, bottom: 2, left: faceTarget - faceSize - space.xs, right: space.xs };
+export const tailReach = 8;
+const tailWidth = tailReach + radius.card;
+const tailHeight = radius.card;
 
 const mediaWidth = Math.min(tileMax.width, Math.round(readableWidth * 0.8) - 2 * space.md);
 
@@ -73,6 +78,7 @@ function Frame({
   testID,
   failed,
   bare,
+  tail = false,
   interactive = false,
 }: {
   mine: boolean;
@@ -82,6 +88,7 @@ function Frame({
   testID?: string;
   failed?: boolean;
   bare?: boolean;
+  tail?: boolean;
   interactive?: boolean;
 }) {
   const { colors } = useTheme();
@@ -98,20 +105,68 @@ function Frame({
       onAccessibilityAction={onLongPress ? () => onLongPress() : undefined}
       testID={testID}
       style={[styles.bubble, bare ? [styles.bare, failed && { borderColor: colors.danger }] : [edge ? { borderColor: edge } : styles.plain, { backgroundColor: fill }]]}>
-      {bare ? null : <Tail mine={mine} fill={fill} edge={edge} />}
+      {bare || !tail ? null : <Tail mine={mine} fill={fill} edge={edge} />}
       {children}
     </Pressable>
   );
 }
 
+const tailShape = `M${tailReach} 0Q${tailReach} ${tailHeight} 0 ${tailHeight}L${tailWidth} ${tailHeight}L${tailWidth} 0Z`;
+
+function tailOutline(line: number): string {
+  const half = line / 2;
+  return `M${tailReach + half} 0Q${tailReach + half} ${tailHeight - half} ${half} ${tailHeight - half}L${tailWidth} ${tailHeight - half}`;
+}
+
 function Tail({ mine, fill, edge }: { mine: boolean; fill: string; edge: string | null }) {
-  const outset = edge ? StyleSheet.hairlineWidth : 0;
-  const side = mine ? 'right' : 'left';
   return (
-    <>
-      {edge ? <View pointerEvents="none" style={[styles.tail, { [side]: -outset, bottom: -outset, backgroundColor: edge }]} testID="bubble-tail-edge" /> : null}
-      <View pointerEvents="none" style={[styles.tail, { [side]: 0, bottom: 0, backgroundColor: fill }]} testID="bubble-tail" />
-    </>
+    <Svg
+      pointerEvents="none"
+      importantForAccessibility="no-hide-descendants"
+      width={tailWidth}
+      height={tailHeight}
+      style={[styles.tail, mine ? styles.tailMine : styles.tailTheirs]}
+      testID="bubble-tail">
+      <Path d={tailShape} fill={fill} />
+      {edge ? <Path d={tailOutline(StyleSheet.hairlineWidth)} stroke={edge} strokeWidth={StyleSheet.hairlineWidth} fill="none" testID="bubble-tail-edge" /> : null}
+    </Svg>
+  );
+}
+
+export function MessageLane({
+  mine,
+  indent,
+  face,
+  after,
+  startsGroup = false,
+  testID,
+  children,
+}: {
+  mine: boolean;
+  indent: boolean;
+  face?: ReactNode;
+  after?: ReactNode;
+  startsGroup?: boolean;
+  testID?: string;
+  children: ReactNode;
+}) {
+  const lane = [styles.wrap, startsGroup && styles.groupStart];
+  if (!indent || mine) {
+    return (
+      <View style={[lane, mine ? styles.wrapMine : styles.wrapTheirs]} testID={testID}>
+        {children}
+        {after}
+      </View>
+    );
+  }
+  return (
+    <View style={lane} testID={testID}>
+      <View style={styles.withFace}>
+        {face ?? <View style={styles.faceSpace} />}
+        <View style={styles.faceColumn}>{children}</View>
+      </View>
+      {after ? <View style={styles.afterFace}>{after}</View> : null}
+    </View>
   );
 }
 
@@ -137,6 +192,8 @@ export const MessageBubble = memo(function MessageBubble({
   mine,
   showAuthor,
   face = 'none',
+  tail = false,
+  startsGroup = false,
   readState,
   quote,
   origin,
@@ -153,6 +210,8 @@ export const MessageBubble = memo(function MessageBubble({
   mine: boolean;
   showAuthor: boolean;
   face?: AuthorFace;
+  tail?: boolean;
+  startsGroup?: boolean;
   readState: ReadState | null;
   quote: Quote;
   origin: string;
@@ -238,9 +297,8 @@ export const MessageBubble = memo(function MessageBubble({
           time,
           readState === 'read' ? t('thread.read') : readState === 'sent' ? t('thread.sent') : '',
         ]);
-  const body = (
-    <>
-      <Frame mine={mine} onLongPress={hold} label={label} testID={`bubble-${message.id}`} bare={rich !== undefined && 'sticker' in rich && !quote} interactive={rich !== undefined && ('poll' in rich || 'location' in rich)}>
+  const frame = (
+      <Frame mine={mine} onLongPress={hold} label={label} testID={`bubble-${message.id}`} tail={tail} bare={rich !== undefined && 'sticker' in rich && !quote} interactive={rich !== undefined && ('poll' in rich || 'location' in rich)}>
         {(showAuthor || (agent && agentTag)) && !mine ? (
           <View style={styles.authorRow}>
             {showAuthor ? (
@@ -300,7 +358,9 @@ export const MessageBubble = memo(function MessageBubble({
           {readState ? <Icon name={readState === 'read' ? 'checkDouble' : 'check'} size={16} color={readState === 'read' ? colors.primary : colors.inkFaint} /> : null}
         </View>
       </Frame>
-      {message.reactions.length || hasThread ? (
+  );
+  const under =
+      message.reactions.length || hasThread ? (
         <View style={[styles.under, mine ? styles.wrapMine : styles.wrapTheirs]} pointerEvents="box-none">
           {message.reactions.map((reaction) => (
             <Pressable
@@ -325,9 +385,7 @@ export const MessageBubble = memo(function MessageBubble({
             </Pressable>
           ) : null}
         </View>
-      ) : null}
-    </>
-  );
+      ) : null;
   const swipeable = (row: ReactNode) =>
     onReply && !removed ? (
       <SwipeReply message={message} onReply={onReply}>
@@ -336,16 +394,15 @@ export const MessageBubble = memo(function MessageBubble({
     ) : (
       row
     );
-  if (face === 'none' || mine) {
-    return swipeable(
-      <View style={[styles.wrap, mine ? styles.wrapMine : styles.wrapTheirs]} testID={`message-${message.id}`}>
-        {body}
-      </View>,
-    );
-  }
   return swipeable(
-    <View style={[styles.wrap, styles.withFace]} testID={`message-${message.id}`}>
-      {face === 'show' ? (
+    <MessageLane
+      mine={mine}
+      indent={face !== 'none'}
+      startsGroup={startsGroup}
+      after={under}
+      testID={`message-${message.id}`}
+      face={
+        face === 'show' ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('thread.openPerson', { name: message.author })}
@@ -355,11 +412,10 @@ export const MessageBubble = memo(function MessageBubble({
           testID={`message-${message.id}-author`}>
           <Avatar name={message.author} seed={message.authorId ?? 0} partnerId={message.authorId} size={faceSize} />
         </Pressable>
-      ) : (
-        <View style={styles.faceSpace} />
-      )}
-      <View style={styles.faceColumn}>{body}</View>
-    </View>,
+        ) : undefined
+      }>
+      {frame}
+    </MessageLane>,
   );
 });
 
@@ -412,7 +468,7 @@ export const PendingBubble = memo(function PendingBubble({
   const label = [pending.rich ? richLabel(t, pending.rich) : pending.text, status].filter(Boolean).join(', ');
   return (
     <View style={[styles.wrap, styles.wrapMine]} testID={`pending-${pending.state}`}>
-      <Frame mine label={label} failed={failed} testID="bubble-pending" bare={pending.rich !== undefined && 'sticker' in pending.rich}>
+      <Frame mine label={label} failed={failed} testID="bubble-pending" tail bare={pending.rich !== undefined && 'sticker' in pending.rich}>
         {pending.rich ? <PendingRich rich={pending.rich} channelId={pending.channelId} origin={origin} /> : null}
         {pending.files.map((file) => (
           <PendingFileRow key={file.key} file={file} />
@@ -457,13 +513,16 @@ const styles = StyleSheet.create({
   authorRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   authorName: { flexShrink: 1 },
   agentTag: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: space.xs, borderRadius: radius.sm },
-  wrap: { paddingHorizontal: space.lg, marginTop: 2, width: '100%', maxWidth: readableWidth + 2 * space.lg, alignSelf: 'center' },
+  wrap: { paddingHorizontal: space.lg, marginTop: space.xs, width: '100%', maxWidth: readableWidth + 2 * space.lg, alignSelf: 'center' },
+  groupStart: { marginTop: space.sm },
   wrapMine: { alignItems: 'flex-end' },
   wrapTheirs: { alignItems: 'flex-start' },
   bubble: { maxWidth: '80%', minWidth: 88, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   bare: { backgroundColor: 'transparent', borderColor: 'transparent', paddingHorizontal: 0, minWidth: 0 },
   plain: { borderWidth: 0 },
-  tail: { position: 'absolute', width: radius.card, height: radius.card, borderRadius: radius.sm },
+  tail: { position: 'absolute', bottom: 0 },
+  tailTheirs: { left: -tailReach },
+  tailMine: { right: -tailReach, transform: [{ scaleX: -1 }] },
   quoteBox: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },
   file: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48, width: 260, maxWidth: '100%' },
@@ -480,7 +539,8 @@ const styles = StyleSheet.create({
   callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, overflow: 'visible' },
   callRow: { paddingVertical: callRowPad },
   join: { paddingVertical: joinBand, marginVertical: -joinBand, paddingHorizontal: space.sm, marginHorizontal: -space.sm },
-  withFace: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm, paddingLeft: space.sm },
+  withFace: { flexDirection: 'row', alignItems: 'flex-end', gap: space.md },
+  afterFace: { paddingLeft: faceSize + space.md },
   faceSpace: { width: faceSize },
   faceColumn: { flex: 1, alignItems: 'flex-start' },
 });

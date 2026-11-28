@@ -6,7 +6,7 @@ import type { Attachment, Message, Pending } from './types';
 
 export type Row =
   | { kind: 'day'; key: string; date: number }
-  | { kind: 'message'; key: string; message: Message; showAuthor: boolean }
+  | { kind: 'message'; key: string; message: Message; showAuthor: boolean; endsGroup: boolean; follows: Message | null }
   | { kind: 'pending'; key: string; pending: Pending };
 
 const groupGapMs = 5 * 60 * 1000;
@@ -34,8 +34,10 @@ export function buildRows(
     const key = sendKey ? `p-${sendKey}` : `m-${message.id}`;
     if (sendKey) shown.add(sendKey);
     if (lastDate === null || !sameDay(lastDate, message.date)) rows.push({ kind: 'day', key: `day-${key}`, date: message.date });
-    const continues = previous && previous.authorId === message.authorId && message.date - previous.date < groupGapMs && sameDay(previous.date, message.date) && previous.type !== 'notification';
-    rows.push({ kind: 'message', key, message, showAuthor: !continues });
+    const continues = !!previous && previous.authorId === message.authorId && message.date - previous.date < groupGapMs && sameDay(previous.date, message.date) && previous.type !== 'notification' && message.type !== 'notification';
+    const last = rows[rows.length - 1];
+    if (continues && last.kind === 'message') rows[rows.length - 1] = { ...last, endsGroup: false };
+    rows.push({ kind: 'message', key, message, showAuthor: !continues, endsGroup: true, follows: continues ? previous : null });
     previous = message;
     lastDate = message.date;
   }
