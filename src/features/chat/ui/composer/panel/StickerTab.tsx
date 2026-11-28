@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, TextInput, View, type LayoutChangeEvent } from 'react-native';
 import { radius, space, useTheme } from '../../../../../theme';
 import { Icon } from '../../../../../ui/icons';
+import { selectedLook } from '../../../../../ui/pill';
 import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
 import { providerStickerPage, setStickerFavorite, type StickerShelf } from '../../../composerExtras';
@@ -67,12 +68,12 @@ export function StickerTab({
                 setActive(section.key);
                 setTimeout(() => list.current?.scrollToIndex({ index: headers[index], animated: false }), 0);
               }}
-              style={[styles.source, selected && { backgroundColor: colors.select }]}
+              style={[styles.source, selected && selectedLook(colors)]}
               testID={`sticker-source-${section.key}`}>
               {cover && mediaSource(origin, cover.poster, cookie) ? (
                 <Image source={mediaSource(origin, cover.poster, cookie)} cachePolicy="disk" style={styles.cover} accessible={false} />
               ) : (
-                <Icon name={section.key === 'favorites' ? 'favorite' : 'clock'} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
+                <Icon name={section.key === 'favorites' ? 'favorite' : 'clock'} size={20} variant={selected ? 'fill' : 'line'} color={selected ? colors.selectInk : colors.inkSoft} />
               )}
             </Pressable>
           );
@@ -82,7 +83,7 @@ export function StickerTab({
           accessibilityState={{ selected: provider }}
           accessibilityLabel={t('panel.providerStickers')}
           onPress={() => setProvider(true)}
-          style={[styles.source, styles.provider, provider && { backgroundColor: colors.select }]}
+          style={[styles.source, styles.provider, provider && selectedLook(colors)]}
           testID="sticker-source-provider">
           <Text variant="label" tone={provider ? 'selectInk' : 'inkSoft'}>
             KLIPY

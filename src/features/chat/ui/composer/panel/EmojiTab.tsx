@@ -6,6 +6,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import { Overlay } from '../../../../../ui/Overlay';
 import { radius, space, stroke, useTheme } from '../../../../../theme';
 import { Icon, type IconName } from '../../../../../ui/icons';
+import { selectedLook } from '../../../../../ui/pill';
 import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
 import { noteEmoji, recentEmoji, rememberSkin, searchEmoji, skinFor, skinTones, supportsSkin, withSkin } from '../../../emoji/emoji';
@@ -177,8 +178,8 @@ export function EmojiTab({
                   hitSlop={categorySlop}
                   style={styles.category}
                   testID={`emoji-tab-${section}`}>
-                  <View style={[styles.categoryMark, selected && { backgroundColor: colors.select }]}>
-                    <Icon name={sectionIcons[section]} size={20} color={selected ? colors.selectInk : colors.inkSoft} />
+                  <View style={[styles.categoryMark, selected && selectedLook(colors)]}>
+                    <Icon name={sectionIcons[section]} size={20} variant={selected ? 'fill' : 'line'} color={selected ? colors.selectInk : colors.inkSoft} />
                   </View>
                 </Pressable>
               );

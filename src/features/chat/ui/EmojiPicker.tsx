@@ -2,6 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, TextInput, View, type StyleProp, type ViewStyle } from 'react-native';
+import { selectedLook } from '../../../ui/pill';
 import { Pressable } from '../../../ui/Pressable';
 import { radius, space, stroke, useTheme } from '../../../theme';
 import { Sheet } from '../../../ui/Sheet';
@@ -100,7 +101,7 @@ export function EmojiGrid({
                 accessibilityLabel={item}
                 accessibilityState={{ selected: selected.includes(item) }}
                 onPress={() => pick(item)}
-                style={[styles.cell, selected.includes(item) && { backgroundColor: colors.select }]}>
+                style={[styles.cell, selected.includes(item) && selectedLook(colors)]}>
                 <Text style={styles.emoji}>{item}</Text>
               </Pressable>
             )}

@@ -5,13 +5,15 @@ import { touchTarget } from './touch';
 export const glassEdge = stroke.thin;
 export const selectedEdge = 2;
 
+export function selectedLook(colors: Colors): ViewStyle {
+  return { backgroundColor: colors.select, borderColor: colors.focus, borderWidth: selectedEdge };
+}
+
 export function choiceLook(on: boolean, colors: Colors, rest: { fill: string; paddingHorizontal: number; paddingVertical?: number; edge?: string }): ViewStyle {
   if (!on) return { backgroundColor: rest.fill, borderColor: rest.edge ?? colors.line };
   const inset = stroke.thin - selectedEdge;
   return {
-    backgroundColor: colors.select,
-    borderColor: colors.focus,
-    borderWidth: selectedEdge,
+    ...selectedLook(colors),
     paddingHorizontal: rest.paddingHorizontal + inset,
     ...(rest.paddingVertical === undefined ? null : { paddingVertical: rest.paddingVertical + inset }),
   };
