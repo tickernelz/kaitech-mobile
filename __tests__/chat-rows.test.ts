@@ -22,7 +22,7 @@ describe('thread row types', () => {
     const voice = message(3, noon, { attachments: [{ id: 1, name: 'v.m4a', mimetype: 'audio/mp4', size: 1, voice: true, accessToken: null, checksum: null, url: null }] });
     const picture = message(4, noon, { attachments: [{ id: 2, name: 'p.jpg', mimetype: 'image/jpeg', size: 1, voice: false, accessToken: null, checksum: null, url: null }] });
     const text = message(5, noon);
-    expect([call, note, voice, picture, text].map((item) => rowType({ kind: 'message', key: String(item.id), message: item, showAuthor: true }))).toEqual([
+    expect([call, note, voice, picture, text].map((item) => rowType({ kind: 'message', key: String(item.id), message: item, showAuthor: true, endsGroup: true, follows: null }))).toEqual([
       'call-notice',
       'notice',
       'media-voice',
