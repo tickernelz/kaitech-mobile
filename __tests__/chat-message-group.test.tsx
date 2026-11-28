@@ -123,6 +123,7 @@ describe('message lane', () => {
   const phone = 411;
   const gutter = space.lg;
   let box: Record<string, Box>;
+  let faceSlop: unknown;
   beforeAll(() => {
     const records = createCardStore<string, RecordCard | null>(async () => null);
     const card = (id: number): RecordCard => ({ kind: 'project', model: 'project.project', id, locked: false, title: 'Implementasi lab0', status: 'Berjalan', key: '', parent: '', people: [] });
@@ -142,6 +143,7 @@ describe('message lane', () => {
       );
     });
     box = measureRendered(rendered?.toJSON() ?? null, phone);
+    faceSlop = rendered?.root.findAll((node) => node.props.testID === 'message-2-author' && node.props.hitSlop)[0]?.props.hitSlop;
   });
 
   it('puts a card in the bubble column of its sender, same left edge and same widest width', () => {
@@ -157,6 +159,14 @@ describe('message lane', () => {
     expect(box['bubble-4'].right).toBe(gutter);
     expect(cardBox.right).toBe(gutter);
     expect(cardBox.width).toBe(box['bubble-4'].width);
+  });
+
+  it('gives the photo a 48dp touch area that stays 8dp clear of the bubble beside it', () => {
+    const face = box['message-2-author'];
+    const slop = faceSlop as { left: number; right: number; top: number; bottom: number };
+    expect(face.width + slop.left + slop.right).toBeGreaterThanOrEqual(48);
+    expect(face.height + slop.top + slop.bottom).toBeGreaterThanOrEqual(48);
+    expect(box['bubble-2'].left - (face.left + face.width + slop.right)).toBeGreaterThanOrEqual(8);
   });
 
   it('sets the photo beside the bottom of the last bubble, where its tail points', () => {

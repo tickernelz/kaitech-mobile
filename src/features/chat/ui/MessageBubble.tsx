@@ -31,14 +31,15 @@ import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
 import { AgentSaid } from './coworker/Cards';
 import type { AgentCard, CardStore } from '../coworker';
-import { reachBelow, shortfall, touchTarget } from '../../../ui/touch';
+import { reachBelow, touchTarget } from '../../../ui/touch';
 
 export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
 const reactionHeight = 32;
 const reactionGap = space.xs;
 const reactionSlop = reachBelow(reactionHeight, reactionGap);
-const faceSlop = { top: touchTarget - faceSize - 2, bottom: 2, left: shortfall(faceSize), right: shortfall(faceSize) };
+const faceTarget = 48;
+const faceSlop = { top: faceTarget - faceSize - 2, bottom: 2, left: faceTarget - faceSize - space.xs, right: space.xs };
 export const tailReach = 8;
 const tailWidth = tailReach + radius.card;
 const tailHeight = radius.card;
