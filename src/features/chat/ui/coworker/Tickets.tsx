@@ -83,6 +83,7 @@ export function TicketCard({ ticket: initial }: { ticket: Ticket }) {
         style={[styles.card, { borderColor: colors.line, backgroundColor: colors.surface }]}
         testID={`ticket-card-${ticket.id}`}>
         <View style={styles.head}>
+          <Icon name="ticket" size={16} color={colors.inkSoft} />
           <Text variant="label" tone="inkSoft">
             {ticket.number}
           </Text>
@@ -124,9 +125,12 @@ export function TicketAskCard({ ask }: { ask: TicketAsk }) {
   if (gone) return null;
   return (
     <View style={[styles.card, styles.ask, { borderColor: colors.warnInk, backgroundColor: colors.warnBand }]} testID={`ticket-ask-${question.id}`}>
-      <Text variant="label" tone="warnInk">
-        {t('tickets.waitsFor', { number: ticket.number, people: deciders })}
-      </Text>
+      <View style={styles.head}>
+        <Icon name="ticket" size={16} color={colors.warnInk} />
+        <Text variant="label" tone="warnInk" style={styles.flex}>
+          {t('tickets.waitsFor', { number: ticket.number, people: deciders })}
+        </Text>
+      </View>
       <Text variant="callout" style={styles.bold}>
         {question.question}
       </Text>

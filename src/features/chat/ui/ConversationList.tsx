@@ -27,6 +27,7 @@ import { conversationActions } from './conversationActions';
 import { refreshStarred } from '../starred';
 import { StarredSheet } from './thread/ListSheets';
 import { TicketsSheet } from './coworker/Tickets';
+import { ChatShortcuts } from './ChatShortcuts';
 import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 
 function usePreview() {
@@ -193,38 +194,14 @@ export function ConversationList({
 
   const archiveBack = <IconButton icon="back" label={t('translation:row.back')} onPress={() => setInArchive(false)} testID="chat-archive-back" />;
 
-  const starredEntry =
-    filter === 'all' && starred > 0 ? (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${t('starredList.title')}, ${starred}`}
-        onPress={() => setInStarred(true)}
-        testID="chat-starred-open"
-        style={({ pressed }) => [styles.archiveEntry, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
-        <Icon name="star" size={20} color={colors.inkSoft} />
-        <Text variant="callout" style={styles.flex}>
-          {t('starredList.title')}
-        </Text>
-        <Text variant="footnote" tone="inkFaint">
-          {starred}
-        </Text>
-      </Pressable>
-    ) : null;
-
-  const ticketsEntry =
-    filter === 'all' && hasFeature(features, 'agents') ? (
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => setInTickets(true)}
-        testID="chat-tickets-open"
-        style={({ pressed }) => [styles.archiveEntry, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
-        <Icon name="sparkle" size={20} color={colors.inkSoft} />
-        <Text variant="callout" style={styles.flex}>
-          {t('tickets.title')}
-        </Text>
-        <Icon name="chevronDown" size={20} color={colors.inkFaint} />
-      </Pressable>
-    ) : null;
+  const shortcutCells = [
+    filter === 'all' && starred > 0
+      ? { key: 'starred', icon: 'star' as const, label: t('starredList.title'), count: starred, onPress: () => setInStarred(true), testID: 'chat-starred-open' }
+      : null,
+    filter === 'all' && hasFeature(features, 'agents')
+      ? { key: 'tickets', icon: 'ticket' as const, label: t('tickets.title'), count: 0, onPress: () => setInTickets(true), testID: 'chat-tickets-open' }
+      : null,
+  ].filter((cell) => cell !== null);
 
   const archiveEntry =
     filter === 'all' && archivedSummary && archivedSummary.count > 0 ? (
@@ -286,8 +263,7 @@ export function ConversationList({
       ) : null}
       {!pushSupported ? <Banner tone="info" icon="bell" text={t('list.iosNoPush')} testID="chat-ios-push-note" /> : null}
       {archiveEntry}
-      {ticketsEntry}
-      {starredEntry}
+      <ChatShortcuts cells={shortcutCells} />
     </View>
   );
 
