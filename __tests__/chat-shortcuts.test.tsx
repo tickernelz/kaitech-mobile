@@ -15,7 +15,7 @@ const { ChatShortcuts } = require('../src/features/chat/ui/ChatShortcuts') as ty
 
 const hidden = { includeHiddenElements: true };
 const starred = { key: 'starred', icon: 'star' as const, label: 'Berbintang', count: 30, onPress: jest.fn(), testID: 'chat-starred-open' };
-const tickets = { key: 'tickets', icon: 'ticket' as const, label: 'Tiket', count: 0, onPress: jest.fn(), testID: 'chat-tickets-open' };
+const tickets = { key: 'tickets', icon: 'ticket' as const, label: 'Tiket', onPress: jest.fn(), testID: 'chat-tickets-open' };
 
 beforeEach(() => {
   mockFontScale = 1;

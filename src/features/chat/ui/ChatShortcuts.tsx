@@ -1,14 +1,15 @@
-import { StyleSheet, View } from 'react-native';
+import { PixelRatio, StyleSheet, View } from 'react-native';
 import { useLargeText, useWindowClass } from '../../../layout/windowClass';
 import { radius, space, useTheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Pressable } from '../../../ui/Pressable';
 import { Text } from '../../../ui/Text';
 
-export type Shortcut = { key: string; icon: IconName; label: string; count: number; onPress: () => void; testID: string };
+export type Shortcut = { key: string; icon: IconName; label: string; count?: number; onPress: () => void; testID: string };
 
 export const shortcutHeight = 56;
 export const narrowWidth = 360;
+const line = PixelRatio.roundToNearestPixel(1);
 
 export function ChatShortcuts({ cells }: { cells: Shortcut[] }) {
   const { colors } = useTheme();
@@ -46,10 +47,10 @@ export function ChatShortcuts({ cells }: { cells: Shortcut[] }) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  surface: { flexDirection: 'row', borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  surface: { flexDirection: 'row', borderRadius: radius.md, borderWidth: line, overflow: 'hidden' },
   stacked: { flexDirection: 'column' },
   slot: { flexDirection: 'row' },
   cell: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: shortcutHeight, paddingHorizontal: space.lg },
-  down: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch' },
-  across: { height: StyleSheet.hairlineWidth, position: 'absolute', top: 0, left: 0, right: 0 },
+  down: { width: line, alignSelf: 'stretch' },
+  across: { height: line, position: 'absolute', top: 0, left: 0, right: 0 },
 });

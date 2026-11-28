@@ -199,7 +199,7 @@ export function ConversationList({
       ? { key: 'starred', icon: 'star' as const, label: t('starredList.title'), count: starred, onPress: () => setInStarred(true), testID: 'chat-starred-open' }
       : null,
     filter === 'all' && hasFeature(features, 'agents')
-      ? { key: 'tickets', icon: 'ticket' as const, label: t('tickets.title'), count: 0, onPress: () => setInTickets(true), testID: 'chat-tickets-open' }
+      ? { key: 'tickets', icon: 'ticket' as const, label: t('tickets.title'), onPress: () => setInTickets(true), testID: 'chat-tickets-open' }
       : null,
   ].filter((cell) => cell !== null);
 
