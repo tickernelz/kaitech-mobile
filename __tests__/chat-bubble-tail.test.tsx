@@ -1,10 +1,9 @@
 import '../src/i18n';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { processColor, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import type { Message, Pending } from '../src/features/chat/types';
 import { MessageBubble, PendingBubble, tailReach } from '../src/features/chat/ui/MessageBubble';
-import { colorsFor, stateLayer, stroke } from '../src/theme/tokens';
-import { tapTimeout } from '../src/ui/touch';
+import { colorsFor, stroke } from '../src/theme/tokens';
 
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined } }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
@@ -107,26 +106,6 @@ describe('message bubble tail', () => {
     const drawn = tail();
     expect(drawn?.edge).toBe(paint(colors.danger));
     expect(drawn?.fill).toBe(paint(colors.select));
-  });
-
-  test.each([true, false])('mine=%s: a held press darkens the bubble and its tail together after the tap timeout, so a fling never repaints it', async (mine) => {
-    const bubble = await sent(mine);
-    const resting = mine ? colors.select : colors.surface;
-    expect(flat(bubble.props.style).backgroundColor).toBe(resting);
-    const touch = { pageX: 10, pageY: 10, locationX: 10, locationY: 10, timestamp: 0, touches: [], changedTouches: [] };
-    await act(async () => fireEvent(bubble, 'responderGrant', { nativeEvent: touch, persist: () => undefined, currentTarget: { measure: () => undefined } }));
-    expect(flat(screen.getByTestId('bubble-9').props.style).backgroundColor).toBe(resting);
-    await act(async () => new Promise((resolve) => setTimeout(resolve, tapTimeout + 20)));
-    const pressed = stateLayer(resting, colors.ink);
-    expect(pressed).not.toBe(resting);
-    expect(flat(screen.getByTestId('bubble-9').props.style).backgroundColor).toBe(pressed);
-    expect(tail()?.fill).toBe(paint(pressed));
-  });
-
-  test('the state layer mixes a tenth of the content colour into the fill', () => {
-    expect(stateLayer('#FFFFFF', '#000000')).toBe('#E6E6E6');
-    expect(stateLayer('#000000', '#FFFFFF')).toBe('#1A1A1A');
-    expect(stateLayer('#EDE7F5', '#151418')).toBe(stateLayer('#EDE7F5', '#151418', 0.1));
   });
 
   test('a sticker without a bubble draws no tail', async () => {

@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
 import { memo, useCallback, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable as ShapePressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
-import { radius, space, stateLayer, stroke, type as typography, useTheme } from '../../../theme';
+import { radius, space, stroke, type as typography, useTheme } from '../../../theme';
 import { haptic } from '../../../ui/haptic';
 import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
@@ -31,7 +31,7 @@ import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
 import { AgentSaid } from './coworker/Cards';
 import type { AgentCard, CardStore } from '../coworker';
-import { reachBelow, tapTimeout, touchTarget } from '../../../ui/touch';
+import { reachBelow, touchTarget } from '../../../ui/touch';
 
 export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
@@ -92,12 +92,10 @@ function Frame({
   interactive?: boolean;
 }) {
   const { colors } = useTheme();
-  const resting = mine ? colors.select : colors.surface;
-  const pressedFill = stateLayer(resting, colors.ink);
+  const fill = mine ? colors.select : colors.surface;
   const edge = mine && !failed ? null : failed ? colors.danger : colors.line;
   return (
-    <ShapePressable
-      unstable_pressDelay={tapTimeout}
+    <Pressable
       onLongPress={onLongPress}
       delayLongPress={LONG_PRESS_MS}
       accessible={!interactive}
@@ -106,17 +104,10 @@ function Frame({
       accessibilityActions={onLongPress ? [{ name: 'longpress' }] : undefined}
       onAccessibilityAction={onLongPress ? () => onLongPress() : undefined}
       testID={testID}
-      style={({ pressed }) => [
-        styles.bubble,
-        bare ? [styles.bare, failed && { borderColor: colors.danger }, pressed && styles.barePressed] : [edge ? { borderColor: edge } : styles.plain, { backgroundColor: pressed ? pressedFill : resting }],
-      ]}>
-      {({ pressed }) => (
-        <>
-          {bare || !tail ? null : <Tail mine={mine} fill={pressed ? pressedFill : resting} edge={edge} />}
-          {children}
-        </>
-      )}
-    </ShapePressable>
+      style={[styles.bubble, bare ? [styles.bare, failed && { borderColor: colors.danger }] : [edge ? { borderColor: edge } : styles.plain, { backgroundColor: fill }]]}>
+      {bare || !tail ? null : <Tail mine={mine} fill={fill} edge={edge} />}
+      {children}
+    </Pressable>
   );
 }
 
@@ -529,7 +520,6 @@ const styles = StyleSheet.create({
   bubble: { maxWidth: '80%', minWidth: 88, borderRadius: radius.card, borderWidth: stroke.thin, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   bare: { backgroundColor: 'transparent', borderColor: 'transparent', paddingHorizontal: 0, minWidth: 0 },
   plain: { borderWidth: 0 },
-  barePressed: { opacity: 0.7 },
   tail: { position: 'absolute', bottom: 0 },
   tailTheirs: { left: -tailReach },
   tailMine: { right: -tailReach, transform: [{ scaleX: -1 }] },

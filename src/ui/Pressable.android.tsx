@@ -1,8 +1,7 @@
 import type { ComponentProps } from 'react';
 import { Pressable as NativePressable, StyleSheet, type ViewStyle } from 'react-native';
-import { colorsFor, stateLayer } from '../theme/tokens';
+import { colorsFor } from '../theme/tokens';
 import { useTheme } from '../theme';
-import { tapTimeout } from './touch';
 
 type Props = ComponentProps<typeof NativePressable>;
 
@@ -25,23 +24,24 @@ export function stateLayerInk(container: unknown, fallback: string): string {
   return light < 0.18 ? darkInk : lightInk;
 }
 
-function rounded(style: Readonly<Partial<ViewStyle>> | null | undefined): boolean {
-  if (!style) return false;
-  return Object.entries(style).some(([key, value]) => /^border\w*Radius$/.test(key) && (typeof value === 'number' ? value > 0 : typeof value === 'string'));
+const fingertip = 24;
+
+function rippleRadius(style: Readonly<Partial<ViewStyle>> | null | undefined): number | undefined {
+  if (!style) return undefined;
+  const rounded = Object.entries(style).some(([key, value]) => /^border\w*Radius$/.test(key) && (typeof value === 'number' ? value > 0 : typeof value === 'string'));
+  if (!rounded) return undefined;
+  const sides = [style.width, style.height].filter((side): side is number => typeof side === 'number');
+  const across = sides.length ? Math.min(...sides) : typeof style.minHeight === 'number' ? style.minHeight : undefined;
+  return across === undefined ? fingertip : across / 2;
 }
 
 export function Pressable({ style, ...props }: Props) {
   const { material } = useTheme();
   if (props.android_ripple !== undefined) return <NativePressable style={style} {...props} />;
-  const resting = StyleSheet.flatten(typeof style === 'function' ? style({ pressed: false }) : style);
-  const ink = stateLayerInk(resting?.backgroundColor, material.onSurface);
-  const color = `${ink}1A`;
-  if (!rounded(resting)) {
-    const unpressed: Props['style'] = typeof style === 'function' ? (state) => style({ ...state, pressed: false }) : style;
-    return <NativePressable android_ripple={{ color }} style={unpressed} {...props} />;
-  }
-  const base = resting?.backgroundColor;
-  const layer = typeof base === 'string' && /^#[0-9a-f]{6}$/i.test(base) ? { backgroundColor: stateLayer(base, ink) } : base === undefined || base === 'transparent' ? { backgroundColor: color } : null;
-  const shaped: Props['style'] = (state) => [typeof style === 'function' ? style({ ...state, pressed: false }) : style, state.pressed && layer];
-  return <NativePressable unstable_pressDelay={tapTimeout} style={shaped} {...props} />;
+  const resting = typeof style === 'function' ? style({ pressed: false }) : style;
+  const flat = StyleSheet.flatten(resting);
+  const ink = stateLayerInk(flat?.backgroundColor, material.onSurface);
+  const radius = rippleRadius(flat);
+  const unpressed: Props['style'] = typeof style === 'function' ? (state) => style({ ...state, pressed: false }) : style;
+  return <NativePressable android_ripple={radius === undefined ? { color: `${ink}1A` } : { color: `${ink}1A`, radius }} style={unpressed} {...props} />;
 }

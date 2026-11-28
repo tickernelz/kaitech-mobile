@@ -102,8 +102,8 @@ describe('Android pressables', () => {
     expect(drawn.own.props.style({ pressed: true, hovered: false })).toEqual({ backgroundColor: 'grey' });
   });
 
-  test('a rounded pressable shows its pressed state as a fill in its own shape, with no ripple and no clip, so a circle or pill never lights up a square', async () => {
-    type Drawn = { props: { android_ripple?: unknown; unstable_pressDelay?: number; style: unknown } };
+  test('a rounded pressable limits its ripple to a circle that fits its shape, so a circle or pill never lights up a square', async () => {
+    type Drawn = { props: { android_ripple?: unknown; style: unknown } };
     const drawn: Record<string, Drawn> = {};
     function Probe(props: Parameters<typeof RipplePressable>[0] & { name: string }) {
       const { name, ...rest } = props;
@@ -112,28 +112,19 @@ describe('Android pressables', () => {
     }
     await render(
       <>
-        <Probe name="pill" style={{ borderRadius: 999, backgroundColor: '#441D65' }} onPress={() => undefined} />
-        <Probe name="sheet" style={({ pressed }) => ({ borderTopLeftRadius: 28, backgroundColor: pressed ? 'grey' : 'white' })} onPress={() => undefined} />
-        <Probe name="card" style={({ pressed }) => ({ borderRadius: 16, backgroundColor: pressed ? '#000000' : '#FFFFFF' })} onPress={() => undefined} />
-        <Probe name="square" style={{ padding: 4 }} onPress={() => undefined} />
+        <Probe name="circle" style={{ width: 44, height: 44, borderRadius: 999 }} onPress={() => undefined} />
+        <Probe name="pill" style={({ pressed }) => ({ minHeight: 36, borderRadius: 999, backgroundColor: pressed ? 'grey' : '#441D65' })} onPress={() => undefined} />
+        <Probe name="card" style={{ borderTopLeftRadius: 16 }} onPress={() => undefined} />
+        <Probe name="square" style={{ width: 44, height: 44 }} onPress={() => undefined} />
         <Probe name="shadowed" style={{ shadowRadius: 16, borderRadius: 0 }} onPress={() => undefined} />
-        <Probe name="clear" style={{ borderRadius: 999 }} onPress={() => undefined} />
       </>,
     );
-    type State = (state: { pressed: boolean; hovered: boolean }) => object;
-    const look = (name: string, pressed: boolean) => StyleSheet.flatten((drawn[name].props.style as State)({ pressed, hovered: false }));
-    for (const name of ['pill', 'sheet', 'card', 'clear']) expect(drawn[name].props.android_ripple).toBeUndefined();
-    for (const name of ['pill', 'sheet', 'card', 'clear']) expect(drawn[name].props.unstable_pressDelay).toBe(100);
-    expect(drawn.square.props.unstable_pressDelay).toBeUndefined();
-    expect(look('card', true)).toEqual({ borderRadius: 16, backgroundColor: '#E8E8E8' });
-    expect(look('pill', false)).toEqual({ borderRadius: 999, backgroundColor: '#441D65' });
-    expect(look('pill', true)).toEqual({ borderRadius: 999, backgroundColor: '#553273' });
-    expect(look('sheet', true)).toEqual({ borderTopLeftRadius: 28, backgroundColor: 'white' });
-    expect(look('clear', true)).toEqual({ borderRadius: 999, backgroundColor: '#1514181A' });
-    for (const name of ['pill', 'sheet', 'clear']) expect(look(name, true)).not.toHaveProperty('overflow');
+    expect(drawn.circle.props.android_ripple).toEqual({ color: '#1514181A', radius: 22 });
+    expect(drawn.pill.props.android_ripple).toEqual({ color: '#F1F0F31A', radius: 18 });
+    expect(drawn.card.props.android_ripple).toEqual({ color: '#1514181A', radius: 24 });
     expect(drawn.square.props.android_ripple).toEqual({ color: '#1514181A' });
-    expect(drawn.square.props.style).toEqual({ padding: 4 });
     expect(drawn.shadowed.props.android_ripple).toEqual({ color: '#1514181A' });
+    for (const name of ['circle', 'card', 'square']) expect(StyleSheet.flatten(drawn[name].props.style as object)).not.toHaveProperty('overflow');
   });
 });
 
