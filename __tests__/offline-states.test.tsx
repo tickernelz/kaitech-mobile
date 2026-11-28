@@ -129,6 +129,7 @@ describe('MomHome connection states', () => {
     mockBoard.mockResolvedValue({ meetings: [], total: 0 });
     const view = await render(<MomHome />);
     await waitFor(() => expect(screen.getByTestId('mom-meetings-empty')).toBeTruthy());
+    expect(screen.getByTestId('tab-mom').props.edges.top).toBe('off');
     mockBoard.mockRejectedValue(new TypeError('Network request failed'));
     await setNetwork({ isConnected: false });
     expect(screen.queryByTestId('mom-meetings-empty')).toBeNull();
