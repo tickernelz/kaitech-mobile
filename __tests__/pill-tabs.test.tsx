@@ -122,6 +122,7 @@ describe('floating pill tab bar (shared behaviour, iOS below 26 look)', () => {
   test('the capsule is blurred glass with a full edge and a soft shadow, and solid with its shadow when Reduce Transparency or Increase Contrast is on', async () => {
     const view = await render(tree());
     expect(flat('navigation-bar')).toMatchObject({ borderWidth: 1, boxShadow: expect.any(String) });
+    const glassShadow = flat('navigation-bar').boxShadow;
     expect(flat('navigation-bar').backgroundColor).toBeUndefined();
     expect(flat('glass-tint').backgroundColor).toMatch(/^#[0-9A-F]{6}[0-9A-F]{2}$/i);
     expect(screen.getByTestId('glass-blur', hidden)).toBeTruthy();
@@ -129,7 +130,7 @@ describe('floating pill tab bar (shared behaviour, iOS below 26 look)', () => {
     await act(async () => view.rerender(tree()));
     expect(screen.queryByTestId('glass-backdrop', hidden)).toBeNull();
     expect(flat('navigation-bar').backgroundColor).toMatch(/^#[0-9A-F]{6}$/i);
-    expect(flat('navigation-bar').shadowOpacity).toBeGreaterThan(0);
+    expect(flat('navigation-bar').boxShadow).toBe(glassShadow);
   });
 
   test('the highlight springs to a newly selected tab', async () => {
@@ -190,6 +191,18 @@ describe('floating pill tab bar (shared behaviour, iOS below 26 look)', () => {
     }
     await render(<Outside />);
     expect(screen.getByTestId('outside').props.children).toBe('0');
+  });
+
+  test('the iOS tablet rail marks the current tab with select, not a primary fill, and counts activity on dangerInk', async () => {
+    const { colorsFor } = require('../src/theme/tokens') as typeof import('../src/theme/tokens');
+    const colors = colorsFor('light');
+    mockWindow = 'expanded';
+    mockFocused = 'activity';
+    mockPending = 3;
+    await render(tree());
+    expect(flat('tab-highlight-activity')).toMatchObject({ backgroundColor: colors.select, opacity: 1 });
+    expect(flat('tab-highlight-chat')).toMatchObject({ backgroundColor: colors.select, opacity: 0 });
+    expect(flat('tab-badge-activity')).toMatchObject({ backgroundColor: colors.dangerInk });
   });
 
   test.each(['medium', 'expanded'] as const)('a %s window gets the rail instead of the pill, with no bottom space, and the rail switches tabs', async (windowClass) => {

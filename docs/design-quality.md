@@ -250,10 +250,10 @@ Ratios from `node scripts/design-quality.mjs --contrast` on the tokens (light / 
 | Text | 4.5:1 against its background; 3:1 for text of 18 and up or 14 bold | W 1.4.3 |
 | Icons, input outlines, focus rings, selected indicators | 3:1 | W 1.4.11 |
 | Decorative separators and card outlines | no minimum; the item's own text identifies it | W 1.4.11 |
-| `primary` as text | allowed once the [Colour roles](#colour-roles) tokens land (5.61 and up light, 7.19 and up dark); with the current dark `#9358C7` it is 3.15 to 4.06 against the surfaces, so use `link` until then | measured |
+| `primary` as text | allowed on both platforms with the [Colour roles](#colour-roles) tokens: 5.61 and up light, 7.19 and up dark against the surfaces | measured |
 | `inkFaint` | lowest text token: 4.89 on `surface2` dark, keep it for meta only | measured |
 
-One failure is in the tokens' use, not in the code style: white (`onPrimary`) on `danger` is 4.23 light and 3.15 dark. The iOS tab badge (`PillBar.tsx`) draws its count that way. Android already uses `material.error` with `onError` (6.47 light, 9.63 dark), so the fix is to give iOS the same pair, not a new token. White icons on `danger` (call decline, record) pass the 3:1 icon floor.
+White on `danger` is 4.23 light and 3.15 dark, so it stays behind icons only (call decline, record), which pass the 3:1 icon floor. A count on a destructive fill, such as the activity tab badge, is `onDanger` on `dangerInk` on both platforms (6.47 light, 9.63 dark).
 
 ## Touch targets
 
