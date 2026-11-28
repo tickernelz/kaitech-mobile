@@ -74,6 +74,7 @@ module.exports = defineConfig([
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/theme/**'],
     plugins: { design: design.plugin },
+    settings: { designExceptions: require('./lint/design-exceptions') },
     rules: Object.fromEntries(Object.keys(design.plugin.rules).map((rule) => [`design/${rule}`, 'error'])),
   },
   {

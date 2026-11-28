@@ -40,8 +40,10 @@ function literalProps(object) {
   return object.properties.map((property) => ({ property, key: keyOf(property), value: keyOf(property) ? numberOf(property.value) : null })).filter((entry) => entry.key);
 }
 
+const repository = path.dirname(__dirname);
+
 function fileOf(context) {
-  return path.relative(context.cwd, context.filename).split(path.sep).join('/');
+  return path.relative(repository, context.physicalFilename).split(path.sep).join('/');
 }
 
 function guarded(name, description, messages, collect) {
@@ -53,7 +55,7 @@ function guarded(name, description, messages, collect) {
       messages: { ...messages, stale: 'The exception {{value}} for design/' + name + ' no longer matches this file: remove it from ' + exceptionsFile + '.' },
     },
     create(context) {
-      const allowed = context.options[0]?.exceptions === false ? [] : [...(require('./design-exceptions')[fileOf(context)]?.[name] ?? [])];
+      const allowed = context.options[0]?.exceptions === false ? [] : [...(context.settings.designExceptions?.[fileOf(context)]?.[name] ?? [])];
       const hits = [];
       const visitors = collect((node, messageId, value) => hits.push({ node, messageId, value }), context);
       const exit = visitors['Program:exit'];
@@ -241,4 +243,4 @@ const rules = {
   ),
 };
 
-module.exports = { scale, exceptionsFile, plugin: { meta: { name: 'design' }, rules } };
+module.exports = { plugin: { meta: { name: 'design' }, rules } };
