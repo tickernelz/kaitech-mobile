@@ -1,3 +1,4 @@
 import { ActivityScreen } from '../../features/activity/ActivityScreen';
+import { teamOnly } from '../../screens/Gate';
 
-export default ActivityScreen;
+export default teamOnly(ActivityScreen);

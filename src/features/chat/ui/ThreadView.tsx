@@ -56,6 +56,7 @@ import { usePartnerStatus } from '../../people/statuses';
 import { confirm, inform } from '../../../ui/dialog';
 import { touchTarget } from '../../../ui/touch';
 import { Behind } from '../../../ui/cover';
+import { useCan } from '../../../auth/useAccess';
 
 const noticeMs = 4000;
 const drawDistance = 1000;
@@ -119,6 +120,7 @@ export function ThreadView({
   const [overlap, setOverlap] = useState(0);
   const content = useMemo(() => [styles.content, { paddingBottom: space.md + overlap }], [overlap]);
   const features = useChat((state) => state.features);
+  const team = useCan('team');
   const myUserId = useChat((state) => state.userId);
   const seeTranslations = useAutoTranslate(features.translateAuto && !!features.translateLanguage);
   const agentStore = useAgentCards(channelId);
@@ -410,7 +412,7 @@ export function ThreadView({
         photo: type === 'chat' ? undefined : (conversation?.photo ?? null),
         icon: type === 'channel' ? 'hash' : type === 'group' ? 'people' : undefined,
       }}
-      call={!bubble && (type === 'chat' || type === 'group' || type === 'channel')}
+      call={team && !bubble && (type === 'chat' || type === 'group' || type === 'channel')}
       onBack={back}
       onPerson={type === 'chat' && personId ? () => router.push({ pathname: '/person/[id]', params: { id: String(personId), name } }) : undefined}
       onStatus={readStatus}
@@ -503,7 +505,7 @@ export function ThreadView({
         message={acting}
         mine={acting?.authorId === partnerId}
         readers={acting ? readersOf(acting, thread.members, partnerId) : 0}
-        options={acting ? messageOptions(acting, { partnerId, features, channelType: type, inSubThread: !!thread.info?.parentId, now: actingAt }) : {}}
+        options={acting ? messageOptions(acting, { partnerId, features, channelType: type, inSubThread: !!thread.info?.parentId, now: actingAt, client: !team }) : {}}
         onClose={() => setActing(null)}
         onReact={(message, content) => void react(message, content)}
         onAction={onAction}

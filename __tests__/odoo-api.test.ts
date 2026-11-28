@@ -101,6 +101,26 @@ describe('rpc', () => {
     const forbidden = (await rpc(account, 'ck.mom.recording', 'transcribe').catch((error: unknown) => error)) as ApiError;
     expect([forbidden.code, forbidden.detail]).toEqual(['forbidden', null]);
   });
+
+  it('reads a role refusal from the error context and keeps its words and the role it needs', async () => {
+    serve([
+      session('s1'),
+      () => ({
+        body: {
+          error: {
+            code: 200,
+            data: {
+              name: 'odoo.addons.kaitech_role.models.res_users.RoleRequired',
+              message: 'Hanya superadmin yang bisa menjadikan admin. Who can: Zhafron.',
+              context: { code: 'role_required', needed: 'superadmin' },
+            },
+          },
+        },
+      }),
+    ]);
+    const failure = (await rpc(account, 'res.users', 'kaitech_set_role', [9, 'admin']).catch((error: unknown) => error)) as ApiError;
+    expect([failure.code, failure.detail, failure.reason]).toEqual(['role_required', 'Hanya superadmin yang bisa menjadikan admin. Who can: Zhafron.', 'superadmin']);
+  });
 });
 
 describe('bearer', () => {
@@ -109,6 +129,17 @@ describe('bearer', () => {
     const failure = await bearer(account, '/kaitech_mobile/discovery/answer', { method: 'POST', body: {} }).catch((error: unknown) => error);
     expect((failure as ApiError).code).toBe('card_not_awaiting');
     expect((failure as ApiError).status).toBe(409);
+  });
+
+  it('keeps the sentence of a refusal the person can act on, and only of a refusal', async () => {
+    serve([
+      () => ({ status: 409, body: { error: 'refused', error_code: 'refused', message: 'Waktu koreksi notulen ini sudah berakhir.' } }),
+      () => ({ status: 403, body: { error: 'forbidden', error_code: 'team_only', message: 'internal detail' } }),
+    ]);
+    const refused = (await bearer(account, '/kaitech_mobile/client/minutes/7/correct', { method: 'POST', body: { words: 'x' } }).catch((error: unknown) => error)) as ApiError;
+    expect([refused.code, refused.status, refused.detail]).toEqual(['refused', 409, 'Waktu koreksi notulen ini sudah berakhir.']);
+    const teamOnly = (await bearer(account, '/kaitech_mobile/search').catch((error: unknown) => error)) as ApiError;
+    expect([teamOnly.code, teamOnly.detail]).toEqual(['team_only', null]);
   });
 
   it('marks the session expired when the token is refused', async () => {

@@ -8,7 +8,8 @@ import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
 import { Text } from '../ui/Text';
 import { hideWhen, useCovered } from '../ui/cover';
-import { badgeText, tabIcons, tabs, type TabName } from './tabs';
+import { useAccess } from '../auth/useAccess';
+import { badgeText, tabIcons, tabsFor, type TabName } from './tabs';
 import { useTab } from './useTab';
 
 function TabBadge() {
@@ -68,7 +69,7 @@ export function NavRail() {
       accessibilityRole="tablist"
       importantForAccessibility={hideWhen(covered)}
       style={[styles.rail, { backgroundColor: material.surface, width: railWidth + insets.left, paddingLeft: insets.left, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.lg }]} testID="navigation-rail">
-      {tabs.map((name) => (
+      {tabsFor(useAccess()).map((name) => (
         <RailItem key={name} name={name} />
       ))}
     </View>

@@ -1,0 +1,109 @@
+appId: io.kaitech.mobile
+name: External account on the phone - Home, hand over a file, ask a correction, report a to-do, open the interview, chat with the Coworker and the lead
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- assertVisible:
+    id: tab-button-home
+- assertVisible:
+    id: tab-button-chat
+- assertNotVisible:
+    id: tab-button-mom
+- assertNotVisible:
+    id: tab-button-discovery
+- assertNotVisible:
+    id: open-search
+- extendedWaitUntil:
+    visible:
+      id: home-send-${REQUEST_ID}
+    timeout: 30000
+- takeScreenshot: e1-home
+- tapOn:
+    id: home-send-${REQUEST_ID}
+- extendedWaitUntil:
+    visible:
+      text: ${FILE_NAME}
+    timeout: 20000
+- tapOn:
+    text: ${FILE_NAME}
+- extendedWaitUntil:
+    visible:
+      text: (File sent.*|Berkas terkirim.*)
+    timeout: 60000
+- takeScreenshot: e2-file-sent
+- scrollUntilVisible:
+    element:
+      id: home-correct-${MEETING_ID}
+- tapOn:
+    id: home-correct-${MEETING_ID}
+- tapOn:
+    id: home-correct-dialog-input
+- inputText: ${RUN} nama vendor kedua salah eja
+- tapOn:
+    id: home-correct-dialog-confirm
+- extendedWaitUntil:
+    visible:
+      text: (Correction asked.*|Koreksi diminta.*)
+    timeout: 30000
+- takeScreenshot: e3-correction
+- scrollUntilVisible:
+    element:
+      id: home-report-${ACTION_ID}
+- tapOn:
+    id: home-report-${ACTION_ID}
+- tapOn:
+    id: home-report-dialog-input
+- inputText: ${RUN} sudah dikirim lewat email
+- tapOn:
+    id: home-report-dialog-confirm
+- extendedWaitUntil:
+    visible:
+      text: (Reported.*|Sudah dilaporkan.*)
+    timeout: 30000
+- takeScreenshot: e4-reported
+- scrollUntilVisible:
+    element:
+      id: home-interview-${INVITE_ID}
+    direction: UP
+- tapOn:
+    id: home-interview-${INVITE_ID}
+- extendedWaitUntil:
+    visible:
+      id: com.android.chrome:id/close_button
+    timeout: 30000
+- takeScreenshot: e5-interview
+- tapOn:
+    id: com.android.chrome:id/close_button
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 20000
+- tapOn:
+    id: tab-button-chat
+- tapOn:
+    id: chat-new
+- extendedWaitUntil:
+    visible:
+      id: directory-${COWORKER_PARTNER}
+    timeout: 30000
+- takeScreenshot: e6-directory
+- tapOn:
+    id: directory-${LEAD_PARTNER}
+- extendedWaitUntil:
+    visible:
+      id: composer
+    timeout: 30000
+- tapOn:
+    id: composer-input
+- inputText: ${RUN} halo dari klien
+- tapOn:
+    id: composer-send
+- extendedWaitUntil:
+    visible:
+      text: ${RUN} halo dari klien
+    timeout: 30000
+- hideKeyboard
+- takeScreenshot: e7-lead-chat

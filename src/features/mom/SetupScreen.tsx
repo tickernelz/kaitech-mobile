@@ -20,7 +20,6 @@ import { Segmented, StateView, useErrorText } from '../discovery/ui';
 import { uploadOptions } from './api';
 import { useMomFormat } from './parts';
 import { start, type StartResult } from './recorder';
-import { useMomAccess } from './access';
 import { importLark } from './records';
 import { adoptPicked, enqueue } from './uploads';
 
@@ -73,7 +72,6 @@ export function SetupScreen() {
   const [outcome, setOutcome] = useState<StartResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [lark, setLark] = useState<string | null>(null);
-  const access = useMomAccess();
   const errorText = useErrorText();
 
   const meetings = (options.data?.meetings ?? []).filter((meeting) => !meeting.signed);
@@ -198,7 +196,7 @@ export function SetupScreen() {
             <>
               <Button label={t('mom.setup.start')} onPress={() => void begin()} busy={busy} testID="setup-start" />
               <Button kind="plain" label={t('mom.setup.uploadFile')} onPress={() => void pick()} disabled={busy} testID="setup-upload-file" />
-              {access && !access.client ? <Button kind="plain" label={t('mom.setup.larkLink')} onPress={() => setLark('')} disabled={busy} testID="setup-lark" /> : null}
+              <Button kind="plain" label={t('mom.setup.larkLink')} onPress={() => setLark('')} disabled={busy} testID="setup-lark" />
             </>
           ) : (
             <>

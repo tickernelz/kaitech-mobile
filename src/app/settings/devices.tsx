@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useResource } from '../../api/resource';
 import { markExpired, useSession } from '../../auth/session';
+import { useCan } from '../../auth/useAccess';
 import { appDevices, devices, revokeAllDevices, revokeAppDevice, revokeDevice, type AppDevice, type Device } from '../../features/account/security';
 import { useIdentity } from '../../features/account/useIdentity';
 import { parseServerDate } from '../../features/discovery/dates';
@@ -23,7 +24,8 @@ export default function DeviceSettings() {
   const errorText = useErrorText();
   const identity = useIdentity();
   const apps = useResource('account.appDevices', appDevices, 30_000);
-  const browsers = useResource('account.devices', devices, 30_000);
+  const team = useCan('team');
+  const browsers = useResource(team ? 'account.devices' : null, devices, 30_000);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const [appCount, setAppCount] = useState(previewCount);
@@ -109,29 +111,33 @@ export default function DeviceSettings() {
           {t('security.devices.appsHint')}
         </Text>
       ) : null}
-      <Section title={t('security.devices.browsers')}>
-        {browsers.data?.length ? (
-          shownBrowsers.map((device) => {
-            const last = parseServerDate(device.last);
-            return (
-              <Row
-                key={device.id}
-                leading={<RowIcon name={device.type === 'mobile' ? 'phone' : 'table'} />}
-                title={device.current ? t('security.devices.current', { name: titleOf(device) }) : titleOf(device)}
-                detail={[device.place || device.ip, last ? date(last) : ''].filter(Boolean).join(' \u00b7 ')}
-                onPress={device.current ? undefined : () => revokeBrowser(device)}
-                testID={`device-${device.id}`}
-              />
-            );
-          })
-        ) : (
-          <StateView loading={browsers.loading} error={browsers.error} empty={{ title: t('security.devices.none'), icon: 'table' }} onRetry={() => void browsers.refresh()} testID="devices" />
-        )}
-        {moreBrowsers > 0 ? <Row title={t('security.devices.showMore', { count: Math.min(moreBrowsers, pageCount) })} tone="link" onPress={() => setBrowserCount((count) => count + pageCount)} testID="devices-more" /> : null}
-      </Section>
-      <Text variant="footnote" tone="inkSoft">
-        {t('security.devices.browsersHint')}
-      </Text>
+      {team ? (
+        <>
+          <Section title={t('security.devices.browsers')}>
+            {browsers.data?.length ? (
+              shownBrowsers.map((device) => {
+                const last = parseServerDate(device.last);
+                return (
+                  <Row
+                    key={device.id}
+                    leading={<RowIcon name={device.type === 'mobile' ? 'phone' : 'table'} />}
+                    title={device.current ? t('security.devices.current', { name: titleOf(device) }) : titleOf(device)}
+                    detail={[device.place || device.ip, last ? date(last) : ''].filter(Boolean).join(' \u00b7 ')}
+                    onPress={device.current ? undefined : () => revokeBrowser(device)}
+                    testID={`device-${device.id}`}
+                  />
+                );
+              })
+            ) : (
+              <StateView loading={browsers.loading} error={browsers.error} empty={{ title: t('security.devices.none'), icon: 'table' }} onRetry={() => void browsers.refresh()} testID="devices" />
+            )}
+            {moreBrowsers > 0 ? <Row title={t('security.devices.showMore', { count: Math.min(moreBrowsers, pageCount) })} tone="link" onPress={() => setBrowserCount((count) => count + pageCount)} testID="devices-more" /> : null}
+          </Section>
+          <Text variant="footnote" tone="inkSoft">
+            {t('security.devices.browsersHint')}
+          </Text>
+        </>
+      ) : null}
       {identity.sheet}
     </SettingsPage>
   );

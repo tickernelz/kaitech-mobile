@@ -12,6 +12,7 @@ import { MembersSheet } from './MembersSheet';
 import { RenameSheet } from './RenameSheet';
 import { ScheduledSheet } from './ScheduledSheet';
 import { confirm } from '../../../../ui/dialog';
+import { useCan } from '../../../../auth/useAccess';
 
 type Panel = 'menu' | 'pinned' | 'search' | 'files' | 'threads' | 'members' | 'rename' | 'scheduled' | 'meeting';
 
@@ -56,9 +57,10 @@ export function ThreadActionsSheet({
 }) {
   const { t } = useTranslation('chat');
   const [panel, setPanel] = useState<Panel>('menu');
+  const team = useCan('team');
   const sub = !!info?.parentId;
   const channel = type === 'channel' && !sub;
-  const manages = channel && hasFeature(features, 'announcement') && (features.channelAdmin || info?.role === 'owner' || info?.role === 'admin');
+  const manages = team && channel && hasFeature(features, 'announcement') && (features.channelAdmin || info?.role === 'owner' || info?.role === 'admin');
   const close = () => {
     setPanel('menu');
     onClose();
@@ -102,23 +104,23 @@ export function ThreadActionsSheet({
   if (panel === 'search') return <SearchSheet channelId={channelId} onClose={close} onOpen={(message) => { close(); onJump(message); }} />;
   if (panel === 'files') return <FilesSheet channelId={channelId} onClose={close} />;
   if (panel === 'threads') return <ThreadsSheet threads={threads} onClose={close} onOpen={(id) => { close(); onOpenChannel(id); }} />;
-  if (panel === 'members') return <MembersSheet channelId={channelId} manages={!!manages} canInvite={type !== 'chat'} onClose={close} onNotice={onNotice} />;
+  if (panel === 'members') return <MembersSheet channelId={channelId} manages={!!manages} canInvite={team && type !== 'chat'} onClose={close} onNotice={onNotice} />;
   if (panel === 'rename') return <RenameSheet channelId={channelId} type={type} name={name} description={info?.description ?? ''} onClose={close} onDone={done} />;
   if (panel === 'scheduled') return <ScheduledSheet channelId={channelId} onClose={close} onTakeBack={(taken) => { close(); onTakeBack(taken); }} onNotice={onNotice} />;
   if (panel === 'meeting') return <MeetingSheet channelId={channelId} messageId={null} onClose={close} onDone={done} />;
-  const canRename = type === 'chat' || info?.editable === true;
+  const canRename = team && (type === 'chat' || info?.editable === true);
   const on = {
-    threads: type !== 'chat' && !sub && hasFeature(features, 'thread'),
-    scheduled: hasFeature(features, 'send_later'),
-    meeting: hasFeature(features, 'meeting'),
-    pin: !sub && hasFeature(features, 'chat_filters'),
+    threads: team && type !== 'chat' && !sub && hasFeature(features, 'thread'),
+    scheduled: team && hasFeature(features, 'send_later'),
+    meeting: team && hasFeature(features, 'meeting'),
+    pin: team && !sub && hasFeature(features, 'chat_filters'),
   };
   return (
     <Sheet title={name} onClose={close} testID="thread-actions">
       <SheetItem icon={muted ? 'bellOff' : 'bell'} label={t('threadActions.notifications')} onPress={act(onNotify)} testID="thread-action-notify" />
-      {onWork ? <SheetItem icon="sparkle" label={t('threadActionsWork.label')} onPress={act(onWork)} testID="thread-action-work" /> : null}
-      <SheetItem icon="search" label={t('threadActions.search')} onPress={go('search')} testID="thread-action-search" />
-      <SheetItem icon="pin" label={t('threadActions.pinned')} onPress={go('pinned')} testID="thread-action-pinned" />
+      {team && onWork ? <SheetItem icon="sparkle" label={t('threadActionsWork.label')} onPress={act(onWork)} testID="thread-action-work" /> : null}
+      {team ? <SheetItem icon="search" label={t('threadActions.search')} onPress={go('search')} testID="thread-action-search" /> : null}
+      {team ? <SheetItem icon="pin" label={t('threadActions.pinned')} onPress={go('pinned')} testID="thread-action-pinned" /> : null}
       <SheetItem icon="file" label={t('threadActions.files')} onPress={go('files')} testID="thread-action-files" />
       {on.threads ? <SheetItem icon="thread" label={t('threadActions.threads')} detail={threads.length ? String(threads.length) : undefined} onPress={go('threads')} testID="thread-action-threads" /> : null}
       {type !== 'chat' ? <SheetItem icon="people" label={t('threadActions.members', { count: info?.memberCount ?? 0 })} onPress={go('members')} testID="thread-action-members" /> : null}

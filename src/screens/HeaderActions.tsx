@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../ui/Pressable';
 import { useSession } from '../auth/session';
+import { useCan } from '../auth/useAccess';
 import { radius, space, stroke, useTheme } from '../theme';
 import { Icon } from '../ui/icons';
 import { Avatar } from '../features/chat/ui/Avatar';
@@ -15,17 +16,20 @@ export function HeaderActions() {
   const router = useRouter();
   const { active } = useSession();
   const glass = useSurface() === 'glass';
+  const team = useCan('team');
   const Row = glass ? GlassView : View;
   return (
     <Row isInteractive={glass || undefined} style={[styles.row, glass && styles.glass]} testID="header-actions">
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('search.open')}
-        onPress={() => router.push('/search')}
-        testID="open-search"
-        style={({ pressed }) => [styles.round, glass ? styles.bare : { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
-        <Icon name="search" color={colors.ink} />
-      </Pressable>
+      {team ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('search.open')}
+          onPress={() => router.push('/search')}
+          testID="open-search"
+          style={({ pressed }) => [styles.round, glass ? styles.bare : { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
+          <Icon name="search" color={colors.ink} />
+        </Pressable>
+      ) : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('tabs.profile')}
