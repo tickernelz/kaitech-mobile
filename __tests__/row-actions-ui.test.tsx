@@ -20,6 +20,20 @@ jest.mock('react-native-reanimated', () => ({
     return ref.current;
   },
 }));
+type MockTouch = { id: number; absoluteX: number; absoluteY: number };
+type MockTouchEvent = { numberOfTouches: number; changedTouches: MockTouch[]; allTouches: MockTouch[] };
+type MockGate = { onTouchesDown: (event: MockTouchEvent) => void; onTouchesMove: (event: MockTouchEvent) => void; onFinalize: () => void };
+const mockGate: { current: MockGate | null } = { current: null };
+jest.mock('react-native-gesture-handler', () => {
+  const actual = jest.requireActual('react-native-gesture-handler');
+  return {
+    ...actual,
+    usePanGesture: (config: MockGate & { manualActivation?: boolean }) => {
+      if (config.manualActivation) mockGate.current = config;
+      return actual.usePanGesture(config);
+    },
+  };
+});
 const mockReset = jest.fn();
 const mockSwipeProps: { current: Record<string, unknown> } = { current: {} };
 type MockSwipeableProps = {
@@ -174,5 +188,43 @@ describe('row actions', () => {
     expect(dragOffsetFromRight).toBeLessThanOrEqual(-28);
     expect(leftThreshold * friction).toBeGreaterThanOrEqual(100);
     expect(rightThreshold * friction).toBeGreaterThanOrEqual(100);
+  });
+
+  describe('a drag that starts as a scroll', () => {
+    const touch = (id: number, absoluteX: number, absoluteY: number): MockTouch => ({ id, absoluteX, absoluteY });
+    const down = (...touches: MockTouch[]) => mockGate.current!.onTouchesDown({ numberOfTouches: touches.length, changedTouches: [touches[touches.length - 1]], allTouches: touches });
+    const move = (...touches: MockTouch[]) => mockGate.current!.onTouchesMove({ numberOfTouches: touches.length, changedTouches: touches, allTouches: touches });
+    const swipeOn = () => (mockSwipeProps.current.enabled as { get: () => boolean }).get();
+
+    beforeEach(async () => {
+      mockGate.current = null;
+      await render(row(actions, ['read'], ['archive', 'more']));
+    });
+
+    it('keeps the row closed for the rest of the touch once it moves 14 dp up or down first, and frees it after', () => {
+      down(touch(0, 200, 400));
+      move(touch(0, 205, 410));
+      expect(swipeOn()).toBe(true);
+      move(touch(0, 208, 414));
+      expect(swipeOn()).toBe(false);
+      move(touch(0, 300, 414));
+      expect(swipeOn()).toBe(false);
+      mockGate.current!.onFinalize();
+      expect(swipeOn()).toBe(true);
+    });
+
+    it('leaves the swipe on when the drag goes 28 dp sideways first, even if it later drifts down', () => {
+      down(touch(0, 200, 400));
+      move(touch(0, 228, 405));
+      move(touch(0, 260, 460));
+      expect(swipeOn()).toBe(true);
+    });
+
+    it('judges the finger that started the drag, not a second finger', () => {
+      down(touch(3, 200, 400));
+      down(touch(3, 200, 400), touch(7, 500, 400));
+      move(touch(7, 500, 480), touch(3, 230, 402));
+      expect(swipeOn()).toBe(true);
+    });
   });
 });

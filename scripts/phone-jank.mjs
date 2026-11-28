@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 
 const usage =
-  'usage: phone-jank.mjs --thread <channelId> [--scenario record-cancel|attach|record-lock|panel|thread-scroll|thread-open] [--apk name=path ...] [--rounds 3] [--repeat 5] [--serial S] [--out result.json] [--max-janky 5] [--max-p90 11.1]';
+  'usage: phone-jank.mjs --thread <channelId> [--scenario record-cancel|attach|record-lock|panel|thread-scroll|thread-open|list-scroll] [--apk name=path ...] [--rounds 3] [--repeat 5] [--serial S] [--out result.json] [--max-janky 5] [--max-p90 11.1]';
 const pkg = 'io.kaitech.mobile';
 const settleMs = 1500;
 
@@ -146,6 +146,18 @@ const scenarios = {
       sleep(settleMs);
     };
   },
+  'list-scroll': () => {
+    const list = centre('chat-list');
+    const high = list.top + Math.round((list.bottom - list.top) * 0.25);
+    const low = list.top + Math.round((list.bottom - list.top) * 0.75);
+    return () => {
+      for (const [from, to] of [[low, high], [low, high], [high, low], [high, low], [low, high], [high, low]]) {
+        shell(`input swipe ${list.x} ${from} ${list.x} ${to} 150`);
+        sleep(600);
+      }
+      sleep(settleMs);
+    };
+  },
   'thread-open': () => {
     shell('input keyevent 4');
     sleep(settleMs);
@@ -195,15 +207,31 @@ function parseGfxinfo(text) {
   };
 }
 
+const listScenarios = new Set(['list-scroll']);
+
+function openList() {
+  if (!foreground()) fail(`${pkg} is not in front; stop before touching the phone`);
+  for (let step = 0; step < 4; step += 1) {
+    const found = nodes();
+    if (found.has('chat-list') && !found.has(`thread-${thread}`)) return;
+    shell('input keyevent 4');
+    sleep(settleMs);
+  }
+  fail(`chat list not open; on screen: ${[...nodes().keys()].slice(0, 20).join(' ')}`);
+}
+
 function measure(scenario) {
-  openThread();
+  const onList = listScenarios.has(scenario);
+  if (onList) openList();
+  else openThread();
   const step = scenarios[scenario]();
   step();
   shell(`dumpsys gfxinfo ${pkg} reset >/dev/null`);
   for (let index = 0; index < repeat; index += 1) step();
   const stats = parseGfxinfo(shell(`dumpsys gfxinfo ${pkg}`));
   if (!stats) fail('gfxinfo recorded no frames');
-  if (!nodes().has(`thread-${thread}`)) fail(`thread ${thread} was not open after ${scenario}; the numbers measured another screen`);
+  const screen = nodes();
+  if (onList ? !screen.has('chat-list') || screen.has(`thread-${thread}`) : !screen.has(`thread-${thread}`)) fail(`${onList ? 'the chat list' : `thread ${thread}`} was not open after ${scenario}; the numbers measured another screen`);
   return stats;
 }
 

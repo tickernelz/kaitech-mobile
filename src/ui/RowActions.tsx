@@ -35,18 +35,18 @@ export function accessibilityActionsFor(actions: SheetAction[], moreLabel: strin
 }
 
 function useSidewaysGate(swipeEnabled: SharedValue<boolean>) {
-  const origin = useSharedValue({ x: 0, y: 0, decided: false });
+  const origin = useSharedValue({ id: -1, x: 0, y: 0, decided: false });
   return usePanGesture({
     manualActivation: true,
     onTouchesDown: (event) => {
       'worklet';
       const touch = event.changedTouches[0];
-      if (touch) origin.set({ x: touch.absoluteX, y: touch.absoluteY, decided: false });
+      if (touch && event.numberOfTouches === 1) origin.set({ id: touch.id, x: touch.absoluteX, y: touch.absoluteY, decided: false });
     },
     onTouchesMove: (event) => {
       'worklet';
       const start = origin.get();
-      const touch = event.allTouches[0];
+      const touch = event.allTouches.find((candidate) => candidate.id === start.id);
       if (start.decided || !touch) return;
       const verdict = swipeVerdict(touch.absoluteX - start.x, touch.absoluteY - start.y);
       if (verdict === 'undecided') return;
@@ -55,6 +55,7 @@ function useSidewaysGate(swipeEnabled: SharedValue<boolean>) {
     },
     onFinalize: () => {
       'worklet';
+      origin.set({ id: -1, x: 0, y: 0, decided: false });
       swipeEnabled.set(true);
     },
   });
