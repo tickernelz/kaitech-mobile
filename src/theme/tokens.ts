@@ -55,6 +55,13 @@ export function avatarFill(seed: number): string {
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 40 } as const;
 
+export function stateLayer(base: string, ink: string, opacity = 0.1): string {
+  const channels = (hex: string) => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
+  const under = channels(base);
+  const over = channels(ink);
+  return `#${under.map((value, index) => Math.round(value + (over[index] - value) * opacity).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+}
+
 export const stroke = { hairline: StyleSheet.hairlineWidth, thin: PixelRatio.roundToNearestPixel(1) } as const;
 
 export const radius =

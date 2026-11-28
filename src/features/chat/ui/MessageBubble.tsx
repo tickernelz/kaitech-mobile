@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import { memo, useCallback, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Pressable as ShapePressable, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { readableWidth } from '../../../layout/windowClass';
-import { radius, space, stroke, type as typography, useTheme } from '../../../theme';
+import { radius, space, stateLayer, stroke, type as typography, useTheme } from '../../../theme';
 import { haptic } from '../../../ui/haptic';
 import { Text } from '../../../ui/Text';
 import { bodyBlocks, bodyPreview, sourceBlocks } from '../markdown';
@@ -85,10 +85,11 @@ function Frame({
   interactive?: boolean;
 }) {
   const { colors } = useTheme();
-  const fill = mine ? colors.select : colors.surface;
+  const resting = mine ? colors.select : colors.surface;
+  const pressedFill = stateLayer(resting, colors.ink);
   const edge = mine && !failed ? null : failed ? colors.danger : colors.line;
   return (
-    <Pressable
+    <ShapePressable
       onLongPress={onLongPress}
       delayLongPress={LONG_PRESS_MS}
       accessible={!interactive}
@@ -97,10 +98,17 @@ function Frame({
       accessibilityActions={onLongPress ? [{ name: 'longpress' }] : undefined}
       onAccessibilityAction={onLongPress ? () => onLongPress() : undefined}
       testID={testID}
-      style={[styles.bubble, bare ? [styles.bare, failed && { borderColor: colors.danger }] : [edge ? { borderColor: edge } : styles.plain, { backgroundColor: fill }]]}>
-      {bare ? null : <Tail mine={mine} fill={fill} edge={edge} />}
-      {children}
-    </Pressable>
+      style={({ pressed }) => [
+        styles.bubble,
+        bare ? [styles.bare, failed && { borderColor: colors.danger }, pressed && styles.barePressed] : [edge ? { borderColor: edge } : styles.plain, { backgroundColor: pressed ? pressedFill : resting }],
+      ]}>
+      {({ pressed }) => (
+        <>
+          {bare ? null : <Tail mine={mine} fill={pressed ? pressedFill : resting} edge={edge} />}
+          {children}
+        </>
+      )}
+    </ShapePressable>
   );
 }
 
@@ -463,6 +471,7 @@ const styles = StyleSheet.create({
   bubble: { maxWidth: '80%', minWidth: 88, borderRadius: radius.card, borderWidth: stroke.thin, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   bare: { backgroundColor: 'transparent', borderColor: 'transparent', paddingHorizontal: 0, minWidth: 0 },
   plain: { borderWidth: 0 },
+  barePressed: { opacity: 0.7 },
   tail: { position: 'absolute', width: radius.card, height: radius.card, borderRadius: radius.sm },
   quoteBox: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.sm, paddingHorizontal: space.sm, paddingVertical: space.xs },
   attachments: { gap: space.xs },

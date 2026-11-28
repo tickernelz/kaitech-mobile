@@ -1,9 +1,9 @@
 import '../src/i18n';
-import { render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import type { Message, Pending } from '../src/features/chat/types';
 import { MessageBubble, PendingBubble } from '../src/features/chat/ui/MessageBubble';
-import { colorsFor, stroke } from '../src/theme/tokens';
+import { colorsFor, stateLayer, stroke } from '../src/theme/tokens';
 
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined } }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
@@ -87,6 +87,24 @@ describe('message bubble corner', () => {
     const { fill, edge } = parts();
     expect(edge?.backgroundColor).toBe(colors.danger);
     expect(fill?.backgroundColor).toBe(colors.select);
+  });
+
+  test.each([true, false])('mine=%s: pressing darkens the bubble and its small corner together, so the corner never shows as a lighter patch', async (mine) => {
+    const bubble = await sent(mine);
+    const resting = mine ? colors.select : colors.surface;
+    expect(flat(bubble.props.style).backgroundColor).toBe(resting);
+    const touch = { pageX: 10, pageY: 10, locationX: 10, locationY: 10, timestamp: 0, touches: [], changedTouches: [] };
+    await act(async () => fireEvent(bubble, 'responderGrant', { nativeEvent: touch, persist: () => undefined, currentTarget: { measure: () => undefined } }));
+    const pressed = stateLayer(resting, colors.ink);
+    expect(pressed).not.toBe(resting);
+    expect(flat(screen.getByTestId('bubble-9').props.style).backgroundColor).toBe(pressed);
+    expect(parts().fill?.backgroundColor).toBe(pressed);
+  });
+
+  test('the state layer mixes a tenth of the content colour into the fill', () => {
+    expect(stateLayer('#FFFFFF', '#000000')).toBe('#E6E6E6');
+    expect(stateLayer('#000000', '#FFFFFF')).toBe('#1A1A1A');
+    expect(stateLayer('#EDE7F5', '#151418')).toBe(stateLayer('#EDE7F5', '#151418', 0.1));
   });
 
   test('a sticker without a bubble draws no corner', async () => {
