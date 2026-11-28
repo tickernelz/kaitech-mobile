@@ -743,13 +743,13 @@
   },
   "directory": {
     "title": "Percakapan baru",
-    "detail": "Orang di Program Anda",
+    "detail": "Orang di program Anda",
     "loading": "Memuat",
-    "empty": "Belum ada yang bisa diajak chat. Konsultan menambahkan Anda ke Program dulu.",
+    "empty": "Belum ada yang bisa diajak chat. Konsultan menambahkan Anda ke program dulu.",
     "retry": "Coba lagi",
+    "coworker": "Menjawab soal program Anda",
     "role": {
-      "Coworker": "Coworker",
-      "Lead": "Pemimpin Program",
+      "Lead": "Pemimpin program",
       "Team": "Tim Kaitech"
     }
   }

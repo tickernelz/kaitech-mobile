@@ -4,7 +4,7 @@ import { useNetworkState } from 'expo-network';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, ScrollView, StyleSheet, TextInput, View, type LayoutChangeEvent } from 'react-native';
-import { radius, space, useTheme } from '../../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../../theme';
 import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
 import { useChat } from '../../../chat';
@@ -16,6 +16,7 @@ import { GifCell } from './StickerCell';
 import { PanelState, Skeleton } from './states';
 import { problemOf } from './logic';
 import { reachBelow, touchTarget } from '../../../../../ui/touch';
+import { choiceLook } from '../../../../../ui/pill';
 
 export function GifTab({ initialQuery, onPick, onSearching }: { initialQuery: string; onPick: (gif: GifMedia) => void; onSearching: (searching: boolean) => void }) {
   const { t } = useTranslation('chat');
@@ -119,7 +120,7 @@ export function GifTab({ initialQuery, onPick, onSearching }: { initialQuery: st
 function Chip({ label, thumb, selected, onPress, testID }: { label: string; thumb?: string; selected: boolean; onPress: () => void; testID: string }) {
   const { colors } = useTheme();
   return (
-    <Pressable accessibilityRole="tab" accessibilityState={{ selected }} onPress={onPress} hitSlop={gifChipSlop} style={[styles.chip, { backgroundColor: selected ? colors.select : colors.surface2 }]} testID={testID}>
+    <Pressable accessibilityRole="tab" accessibilityState={{ selected }} onPress={onPress} hitSlop={gifChipSlop} style={[styles.chip, choiceLook(selected, colors, { fill: colors.surface2, paddingHorizontal: space.sm, edge: 'transparent' })]} testID={testID}>
       {thumb ? <Image source={{ uri: thumb }} cachePolicy="memory" style={styles.thumb} accessible={false} /> : null}
       <Text variant="footnote" tone={selected ? 'selectInk' : 'inkSoft'} numberOfLines={1}>
         {label}
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
   search: { height: touchTarget, borderRadius: radius.pill, paddingHorizontal: space.md, fontSize: 16 },
   bar: { flexGrow: 0 },
   chips: { gap: space.xs, paddingTop: gifChipSlop.top, paddingBottom: gifChipSlop.bottom },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, height: gifChipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.sm, borderRadius: radius.pill },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, height: gifChipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: stroke.thin },
   thumb: { width: 24, height: 24, borderRadius: 12 },
   mark: { textAlign: 'center', paddingVertical: space.sm },
 });

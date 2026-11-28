@@ -84,7 +84,7 @@ Android uses the Material 3 roles generated from the seed `#441D65` (`src/theme/
 
 | Emphasis | Used for | Android light / dark | iOS light / dark |
 |---|---|---|---|
-| Selected | tab, chip, segment or toggle that is on; selected row | `select` `#EDE7F5` / `#2D2739` with `selectInk` (the M3 `secondaryContainer` slot) | same tokens |
+| Selected | tab, chip, segment or toggle that is on; selected row | `select` `#EDE7F5` / `#2D2739` with `selectInk` (the M3 `secondaryContainer` slot); a chip, segment, day or choice also draws a 2 dp `focus` outline (`choiceLook` in `src/ui/pill.ts`), since `select` alone is 1.10 to 1.33 against `canvas` and `surface` | same tokens |
 | Accent, no fill | FAB icon, links, active icons, progress, spinner, slider, radio dot | `primary` `#705289` / `#DDB9F8` | tint `#5F2E91` / `#C4A8EE` |
 | Commit, filled | the one action that sends or confirms: send, send voice, held recording, filled `Button`; unread count badges | `primary` fill, `onPrimary` `#FFFFFF` / `#3F2358` | tint fill, `#FFFFFF` / `#151418` |
 | Idle control on glass | mic, camera, emoji, attach, call toggles that are off | `inkSoft` (`onSurfaceVariant`) | `inkSoft` |
@@ -250,7 +250,7 @@ Ratios from `node scripts/design-quality.mjs --contrast` on the tokens (light / 
 | Text | 4.5:1 against its background; 3:1 for text of 18 and up or 14 bold | W 1.4.3 |
 | Icons, input outlines, focus rings, selected indicators | 3:1 | W 1.4.11 |
 | Decorative separators and card outlines | no minimum; the item's own text identifies it | W 1.4.11 |
-| `primary` as text | allowed on both platforms with the [Colour roles](#colour-roles) tokens: 5.61 and up light, 7.19 and up dark against the surfaces | measured |
+| `primary` as text | allowed on both platforms with the [Colour roles](#colour-roles) tokens: 5.61 and up light, 7.19 and up dark against the surfaces; `link` equals `primary` on both | measured |
 | `inkFaint` | lowest text token: 4.89 on `surface2` dark, keep it for meta only | measured |
 
 White on `danger` is 4.23 light and 3.15 dark, so it stays behind icons only (call decline, record), which pass the 3:1 icon floor. A count on a destructive fill, such as the activity tab badge, is `onDanger` on `dangerInk` on both platforms (6.47 light, 9.63 dark).

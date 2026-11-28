@@ -42,7 +42,7 @@ const text: [ColorName, ColorName[]][] = [
 const controls: [ColorName, ColorName[]][] = [
   ['primary', ['canvas', 'surface', 'surface2', 'select']],
   ['edge', ['canvas', 'surface']],
-  ['focus', ['surface', 'select']],
+  ['focus', ['canvas', 'surface', 'surface2', 'select']],
   ['danger', ['surface', 'onFill']],
 ];
 

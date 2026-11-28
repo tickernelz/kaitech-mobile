@@ -9,6 +9,7 @@ import { useThread } from './place';
 import { isDate, type FormBlock, type FormField, type RepliesBlock } from './read';
 import { BlockTitle, styles as shared } from './ui';
 import { touchTarget } from '../../../ui/touch';
+import { choiceLook } from '../../../ui/pill';
 
 function Choice({ label, on, onPress, testID, multiple }: { label: string; on: boolean; onPress: () => void; testID?: string; multiple: boolean }) {
   const { colors } = useTheme();
@@ -51,13 +52,10 @@ export const KtReplies = memo(function KtReplies({ block }: { block: RepliesBloc
               testID={`kt-reply-${index}`}
               style={({ pressed }) => [
                 styles.reply,
-                {
-                  borderColor: chosen ? colors.primary : colors.line,
-                  backgroundColor: chosen ? colors.primary : pressed ? colors.surface2 : colors.surface,
-                  opacity: disabled && !chosen ? 0.5 : 1,
-                },
+                choiceLook(chosen, colors, { fill: pressed ? colors.surface2 : colors.surface, paddingHorizontal: space.lg, paddingVertical: space.sm }),
+                { opacity: disabled && !chosen ? 0.5 : 1 },
               ]}>
-              <Text variant="callout" style={{ color: chosen ? colors.onPrimary : colors.ink }}>
+              <Text variant="callout" style={{ color: chosen ? colors.selectInk : colors.ink }}>
                 {reply}
               </Text>
             </Pressable>

@@ -743,12 +743,12 @@
   },
   "directory": {
     "title": "New conversation",
-    "detail": "People of your Programmes",
+    "detail": "People of your programmes",
     "loading": "Loading",
-    "empty": "Nobody to chat with yet. Your consultant adds you to a Programme first.",
+    "empty": "Nobody to chat with yet. Your consultant adds you to a programme first.",
     "retry": "Try again",
+    "coworker": "Answers about your programmes",
     "role": {
-      "Coworker": "Coworker",
       "Lead": "Programme lead",
       "Team": "Kaitech team"
     }

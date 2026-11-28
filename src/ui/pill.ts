@@ -1,7 +1,21 @@
-import { space, stroke } from '../theme/tokens';
+import type { ViewStyle } from 'react-native';
+import { space, stroke, type Colors } from '../theme/tokens';
 import { touchTarget } from './touch';
 
 export const glassEdge = stroke.thin;
+export const selectedEdge = 2;
+
+export function choiceLook(on: boolean, colors: Colors, rest: { fill: string; paddingHorizontal: number; paddingVertical?: number; edge?: string }): ViewStyle {
+  if (!on) return { backgroundColor: rest.fill, borderColor: rest.edge ?? colors.line };
+  const inset = stroke.thin - selectedEdge;
+  return {
+    backgroundColor: colors.select,
+    borderColor: colors.focus,
+    borderWidth: selectedEdge,
+    paddingHorizontal: rest.paddingHorizontal + inset,
+    ...(rest.paddingVertical === undefined ? null : { paddingVertical: rest.paddingVertical + inset }),
+  };
+}
 const composerHeight = 52;
 const composerInside = composerHeight - 2 * glassEdge;
 const composerIcon = 24;

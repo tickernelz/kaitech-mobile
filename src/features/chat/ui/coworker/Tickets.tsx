@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { radius, space, stroke, useTheme } from '../../../../theme';
+import { choiceLook } from '../../../../ui/pill';
 import { Button } from '../../../../ui/Button';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { Pressable } from '../../../../ui/Pressable';
@@ -338,9 +339,9 @@ export function TicketsSheet({ onClose, onOpenThread }: { onClose: () => void; o
               accessibilityRole="tab"
               accessibilityState={{ selected: on }}
               onPress={() => select(name)}
-              style={[styles.scope, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}
+              style={[styles.scope, choiceLook(on, colors, { fill: colors.surface, paddingHorizontal: space.md })]}
               testID={`tickets-scope-${name}`}>
-              <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
+              <Text variant="callout" style={{ color: on ? colors.selectInk : colors.ink }}>
                 {t(`tickets.scope.${name}`)}
               </Text>
             </Pressable>
