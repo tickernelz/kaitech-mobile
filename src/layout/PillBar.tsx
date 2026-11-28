@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { radius, stroke, useTheme, type Colors } from '../theme';
 import { GlassCapsule } from '../ui/GlassCapsule';
+import { glassMaterial } from '../ui/glassMaterial';
 import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
 import { PillBadge } from './PillBadge';
@@ -45,7 +46,7 @@ export function PillBar() {
       style={[styles.wrap, { bottom: bar.bottom, paddingLeft: bar.sideInsets.left, paddingRight: bar.sideInsets.right }, lift]}>
       <GlassCapsule
         accessibilityRole="tablist"
-        solid={[scheme === 'dark' ? styles.shadowDark : styles.shadowLight, styles.edge, { backgroundColor: colors.surface, borderColor: colors.line }]}
+        solid={[styles.edge, { backgroundColor: colors.surface, borderColor: colors.line, boxShadow: glassMaterial(scheme).shadow }]}
         style={[styles.capsule, { width }]}
         testID="navigation-bar">
         <View style={styles.track} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -76,8 +77,6 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   capsule: { height: pillHeight, padding: pillPadding, borderRadius: radius.pill, flexDirection: 'row' },
   edge: { borderWidth: stroke.thin },
-  shadowLight: { shadowColor: '#000000', shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
-  shadowDark: { shadowColor: '#000000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   track: { position: 'absolute', top: pillPadding, left: pillPadding, right: pillPadding, bottom: pillPadding },
   lens: { position: 'absolute', top: 0, bottom: 0, left: 0, borderRadius: radius.pill },
   glyph: { position: 'absolute', top: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', gap: pill.tab.labelGap },
