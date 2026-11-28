@@ -21,7 +21,7 @@ export function ChatShortcuts({ cells }: { cells: Shortcut[] }) {
       style={[styles.surface, stacked ? styles.stacked : null, { backgroundColor: colors.surface, borderColor: colors.line }]}
       testID={stacked ? 'chat-shortcuts-stacked' : 'chat-shortcuts'}>
       {cells.map((cell, index) => (
-        <View key={cell.key} style={[styles.slot, stacked ? null : styles.flex]}>
+        <View key={cell.key} style={stacked ? null : [styles.slot, styles.flex]}>
           {index > 0 ? <View style={[stacked ? styles.across : styles.down, { backgroundColor: colors.line }]} /> : null}
           <Pressable
             accessibilityRole="button"
@@ -52,5 +52,5 @@ const styles = StyleSheet.create({
   slot: { flexDirection: 'row' },
   cell: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: shortcutHeight, paddingHorizontal: space.lg },
   down: { width: line, alignSelf: 'stretch' },
-  across: { height: line, position: 'absolute', top: 0, left: 0, right: 0 },
+  across: { height: line },
 });
