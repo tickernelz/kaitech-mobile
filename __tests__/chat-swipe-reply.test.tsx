@@ -75,14 +75,20 @@ function bubble(item: Message, onReply?: (message: Message) => void, onLongPress
   );
 }
 
-async function drag(id: number, path: number[], end: GestureState = State.END) {
+type Point = number | [number, number];
+
+function at(point: Point) {
+  const [translationX, translationY] = typeof point === 'number' ? [point, 0] : point;
+  return { translationX, translationY };
+}
+
+async function drag(id: number, path: Point[], end: GestureState = State.END) {
   const last = path[path.length - 1];
   await act(async () =>
     fireGestureHandler(getByGestureTestId(`message-${id}-swipe`), [
-    { state: State.BEGAN, translationX: 0 },
-    { state: State.ACTIVE, translationX: path[0] },
-    ...path.slice(1).map((translationX) => ({ state: State.ACTIVE, translationX })),
-    { state: end, translationX: last },
+    { state: State.BEGAN, translationX: 0, translationY: 0 },
+    ...path.map((point) => ({ state: State.ACTIVE, ...at(point) })),
+    { state: end, ...at(last) },
     ]),
   );
 }
@@ -132,6 +138,21 @@ describe('swipe right to reply', () => {
     expect(mockTick).toHaveBeenCalledTimes(1);
   });
 
+  it('drops the reply for the rest of the touch once the finger moves more up or down than sideways', async () => {
+    const reply = jest.fn();
+    await bubble(message(60, 'Oke'), reply);
+    await drag(60, [replySlop + 10, past, [past + 10, past + 11], past + 30]);
+    expect(reply).not.toHaveBeenCalled();
+    expect(mockTick).toHaveBeenCalledTimes(1);
+  });
+
+  it('still replies when a sideways pull drifts a little up or down, as a thumb does', async () => {
+    const reply = jest.fn();
+    await bubble(message(61, 'Oke'), reply);
+    await drag(61, [replySlop + 10, [past, 40], [past + 20, -30]]);
+    expect(reply).toHaveBeenCalledTimes(1);
+  });
+
   it('does not reply when the system cancels the gesture, as when the list takes over the touch', async () => {
     const reply = jest.fn();
     await bubble(message(54, 'Oke'), reply);
@@ -155,6 +176,11 @@ describe('swipe right to reply', () => {
     await bubble(message(57, 'Oke'));
     expect(screen.getByTestId('message-57')).toBeTruthy();
     expect(() => getByGestureTestId('message-57-swipe')).toThrow();
+  });
+
+  it('needs at least 100 dp of sideways finger travel before a release replies', () => {
+    expect(replyPull(99)).toBeLessThan(replyReach);
+    expect(replyPull(100)).toBeGreaterThanOrEqual(replyReach);
   });
 
   it('follows the finger after the slop, then resists and stops at the cap', () => {
