@@ -2,6 +2,13 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.20.2 - 2026-11-28
+
+### Fixed
+
+- Users: the search field is the 48 dp search capsule shared with the Search screen, so its label is no longer clipped under the header; the list uses the same header and insets as the person screen and every Settings page; the role chips run to the screen edge so a cut chip shows the row scrolls, and wrap at large font sizes; a person's history shows the five newest entries with "See all", keeping Deactivate within reach (#193, ZHA-8139).
+- Indonesian wording on the Users, client Home and new conversation screens is consistent: role names inside a sentence are lower case ("Jadikan Rina admin?"), the external role reads "Eksternal" everywhere, and Program, Programme and programme are all "program". A person in no programme reads "Belum jadi anggota program mana pun." instead of "Anggota 0 Programme", and the Coworker row of a client's new conversation list says what it does ("Menjawab soal program Anda") instead of repeating "Coworker" (#191, ZHA-8140).
+
 ## 0.20.1 - 2026-11-28
 
 ### Changed
