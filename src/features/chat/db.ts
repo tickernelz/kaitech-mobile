@@ -121,6 +121,10 @@ export function storeTickets(account: string, tickets: { id: number }[]) {
   });
 }
 
+export function dropTicket(account: string, id: number) {
+  void db().runAsync('DELETE FROM tickets WHERE account = ? AND id = ?', [account, id]);
+}
+
 export async function forgetAccount(account: string) {
   await db().withTransactionAsync(async () => {
     for (const table of ['conversations', 'messages', 'outbox', 'drafts', 'tickets']) {

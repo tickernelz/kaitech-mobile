@@ -14,10 +14,9 @@ import {
   answerQuestion,
   followTicket,
   lastSteps,
-  offlineTicket,
   onTicketNotice,
+  readTicket,
   stopTicket,
-  ticketDetail,
   ticketList,
   type Option,
   type Question,
@@ -53,28 +52,28 @@ export function StateChip({ state }: { state: TicketState }) {
 
 function useLiveTicket(initial: Ticket) {
   const accountId = useChat((state) => state.accountId);
-  const [held, setHeld] = useState<{ from: Ticket; ticket: Ticket }>({ from: initial, ticket: initial });
-  if (held.from !== initial) setHeld({ from: initial, ticket: initial });
+  const [held, setHeld] = useState<{ from: Ticket; ticket: Ticket; gone: boolean }>({ from: initial, ticket: initial, gone: false });
+  if (held.from !== initial) setHeld({ from: initial, ticket: initial, gone: false });
   const ticket = held.from === initial ? held.ticket : initial;
+  const gone = held.from === initial && held.gone;
   const setTicket = useCallback((next: Ticket) => setHeld((current) => ({ ...current, ticket: next })), []);
+  const markGone = useCallback(() => setHeld((current) => ({ ...current, gone: true })), []);
   const refresh = useCallback(async () => {
-    const result = await ticketDetail(initial.id);
-    if (result.ok && result.value) setTicket(result.value);
-    else if (accountId) {
-      const cached = offlineTicket(accountId, initial.id);
-      if (cached) setTicket(cached);
-    }
-  }, [accountId, initial.id, setTicket]);
+    const reading = await readTicket(accountId, initial.id);
+    if (reading && 'gone' in reading) markGone();
+    else if (reading) setTicket(reading.ticket);
+  }, [accountId, initial.id, setTicket, markGone]);
   useEffect(() => onTicketNotice((notice) => (notice.ticketId === initial.id ? void refresh() : undefined)), [initial.id, refresh]);
-  return { ticket, setTicket, refresh };
+  return { ticket, gone, setTicket, markGone };
 }
 
 export function TicketCard({ ticket: initial }: { ticket: Ticket }) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
-  const { ticket, setTicket } = useLiveTicket(initial);
+  const { ticket, gone, setTicket, markGone } = useLiveTicket(initial);
   const [open, setOpen] = useState(false);
   const steps = lastSteps(ticket, 1);
+  if (gone) return null;
   return (
     <>
       <Pressable
@@ -106,7 +105,7 @@ export function TicketCard({ ticket: initial }: { ticket: Ticket }) {
           </Text>
         ) : null}
       </Pressable>
-      {open ? <TicketDetail ticket={ticket} onChange={setTicket} onClose={() => setOpen(false)} /> : null}
+      {open ? <TicketDetail ticket={ticket} onChange={setTicket} onGone={markGone} onClose={() => setOpen(false)} /> : null}
     </>
   );
 }
@@ -116,12 +115,13 @@ export function TicketAskCard({ ask }: { ask: TicketAsk }) {
   const { colors } = useTheme();
   const online = useChat((state) => state.online);
   const [answered, setAnswered] = useState<Question | null>(null);
-  const { ticket, setTicket } = useLiveTicket(ask.ticket);
+  const { ticket, gone, setTicket } = useLiveTicket(ask.ticket);
   const [sheet, setSheet] = useState(false);
   const fresh = ticket.questions.find((item) => item.id === ask.question.id);
   const question: Question = answered ?? (fresh ? { ...fresh, canAnswer: ticket.canDecide && fresh.state === 'open' } : ask.question);
   const deciders = ticket.answerers.join(', ') || ticket.requester;
   const chosen = question.options.find((option) => option.id === question.answeredOption);
+  if (gone) return null;
   return (
     <View style={[styles.card, styles.ask, { borderColor: colors.warnInk, backgroundColor: colors.warnBand }]} testID={`ticket-ask-${question.id}`}>
       <Text variant="label" tone="warnInk">
@@ -204,17 +204,19 @@ function AnswerSheet({ question, online, onClose, onAnswered }: { question: Ques
   );
 }
 
-export function TicketDetail({ ticket, onChange, onClose }: { ticket: Ticket; onChange: (next: Ticket) => void; onClose: () => void }) {
+export function TicketDetail({ ticket, onChange, onGone, onClose }: { ticket: Ticket; onChange: (next: Ticket) => void; onGone: () => void; onClose: () => void }) {
   const { t } = useTranslation('chat');
   const online = useChat((state) => state.online);
+  const accountId = useChat((state) => state.accountId);
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    void ticketDetail(ticket.id).then((result) => {
-      if (result.ok && result.value) onChange(result.value);
+    void readTicket(accountId, ticket.id).then((reading) => {
+      if (reading && 'gone' in reading) onGone();
+      else if (reading) onChange(reading.ticket);
     });
-  }, [ticket.id, onChange]);
+  }, [accountId, ticket.id, onChange, onGone]);
   const act = async (work: () => ReturnType<typeof stopTicket>) => {
     setBusy(true);
     setError(null);

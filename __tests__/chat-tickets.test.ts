@@ -6,20 +6,21 @@ jest.mock('../src/features/chat/db', () => ({
     const kept = (mockStore.get(account) ?? []).filter((item) => !tickets.some((ticket) => ticket.id === item.id));
     mockStore.set(account, [...tickets, ...kept]);
   },
+  dropTicket: (account: string, id: number) => mockStore.set(account, (mockStore.get(account) ?? []).filter((item) => item.id !== id)),
 }));
 jest.mock('../src/features/chat/messageActions', () => ({
   run: async <T>(work: (account: { id: string }) => Promise<T>) => {
     try {
       return { ok: true, value: await work({ id: mockAccount }) };
-    } catch {
-      return { ok: false, code: 'offline', detail: null };
+    } catch (error) {
+      return { ok: false, code: (error as { code?: string }).code ?? 'unknown', detail: null };
     }
   },
 }));
 jest.mock('../src/api/odoo', () => ({ rpc: jest.fn() }));
 
 import { rpc } from '../src/api/odoo';
-import { noticeTicket, offlineTicket, onTicketNotice, questionFrom, ticketDetail, ticketFrom } from '../src/features/chat/tickets';
+import { noticeTicket, offlineTicket, onTicketNotice, questionFrom, readTicket, ticketDetail, ticketFrom } from '../src/features/chat/tickets';
 
 const raw = {
   id: 7,
@@ -70,6 +71,26 @@ describe('the last ticket read stays per account', () => {
     await ticketDetail(7);
     expect(offlineTicket('a', 7)?.number).toBe('TK-7');
     expect(offlineTicket('b', 7)).toBeNull();
+  });
+
+  it('falls back to the stored copy only when the phone is offline', async () => {
+    (rpc as jest.Mock).mockResolvedValueOnce(raw);
+    await ticketDetail(7);
+    (rpc as jest.Mock).mockRejectedValueOnce({ code: 'network' });
+    expect(await readTicket('a', 7)).toEqual({ ticket: expect.objectContaining({ number: 'TK-7' }) });
+    (rpc as jest.Mock).mockRejectedValueOnce({ code: 'server' });
+    expect(await readTicket('a', 7)).toBeNull();
+    expect(offlineTicket('a', 7)?.number).toBe('TK-7');
+  });
+
+  it.each(['forbidden', 'not_found'])('forgets the stored copy once the server answers %s', async (code) => {
+    (rpc as jest.Mock).mockResolvedValueOnce(raw);
+    await ticketDetail(7);
+    (rpc as jest.Mock).mockRejectedValueOnce({ code });
+    expect(await readTicket('a', 7)).toEqual({ gone: true });
+    expect(offlineTicket('a', 7)).toBeNull();
+    (rpc as jest.Mock).mockRejectedValueOnce({ code: 'network' });
+    expect(await readTicket('a', 7)).toBeNull();
   });
 });
 

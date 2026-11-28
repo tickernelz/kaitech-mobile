@@ -1,5 +1,5 @@
 import { rpc } from '../../api/odoo';
-import { cachedTickets, storeTickets } from './db';
+import { cachedTickets, dropTicket, storeTickets } from './db';
 import { run } from './messageActions';
 
 export type TicketState = 'draft' | 'progress' | 'blocked' | 'done' | 'cancelled';
@@ -196,6 +196,20 @@ export function ticketList(scope: Scope, after = 0) {
 
 export function offlineTicket(accountId: string, ticketId: number): Ticket | null {
   return cachedTickets<Ticket>(accountId).find((ticket) => ticket.id === ticketId) ?? null;
+}
+
+export type Reading = { ticket: Ticket } | { gone: true } | null;
+
+export async function readTicket(accountId: string | null, ticketId: number): Promise<Reading> {
+  const result = await ticketDetail(ticketId);
+  if (result.ok) return result.value ? { ticket: result.value } : null;
+  if (result.code === 'forbidden' || result.code === 'not_found') {
+    if (accountId) dropTicket(accountId, ticketId);
+    return { gone: true };
+  }
+  if (result.code !== 'network' || !accountId) return null;
+  const cached = offlineTicket(accountId, ticketId);
+  return cached ? { ticket: cached } : null;
 }
 
 type Notice = { ticketId: number; at: number };
