@@ -2,6 +2,26 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.19.0 - 2026-11-28
+
+### Changed
+
+- Android colours follow Material 3 from the Kaitech seed instead of the brand purple: primary `#705289` light and `#DDB9F8` dark, with dark text on dark-theme primary fills. The deep `#441D65` stays for the wordmark, splash and app icon (#178, ZHA-8127).
+- Android: the new-chat button is a glass circle like the tab bar, with a purple icon, instead of a purple rounded square. On the Meizu Mblu 21 chat list scrolling measured 1.4% janky frames against 2.1% before, p99 23-24 ms against 24 ms (#178, ZHA-8127).
+- Composer: the microphone at rest is a glass circle with a grey icon; send stays a filled purple circle and appears only when there is something to send; a held recording grows to a filled 72 dp circle; the slide-to-lock pill and the "hold to record" hint are glass capsules. The shapes apply on iOS too, the colours there are unchanged. Thread scrolling measured 2.0% janky frames against 2.3% before, p90 18 ms against 16 ms (#178, ZHA-8127).
+- Shapes: single-line search fields (emoji, GIF, sticker, location, forward, add people, search in conversation), the undo bar, the text format bar and its buttons, and the call and date notices in a thread are capsules; the Android outlined text field has 14 dp corners instead of 4. The minutes table header is grey instead of a purple band (#178, ZHA-8127).
+- Destructive colours follow the design rule: a badge with a number sits on the darker red with white or near-black text (6.5:1 light, 9.6:1 dark), icons on a red button stay white (#178, ZHA-8127).
+
+### Fixed
+
+- Discovery heatmap: numbers in the cells keep at least 4.5:1 against their tint on both platforms and themes; the text colour is picked by contrast and the two darkest steps are deeper (#178, ZHA-8127).
+
+### Known gaps
+
+- Selected chips, segments, days and the tablet rail indicator are still filled purple; the design rule asks for the selection tone, which a follow-up changes (#178, ZHA-8126).
+- Android `link` text is still `#5F2E91` / `#C4A8EE`; the design rule makes it the primary colour (#178, ZHA-8126).
+- iOS keeps its current purple until its own task; the composer and lock pill shapes on iOS have not been seen on a device (#178, ZHA-8127).
+
 ## 0.18.0 - 2026-11-28
 
 ### Added
