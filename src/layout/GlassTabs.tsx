@@ -1,11 +1,11 @@
 import { NativeTabs } from 'expo-router/native-tabs';
 import { useTranslation } from 'react-i18next';
 import { DynamicColorIOS, type ImageSourcePropType } from 'react-native';
-import { usePendingActivities } from '../features/activity/useActivityOverview';
 import { colorsFor } from '../theme/tokens';
 import { useAccess } from '../auth/useAccess';
 import { allTabs, badgeText, routes, tabsFor, type TabName } from './tabs';
 import { useClientLanding } from './useClientLanding';
+import { useTabCounts } from './useTabCounts';
 
 const glyphs: Record<TabName, { default: ImageSourcePropType; selected: ImageSourcePropType }> = {
   home: { default: require('../../assets/tabs/home-line.png'), selected: require('../../assets/tabs/home-fill.png') },
@@ -19,7 +19,7 @@ const brand = DynamicColorIOS({ light: colorsFor('light').primary, dark: colorsF
 
 export function GlassTabs() {
   const { t } = useTranslation();
-  const pending = badgeText(usePendingActivities());
+  const counts = useTabCounts();
   const shown = tabsFor(useAccess());
   useClientLanding();
   return (
@@ -28,7 +28,7 @@ export function GlassTabs() {
         <NativeTabs.Trigger key={name} name={routes[name].name} hidden={!shown.includes(name)} testID={`tab-button-${name}`}>
           <NativeTabs.Trigger.Icon src={glyphs[name]} renderingMode="template" />
           <NativeTabs.Trigger.Label>{t(`tabs.${name}`)}</NativeTabs.Trigger.Label>
-          {name === 'activity' ? <NativeTabs.Trigger.Badge hidden={!pending}>{pending}</NativeTabs.Trigger.Badge> : null}
+          <NativeTabs.Trigger.Badge hidden={!counts[name]}>{badgeText(counts[name])}</NativeTabs.Trigger.Badge>
         </NativeTabs.Trigger>
       ))}
     </NativeTabs>

@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import { can, type Access } from '../auth/access';
 import type { IconName } from '../ui/icons';
 
@@ -21,6 +22,14 @@ export function tabsFor(access: Access): TabName[] {
     if (name === 'home') return can(access, 'client.home');
     return can(access, 'team');
   });
+}
+
+const countKeys = { home: null, chat: 'tabs.unread', discovery: null, mom: null, activity: 'activities.pending' } as const satisfies Record<TabName, string | null>;
+
+export function tabSpoken(t: TFunction, name: TabName, count: number): string {
+  const label = t(`tabs.${name}`);
+  const key = countKeys[name];
+  return key && count > 0 ? `${label}, ${t(key, { count })}` : label;
 }
 
 export function badgeText(count: number): string | undefined {

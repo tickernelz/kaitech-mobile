@@ -85,7 +85,8 @@
     "mom": "MoM",
     "activity": "Activity",
     "profile": "Profile and settings",
-    "home": "Home"
+    "home": "Home",
+    "unread": "{{count}} unread"
   },
   "settings": {
     "title": "Settings",

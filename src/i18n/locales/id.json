@@ -85,7 +85,8 @@
     "mom": "MoM",
     "activity": "Aktivitas",
     "profile": "Profil dan pengaturan",
-    "home": "Beranda"
+    "home": "Beranda",
+    "unread": "{{count}} belum dibaca"
   },
   "settings": {
     "title": "Pengaturan",

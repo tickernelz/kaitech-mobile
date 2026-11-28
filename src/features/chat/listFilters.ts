@@ -16,3 +16,7 @@ export function matches(conversation: Conversation, filter: Filter): boolean {
   if (filter === 'rooms') return conversation.type !== 'chat';
   return true;
 }
+
+export function unreadCount(conversations: Conversation[]): number {
+  return conversations.filter((conversation) => matches(conversation, 'unread')).length;
+}

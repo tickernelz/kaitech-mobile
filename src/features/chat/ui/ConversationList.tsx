@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { useTabBarSpace } from '../../../layout/tabBar';
+import { badgeText } from '../../../layout/tabs';
 import { HeaderActions } from '../../../screens/HeaderActions';
 import { useLargeText, useWindowClass } from '../../../layout/windowClass';
 import { Banner } from '../../../ui/Banner';
@@ -16,6 +17,7 @@ import { loadArchived, loadMoreConversations, refreshConversations, useChat } fr
 import { IconButton } from '../../../ui/IconButton';
 import { hasFeature } from '../features';
 import { listFilters, matches, type Filter } from '../listFilters';
+import { useUnreadConversations } from '../unread';
 import { pushSupported } from '../push';
 import type { Conversation } from '../types';
 import { Avatar } from './Avatar';
@@ -190,7 +192,7 @@ export function ConversationList({
     setInArchive(true);
     void loadArchived();
   };
-  const unreadTotal = useMemo(() => conversations.filter((conversation) => conversation.unread > 0).length, [conversations]);
+  const unreadTotal = useUnreadConversations();
   const bar = useScrolledUnder();
 
   const archiveBack = <IconButton icon="back" label={t('translation:row.back')} onPress={() => setInArchive(false)} testID="chat-archive-back" />;
@@ -240,7 +242,7 @@ export function ConversationList({
         {name === 'unread' && unreadTotal ? (
           <View style={[styles.count, { backgroundColor: on ? colors.onPrimary : colors.primary }]}>
             <Text variant="label" style={{ color: on ? colors.primary : colors.onPrimary }}>
-              {unreadTotal}
+              {badgeText(unreadTotal)}
             </Text>
           </View>
         ) : null}

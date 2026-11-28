@@ -3,8 +3,9 @@ import { StyleSheet, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { spring } from '../theme/motion';
 import { Text } from '../ui/Text';
+import type { TabName } from './tabs';
 
-export function PillBadge({ text, fill, ink, edge, reduceMotion, style }: { text: string | undefined; fill: string; ink: string; edge?: string; reduceMotion: boolean; style?: ViewStyle }) {
+export function PillBadge({ name, text, fill, ink, edge, reduceMotion, style }: { name: TabName; text: string | undefined; fill: string; ink: string; edge?: string; reduceMotion: boolean; style?: ViewStyle }) {
   const scale = useSharedValue(1);
   const shown = useRef(text);
   useEffect(() => {
@@ -17,7 +18,7 @@ export function PillBadge({ text, fill, ink, edge, reduceMotion, style }: { text
   const pop = useAnimatedStyle(() => ({ transform: [{ scale: scale.get() }] }));
   if (!text) return null;
   return (
-    <Animated.View style={[styles.badge, { backgroundColor: fill }, edge ? { borderColor: edge, borderWidth: 2 } : null, style, pop]} testID="tab-badge-activity">
+    <Animated.View style={[styles.badge, { backgroundColor: fill }, edge ? { borderColor: edge, borderWidth: 2 } : null, style, pop]} testID={`tab-badge-${name}`}>
       <Text variant="label" maxFontSizeMultiplier={1.2} style={[styles.text, { color: ink }]}>
         {text}
       </Text>
