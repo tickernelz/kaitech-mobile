@@ -17,7 +17,7 @@ name: Add a lab0 account from Settings on a phone that is already signed in
     id: sign-in-continue
 - extendedWaitUntil:
     visible:
-      text: (Email|Password|Kata Sandi|Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
+      text: (Email|Password|Kata Sandi|Pilih user|Choose a user|Sign in to the Kaitech app on this device\?|Masuk ke aplikasi Kaitech di perangkat ini\?)
     timeout: 60000
 - runFlow:
     when:
@@ -33,8 +33,19 @@ name: Add a lab0 account from Settings on a phone that is already signed in
                 text: .*(Bukan Anda|Not you|akun lain|another account).*
             - extendedWaitUntil:
                 visible:
-                  text: (Email|Password|Kata Sandi)
+                  text: (Email|Password|Kata Sandi|Pilih user|Choose a user)
                 timeout: 60000
+- runFlow:
+    when:
+      visible:
+        text: .*(Gunakan user lain|Use another user).*
+    commands:
+      - tapOn:
+          text: .*(Gunakan user lain|Use another user).*
+      - extendedWaitUntil:
+          visible:
+            text: (Email|Password|Kata Sandi)
+          timeout: 60000
 - runFlow:
     when:
       visible:

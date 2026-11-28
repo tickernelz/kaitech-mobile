@@ -60,6 +60,10 @@ name: Admin account - Users list, move a person between internal and external, s
 - tapOn:
     id: settings-back
 - tapOn:
+    id: users-search
+- eraseText: 30
+- hideKeyboard
+- tapOn:
     id: users-filter-superadmin
 - extendedWaitUntil:
     visible:
