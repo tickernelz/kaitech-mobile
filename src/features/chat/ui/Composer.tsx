@@ -14,7 +14,7 @@ import { Text } from '../../../ui/Text';
 import { chatClient, notifyTyping, send, useChat, type Outgoing } from '../chat';
 import { cannedQuery, cannedResponses, deleteBefore, markCannedUsed, sendLater, type Canned } from '../composerExtras';
 import { hasFeature } from '../features';
-import { CameraSlot, FieldButton, LockPill, SendMicButton, ShortHint, controlGap } from './composer/Controls';
+import { CameraSlot, FieldButton, LockPill, SendMicButton, ShortHint, controlGap, useSolidCapsule } from './composer/Controls';
 import { sendModeOf } from './composer/gesture';
 import { useVoiceRecorder, type Voice } from './composer/useVoiceRecorder';
 import { DiscardAnimation, InterruptionBanner, VoiceRow, voiceRowPhase } from './composer/VoiceBar';
@@ -446,7 +446,7 @@ export const Composer = forwardRef<
   useEffect(() => {
     if (floatHeight) onOverlap?.(space.sm + floatHeight + resting);
   }, [floatHeight, onOverlap, resting]);
-  const solidCapsule = { backgroundColor: colors.surface, borderColor: colors.line, borderWidth: glassEdge };
+  const solidCapsule = useSolidCapsule();
 
   return (
     <View pointerEvents="box-none" style={[styles.container, { paddingBottom: bottom }]} testID="composer">

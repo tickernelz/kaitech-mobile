@@ -244,7 +244,7 @@ export function EmojiTab({
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  search: { flex: 1, height: touchTarget, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
+  search: { flex: 1, height: touchTarget, borderRadius: radius.pill, paddingHorizontal: space.md, fontSize: 16 },
   square: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   categories: { flexDirection: 'row', paddingTop: categorySlop.top, paddingBottom: categorySlop.bottom },
   category: { flex: 1, height: categoryHeight, alignItems: 'center', justifyContent: 'center' },

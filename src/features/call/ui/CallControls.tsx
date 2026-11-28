@@ -91,7 +91,7 @@ export function RoundButton({
 }: Look & { onPress: () => void; onStage: boolean; size?: number; well?: string; testID?: string }) {
   const { colors } = useTheme();
   const fill = danger ? colors.danger : active ? (onStage ? colors.onStage : colors.primary) : (well ?? 'transparent');
-  const ink = danger ? colors.onPrimary : active ? (onStage ? colors.stage : colors.onPrimary) : onStage ? colors.onStage : colors.ink;
+  const ink = danger ? colors.onFill : active ? (onStage ? colors.stage : colors.onPrimary) : onStage ? colors.onStage : colors.ink;
   return (
     <Pressable
       accessibilityRole="button"

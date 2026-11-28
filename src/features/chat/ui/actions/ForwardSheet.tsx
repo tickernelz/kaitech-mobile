@@ -121,5 +121,5 @@ export function ForwardSheet({ message, onClose, onDone }: { message: Message; o
 const styles = StyleSheet.create({
   pad: { padding: space.lg },
   gap: { marginTop: space.md },
-  input: { minHeight: 44, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
+  input: { minHeight: 44, borderRadius: radius.pill, paddingHorizontal: space.md, fontSize: 16 },
 });

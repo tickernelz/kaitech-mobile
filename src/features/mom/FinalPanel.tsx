@@ -73,14 +73,14 @@ function Paper({ view }: { view: FinalView }) {
       </Text>
       {points.length ? (
         <View style={[styles.table, { borderColor: colors.line }]}>
-          <View style={[styles.tableRow, { backgroundColor: colors.primary }]}>
-            <Text variant="label" style={[styles.number, { color: colors.onPrimary }]}>
+          <View style={[styles.tableRow, { backgroundColor: colors.surface2 }]}>
+            <Text variant="label" style={[styles.number, { color: colors.ink }]}>
               {t('mom.final.number')}
             </Text>
-            <Text variant="label" style={[styles.cell, { color: colors.onPrimary }]}>
+            <Text variant="label" style={[styles.cell, { color: colors.ink }]}>
               {t('mom.final.item')}
             </Text>
-            <Text variant="label" style={[styles.cell, { color: colors.onPrimary }]}>
+            <Text variant="label" style={[styles.cell, { color: colors.ink }]}>
               {t('mom.final.check')}
             </Text>
           </View>

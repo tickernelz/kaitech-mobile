@@ -221,6 +221,6 @@ const styles = StyleSheet.create({
   header: { height: 32, lineHeight: 32, fontWeight: '600', paddingHorizontal: space.xs },
   row: { flexDirection: 'row' },
   quarter: { width: `${100 / stickerColumns}%` },
-  search: { height: 40, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
+  search: { height: 40, borderRadius: radius.pill, paddingHorizontal: space.md, fontSize: 16 },
   mark: { textAlign: 'center', paddingVertical: space.sm },
 });

@@ -36,9 +36,9 @@ export function MicButton({ voice, hidden, testID = 'composer-mic' }: { voice: R
       accessibilityHint={t('composer.holdToRecord')}
       importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
       testID={testID}
-      style={[hidden ? styles.hidden : recording ? styles.recordButton : styles.round, { backgroundColor: recording ? colors.danger : colors.primary }]}
+      style={[hidden ? styles.hidden : recording ? styles.recordButton : styles.round, recording && { backgroundColor: colors.danger }]}
       {...voice.hold}>
-      <Icon name="mic" color={recording ? colors.surface : colors.onPrimary} />
+      <Icon name="mic" color={recording ? colors.onFill : colors.inkSoft} />
     </View>
   );
 }

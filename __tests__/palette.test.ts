@@ -36,13 +36,14 @@ const text: [ColorName, ColorName[]][] = [
   ['dangerInk', ['dangerBand', 'surface']],
   ['infoInk', ['infoBand', 'surface']],
   ['onStage', ['stage']],
+  ['onDanger', ['dangerInk']],
 ];
 
 const controls: [ColorName, ColorName[]][] = [
   ['primary', ['canvas', 'surface', 'surface2', 'select']],
   ['edge', ['canvas', 'surface']],
   ['focus', ['surface', 'select']],
-  ['danger', ['surface', 'onPrimary']],
+  ['danger', ['surface', 'onFill']],
 ];
 
 describe.each<Scheme>(['light', 'dark'])('%s palette', (scheme) => {
@@ -62,6 +63,23 @@ describe.each<Scheme>(['light', 'dark'])('%s palette', (scheme) => {
 
   it('keeps every chart series at 3:1 on the surface', () => {
     expect(series.map((_, index) => seriesColor(index, scheme)).filter((ink) => contrast(ink, colors.surface) < 3)).toEqual([]);
+  });
+});
+
+it.each(['android', 'ios'])('%s: every heatmap level keeps its number at 4.5:1 on canvas, surface and surface2', (os) => {
+  jest.isolateModules(() => {
+    const { Platform } = require('react-native') as typeof import('react-native');
+    Object.defineProperty(Platform, 'OS', { value: os, configurable: true });
+    const theme = require('../src/theme/tokens') as typeof import('../src/theme/tokens');
+    const { heatFill } = require('../src/features/discovery/kt/ui') as typeof import('../src/features/discovery/kt/ui');
+    const failing = (['light', 'dark'] as const).flatMap((scheme) => {
+      const colors = theme.colorsFor(scheme);
+      return [0, 1, 2, 3, 4, 5].flatMap((level) => {
+        const paint = heatFill(level, true, colors);
+        return (['canvas', 'surface', 'surface2'] as const).filter((bg) => contrast(paint.ink, theme.blend(paint.fill, paint.opacity, colors[bg])) < 4.5).map((bg) => `${scheme} level ${level} on ${bg}`);
+      });
+    });
+    expect(failing).toEqual([]);
   });
 });
 

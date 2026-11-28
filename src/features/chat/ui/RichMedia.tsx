@@ -61,7 +61,7 @@ function GifView({ gif, playing }: { gif: GifMedia; playing: boolean }) {
       ) : null}
       {video ? <GifVideo uri={video.uri} box={box} /> : null}
       <View style={[styles.badge, { backgroundColor: colors.scrim }]}>
-        <Text variant="label" style={{ color: colors.onPrimary }}>
+        <Text variant="label" style={{ color: colors.onStage }}>
           GIF
         </Text>
       </View>

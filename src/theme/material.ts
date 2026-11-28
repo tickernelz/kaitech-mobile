@@ -11,9 +11,6 @@ function rolesFor(scheme: Scheme): MaterialColors {
   const dark = scheme === 'dark';
   return {
     ...seedPalettes[scheme],
-    primary: c.primary,
-    onPrimary: c.onPrimary,
-    surfaceTint: c.primary,
     secondaryContainer: c.select,
     onSecondaryContainer: c.selectInk,
     background: c.canvas,
@@ -32,7 +29,7 @@ function rolesFor(scheme: Scheme): MaterialColors {
     inverseSurface: c.ink,
     inverseOnSurface: c.canvas,
     error: c.dangerInk,
-    onError: dark ? c.canvas : c.onPrimary,
+    onError: c.onDanger,
     errorContainer: c.dangerBand,
     onErrorContainer: c.dangerInk,
     outline: c.edge,

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { radius, space, stroke, useTheme } from '../../../../theme';
+import { radius, space, useTheme } from '../../../../theme';
 import { duration, easing, spring } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { lockShackleDrop } from '../../../../ui/icons/glyphs';
@@ -12,14 +12,19 @@ import { keepEdgeGestures } from '../../voice/edgeGestures';
 import { isHeld } from '../../voice/machine';
 import { lockDistance, type SendMode } from './gesture';
 import type { VoiceRecorder } from './useVoiceRecorder';
-import { useGlassShadow } from '../../../../ui/GlassCapsule';
-import { pill } from '../../../../ui/pill';
+import { GlassCapsule, useGlassShadow } from '../../../../ui/GlassCapsule';
+import { glassEdge, pill } from '../../../../ui/pill';
 
 export const buttonSize = pill.composer.button;
 export const insideSize = pill.composer.inside;
 export const heldSize = 72;
 export const controlGap = pill.composer.gap;
 const lockIcon = 20;
+
+export function useSolidCapsule(): ViewStyle {
+  const { colors, material } = useTheme();
+  return { backgroundColor: Platform.OS === 'android' ? material.surfaceContainer : colors.surface, borderColor: colors.line, borderWidth: glassEdge };
+}
 
 export function useToward(target: number, ms: number = duration.base, curve = easing.standard) {
   const reduce = useReducedMotion();
@@ -61,8 +66,9 @@ export function SendMicButton({ mode, voice, tapMode, onSend }: { mode: SendMode
   }));
   const micActive = mode === 'mic';
   const lift = useGlassShadow('thick', true);
+  const solid = useSolidCapsule();
   return (
-    <View onLayout={keepEdgeGestures} collapsable={false} style={[styles.slot, lift]} testID="composer-send-slot">
+    <View onLayout={keepEdgeGestures} collapsable={false} style={styles.slot} testID="composer-send-slot">
       <Animated.View pointerEvents="none" style={[styles.layer, { backgroundColor: colors.primary }, ringStyle]} />
       <Animated.View
         accessible={micActive}
@@ -74,16 +80,18 @@ export function SendMicButton({ mode, voice, tapMode, onSend }: { mode: SendMode
         importantForAccessibility={micActive ? 'auto' : 'no-hide-descendants'}
         pointerEvents={micActive ? 'auto' : 'none'}
         testID={tapMode ? 'composer-mic-tap' : 'composer-mic'}
-        style={[styles.layer, { backgroundColor: colors.primary }, micStyle]}
+        style={[styles.layer, micStyle]}
         {...(micActive ? voice.hold : {})}>
-        <Icon name="mic" color={colors.onPrimary} />
+        <GlassCapsule liquid thickness="thick" solid={solid} pointerEvents="none" style={styles.layer} testID="composer-mic-glass" />
+        {held ? <View pointerEvents="none" style={[styles.layer, { backgroundColor: colors.primary }, lift]} testID="composer-mic-held" /> : null}
+        <Icon name="mic" color={held ? colors.onPrimary : colors.inkSoft} />
       </Animated.View>
       <Animated.View style={[styles.layer, sendStyle]} pointerEvents={micActive ? 'none' : 'auto'} importantForAccessibility={micActive ? 'no-hide-descendants' : 'auto'}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={mode === 'voice' ? t('composer.sendVoice') : t('composer.send')}
           onPress={mode === 'voice' ? voice.send : onSend}
-          style={[styles.round, { backgroundColor: colors.primary }]}
+          style={[styles.round, { backgroundColor: colors.primary }, lift]}
           testID={mode === 'voice' ? 'composer-send-voice' : 'composer-send'}>
           <Icon name="send" color={colors.onPrimary} />
         </Pressable>
@@ -123,8 +131,8 @@ export function FieldButton({ icon, label, onPress, testID }: { icon: IconName; 
 
 export function LockPill({ voice }: { voice: VoiceRecorder }) {
   const { t } = useTranslation('chat');
-  const { colors, scheme } = useTheme();
-  const dark = scheme === 'dark';
+  const { colors } = useTheme();
+  const solid = useSolidCapsule();
   const reduce = useReducedMotion();
   const shown = isHeld(voice.state);
   const open = useSharedValue(0);
@@ -152,35 +160,38 @@ export function LockPill({ voice }: { voice: VoiceRecorder }) {
       pointerEvents="none"
       accessibilityElementsHidden={!shown}
       importantForAccessibility={shown ? 'auto' : 'no-hide-descendants'}
-      style={[styles.lockPill, { backgroundColor: colors.surface, borderColor: colors.line }, !dark && styles.lift, pill]}
+      style={[styles.lockPill, pill]}
       testID={shown ? 'voice-lock-pill' : undefined}>
-      <View style={styles.lockStack}>
-        <Icon name="lockOpen" size={lockIcon} color={colors.inkSoft} />
-        <Animated.View style={[StyleSheet.absoluteFill, shackle]}>
-          <Icon name="lockShackle" size={lockIcon} color={colors.inkSoft} />
+      <GlassCapsule liquid thickness="thick" solid={solid} style={styles.lockGlass} testID="voice-lock-glass">
+        <View style={styles.lockStack}>
+          <Icon name="lockOpen" size={lockIcon} color={colors.inkSoft} />
+          <Animated.View style={[StyleSheet.absoluteFill, shackle]}>
+            <Icon name="lockShackle" size={lockIcon} color={colors.inkSoft} />
+          </Animated.View>
+        </View>
+        <Animated.View style={chevron}>
+          <Icon name="chevronUp" size={16} color={colors.inkFaint} />
         </Animated.View>
-      </View>
-      <Animated.View style={chevron}>
-        <Icon name="chevronUp" size={16} color={colors.inkFaint} />
-      </Animated.View>
-      <View accessible accessibilityLabel={t('composer.slideToLock')} />
+        <View accessible accessibilityLabel={t('composer.slideToLock')} />
+      </GlassCapsule>
     </Animated.View>
   );
 }
 
 export function ShortHint({ shown }: { shown: boolean }) {
   const { t } = useTranslation('chat');
-  const { colors, scheme } = useTheme();
-  const dark = scheme === 'dark';
+  const solid = useSolidCapsule();
   const open = useToward(shown ? 1 : 0, duration.base);
   const style = useAnimatedStyle(() => ({ opacity: open.get(), transform: [{ translateY: interpolate(open.get(), [0, 1], [8, 0]) }] }));
   return (
-    <Animated.View pointerEvents="none" style={[styles.hint, { backgroundColor: colors.surface, borderColor: colors.line }, !dark && styles.lift, style]} accessibilityLiveRegion="polite">
-      {shown ? (
-        <Text variant="footnote" testID="voice-short-hint">
-          {t('composer.shortHint')}
-        </Text>
-      ) : null}
+    <Animated.View pointerEvents="none" style={[styles.hint, style]} accessibilityLiveRegion="polite">
+      <GlassCapsule liquid thickness="thick" solid={solid} style={styles.hintGlass}>
+        {shown ? (
+          <Text variant="footnote" testID="voice-short-hint">
+            {t('composer.shortHint')}
+          </Text>
+        ) : null}
+      </GlassCapsule>
     </Animated.View>
   );
 }
@@ -193,8 +204,9 @@ const styles = StyleSheet.create({
   round: { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2, alignItems: 'center', justifyContent: 'center' },
   inside: { width: insideSize, height: insideSize, borderRadius: insideSize / 2, alignItems: 'center', justifyContent: 'center' },
   cameraSlot: { height: insideSize, overflow: 'hidden', alignItems: 'flex-start' },
-  lockPill: { position: 'absolute', right: 0, bottom: buttonSize + 40, width: buttonSize, height: 100, paddingVertical: space.md, borderRadius: buttonSize / 2, borderWidth: stroke.thin, alignItems: 'center', gap: space.xs },
+  lockPill: { position: 'absolute', right: 0, bottom: buttonSize + 40, width: buttonSize, height: 100 },
+  lockGlass: { flex: 1, paddingVertical: space.md, borderRadius: radius.pill, alignItems: 'center', gap: space.xs },
   lockStack: { width: lockIcon, height: lockIcon },
-  lift: { shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
-  hint: { position: 'absolute', right: 0, bottom: buttonSize + space.sm, maxWidth: 280, paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.md, borderWidth: stroke.thin },
+  hint: { position: 'absolute', right: 0, bottom: buttonSize + space.sm, maxWidth: 280 },
+  hintGlass: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.pill },
 });

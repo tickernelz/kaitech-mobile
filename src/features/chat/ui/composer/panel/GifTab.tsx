@@ -133,7 +133,7 @@ const gifChipSlop = reachBelow(gifChipHeight, space.xs);
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  search: { height: touchTarget, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
+  search: { height: touchTarget, borderRadius: radius.pill, paddingHorizontal: space.md, fontSize: 16 },
   bar: { flexGrow: 0 },
   chips: { gap: space.xs, paddingTop: gifChipSlop.top, paddingBottom: gifChipSlop.bottom },
   chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, height: gifChipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.sm, borderRadius: radius.pill },

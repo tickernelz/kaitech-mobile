@@ -31,7 +31,7 @@ function RailItem({ name, count }: { name: TabName; count: number }) {
       <View collapsable={false} style={styles.pill}>
         <Animated.View style={[styles.indicator, { backgroundColor: colors.primary }, indicator]} />
         <Icon name={tabIcons[name]} color={focused ? colors.onPrimary : colors.inkSoft} variant={focused ? 'fill' : 'line'} />
-        <PillBadge name={name} text={badgeText(count)} fill={name === 'activity' ? colors.danger : colors.primary} ink={colors.onPrimary} edge={colors.surface} reduceMotion={reduceMotion} style={styles.badge} />
+        <PillBadge name={name} text={badgeText(count)} fill={name === 'activity' ? colors.dangerInk : colors.primary} ink={name === 'activity' ? colors.onDanger : colors.onPrimary} edge={colors.surface} reduceMotion={reduceMotion} style={styles.badge} />
       </View>
       {focused ? (
         <Text variant="label" numberOfLines={1} maxFontSizeMultiplier={1.3} style={[styles.label, { color: colors.ink }]}>

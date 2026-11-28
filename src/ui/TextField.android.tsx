@@ -1,7 +1,7 @@
 import { useEffect, useState, type ComponentRef, type Ref } from 'react';
 import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
-import { space, type as typography, useTheme } from '../theme';
+import { radius, space, type as typography, useTheme } from '../theme';
 import { spring } from '../theme/motion';
 import { Text } from './Text';
 
@@ -88,7 +88,7 @@ export function TextField({
 
 const styles = StyleSheet.create({
   wrap: { gap: space.xs },
-  field: { borderRadius: 4, minHeight: height, justifyContent: 'center' },
+  field: { borderRadius: radius.field, minHeight: height, justifyContent: 'center' },
   input: { minHeight: height - 4, paddingHorizontal: space.lg - 2, paddingVertical: space.md },
   label: { position: 'absolute', top: 0, left: space.md - 2, paddingHorizontal: space.xs, transformOrigin: 'left center' },
   support: { paddingHorizontal: space.lg },

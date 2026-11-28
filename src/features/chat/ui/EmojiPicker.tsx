@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   body: { gap: space.xs },
   sheetGrid: { height: 420 },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  search: { flex: 1, minHeight: 44, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
+  search: { flex: 1, minHeight: 44, borderRadius: radius.pill, paddingHorizontal: space.md, fontSize: 16 },
   tabs: { gap: space.xs, paddingVertical: space.sm },
   tab: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, justifyContent: 'center' },
   grid: { flex: 1, minHeight: 120 },

@@ -3,7 +3,7 @@ import { Platform, useColorScheme, type TextStyle } from 'react-native';
 import { materialColors, type MaterialColors } from './material';
 import { colorsFor, type Colors, type Scheme } from './tokens';
 
-export { avatarFill, brandGradient, radius, space, stroke } from './tokens';
+export { avatarFill, blend, brandGradient, contrast, radius, space, stroke } from './tokens';
 export type { Colors, Scheme } from './tokens';
 export { materialColors, seedColor, type MaterialColors, type MaterialRole } from './material';
 

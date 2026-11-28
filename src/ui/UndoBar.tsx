@@ -37,7 +37,7 @@ function Bar({ shown, clearTabs }: { shown: NonNullable<UndoState>; clearTabs: b
       <FloatingSurface
         solid={colors.ink}
         accessibilityLiveRegion="polite"
-        style={[styles.bar, glass && styles.capsule]}
+        style={styles.bar}
         testID={shown.notice ? 'snackbar' : shown.failed ? 'undo-failed' : 'undo-bar'}>
         <Text variant="callout" numberOfLines={shown.notice ? 4 : 2} style={[styles.flex, styles.line, { color: ink }]}>
           {shown.failed ? shown.label || t('row.failed') : shown.label}
@@ -57,8 +57,7 @@ function Bar({ shown, clearTabs }: { shown: NonNullable<UndoState>; clearTabs: b
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', paddingHorizontal: space.lg },
-  bar: { width: '100%', maxWidth: 560, minHeight: 48, borderRadius: radius.md, paddingLeft: space.lg, paddingRight: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.md },
-  capsule: { borderRadius: radius.pill },
+  bar: { width: '100%', maxWidth: 560, minHeight: 48, borderRadius: radius.pill, paddingLeft: space.lg, paddingRight: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.md },
   line: { paddingVertical: space.md },
   action: { borderRadius: radius.pill, minHeight: 44, minWidth: 64, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md },
   strong: { fontWeight: '600' },

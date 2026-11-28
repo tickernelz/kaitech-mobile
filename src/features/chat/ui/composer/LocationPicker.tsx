@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   bar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.sm, paddingVertical: space.sm },
   icon: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  search: { flex: 1, height: 44, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
+  search: { flex: 1, height: 44, borderRadius: radius.pill, paddingHorizontal: space.md, fontSize: 16 },
   panel: { borderTopWidth: stroke.hairline, paddingVertical: space.xs },
   home: { position: 'absolute', right: space.sm, bottom: space.xl, width: 44, height: 44, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
   pad: { padding: space.lg },

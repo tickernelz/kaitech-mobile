@@ -18,7 +18,7 @@ function Glyph({ tab, bar, colors, slot }: { tab: PillTab; bar: PillBarState; co
     <Animated.View style={[styles.glyph, { width: slot }, place]}>
       <View style={styles.icon}>
         <Icon name={tabIcons[tab.name]} color={tab.focused ? colors.selectInk : colors.ink} variant={tab.focused ? 'fill' : 'line'} />
-        <PillBadge name={tab.name} text={badgeText(tab.count)} fill={tab.name === 'activity' ? colors.danger : colors.primary} ink={colors.onPrimary} edge={colors.surface} reduceMotion={bar.reduceMotion} style={styles.badge} />
+        <PillBadge name={tab.name} text={badgeText(tab.count)} fill={tab.name === 'activity' ? colors.dangerInk : colors.primary} ink={tab.name === 'activity' ? colors.onDanger : colors.onPrimary} edge={colors.surface} reduceMotion={bar.reduceMotion} style={styles.badge} />
       </View>
       <Text numberOfLines={1} maxFontSizeMultiplier={1.2} style={[styles.label, { color: tab.focused ? colors.selectInk : colors.ink }]} testID={`tab-label-${tab.name}`}>
         {tab.label}
