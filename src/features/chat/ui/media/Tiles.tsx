@@ -297,6 +297,6 @@ const styles = StyleSheet.create({
   fileIcon: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   fileText: { flex: 1, gap: 2 },
   bold: { fontWeight: '600' },
-  control: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  control: { borderRadius: radius.pill, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   controlIcon: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
 });

@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
   search: { flex: 1, height: touchTarget, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
-  square: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  square: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   categories: { flexDirection: 'row', paddingTop: categorySlop.top, paddingBottom: categorySlop.bottom },
   category: { flex: 1, height: categoryHeight, alignItems: 'center', justifyContent: 'center' },
   categoryMark: { width: categoryWidth, height: categoryHeight, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
@@ -262,5 +262,5 @@ const styles = StyleSheet.create({
   gifRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 44, paddingHorizontal: space.xs },
   scrim: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   tones: { flexDirection: 'row', borderRadius: radius.pill, borderWidth: stroke.thin, padding: space.xs },
-  tone: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  tone: { borderRadius: radius.pill, width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
 });

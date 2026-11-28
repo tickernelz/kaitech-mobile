@@ -206,6 +206,6 @@ const styles = StyleSheet.create({
   unplayed: { width: 8, height: 8, borderRadius: 4 },
   rate: { minWidth: rateWidth, minHeight: rateHeight, paddingHorizontal: space.xs, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
   mini: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 44, paddingHorizontal: space.sm, borderBottomWidth: stroke.hairline },
-  miniButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  miniButton: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   miniTitle: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 44 },
 });

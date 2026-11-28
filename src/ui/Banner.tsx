@@ -60,6 +60,6 @@ export function ConnectionBanner({ notice, onRetry, testID }: { notice: Notice; 
 const styles = StyleSheet.create({
   banner: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: radius.md },
   text: { flex: 1 },
-  action: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space.xs },
+  action: { borderRadius: radius.pill, minHeight: 44, justifyContent: 'center', paddingHorizontal: space.xs },
   strong: { fontWeight: '600' },
 });
