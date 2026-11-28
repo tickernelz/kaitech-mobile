@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../ui/Pressable';
 import { useSession } from '../auth/session';
-import { radius, space, useTheme } from '../theme';
+import { radius, space, stroke, useTheme } from '../theme';
 import { Icon } from '../ui/icons';
 import { Avatar } from '../features/chat/ui/Avatar';
 import { useSurface } from '../ui/glass';
@@ -40,7 +40,7 @@ export function HeaderActions() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  round: { width: 44, height: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
+  round: { width: 44, height: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: stroke.thin },
   avatar: { borderWidth: 0 },
   bare: { borderWidth: 0 },
   glass: { borderRadius: radius.pill, padding: 2, gap: 2 },

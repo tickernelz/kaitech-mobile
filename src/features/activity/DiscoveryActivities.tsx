@@ -8,7 +8,7 @@ import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
 import { useTabBarSpace } from '../../layout/tabBar';
 import { readableWidth } from '../../layout/windowClass';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { ToggleRow } from '../../ui/List';
 import { Refresh } from '../../ui/Refresh';
 import { RowActions } from '../../ui/RowActions';
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   list: { paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm, width: '100%', maxWidth: readableWidth, alignSelf: 'center', flexGrow: 1 },
   head: { gap: space.md, paddingBottom: space.sm },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, minHeight: 60 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: stroke.thin, minHeight: 60 },
   icon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-  daily: { marginTop: space.md, padding: space.md, gap: space.xs, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
+  daily: { marginTop: space.md, padding: space.md, gap: space.xs, borderRadius: radius.card, borderWidth: stroke.thin },
 });

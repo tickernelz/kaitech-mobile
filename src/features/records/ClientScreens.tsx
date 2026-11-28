@@ -7,7 +7,7 @@ import { rpc } from '../../api/odoo';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Row, Section } from '../../ui/List';
 import { Text } from '../../ui/Text';
@@ -251,6 +251,6 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   content: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.xxl, gap: space.md, width: '100%', maxWidth: 720, alignSelf: 'center' },
   passage: { paddingHorizontal: space.lg, paddingVertical: space.md, gap: 4 },
-  summary: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.sm },
+  summary: { borderRadius: radius.card, borderWidth: stroke.thin, padding: space.lg, gap: space.sm },
   pager: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });

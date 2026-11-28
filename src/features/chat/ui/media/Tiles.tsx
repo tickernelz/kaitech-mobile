@@ -1,7 +1,7 @@
 import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, PixelRatio, StyleSheet, View } from 'react-native';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import type { ColorName } from '../../../../theme/tokens';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { Pressable } from '../../../../ui/Pressable';
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   centerText: { textAlign: 'center' },
   play: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
   badge: { position: 'absolute', left: space.sm, bottom: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.xs, borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 2 },
-  card: { borderRadius: radius.md, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth },
+  card: { borderRadius: radius.md, overflow: 'hidden', borderWidth: stroke.thin },
   page: { height: 132, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md },
   fileIcon: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },

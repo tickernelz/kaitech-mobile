@@ -6,7 +6,7 @@ import { attachmentUrl } from '../../chat/odoo';
 import type { Attachment } from '../../chat/types';
 import { useCookie } from '../../chat/ui/useCookie';
 import { useOpenAttachment } from '../../chat/ui/useOpenAttachment';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { Icon, type IconName } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';
 import { useNumbers, type Numbers } from './format';
@@ -176,11 +176,11 @@ export const KtRecord = memo(function KtRecord({ block, place }: { block: Record
 const styles = StyleSheet.create({
   strip: { gap: space.sm },
   item: { width: TILE, gap: space.xs },
-  tile: { width: TILE, height: TILE, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  tile: { width: TILE, height: TILE, borderRadius: radius.md, borderWidth: stroke.thin, overflow: 'hidden' },
   closed: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.xs, padding: space.sm },
   picture: { width: '100%', height: '100%' },
   center: { textAlign: 'center' },
-  record: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, padding: space.md, gap: space.sm },
+  record: { borderWidth: stroke.thin, borderRadius: radius.md, padding: space.md, gap: space.sm },
   recordHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   mark: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   bold: { fontWeight: '700' },

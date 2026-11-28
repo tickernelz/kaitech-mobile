@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { useLanguage } from '../../i18n';
 import { intlLocale } from '../../i18n/language';
-import { radius, space, useTheme, type Colors } from '../../theme';
+import { radius, space, stroke, useTheme, type Colors } from '../../theme';
 import { Icon, type IconName } from '../../ui/icons';
 import type { RowBind } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
@@ -293,7 +293,7 @@ export const styles = StyleSheet.create({
   lineText: { flex: 1, gap: 3 },
   track: { height: 6, borderRadius: radius.pill, overflow: 'hidden' },
   fillBar: { height: 6 },
-  upload: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.md },
+  upload: { borderRadius: radius.card, borderWidth: stroke.thin, padding: space.lg, gap: space.md },
   uploadTop: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: space.sm },
   small: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill },

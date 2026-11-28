@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { space, useTheme } from '../../../../theme';
+import { space, stroke, useTheme } from '../../../../theme';
 import { Pressable } from '../../../../ui/Pressable';
 import { Text } from '../../../../ui/Text';
 import { Icon, type IconName } from '../../../../ui/icons';
@@ -65,7 +65,7 @@ export function ThreadHeader({ channelId, name, subtitle, typing, largeText = fa
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.xs, paddingVertical: space.sm, borderBottomWidth: StyleSheet.hairlineWidth, minHeight: 60 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.xs, paddingVertical: space.sm, borderBottomWidth: stroke.hairline, minHeight: 60 },
   headerNoBack: { paddingLeft: space.md },
   heading: { flex: 1, marginLeft: space.xs, minHeight: touchTarget, justifyContent: 'center' },
   button: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },

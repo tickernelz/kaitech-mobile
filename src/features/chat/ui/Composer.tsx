@@ -6,7 +6,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { Pressable } from '../../../ui/Pressable';
 import { KeyboardController, useKeyboardState, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import { useWindowClass } from '../../../layout/windowClass';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { duration, easing, spring, useMotion } from '../../../theme/motion';
 import { GlassCapsule, useGlassShadow } from '../../../ui/GlassCapsule';
 import { haptic } from '../../../ui/haptic';
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
   capsuleButton: { width: pill.composer.inside, height: pill.composer.inside, borderRadius: pill.composer.inside / 2 },
   field: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', minHeight: pill.composer.inside },
   input: { flex: 1, fontSize: 16, lineHeight: inputLine, maxHeight: 132, minHeight: pill.composer.inside, textAlignVertical: 'bottom', paddingTop: (pill.composer.inside - inputLine) / 2, paddingBottom: (pill.composer.inside - inputLine) / 2 },
-  suggestions: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  suggestions: { borderRadius: radius.card, borderWidth: stroke.thin, overflow: 'hidden' },
   suggestion: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48, paddingHorizontal: space.md },
   replyBar: { flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.sm, paddingLeft: space.md },
   staged: { gap: space.sm },

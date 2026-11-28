@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react-native';
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import type { Message, Pending } from '../src/features/chat/types';
 import { MessageBubble, PendingBubble } from '../src/features/chat/ui/MessageBubble';
-import { colorsFor } from '../src/theme/tokens';
+import { colorsFor, stroke } from '../src/theme/tokens';
 
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined } }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
@@ -74,12 +74,11 @@ describe('message bubble corner', () => {
     expect(edge).toBeNull();
   });
 
-  test('a message from someone else draws the small corner bottom left with its hairline edge outside the fill', async () => {
+  test('a message from someone else draws the small corner bottom left with its edge, as wide as the bubble outline, outside the fill', async () => {
     await sent(false);
-    const hairline = StyleSheet.hairlineWidth;
     const { fill, edge } = parts();
     expect(fill).toMatchObject({ left: 0, bottom: 0, backgroundColor: colors.surface });
-    expect(edge).toMatchObject({ left: -hairline, bottom: -hairline, backgroundColor: colors.line });
+    expect(edge).toMatchObject({ left: -stroke.thin, bottom: -stroke.thin, backgroundColor: colors.line });
     expect(edge?.right).toBeUndefined();
   });
 

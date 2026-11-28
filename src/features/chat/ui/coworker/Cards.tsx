@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore, 
 import { useTranslation } from 'react-i18next';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../../ui/Pressable';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
 import { Text } from '../../../../ui/Text';
 import { DecisionCard } from '../../../discovery/DecisionCard';
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   link: { minHeight: touchTarget, justifyContent: 'center' },
   bold: { fontWeight: '600' },
   stack: { gap: space.xs, marginTop: space.xs },
-  card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.card, padding: space.md, gap: 4, maxWidth: 420 },
+  card: { borderWidth: stroke.thin, borderRadius: radius.card, padding: space.md, gap: 4, maxWidth: 420 },
   row: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
   below: { paddingHorizontal: space.lg + space.md },
   belowMine: { alignItems: 'flex-end' },

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../../ui/Pressable';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
 import { Sheet, SheetItem } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
@@ -104,5 +104,5 @@ export function NewConversationSheet({ onClose, onOpen }: { onClose: () => void;
 
 const styles = StyleSheet.create({
   tabs: { flexDirection: 'row', gap: space.xs, paddingBottom: space.sm },
-  tab: { flex: 1, minHeight: touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  tab: { flex: 1, minHeight: touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, borderWidth: stroke.thin },
 });

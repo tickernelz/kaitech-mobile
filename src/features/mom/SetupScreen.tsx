@@ -7,7 +7,7 @@ import { Linking, StyleSheet, Switch, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { invalidate, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Check, Divider, Row, Section } from '../../ui/List';
 import { Screen } from '../../ui/Screen';
@@ -323,6 +323,6 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     paddingHorizontal: space.lg,
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: stroke.thin,
   },
 });

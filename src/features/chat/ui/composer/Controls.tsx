@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import { duration, easing, spring } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { lockShackleDrop } from '../../../../ui/icons/glyphs';
@@ -193,8 +193,8 @@ const styles = StyleSheet.create({
   round: { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2, alignItems: 'center', justifyContent: 'center' },
   inside: { width: insideSize, height: insideSize, borderRadius: insideSize / 2, alignItems: 'center', justifyContent: 'center' },
   cameraSlot: { height: insideSize, overflow: 'hidden', alignItems: 'flex-start' },
-  lockPill: { position: 'absolute', right: 0, bottom: buttonSize + 40, width: buttonSize, height: 100, paddingVertical: space.md, borderRadius: buttonSize / 2, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', gap: space.xs },
+  lockPill: { position: 'absolute', right: 0, bottom: buttonSize + 40, width: buttonSize, height: 100, paddingVertical: space.md, borderRadius: buttonSize / 2, borderWidth: stroke.thin, alignItems: 'center', gap: space.xs },
   lockStack: { width: lockIcon, height: lockIcon },
   lift: { shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
-  hint: { position: 'absolute', right: 0, bottom: buttonSize + space.sm, maxWidth: 280, paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
+  hint: { position: 'absolute', right: 0, bottom: buttonSize + space.sm, maxWidth: 280, paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.md, borderWidth: stroke.thin },
 });

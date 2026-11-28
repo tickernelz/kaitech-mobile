@@ -8,7 +8,7 @@ import { Pressable } from '../../ui/Pressable';
 import { update, useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
 import { readableWidth, useWindowClass } from '../../layout/windowClass';
-import { radius, space, type as typography, useTheme } from '../../theme';
+import { radius, space, stroke, type as typography, useTheme } from '../../theme';
 import { Text } from '../../ui/Text';
 import { localFile, dropFile } from '../chat/files';
 import { useUploadLimit } from '../chat/limits';
@@ -503,15 +503,15 @@ export function CoworkerThread({
 
 const styles = StyleSheet.create({
   pendingFile: { flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.sm, borderRadius: radius.md, minHeight: 48, minWidth: 220 },
-  job: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.sm },
+  job: { borderRadius: radius.card, borderWidth: stroke.thin, padding: space.lg, gap: space.sm },
   staged: { gap: space.sm, paddingHorizontal: space.lg, paddingTop: space.sm },
   fill: { flex: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   list: { padding: space.lg, gap: space.md, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   bubble: { borderRadius: radius.card, paddingHorizontal: space.lg, paddingVertical: space.md, maxWidth: '88%' },
   mine: { alignSelf: 'flex-end', borderBottomRightRadius: radius.sm },
-  theirs: { alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: radius.sm },
-  steps: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
+  theirs: { alignSelf: 'flex-start', borderWidth: stroke.thin, borderBottomLeftRadius: radius.sm },
+  steps: { minHeight: touchTarget, justifyContent: 'center', borderRadius: radius.md, borderWidth: stroke.thin, paddingHorizontal: space.md, paddingVertical: space.sm, gap: space.xs },
   failure: { borderRadius: radius.card, padding: space.lg, gap: space.xs },
   pendingWrap: { gap: space.xs },
   status: { alignSelf: 'flex-end' },
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     gap: space.sm,
     paddingHorizontal: space.lg,
     paddingVertical: space.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: stroke.hairline,
   },
   input: { flex: 1, minHeight: 44, maxHeight: 160, borderRadius: radius.field, borderWidth: 1, paddingHorizontal: space.lg, paddingTop: 11, paddingBottom: 11 },
 });

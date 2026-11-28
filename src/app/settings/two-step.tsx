@@ -9,7 +9,7 @@ import { disableTotp, enableTotp, openTotp, totpSecretGroups, totpSetup, type To
 import { useIdentity } from '../../features/account/useIdentity';
 import { StateView, useErrorText } from '../../features/discovery/ui';
 import { SettingsPage } from '../../screens/SettingsPage';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Text } from '../../ui/Text';
 import { TextField } from '../../ui/TextField';
@@ -121,6 +121,6 @@ export default function TwoStepSettings() {
 
 const styles = StyleSheet.create({
   body: { gap: space.md },
-  qr: { alignSelf: 'center', padding: space.md, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, backgroundColor: '#ffffff' },
+  qr: { alignSelf: 'center', padding: space.md, borderRadius: radius.card, borderWidth: stroke.thin, backgroundColor: '#ffffff' },
   qrImage: { width: 200, height: 200 },
 });

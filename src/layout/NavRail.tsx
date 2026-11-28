@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePendingActivities } from '../features/activity/useActivityOverview';
-import { radius, space, useTheme } from '../theme';
+import { radius, space, stroke, useTheme } from '../theme';
 import { duration, easing } from '../theme/motion';
 import { useReduceMotion } from '../theme/reduceMotion';
 import { Icon } from '../ui/icons';
@@ -73,7 +73,7 @@ export function NavRail() {
 const railWidth = 88;
 
 const styles = StyleSheet.create({
-  rail: { flexDirection: 'column', justifyContent: 'flex-start', gap: space.md, borderRightWidth: StyleSheet.hairlineWidth },
+  rail: { flexDirection: 'column', justifyContent: 'flex-start', gap: space.md, borderRightWidth: stroke.hairline },
   item: { alignItems: 'center', gap: space.xs, minHeight: 56, paddingHorizontal: space.xs },
   pill: { width: 64, height: 32, alignItems: 'center', justifyContent: 'center' },
   badge: { position: 'absolute', top: -2, right: 6, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },

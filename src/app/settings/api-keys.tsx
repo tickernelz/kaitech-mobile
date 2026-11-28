@@ -10,7 +10,7 @@ import { useIdentity } from '../../features/account/useIdentity';
 import { StateView, useErrorText } from '../../features/discovery/ui';
 import { useFormatters } from '../../i18n';
 import { SettingsPage } from '../../screens/SettingsPage';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Check, Row, Section } from '../../ui/List';
 import { Sheet } from '../../ui/Sheet';
@@ -140,5 +140,5 @@ export default function ApiKeySettings() {
 
 const styles = StyleSheet.create({
   body: { gap: space.md, paddingBottom: space.sm },
-  key: { padding: space.md, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, marginBottom: space.md },
+  key: { padding: space.md, borderRadius: radius.md, borderWidth: stroke.thin, marginBottom: space.md },
 });

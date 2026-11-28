@@ -5,7 +5,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { GestureDetector, usePanGesture, usePinchGesture, useSimultaneousGestures, useTapGesture } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { Icon } from '../../../ui/icons';
 import { Pressable } from '../../../ui/Pressable';
 import { Text } from '../../../ui/Text';
@@ -144,6 +144,6 @@ const styles = StyleSheet.create({
   marker: { position: 'absolute', width: markerSize, height: markerSize, alignItems: 'center', justifyContent: 'flex-end' },
   self: { width: 18, height: 18, borderRadius: 9, borderWidth: 3, marginBottom: markerSize / 2 - 9 },
   zoom: { position: 'absolute', right: space.sm, top: space.sm, gap: space.xs },
-  zoomButton: { width: zoomSize, height: zoomSize, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  zoomButton: { width: zoomSize, height: zoomSize, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
   attribution: { position: 'absolute', right: 0, bottom: 0, paddingHorizontal: space.xs, borderTopLeftRadius: radius.sm, opacity: 0.9 },
 });

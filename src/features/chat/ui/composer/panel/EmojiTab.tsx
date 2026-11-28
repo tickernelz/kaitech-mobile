@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Overlay } from '../../../../../ui/Overlay';
-import { radius, space, useTheme } from '../../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../../theme';
 import { Icon, type IconName } from '../../../../../ui/icons';
 import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
@@ -255,12 +255,12 @@ const styles = StyleSheet.create({
   cell: { width: `${100 / emojiColumns}%`, height: cellSize, alignItems: 'center', justifyContent: 'center' },
   glyph: { fontSize: 30, lineHeight: 36 },
   skinMark: { position: 'absolute', right: 6, bottom: 6, width: 0, height: 0, borderLeftWidth: 4, borderLeftColor: 'transparent', borderBottomWidth: 4 },
-  preview: { position: 'absolute', bottom: cellSize, width: 76, height: 76, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  preview: { position: 'absolute', bottom: cellSize, width: 76, height: 76, borderRadius: radius.card, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center' },
   previewGlyph: { fontSize: 64, lineHeight: 72 },
   none: { padding: space.lg, textAlign: 'center' },
   stickerRow: { flexDirection: 'row', gap: space.xs },
   gifRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 44, paddingHorizontal: space.xs },
   scrim: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  tones: { flexDirection: 'row', borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, padding: space.xs },
+  tones: { flexDirection: 'row', borderRadius: radius.pill, borderWidth: stroke.thin, padding: space.xs },
   tone: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
 });
