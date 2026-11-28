@@ -30,9 +30,8 @@ function rippleRadius(style: Readonly<Partial<ViewStyle>> | null | undefined): n
   if (!style) return undefined;
   const rounded = Object.entries(style).some(([key, value]) => /^border\w*Radius$/.test(key) && (typeof value === 'number' ? value > 0 : typeof value === 'string'));
   if (!rounded) return undefined;
-  const sides = [style.width, style.height].filter((side): side is number => typeof side === 'number');
-  const across = sides.length ? Math.min(...sides) : typeof style.minHeight === 'number' ? style.minHeight : undefined;
-  return across === undefined ? fingertip : across / 2;
+  const sides = [style.width, style.height, style.minHeight].filter((side): side is number => typeof side === 'number');
+  return sides.length ? Math.min(...sides) / 2 : fingertip;
 }
 
 export function Pressable({ style, ...props }: Props) {
