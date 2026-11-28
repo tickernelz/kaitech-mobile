@@ -71,7 +71,7 @@ export function DirectorySheet({ onClose, onOpen }: { onClose: () => void; onOpe
               {person.name}
             </Text>
             <Text variant="callout" tone="inkSoft" numberOfLines={1}>
-              {[t(`directory.role.${person.role}`), person.programme].filter(Boolean).join(' · ')}
+              {person.role === 'Coworker' ? t('directory.coworker') : [t(`directory.role.${person.role}`), person.programme].filter(Boolean).join(' · ')}
             </Text>
           </View>
           {opening === person.partnerId ? <ActivityIndicator color={colors.primary} /> : null}
