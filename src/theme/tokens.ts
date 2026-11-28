@@ -7,11 +7,13 @@ const accents = {
     primary: ['#705289', '#DDB9F8'],
     primaryPressed: ['#7E6395', '#CDAAE8'],
     onPrimary: ['#FFFFFF', '#3F2358'],
+    link: ['#705289', '#DDB9F8'],
   },
   ios: {
     primary: ['#441D65', '#9358C7'],
     primaryPressed: ['#2F1447', '#7A4DB8'],
     onPrimary: ['#FFFFFF', '#FFFFFF'],
+    link: ['#5F2E91', '#C4A8EE'],
   },
 } as const;
 
@@ -32,7 +34,6 @@ const pairs = {
   select: ['#EDE7F5', '#2D2739'],
   selectInk: ['#2B1542', '#EEE9F6'],
   focus: ['#7A4DB0', '#A889DC'],
-  link: ['#5F2E91', '#C4A8EE'],
   ok: ['#2A9754', '#4DBF74'],
   okInk: ['#0D6332', '#7FDC9A'],
   okBand: ['#DCF7E2', '#15291B'],

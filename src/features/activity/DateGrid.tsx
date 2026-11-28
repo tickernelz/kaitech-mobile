@@ -56,10 +56,10 @@ export function DateGrid({ value, onChange, testID }: { value: string; onChange:
               <View
                 style={[
                   styles.day,
-                  isSelected && { backgroundColor: colors.primary },
+                  isSelected && { backgroundColor: colors.select },
                   !isSelected && isToday && { borderWidth: stroke.thin * 2, borderColor: colors.primary },
                 ]}>
-                <Text variant="callout" style={{ color: isSelected ? colors.onPrimary : colors.ink }}>
+                <Text variant="callout" style={{ color: isSelected ? colors.selectInk : colors.ink }}>
                   {day.getDate()}
                 </Text>
               </View>

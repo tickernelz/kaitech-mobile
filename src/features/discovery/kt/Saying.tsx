@@ -52,12 +52,12 @@ export const KtReplies = memo(function KtReplies({ block }: { block: RepliesBloc
               style={({ pressed }) => [
                 styles.reply,
                 {
-                  borderColor: chosen ? colors.primary : colors.line,
-                  backgroundColor: chosen ? colors.primary : pressed ? colors.surface2 : colors.surface,
+                  borderColor: chosen ? colors.select : colors.line,
+                  backgroundColor: chosen ? colors.select : pressed ? colors.surface2 : colors.surface,
                   opacity: disabled && !chosen ? 0.5 : 1,
                 },
               ]}>
-              <Text variant="callout" style={{ color: chosen ? colors.onPrimary : colors.ink }}>
+              <Text variant="callout" style={{ color: chosen ? colors.selectInk : colors.ink }}>
                 {reply}
               </Text>
             </Pressable>

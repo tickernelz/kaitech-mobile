@@ -57,9 +57,9 @@ export function Segmented<T extends string>({
             testID={testID ? `${testID}-${option.value}` : undefined}
             style={[
               styles.segment,
-              { backgroundColor: selected ? colors.primary : colors.surface, borderColor: selected ? colors.primary : colors.line },
+              { backgroundColor: selected ? colors.select : colors.surface, borderColor: selected ? colors.select : colors.line },
             ]}>
-            <Text variant="callout" style={{ color: selected ? colors.onPrimary : colors.ink }}>
+            <Text variant="callout" style={{ color: selected ? colors.selectInk : colors.ink }}>
               {option.label}
             </Text>
           </Pressable>

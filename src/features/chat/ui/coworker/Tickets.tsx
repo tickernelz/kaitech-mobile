@@ -338,9 +338,9 @@ export function TicketsSheet({ onClose, onOpenThread }: { onClose: () => void; o
               accessibilityRole="tab"
               accessibilityState={{ selected: on }}
               onPress={() => select(name)}
-              style={[styles.scope, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}
+              style={[styles.scope, { backgroundColor: on ? colors.select : colors.surface, borderColor: on ? colors.select : colors.line }]}
               testID={`tickets-scope-${name}`}>
-              <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
+              <Text variant="callout" style={{ color: on ? colors.selectInk : colors.ink }}>
                 {t(`tickets.scope.${name}`)}
               </Text>
             </Pressable>

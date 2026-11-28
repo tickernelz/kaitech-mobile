@@ -235,13 +235,13 @@ export function ConversationList({
         onPress={() => setFilter(name)}
         hitSlop={chipSlop}
         testID={`chat-filter-${name}`}
-        style={[styles.chip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}>
-        <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
+        style={[styles.chip, { backgroundColor: on ? colors.select : colors.surface, borderColor: on ? colors.select : colors.line }]}>
+        <Text variant="callout" style={{ color: on ? colors.selectInk : colors.ink }}>
           {t(`list.filter.${name}`)}
         </Text>
         {name === 'unread' && unreadTotal ? (
-          <View style={[styles.count, { backgroundColor: on ? colors.onPrimary : colors.primary }]}>
-            <Text variant="label" style={{ color: on ? colors.primary : colors.onPrimary }}>
+          <View style={[styles.count, { backgroundColor: colors.primary }]}>
+            <Text variant="label" style={{ color: colors.onPrimary }}>
               {badgeText(unreadTotal)}
             </Text>
           </View>
