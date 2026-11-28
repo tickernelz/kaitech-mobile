@@ -238,7 +238,7 @@ function measure(scenario) {
 function install(apk) {
   const device = serial ? `-s ${serial}` : '';
   const script = [
-    `adb ${device} install -r "$1" >/dev/null & installer=$!`,
+    `adb ${device} install -r -d "$1" >/dev/null & installer=$!`,
     'for _ in $(seq 1 40); do',
     '  kill -0 $installer 2>/dev/null || break',
     `  adb ${device} shell uiautomator dump /sdcard/phone-jank.xml >/dev/null 2>&1`,
