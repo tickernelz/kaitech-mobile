@@ -55,6 +55,11 @@ name: Superadmin account - admin to internal and back, invite an external person
     element:
       id: user-history-0
 - takeScreenshot: s2-history
+- scrollUntilVisible:
+    element:
+      id: settings-back
+    direction: UP
+    timeout: 30000
 - tapOn:
     id: settings-back
 - tapOn:
@@ -82,6 +87,11 @@ name: Superadmin account - admin to internal and back, invite an external person
 - scrollUntilVisible:
     element:
       id: user-deactivate
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: settings-back
+    direction: UP
     timeout: 30000
 - tapOn:
     id: settings-back
