@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { signOut, useSession } from '../../auth/session';
+import { useCan } from '../../auth/useAccess';
 import { Avatar } from '../../features/chat/ui/Avatar';
 import { RowIcon, SettingsPage } from '../../screens/SettingsPage';
 import { useTheme } from '../../theme';
@@ -19,9 +20,11 @@ export default function Settings() {
   const router = useRouter();
   const { active } = useSession();
   const [busy, setBusy] = useState(false);
+  const manages = useCan('users.manage');
   if (!active) return null;
   const more = <Icon name="forward" size={20} color={colors.inkFaint} />;
   const entries: Entry[] = [
+    ...(manages ? [{ icon: 'people' as const, title: t('users.title'), href: '/settings/users' as const, testID: 'settings-users' }] : []),
     { icon: 'people', title: t('account.title'), href: '/settings/account', testID: 'settings-account' },
     { icon: 'image', title: t('settings.appearance'), href: '/settings/appearance', testID: 'settings-appearance' },
     { icon: 'bell', title: t('settings.notifications'), href: '/settings/notifications', testID: 'settings-notifications' },

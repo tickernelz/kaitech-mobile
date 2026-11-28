@@ -62,6 +62,7 @@ export const glyphs = {
   search: { parts: [line(circle(10.5, 10.5, 7)), line('M15.5 15.5 21 21')] },
   history: { parts: [line('M5.5 8.25A7.5 7.5 0 1 0 12 4.5'), dot('M12 2 8.5 4.5 12 7Z'), line('M12 8.5V12l2.5 2.5')] },
   chat: { parts: [body(bubble)] },
+  home: { parts: [body('M3 10.5 12 3l9 7.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z'), cut('M9.5 21v-5.5h5V21')] },
   thread: { parts: [body(bubble), cut('M7.5 9h9M7.5 13h5.5')] },
   reply: { parts: [line('M9 5 3 11l6 6'), line('M4 11h9a7 7 0 0 1 7 7v2')] },
   send: { parts: [body('M3 4l16.5 8L3 20l3.5-8Z'), cut('M6.5 12H12')] },

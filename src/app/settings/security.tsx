@@ -1,6 +1,7 @@
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useResource } from '../../api/resource';
+import { useCan } from '../../auth/useAccess';
 import { readMe } from '../../features/account/odoo';
 import { setLockEnabled, useLock } from '../../lock/lock';
 import { useLockLabel } from '../../lock/useLockLabel';
@@ -16,6 +17,7 @@ export default function SecuritySettings() {
   const lock = useLock();
   const { method, label } = useLockLabel();
   const me = useResource('account.me', readMe, 60_000);
+  const team = useCan('team');
   const more = <Icon name="forward" size={20} color={colors.inkFaint} />;
   const rows: { icon: IconName; title: string; detail?: string; href: Href; testID: string }[] = [
     { icon: 'lock', title: t('security.password.title'), href: '/settings/password', testID: 'security-password' },
@@ -27,7 +29,7 @@ export default function SecuritySettings() {
       testID: 'security-totp',
     },
     { icon: 'sign', title: t('security.passkeys.title'), href: '/settings/passkeys', testID: 'security-passkeys' },
-    { icon: 'hash', title: t('security.apiKeys.title'), href: '/settings/api-keys', testID: 'security-api-keys' },
+    ...(team ? [{ icon: 'hash' as const, title: t('security.apiKeys.title'), href: '/settings/api-keys' as const, testID: 'security-api-keys' }] : []),
     { icon: 'phone', title: t('security.devices.title'), href: '/settings/devices', testID: 'security-devices' },
   ];
   return (

@@ -10,6 +10,8 @@ import { Text } from '../../../ui/Text';
 import { Wordmark } from '../../../ui/Wordmark';
 import { focusedMessage, selectChannel, selectedChannel, useSelectedChannel } from '../selection';
 import { ConversationList } from './ConversationList';
+import { useCan } from '../../../auth/useAccess';
+import { DirectorySheet } from './list/DirectorySheet';
 import { NewConversationSheet } from './list/NewConversationSheet';
 import { ThreadView } from './ThreadView';
 import { VoiceMiniBar } from './VoiceNote';
@@ -29,6 +31,7 @@ export function ChatHome() {
   const expanded = windowClass === 'expanded';
   const selected = useSelectedChannel();
   const [creating, setCreating] = useState(false);
+  const team = useCan('team');
 
   const open = useCallback(
     (id: number, message?: number | null) => {
@@ -76,7 +79,16 @@ export function ChatHome() {
         }
         detail={detail}
       />
-      {creating ? (
+      {creating && !team ? (
+        <DirectorySheet
+          onClose={() => setCreating(false)}
+          onOpen={(id) => {
+            setCreating(false);
+            open(id);
+          }}
+        />
+      ) : null}
+      {creating && team ? (
         <NewConversationSheet
           onClose={() => setCreating(false)}
           onOpen={(id) => {

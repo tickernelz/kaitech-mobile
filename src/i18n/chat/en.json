@@ -740,5 +740,17 @@
     },
     "loading": "Loading tickets…",
     "none": "No tickets here."
+  },
+  "directory": {
+    "title": "New conversation",
+    "detail": "People of your Programmes",
+    "loading": "Loading",
+    "empty": "Nobody to chat with yet. Your consultant adds you to a Programme first.",
+    "retry": "Try again",
+    "role": {
+      "Coworker": "Coworker",
+      "Lead": "Programme lead",
+      "Team": "Kaitech team"
+    }
   }
 }

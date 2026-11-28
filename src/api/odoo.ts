@@ -35,10 +35,14 @@ async function tokenOf(account: Account): Promise<string> {
   return (await tokenFor(account.id)) ?? ended(account);
 }
 
+export async function bearerHeaders(account: Account): Promise<Record<string, string>> {
+  return headers(account.db, await tokenOf(account));
+}
+
 function refused(account: Account, status: number, body: Record<string, unknown> | null): never {
   if (status === 401) ended(account);
   const code = typeof body?.error_code === 'string' ? body.error_code : status >= 500 ? 'server' : 'unknown';
-  throw new ApiError(code, status);
+  throw new ApiError(code, status, code === 'refused' && typeof body?.message === 'string' ? body.message : null);
 }
 
 function queryOf(query?: Record<string, string | number>): string {
@@ -164,7 +168,7 @@ async function sessionFor(account: Account, renew: boolean): Promise<Session> {
 
 onAccountForgotten((accountId) => sessions.delete(accountId));
 
-type RpcFailure = { code?: unknown; data?: { name?: unknown; message?: unknown; arguments?: unknown } };
+type RpcFailure = { code?: unknown; data?: { name?: unknown; message?: unknown; arguments?: unknown; context?: unknown } };
 
 function refusalReason(failure: RpcFailure): string | null {
   const args = failure.data?.arguments;
@@ -172,7 +176,14 @@ function refusalReason(failure: RpcFailure): string | null {
 }
 
 function shownDetail(failure: RpcFailure, code: string): string | null {
-  return code === 'refused' && typeof failure.data?.message === 'string' ? failure.data.message : null;
+  return (code === 'refused' || code === 'role_required') && typeof failure.data?.message === 'string' ? failure.data.message : null;
+}
+
+function neededRole(failure: RpcFailure): string | null {
+  const context = failure.data?.context;
+  if (!context || typeof context !== 'object') return null;
+  const { code, needed } = context as Record<string, unknown>;
+  return code === 'role_required' && typeof needed === 'string' ? needed : null;
 }
 
 function rpcCode(name: string): string {
@@ -212,8 +223,9 @@ export async function rpc<T>(
     const failure = body?.error as RpcFailure | undefined;
     if (!failure) return body?.result as T;
     if (attempt === 0 && expired(failure)) continue;
-    const code = rpcCode(typeof failure.data?.name === 'string' ? failure.data.name : '');
-    throw new ApiError(code, status, shownDetail(failure, code));
+    const needed = neededRole(failure);
+    const code = needed ? 'role_required' : rpcCode(typeof failure.data?.name === 'string' ? failure.data.name : '');
+    throw new ApiError(code, status, shownDetail(failure, code), needed);
   }
 }
 

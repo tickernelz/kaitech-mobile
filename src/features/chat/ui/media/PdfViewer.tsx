@@ -8,7 +8,8 @@ import { radius, space, useTheme } from '../../../../theme';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { Pressable } from '../../../../ui/Pressable';
 import { Text } from '../../../../ui/Text';
-import { cancelFile, DownloadCancelled, useFileStatus } from '../../media/download';
+import type { File } from 'expo-file-system';
+import { cancelFile, DownloadCancelled, fetchFile, useFileStatus } from '../../media/download';
 import { cacheFile, discardLate, epochOf, previewPath, rememberMeta, useMediaMeta } from '../../media/meta';
 import { nativeMedia } from '../../media/native';
 import { previewWidth } from '../../media/preview';
@@ -23,6 +24,11 @@ const pageGap = space.sm;
 const barSlop = { top: 8, bottom: 8, left: 0, right: 0 };
 
 type Opened = { uri: string; pages: number; ratio: number };
+
+async function fetchPdf(session: PdfSession): Promise<File | null> {
+  if (!session.source) return fetchAttachment(session.attachment);
+  return fetchFile(fileKey(session.accountId, session.attachment), session.source.url, fileName(session.attachment), await session.source.headers());
+}
 
 function renderWidth(width: number): number {
   return Math.min(1600, Math.round(width * PixelRatio.get()));
@@ -113,7 +119,7 @@ function PdfDocument({ session }: { session: PdfSession }) {
   const pageWidth = width - 2 * space.sm;
   useEffect(() => {
     let live = true;
-    void fetchAttachment(session.attachment)
+    void fetchPdf(session)
       .then(async (file) => {
         if (!file || !live) return;
         try {
@@ -133,7 +139,7 @@ function PdfDocument({ session }: { session: PdfSession }) {
     };
   }, [session, attempt]);
   const handOff = (share: boolean) =>
-    void fetchAttachment(attachment)
+    void fetchPdf(session)
       .then((file) => (file ? (share ? shareFile(attachment, file.uri, t) : presentFile(attachment, file, t)) : undefined))
       .catch(() => undefined);
   const pages = opened?.pages ?? meta.pages ?? 0;

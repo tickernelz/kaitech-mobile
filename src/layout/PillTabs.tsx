@@ -9,7 +9,8 @@ import { useReduceMotion } from '../theme/reduceMotion';
 import { NavRail } from './NavRail';
 import { PillBar } from './PillBar';
 import { TabBarSpace, pillCover } from './tabBar';
-import { routes, tabs } from './tabs';
+import { allTabs, routes } from './tabs';
+import { useClientLanding } from './useClientLanding';
 import { useWindowClass } from './windowClass';
 
 type SlotRender = typeof defaultTabsSlotRender;
@@ -35,6 +36,7 @@ export function PillTabs() {
   const { windowClass } = useWindowClass();
   const rail = windowClass !== 'compact';
   const started = useRef(false);
+  useClientLanding();
   useEffect(() => {
     started.current = true;
   }, []);
@@ -57,7 +59,7 @@ export function PillTabs() {
     <TabBarSpace value={rail ? 0 : pillCover(insets.bottom)}>
       <Tabs style={[styles.fill, styles.row, { backgroundColor: material.background }]}>
         <TabList style={styles.hidden}>
-          {tabs.map((name) => (
+          {allTabs.map((name) => (
             <TabTrigger key={name} name={routes[name].name} href={routes[name].href} />
           ))}
         </TabList>

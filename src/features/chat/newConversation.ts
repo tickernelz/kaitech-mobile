@@ -1,5 +1,7 @@
-import { route, rpc } from '../../api/odoo';
+import { bearer, route, rpc } from '../../api/odoo';
 import { refreshConversations } from './chat';
+import { openChat } from '../people/card';
+import { directoryFrom } from './directory';
 import { run, type Person } from './messageActions';
 
 export function channelOf(data: unknown): number {
@@ -28,6 +30,18 @@ export function startChat(partnerIds: number[], myPartnerId: number) {
         ? await route<unknown>(account, '/mail/action', { fetch_params: [['/discuss/get_or_create_chat', { partners_to: others.length ? others : [myPartnerId] }, 1]] })
         : await route<unknown>(account, '/mail/action', { fetch_params: [['/discuss/create_group', { partners_to: [myPartnerId, ...others] }, 1]] });
     const id = channelOf(data);
+    void refreshConversations();
+    return id;
+  });
+}
+
+export function loadDirectory() {
+  return run(async (account) => directoryFrom(await bearer<unknown>(account, '/kaitech_mobile/directory')));
+}
+
+export function openChatWith(partnerId: number) {
+  return run(async (account) => {
+    const id = await openChat(account, partnerId);
     void refreshConversations();
     return id;
   });

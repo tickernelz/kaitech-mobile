@@ -48,7 +48,6 @@ jest.mock('../src/features/discovery/Home', () => ({ useCurrentProgramme: () => 
 jest.mock('../src/features/mom/recorder', () => ({ useRecording: () => null, clock: () => '', useRecorderClock: () => 0 }));
 jest.mock('../src/features/mom/uploads', () => ({ useUploads: () => [], discard: jest.fn(), dismiss: jest.fn(), retry: jest.fn() }));
 jest.mock('../src/features/mom/StatusRow', () => ({ StatusRow: () => null }));
-jest.mock('../src/features/mom/access', () => ({ useMomAccess: () => null, seesClientOrg: () => false }));
 jest.mock('../src/features/mom/MeetingView', () => ({ MeetingView: () => null }));
 jest.mock('../src/features/mom/RecorderScreen', () => ({ RecorderBar: () => null }));
 jest.mock('../src/features/mom/RemoveRecording', () => ({ RemoveRecording: () => null }));
