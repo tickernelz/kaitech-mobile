@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { hideWhen, useCovered } from '../ui/cover';
 import { listPaneWidth, useWindowClass } from './windowClass';
@@ -14,7 +15,9 @@ export function Panes({ list, detail }: { list: ReactNode; detail: ReactNode }) 
       <View style={[styles.list, { borderColor: colors.line }]} importantForAccessibility={hideWhen(covered)}>
         {list}
       </View>
-      <View style={styles.fill}>{detail}</View>
+      <SafeAreaView edges={['top']} style={styles.fill}>
+        {detail}
+      </SafeAreaView>
     </View>
   );
 }

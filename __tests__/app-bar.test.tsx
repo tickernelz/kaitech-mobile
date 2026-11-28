@@ -64,8 +64,21 @@ describe('top app bar', () => {
     expect(within(bar).getByTestId('open-settings')).toBeTruthy();
     expect(style('app-bar')).toMatchObject({ flexDirection: 'row', alignItems: 'center', height: 64 });
     expect(style('app-bar').position).toBeUndefined();
+    expect(within(screen.getByTestId('app-bar-surface')).getByTestId('app-bar')).toBe(bar);
     expect(style('app-bar-title').opacity ?? 1).toBe(1);
     expect(screen.getByTestId('app-bar-title').props.importantForAccessibility ?? 'auto').toBe('auto');
+  });
+
+  test('the bar surface reaches under the status bar, so both bands share one colour, and the screen adds no second top inset', async () => {
+    await render(
+      <SafeAreaProvider initialMetrics={{ frame, insets }}>
+        <ActivityScreen />
+      </SafeAreaProvider>,
+    );
+    expect(style('app-bar-surface').paddingTop).toBe(insets.top);
+    expect(style('app-bar-surface').backgroundColor).toBeTruthy();
+    expect(style('app-bar').backgroundColor).toBeUndefined();
+    expect(screen.getByTestId('tab-activity').props.edges.top).toBe('off');
   });
 
   test('the bar tints once the list scrolls under it and clears again at the top, without re-rendering the screen', async () => {
@@ -80,14 +93,20 @@ describe('top app bar', () => {
         </>
       );
     }
-    await render(<Probe />);
-    const resting = style('app-bar').backgroundColor;
+    await render(
+      <SafeAreaProvider initialMetrics={{ frame, insets }}>
+        <Probe />
+      </SafeAreaProvider>,
+    );
+    const resting = style('app-bar-surface').backgroundColor;
     const rendered = screenRenders;
     await fireEvent.scroll(screen.getByTestId('list'), { nativeEvent: { contentOffset: { x: 0, y: 1 } } });
     await fireEvent.scroll(screen.getByTestId('list'), { nativeEvent: { contentOffset: { x: 0, y: 40 } } });
-    expect(style('app-bar').backgroundColor).not.toBe(resting);
+    expect(style('app-bar-surface').backgroundColor).not.toBe(resting);
+    expect(style('app-bar-surface').paddingTop).toBe(insets.top);
+    expect(style('app-bar').backgroundColor).toBeUndefined();
     await fireEvent.scroll(screen.getByTestId('list'), { nativeEvent: { contentOffset: { x: 0, y: 0 } } });
-    expect(style('app-bar').backgroundColor).toBe(resting);
+    expect(style('app-bar-surface').backgroundColor).toBe(resting);
     expect(style('app-bar-title').opacity ?? 1).toBe(1);
     expect(screenRenders).toBe(rendered);
   });
