@@ -2,6 +2,13 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.20.3 - 2026-11-28
+
+### Fixed
+
+- A selected chip, segment, day or quick reply draws the light selection tone with a 2 dp outline instead of a solid purple fill: the chat list filters, Coworker ticket scopes, Discovery segments and quick replies, activity filters, schedule choices, search filters, GIF categories and the activity date grid. The outline keeps 3:1 against every surface where the tone alone reached 1.10 to 1.33; chips keep their width and a quick reply keeps its height. Today in the date grid is a 1 dp ring so it stays distinct from the selected day (#187, ZHA-8131).
+- Android links use the Material 3 primary (`#705289` light, `#DDB9F8` dark), 5.61:1 and up against every surface; iOS links stay on the iOS tint (#187, ZHA-8131).
+
 ## 0.20.2 - 2026-11-28
 
 ### Fixed
