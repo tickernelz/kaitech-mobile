@@ -2,6 +2,22 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.20.3 - 2026-11-28
+
+### Fixed
+
+- A selected chip, segment, day or quick reply draws the light selection tone with a 2 dp outline instead of a solid purple fill: the chat list filters, Coworker ticket scopes, Discovery segments and quick replies, activity filters, schedule choices, search filters, GIF categories and the activity date grid. The outline keeps 3:1 against every surface where the tone alone reached 1.10 to 1.33; chips keep their width and a quick reply keeps its height. Today in the date grid is a 1 dp ring so it stays distinct from the selected day (#187, ZHA-8131).
+- Android links use the Material 3 primary (`#705289` light, `#DDB9F8` dark), 5.61:1 and up against every surface; iOS links stay on the iOS tint (#187, ZHA-8131).
+
+## 0.20.2 - 2026-11-28
+
+### Fixed
+
+- Client Home: an interview row is named by its topic and says where it stands (summary to confirm, questions waiting, all answered, not started) with its closing day, instead of "0 questions left"; it stays tappable while the interview is open. A client's contact settings show email, phone and time zone only, without the team's calendar privacy, signature and out of office; "Odoo account" reads "Account" (#194, ZHA-8138).
+
+- Users: the search field is the 48 dp search capsule shared with the Search screen, so its label is no longer clipped under the header; the list uses the same header and insets as the person screen and every Settings page; the role chips run to the screen edge so a cut chip shows the row scrolls, and wrap at large font sizes; a person's history shows the five newest entries with "See all", keeping Deactivate within reach (#193, ZHA-8139).
+- Indonesian wording on the Users, client Home and new conversation screens is consistent: role names inside a sentence are lower case ("Jadikan Rina admin?"), the external role reads "Eksternal" everywhere, and Program, Programme and programme are all "program". A person in no programme reads "Belum jadi anggota program mana pun." instead of "Anggota 0 Programme", and the Coworker row of a client's new conversation list says what it does ("Menjawab soal program Anda") instead of repeating "Coworker" (#191, ZHA-8140).
+
 ## 0.20.1 - 2026-11-28
 
 ### Changed

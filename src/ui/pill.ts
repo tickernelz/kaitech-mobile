@@ -9,9 +9,14 @@ export function selectedLook(colors: Colors): ViewStyle {
   return { backgroundColor: colors.select, borderColor: colors.focus, borderWidth: selectedEdge };
 }
 
-export function choiceLook(on: boolean, colors: Colors, rest: { fill: string; paddingHorizontal: number; edge?: string }): ViewStyle {
+export function choiceLook(on: boolean, colors: Colors, rest: { fill: string; paddingHorizontal: number; paddingVertical?: number; edge?: string }): ViewStyle {
   if (!on) return { backgroundColor: rest.fill, borderColor: rest.edge ?? colors.line };
-  return { ...selectedLook(colors), paddingHorizontal: rest.paddingHorizontal + stroke.thin - selectedEdge };
+  const inset = stroke.thin - selectedEdge;
+  return {
+    ...selectedLook(colors),
+    paddingHorizontal: rest.paddingHorizontal + inset,
+    ...(rest.paddingVertical === undefined ? null : { paddingVertical: rest.paddingVertical + inset }),
+  };
 }
 const composerHeight = 52;
 const composerInside = composerHeight - 2 * glassEdge;

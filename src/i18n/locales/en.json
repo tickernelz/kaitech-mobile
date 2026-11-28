@@ -1417,7 +1417,7 @@
     }
   },
   "account": {
-    "title": "Odoo account",
+    "title": "Contact and preferences",
     "contact": "Contact",
     "email": "Email",
     "phone": "Phone",
@@ -1433,13 +1433,13 @@
     "awayFrom": "From",
     "awayTo": "Until",
     "awayMessage": "Message",
-    "language": "Odoo account language",
+    "language": "Email and notification language",
     "languageHint": "Used for emails and notifications the server sends you.",
     "appLanguage": "App language"
   },
   "security": {
     "thisPhone": "This phone",
-    "account": "Odoo account",
+    "account": "Account",
     "identity": {
       "title": "Confirm it is you",
       "body": "Enter your Odoo password to continue.",
@@ -1652,7 +1652,7 @@
   "gate": {
     "team": {
       "title": "This page is for the Kaitech team.",
-      "body": "Your account sees your Programmes on Home and your conversations in Chat."
+      "body": "Your account sees your programmes on Home and your conversations in Chat."
     },
     "admin": {
       "title": "This page is for admins.",
@@ -1664,14 +1664,19 @@
   },
   "home": {
     "stage": "Stage: {{stage}}",
-    "quiet": "Nothing is waiting for you in this Programme.",
-    "emptyTitle": "No Programme yet",
-    "emptyBody": "Your consultant opens a Programme for you. It shows here once it is open.",
+    "quiet": "Nothing is waiting for you in this programme.",
+    "emptyTitle": "No programme yet",
+    "emptyBody": "Your consultant opens a programme for you. It shows here once it is open.",
     "cancel": "Cancel",
     "interviews": {
       "title": "Interview",
-      "row_one": "Interview, {{count}} question left",
-      "row_other": "Interview, {{count}} questions left",
+      "untitled": "Interview",
+      "stage": {
+        "summary_waits": "A summary of your answers waits for your confirmation",
+        "asks": "Questions are waiting for your answers",
+        "answered": "All answered, your consultant is reviewing",
+        "not_started": "Not started yet"
+      },
       "until": "open until {{day}}"
     },
     "documents": {
@@ -1750,8 +1755,14 @@
       "admin": "Admin",
       "superadmin": "Superadmin"
     },
+    "roleInline": {
+      "external": "external",
+      "internal": "internal",
+      "admin": "admin",
+      "superadmin": "superadmin"
+    },
     "roleHint": {
-      "external": "Sees only the Programmes they belong to",
+      "external": "Sees only the programmes they belong to",
       "internal": "Uses the team screens",
       "admin": "Manages internal and external users",
       "superadmin": "Holds Odoo Settings and every key"
@@ -1767,7 +1778,7 @@
     "confirmTitle": "Make {{name}} {{role}}?",
     "confirmAction": "Make {{role}}",
     "confirmBody": {
-      "external": "They will see only the Programmes they belong to, in the portal and the app.",
+      "external": "They will see only the programmes they belong to, in the portal and the app.",
       "internal": "They will use the team screens: Discovery, MoM and Activity.",
       "admin": "They will be able to manage internal and external users.",
       "superadmin": "They will hold Odoo Settings, every key and every account."
@@ -1787,10 +1798,11 @@
       "sponsor": "Sponsor"
     },
     "programmesSection": "Programmes",
-    "programmes_one": "Member of {{count}} Programme",
-    "programmes_other": "Member of {{count}} Programmes",
-    "programmesMore_one": "And {{count}} more Programme",
-    "programmesMore_other": "And {{count}} more Programmes",
+    "programmesNone": "Not a member of any programme yet.",
+    "programmes_one": "Member of {{count}} programme",
+    "programmes_other": "Member of {{count}} programmes",
+    "programmesMore_one": "And {{count}} more programme",
+    "programmesMore_other": "And {{count}} more programmes",
     "historySection": "History",
     "historyAll": "See all {{count}}",
     "history": {
@@ -1817,12 +1829,12 @@
       "role": "Role",
       "send": "Invite",
       "sent": "Invitation sent to {{email}}.",
-      "madeExternal": "Account made for {{email}}. A consultant opens a Programme for them.",
+      "madeExternal": "Account made for {{email}}. A consultant opens a programme for them.",
       "takenTitle": "Email already in use",
       "takenBody": "{{email}} already has an account.",
       "openExisting": "Open that account",
       "hint": {
-        "external": "No email is sent. A consultant opens a Programme for them with an access card.",
+        "external": "No email is sent. A consultant opens a programme for them with an access card.",
         "internal": "Odoo sends them an invitation email.",
         "admin": "Odoo sends them an invitation email.",
         "superadmin": "Odoo sends them an invitation email."

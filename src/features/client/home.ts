@@ -1,6 +1,7 @@
 export type MinutesState = 'arriving' | 'open' | 'corrected' | 'approved';
 
-export type Interview = { inviteId: number; questionsLeft: number; expiresOn: string };
+export type InterviewStage = 'summary_waits' | 'asks' | 'answered' | 'not_started';
+export type Interview = { inviteId: number; topic: string; stage: InterviewStage | null; expiresOn: string };
 export type DocumentAsk = { requestId: number; document: string; why: string; handedOver: string; unreadable: boolean; handedOverOn: string };
 export type DataAsk = { grantId: number; name: string; purpose: string; columns: string };
 export type Minutes = { meetingId: number; subject: string; heldOn: string; number: string; state: MinutesState; correctionsUntil: string; hasFile: boolean };
@@ -23,6 +24,7 @@ export type ProgrammeBlock = {
 type Raw = Record<string, unknown>;
 
 const minutesStates: readonly MinutesState[] = ['arriving', 'open', 'corrected', 'approved'];
+const interviewStages: readonly InterviewStage[] = ['summary_waits', 'asks', 'answered', 'not_started'];
 
 function isRecord(value: unknown): value is Raw {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -47,7 +49,8 @@ function rows<T>(value: unknown, read: (row: Raw) => T | null): T[] {
 
 function interview(row: Raw): Interview | null {
   const inviteId = id(row.invite_id);
-  return inviteId ? { inviteId, questionsLeft: count(row.questions_left), expiresOn: text(row.expires_on) } : null;
+  if (!inviteId) return null;
+  return { inviteId, topic: text(row.topic), stage: interviewStages.find((one) => one === row.stage) ?? null, expiresOn: text(row.expires_on) };
 }
 
 function documentAsk(row: Raw): DocumentAsk | null {
