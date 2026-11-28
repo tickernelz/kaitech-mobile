@@ -6,6 +6,7 @@ const mockHaptic = jest.fn();
 jest.mock('expo-haptics', () => ({ impactAsync: (...args: unknown[]) => mockHaptic(...args), ImpactFeedbackStyle: { Medium: 'medium' } }));
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
 const mockReset = jest.fn();
+const mockSwipeProps: { current: Record<string, unknown> } = { current: {} };
 type MockSwipeableProps = {
   children: unknown;
   testID: string;
@@ -20,7 +21,9 @@ jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
   const methods = { close: () => undefined, openLeft: () => undefined, openRight: () => undefined, reset: () => mockReset() };
   return {
     __esModule: true,
-    default: function MockSwipeable({ children, testID, onSwipeableOpenStartDrag, renderLeftActions, renderRightActions, ref }: MockSwipeableProps) {
+    default: function MockSwipeable(props: MockSwipeableProps) {
+      const { children, testID, onSwipeableOpenStartDrag, renderLeftActions, renderRightActions, ref } = props;
+      mockSwipeProps.current = props;
       React.useImperativeHandle(ref, () => methods);
       return React.createElement(
         View,
@@ -143,5 +146,14 @@ describe('row actions', () => {
     await act(async () => fireEvent(button(), 'focus'));
     await act(async () => fireEvent.press(button()));
     expect(screen.getByTestId('row-sheet')).toBeTruthy();
+  });
+
+  it('moves a row only after 28 dp sideways and opens it only after about 100 dp of finger travel', async () => {
+    await render(row(actions, ['read'], ['archive', 'more']));
+    const { dragOffsetFromLeft, dragOffsetFromRight, leftThreshold, rightThreshold, friction } = mockSwipeProps.current as Record<string, number>;
+    expect(dragOffsetFromLeft).toBeGreaterThanOrEqual(28);
+    expect(dragOffsetFromRight).toBeLessThanOrEqual(-28);
+    expect(leftThreshold * friction).toBeGreaterThanOrEqual(100);
+    expect(rightThreshold * friction).toBeGreaterThanOrEqual(100);
   });
 });

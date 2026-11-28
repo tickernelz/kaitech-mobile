@@ -7,6 +7,7 @@ import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture
 import { radius, space, useTheme } from '../theme';
 import { ActionSheet, type SheetAction } from './ActionSheet';
 import { Icon } from './icons';
+import { swipeStart } from './swipeIntent';
 import { Text } from './Text';
 
 export type RowBind = {
@@ -19,6 +20,8 @@ export type RowBind = {
 const moreKey = 'more';
 const longPressMs = 420;
 const swipeButtonWidth = 84;
+const rowFriction = 1.6;
+const rowOpenAt = 64;
 
 export function swipeActionsFor(actions: SheetAction[], keys: string[], more: SheetAction): SheetAction[] {
   const byKey = new Map(actions.map((action) => [action.key, action]));
@@ -135,9 +138,11 @@ export function RowActions({
       <ReanimatedSwipeable
         ref={swipe}
         onSwipeableOpenStartDrag={() => setArmedRow(testID)}
-        friction={1.6}
-        leftThreshold={48}
-        rightThreshold={48}
+        friction={rowFriction}
+        dragOffsetFromLeft={swipeStart}
+        dragOffsetFromRight={-swipeStart}
+        leftThreshold={rowOpenAt}
+        rightThreshold={rowOpenAt}
         overshootLeft={false}
         overshootRight={false}
         renderLeftActions={

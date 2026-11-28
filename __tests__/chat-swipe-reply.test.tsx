@@ -48,6 +48,7 @@ const { GestureHandlerRootView, State } = require('react-native-gesture-handler'
 const { fireGestureHandler, getByGestureTestId } = require('react-native-gesture-handler/jest-utils') as typeof import('react-native-gesture-handler/jest-utils');
 const { MessageBubble } = require('../src/features/chat/ui/MessageBubble') as typeof import('../src/features/chat/ui/MessageBubble');
 const { replyMax, replyPull, replyReach, replySlop } = require('../src/features/chat/ui/SwipeReply') as typeof import('../src/features/chat/ui/SwipeReply');
+const { swipeCrossSlop, swipeHeldSideways, swipeStart } = require('../src/ui/swipeIntent') as typeof import('../src/ui/swipeIntent');
 type GestureState = (typeof State)[keyof typeof State];
 
 function message(id: number, body: string, type: Message['type'] = 'comment'): Message {
@@ -75,14 +76,20 @@ function bubble(item: Message, onReply?: (message: Message) => void, onLongPress
   );
 }
 
-async function drag(id: number, path: number[], end: GestureState = State.END) {
+type Point = number | [number, number];
+
+function at(point: Point) {
+  const [translationX, translationY] = typeof point === 'number' ? [point, 0] : point;
+  return { translationX, translationY };
+}
+
+async function drag(id: number, path: Point[], end: GestureState = State.END) {
   const last = path[path.length - 1];
   await act(async () =>
     fireGestureHandler(getByGestureTestId(`message-${id}-swipe`), [
-    { state: State.BEGAN, translationX: 0 },
-    { state: State.ACTIVE, translationX: path[0] },
-    ...path.slice(1).map((translationX) => ({ state: State.ACTIVE, translationX })),
-    { state: end, translationX: last },
+    { state: State.BEGAN, translationX: 0, translationY: 0 },
+    ...path.map((point) => ({ state: State.ACTIVE, ...at(point) })),
+    { state: end, ...at(last) },
     ]),
   );
 }
@@ -132,6 +139,21 @@ describe('swipe right to reply', () => {
     expect(mockTick).toHaveBeenCalledTimes(1);
   });
 
+  it('drops the reply for the rest of the touch once the finger moves more up or down than sideways', async () => {
+    const reply = jest.fn();
+    await bubble(message(60, 'Oke'), reply);
+    await drag(60, [replySlop + 10, past, [past + 10, past + 11], past + 30]);
+    expect(reply).not.toHaveBeenCalled();
+    expect(mockTick).toHaveBeenCalledTimes(1);
+  });
+
+  it('still replies when a sideways pull drifts a little up or down, as a thumb does', async () => {
+    const reply = jest.fn();
+    await bubble(message(61, 'Oke'), reply);
+    await drag(61, [replySlop + 10, [past, 40], [past + 20, -30]]);
+    expect(reply).toHaveBeenCalledTimes(1);
+  });
+
   it('does not reply when the system cancels the gesture, as when the list takes over the touch', async () => {
     const reply = jest.fn();
     await bubble(message(54, 'Oke'), reply);
@@ -157,6 +179,11 @@ describe('swipe right to reply', () => {
     expect(() => getByGestureTestId('message-57-swipe')).toThrow();
   });
 
+  it('needs at least 100 dp of sideways finger travel before a release replies', () => {
+    expect(replyPull(99)).toBeLessThan(replyReach);
+    expect(replyPull(100)).toBeGreaterThanOrEqual(replyReach);
+  });
+
   it('follows the finger after the slop, then resists and stops at the cap', () => {
     expect(replyPull(-40)).toBe(0);
     expect(replyPull(replySlop)).toBe(0);
@@ -174,5 +201,19 @@ describe('long press on a message', () => {
     await fireEvent(screen.getByTestId('bubble-58'), 'longPress');
     expect(mockStart).toHaveBeenCalledTimes(1);
     expect(longPress).toHaveBeenCalledWith(item);
+  });
+});
+
+describe('telling a sideways swipe from a scroll', () => {
+  it('starts a swipe only after 28 dp sideways with the finger within half that up or down', () => {
+    expect(swipeStart).toBeGreaterThanOrEqual(28);
+    expect(swipeStart / swipeCrossSlop).toBeGreaterThanOrEqual(2);
+  });
+
+  it('keeps a started swipe while it stays at least as sideways as it is vertical', () => {
+    expect(swipeHeldSideways(60, 0)).toBe(true);
+    expect(swipeHeldSideways(60, -60)).toBe(true);
+    expect(swipeHeldSideways(60, 61)).toBe(false);
+    expect(swipeHeldSideways(-60, -61)).toBe(false);
   });
 });
