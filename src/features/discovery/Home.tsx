@@ -350,7 +350,7 @@ export function DiscoveryHome() {
   );
 
   return (
-    <SafeAreaView edges={['top', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-discovery">
+    <SafeAreaView edges={['right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="tab-discovery">
       <Panes list={home} detail={detail} />
     </SafeAreaView>
   );

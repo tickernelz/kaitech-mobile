@@ -1,5 +1,6 @@
 import { useState, useSyncExternalStore, type ReactNode } from 'react';
 import { StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { space, useTheme } from '../theme';
 import { Text } from './Text';
 
@@ -35,13 +36,16 @@ export function useScrolledUnder() {
 export function TopAppBar({ title, scrolled: under, navigation, actions }: { title: string; scrolled: ScrolledUnder; navigation?: ReactNode; actions?: ReactNode }) {
   const { material } = useTheme();
   const scrolled = useSyncExternalStore(under.subscribe, under.get);
+  const { top } = useSafeAreaInsets();
   return (
-    <View style={[styles.bar, { backgroundColor: scrolled ? material.surfaceContainer : material.background }]} testID="app-bar">
-      {navigation}
-      <Text variant="title" accessibilityRole="header" numberOfLines={1} style={[styles.title, !navigation && styles.titleInset, { color: material.onSurface }]} testID="app-bar-title">
-        {title}
-      </Text>
-      {actions}
+    <View style={{ paddingTop: top, backgroundColor: scrolled ? material.surfaceContainer : material.background }} testID="app-bar-surface">
+      <View style={styles.bar} testID="app-bar">
+        {navigation}
+        <Text variant="title" accessibilityRole="header" numberOfLines={1} style={[styles.title, !navigation && styles.titleInset, { color: material.onSurface }]} testID="app-bar-title">
+          {title}
+        </Text>
+        {actions}
+      </View>
     </View>
   );
 }
