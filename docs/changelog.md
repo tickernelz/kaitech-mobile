@@ -2,6 +2,13 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.16.0 - 2026-11-28
+
+### Changed
+
+- Chat: Starred and Tickets above the conversation list share one row split into two cells, each its own button, instead of two stacked full-width rows; the space above the first conversation shrinks from 108 dp to 58 dp on the Meizu Mblu 21. A lone entry takes the whole row; at large font sizes or in a window under 360 dp the two cells stack instead of cutting their labels (#171, ZHA-8111).
+- Chat: Tickets have their own ticket icon (a notched stub with perforation) in that row and on ticket cards, instead of the Coworker sparkle; the down arrow that suggested the row would unfold is gone (#171, ZHA-8111).
+
 ## 0.15.3 - 2026-11-28
 
 ### Fixed
