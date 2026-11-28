@@ -2,6 +2,21 @@ import { Platform } from 'react-native';
 
 export type Scheme = 'light' | 'dark';
 
+const accents = {
+  android: {
+    primary: ['#705289', '#DDB9F8'],
+    primaryPressed: ['#7E6395', '#CDAAE8'],
+    onPrimary: ['#FFFFFF', '#3F2358'],
+    onDanger: ['#FFFFFF', '#100F11'],
+  },
+  ios: {
+    primary: ['#441D65', '#9358C7'],
+    primaryPressed: ['#2F1447', '#7A4DB8'],
+    onPrimary: ['#FFFFFF', '#FFFFFF'],
+    onDanger: ['#FFFFFF', '#FFFFFF'],
+  },
+} as const;
+
 const pairs = {
   canvas: ['#F4F4F5', '#100F11'],
   surface: ['#FFFFFF', '#1C1B1F'],
@@ -13,9 +28,8 @@ const pairs = {
   ink: ['#151418', '#F1F0F3'],
   inkSoft: ['#55535B', '#B6B4BB'],
   inkFaint: ['#67656D', '#95939B'],
-  primary: ['#441D65', '#9358C7'],
-  primaryPressed: ['#2F1447', '#7A4DB8'],
-  onPrimary: ['#FFFFFF', '#FFFFFF'],
+  ...accents[Platform.OS === 'android' ? 'android' : 'ios'],
+  onFill: ['#FFFFFF', '#FFFFFF'],
   select: ['#EDE7F5', '#2D2739'],
   selectInk: ['#2B1542', '#EEE9F6'],
   focus: ['#7A4DB0', '#A889DC'],

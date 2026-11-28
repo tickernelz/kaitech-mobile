@@ -198,5 +198,5 @@ export function ThreadsSheet({ threads, onClose, onOpen }: { threads: { id: numb
 
 const styles = StyleSheet.create({
   pad: { padding: space.lg },
-  input: { minHeight: 44, borderRadius: radius.field, paddingHorizontal: space.md, fontSize: 16 },
+  input: { minHeight: 44, borderRadius: radius.pill, paddingHorizontal: space.md, fontSize: 16 },
 });

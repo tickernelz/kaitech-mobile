@@ -94,6 +94,7 @@ Android uses the Material 3 roles generated from the seed `#441D65` (`src/theme/
 | Rule | Value | Reference |
 |---|---|---|
 | Tokens | `colors.primary`, `onPrimary` and `primaryPressed` become per-platform pairs. Android: `#705289` / `#DDB9F8`, `onPrimary` `#FFFFFF` / `#3F2358`, pressed `#7E6395` / `#CDAAE8` (the `onPrimary` state layer at 10%). iOS: `#5F2E91` / `#C4A8EE`, `onPrimary` `#FFFFFF` / `#151418`, pressed equal to the tint (iOS press is opacity 0.8). `material.ts` takes `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer`, `inversePrimary` and `surfaceTint` from `seedPalettes` | ZHA-8126 |
+| `onDanger`, `onFill` | `onDanger` is the ink on a `danger` fill: Android `#FFFFFF` / `#100F11` (the M3 `onError` slot), iOS `#FFFFFF` until its own task. `onFill` is white for fills that are neither `primary` nor `danger`: avatar fills and `ok`. Text and spinners over photos and video use `onStage` | ZHA-8127 |
 | `onPrimary` | only on a `primary` fill; on `danger` use `onError` (Android) or the same pair on iOS, see [Contrast](#contrast) | dark `onPrimary` is no longer white |
 | Filled accents per region | one at rest: the composer shows send only while there is something to send; the chat list shows none apart from count badges | Zhafron 28 Nov: solid purple next to glass reads heavy |
 | Solid purple bands | no large `primary` fill behind text (table headers, banners); use `surface2` or `select` | |

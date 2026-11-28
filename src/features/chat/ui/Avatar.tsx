@@ -43,9 +43,9 @@ export const Avatar = memo(function Avatar({
   return (
     <View style={[styles.frame, frame]} accessible={false} importantForAccessibility="no-hide-descendants" testID={shown ? 'avatar-photo' : 'avatar-initials'}>
       {icon ? (
-        <Icon name={icon} size={size * 0.46} color={colors.onPrimary} />
+        <Icon name={icon} size={size * 0.46} color={colors.onFill} />
       ) : (
-        <Text variant="headline" maxFontSizeMultiplier={1.2} style={{ color: colors.onPrimary, fontSize: size * 0.36, lineHeight: size * 0.44 }}>
+        <Text variant="headline" maxFontSizeMultiplier={1.2} style={{ color: colors.onFill, fontSize: size * 0.36, lineHeight: size * 0.44 }}>
           {initials(name)}
         </Text>
       )}

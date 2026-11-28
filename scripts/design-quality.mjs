@@ -153,18 +153,18 @@ function scan(file) {
 
 for (const file of sources(join(root, 'src'))) if (!relative(root, file).startsWith('src/theme/')) scan(file);
 
-function tokenPairs() {
+function tokenPairs(platform) {
   const file = join(root, 'src/theme/tokens.ts');
   const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
-  const pairs = {};
+  const objects = {};
   function visit(node) {
-    if (ts.isVariableDeclaration(node) && node.name.getText() === 'pairs') {
-      const object = ts.isAsExpression(node.initializer) ? node.initializer.expression : node.initializer;
-      for (const prop of object.properties) pairs[keyOf(prop)] = prop.initializer.elements.map((e) => e.text);
-    }
+    if (ts.isVariableDeclaration(node) && ['pairs', 'accents'].includes(node.name.getText())) objects[node.name.getText()] = ts.isAsExpression(node.initializer) ? node.initializer.expression : node.initializer;
     ts.forEachChild(node, visit);
   }
   visit(source);
+  const accent = objects.accents.properties.find((prop) => keyOf(prop) === platform).initializer;
+  const pairs = {};
+  for (const prop of [...objects.pairs.properties.filter((p) => !ts.isSpreadAssignment(p)), ...accent.properties]) pairs[keyOf(prop)] = prop.initializer.elements.map((e) => e.text);
   return pairs;
 }
 
@@ -186,24 +186,29 @@ const contrastChecks = [
   ...['primary', 'danger', 'ok', 'edge', 'focus'].flatMap((fg) => ['canvas', 'surface', 'surface2'].map((bg) => [fg, bg, 3])),
   ['selectInk', 'select', 4.5],
   ['onPrimary', 'primary', 4.5],
+  ['onPrimary', 'primaryPressed', 3],
   ['okInk', 'okBand', 4.5],
   ['warnInk', 'warnBand', 4.5],
   ['dangerInk', 'dangerBand', 4.5],
   ['infoInk', 'infoBand', 4.5],
-  ['onPrimary', 'danger', 4.5],
+  ['onDanger', 'danger', 4.5],
   ['canvas', 'dangerInk', 4.5],
 ];
 
 if (args.has('--contrast')) {
-  const pairs = tokenPairs();
-  console.log('| Foreground | Background | Minimum | Light | Dark |');
-  console.log('|---|---|---|---|---|');
-  for (const [fg, bg, min] of contrastChecks) {
-    const cells = [0, 1].map((i) => {
-      const ratio = contrast(pairs[fg][i], pairs[bg][i]);
-      return ratio.toFixed(2) + (ratio < min ? ' FAIL' : '');
-    });
-    console.log('| ' + fg + ' | ' + bg + ' | ' + min + ' | ' + cells.join(' | ') + ' |');
+  for (const platform of ['android', 'ios']) {
+    const pairs = tokenPairs(platform);
+    console.log((platform === 'android' ? 'Android' : 'iOS') + '\n');
+    console.log('| Foreground | Background | Minimum | Light | Dark |');
+    console.log('|---|---|---|---|---|');
+    for (const [fg, bg, min] of contrastChecks) {
+      const cells = [0, 1].map((i) => {
+        const ratio = contrast(pairs[fg][i], pairs[bg][i]);
+        return ratio.toFixed(2) + (ratio < min ? ' FAIL' : '');
+      });
+      console.log('| ' + fg + ' | ' + bg + ' | ' + min + ' | ' + cells.join(' | ') + ' |');
+    }
+    console.log('');
   }
 } else {
   console.log('| Rule | Count | Meaning |');

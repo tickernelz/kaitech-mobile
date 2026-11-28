@@ -72,7 +72,7 @@ export default function ProfileSettings() {
         ) : (
           <Avatar name={current} seed={active.partnerId} partnerId={active.partnerId} size={photoSize} />
         )}
-        {busy ? <ActivityIndicator style={StyleSheet.absoluteFill} color={colors.onPrimary} /> : null}
+        {busy ? <ActivityIndicator style={StyleSheet.absoluteFill} color={colors.onStage} /> : null}
       </View>
       <View style={styles.actions}>
         {staged ? (

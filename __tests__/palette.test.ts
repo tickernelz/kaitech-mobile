@@ -42,7 +42,7 @@ const controls: [ColorName, ColorName[]][] = [
   ['primary', ['canvas', 'surface', 'surface2', 'select']],
   ['edge', ['canvas', 'surface']],
   ['focus', ['surface', 'select']],
-  ['danger', ['surface', 'onPrimary']],
+  ['danger', ['surface', 'onDanger']],
 ];
 
 describe.each<Scheme>(['light', 'dark'])('%s palette', (scheme) => {

@@ -1,4 +1,5 @@
 import { materialColors, seedColor, type MaterialRole } from '../src/theme/material';
+import { seedPalettes } from '../src/theme/materialSeed';
 import { colorsFor, type Scheme } from '../src/theme/tokens';
 
 function luminance(hex: string): number {
@@ -32,10 +33,16 @@ const pairs: [MaterialRole, MaterialRole][] = [
 ];
 
 describe('Material 3 colour roles', () => {
-  test('the seed and the primary role are Kaitech purple, not a wallpaper or a tonal guess', () => {
+  test.each(schemes)('%s: the accent roles come from the Kaitech seed, and Android tokens draw with them', (scheme) => {
     expect(seedColor).toBe('#441D65');
-    expect(materialColors('light').primary).toBe('#441D65');
-    expect(materialColors('dark').primary).toBe(colorsFor('dark').primary);
+    const roles = materialColors(scheme);
+    for (const role of ['primary', 'onPrimary', 'primaryContainer', 'onPrimaryContainer', 'inversePrimary', 'surfaceTint'] as const) expect(roles[role]).toBe(seedPalettes[scheme][role]);
+    jest.isolateModules(() => {
+      const { Platform } = require('react-native') as typeof import('react-native');
+      Object.defineProperty(Platform, 'OS', { value: 'android', configurable: true });
+      const android = (require('../src/theme/tokens') as typeof import('../src/theme/tokens')).colorsFor(scheme);
+      expect([android.primary, android.onPrimary]).toEqual([roles.primary, roles.onPrimary]);
+    });
   });
 
   test.each(schemes)('%s: surfaces and error stay on the Kaitech tokens', (scheme) => {

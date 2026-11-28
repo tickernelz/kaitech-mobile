@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
   reaction: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: reactionHeight, minWidth: touchTarget, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   action: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   notice: { paddingHorizontal: space.xxl, paddingVertical: space.sm, alignItems: 'center' },
-  noticePill: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.md, overflow: 'hidden' },
+  noticePill: { paddingHorizontal: space.md, paddingVertical: space.xs, borderRadius: radius.pill, overflow: 'hidden' },
   callNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.xs, overflow: 'visible' },
   callRow: { paddingVertical: callRowPad },
   join: { paddingVertical: joinBand, marginVertical: -joinBand, paddingHorizontal: space.sm, marginHorizontal: -space.sm },

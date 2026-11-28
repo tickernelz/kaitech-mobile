@@ -128,7 +128,7 @@ const Row = memo(function Row({
           {muted ? <Icon name="bellOff" size={16} color={colors.inkFaint} /> : null}
           {unread ? (
             <View style={[styles.badge, { backgroundColor: muted ? colors.inkFaint : colors.primary }]}>
-              <Text variant="label" maxFontSizeMultiplier={1.4} style={{ color: colors.onPrimary }}>
+              <Text variant="label" maxFontSizeMultiplier={1.4} style={{ color: muted ? colors.surface : colors.onPrimary }}>
                 {conversation.unread > 99 ? '99+' : conversation.unread}
               </Text>
             </View>

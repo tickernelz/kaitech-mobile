@@ -48,7 +48,7 @@ function ActivityBadge() {
   if (!text) return null;
   return (
     <View style={[styles.badge, { backgroundColor: colors.danger, borderColor: colors.surface }]} accessibilityLabel={t('activities.pending', { count })} testID="tab-badge-activity">
-      <Text variant="label" maxFontSizeMultiplier={1.2} style={[styles.badgeText, { color: colors.onPrimary }]}>
+      <Text variant="label" maxFontSizeMultiplier={1.2} style={[styles.badgeText, { color: colors.onDanger }]}>
         {text}
       </Text>
     </View>

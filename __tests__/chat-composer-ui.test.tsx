@@ -441,10 +441,16 @@ describe('floating composer', () => {
     }
   });
 
-  it.each([true, false])('puts the send button on the capsule layer: same shadow, or none when solid (see-through %s)', async (seeThrough) => {
+  it.each([true, false])('draws the idle mic in the capsule glass and lifts send like the capsule, or both solid (see-through %s)', async (seeThrough) => {
     mockSeeThrough = seeThrough;
     await show();
-    expect(flat('composer-send-slot').boxShadow).toBe(seeThrough ? flat('composer-capsule').boxShadow : undefined);
+    expect(within('composer-mic-glass', 'composer-mic')).toBe(true);
+    const capsule = flat('composer-capsule');
+    const mic = flat('composer-mic-glass');
+    if (seeThrough) expect(mic).toMatchObject({ borderWidth: capsule.borderWidth, borderColor: capsule.borderColor, boxShadow: capsule.boxShadow });
+    else expect(mic).toMatchObject({ backgroundColor: capsule.backgroundColor, borderWidth: 1 });
+    expect(screen.queryByTestId('composer-mic-held', hidden)).toBeNull();
+    expect(flat('composer-send').boxShadow).toBe(seeThrough ? capsule.boxShadow : undefined);
   });
 
   it('a recording row sits in the same glass capsule, so it stays readable over the chat', async () => {

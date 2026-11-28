@@ -52,7 +52,7 @@ export const KtChecklist = memo(function KtChecklist({ block }: { block: Checkli
       {block.items.map((item, index) => (
         <View key={index} style={styles.check} accessible accessibilityRole="checkbox" accessibilityState={{ checked: item.done, disabled: true }} accessibilityLabel={item.label + (item.note ? ', ' + item.note : '')}>
           <View style={[styles.box, item.done ? { backgroundColor: colors.ok, borderColor: colors.ok } : { borderColor: colors.lineStrong }]}>
-            {item.done ? <Icon name="check" size={14} color={colors.onPrimary} /> : null}
+            {item.done ? <Icon name="check" size={14} color={colors.onFill} /> : null}
           </View>
           <View style={shared.grow}>
             <Text variant="footnote">
