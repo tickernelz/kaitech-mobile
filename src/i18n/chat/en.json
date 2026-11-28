@@ -704,5 +704,41 @@
     "coordinates": "Coordinates {{value}}",
     "blockedTitle": "Location access is off",
     "blockedBody": "Allow location access for Kaitech in Settings, then try again."
+  },
+  "tickets": {
+    "title": "Tickets",
+    "state": {
+      "draft": "Not started",
+      "progress": "In progress",
+      "blocked": "Waiting for a decision",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "askedBy": "Asked by {{requester}} · {{agent}}",
+    "working": "Now: the Coworker is working",
+    "waitsFor": "{{number}} waits for {{people}}",
+    "recommended": "Recommended",
+    "chose": "{{person}} chose: {{option}}",
+    "answeredInWords": "{{person}} answered with a message",
+    "noLongerWaiting": "No longer waiting",
+    "answer": "Answer",
+    "only": "Only {{people}} can decide this.",
+    "you": "You",
+    "offline": "Deciding needs a connection; a message still goes out when you are back.",
+    "programme": "Program: {{name}}",
+    "timeline": "Timeline",
+    "linked": "Linked: {{list}}",
+    "follow": "Follow",
+    "unfollow": "Stop following",
+    "stop": "Stop the ticket",
+    "keep": "Keep working",
+    "stopConfirm": "Every agent still working on this ticket stops, and the ticket is cancelled. You can ask again within 14 days by replying to its card.",
+    "scope": {
+      "waiting": "Waiting on me",
+      "mine": "I asked",
+      "threads": "My conversations"
+    },
+    "loading": "Loading tickets…",
+    "none": "No tickets here."
   }
 }

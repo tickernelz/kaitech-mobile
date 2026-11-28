@@ -16,6 +16,7 @@ function db(): SQLiteDatabase {
     CREATE INDEX IF NOT EXISTS messages_by_channel ON messages (account, channel, id);
     CREATE TABLE IF NOT EXISTS outbox (key TEXT PRIMARY KEY NOT NULL, account TEXT NOT NULL, created INTEGER NOT NULL, json TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS drafts (account TEXT NOT NULL, channel INTEGER NOT NULL, json TEXT NOT NULL, PRIMARY KEY (account, channel));
+    CREATE TABLE IF NOT EXISTS tickets (account TEXT NOT NULL, id INTEGER NOT NULL, stored INTEGER NOT NULL, json TEXT NOT NULL, PRIMARY KEY (account, id));
   `);
   return opened;
 }
@@ -104,9 +105,29 @@ export function storeDraft(account: string, channel: number, draft: Draft | null
   void db().runAsync('INSERT OR REPLACE INTO drafts (account, channel, json) VALUES (?, ?, ?)', [account, channel, JSON.stringify(draft)]);
 }
 
+const keepTickets = 100;
+
+export function cachedTickets<T>(account: string): T[] {
+  return parse<T>(db().getAllSync<{ json: string }>('SELECT json FROM tickets WHERE account = ? ORDER BY stored DESC', [account]));
+}
+
+export function storeTickets(account: string, tickets: { id: number }[]) {
+  const now = Date.now();
+  void db().withTransactionAsync(async () => {
+    for (const ticket of tickets) {
+      await db().runAsync('INSERT OR REPLACE INTO tickets (account, id, stored, json) VALUES (?, ?, ?, ?)', [account, ticket.id, now, JSON.stringify(ticket)]);
+    }
+    await db().runAsync('DELETE FROM tickets WHERE account = ? AND id NOT IN (SELECT id FROM tickets WHERE account = ? ORDER BY stored DESC LIMIT ?)', [account, account, keepTickets]);
+  });
+}
+
+export function dropTicket(account: string, id: number) {
+  void db().runAsync('DELETE FROM tickets WHERE account = ? AND id = ?', [account, id]);
+}
+
 export async function forgetAccount(account: string) {
   await db().withTransactionAsync(async () => {
-    for (const table of ['conversations', 'messages', 'outbox', 'drafts']) {
+    for (const table of ['conversations', 'messages', 'outbox', 'drafts', 'tickets']) {
       await db().runAsync(`DELETE FROM ${table} WHERE account = ?`, [account]);
     }
   });

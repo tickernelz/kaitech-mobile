@@ -14,7 +14,7 @@ describe('Coworker answer cards', () => {
     if (!result.ok) return;
     expect(result.value.get(41)?.said).toBe(said);
     expect(result.value.get(42)?.said).toBe('');
-    expect(result.value.get(43)).toEqual({ packets: [], wardmote: null, handedBy: null, said: '' });
+    expect(result.value.get(43)).toEqual({ packets: [], wardmote: null, handedBy: null, said: '', ticket: null, ticketAsk: null });
   });
 
   it('reads a missing or non-text said as no block answer', async () => {

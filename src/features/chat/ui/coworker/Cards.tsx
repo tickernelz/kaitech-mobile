@@ -9,6 +9,7 @@ import { DecisionCard } from '../../../discovery/DecisionCard';
 import { Markdown } from '../../../discovery/Markdown';
 import { agentCardsFor, createCardStore, decideWardmote, recordCards, type AgentCard, type CardStore, type RecordCard, type Wardmote } from '../../coworker';
 import { faceSize } from '../MessageBubble';
+import { TicketAskCard, TicketCard } from './Tickets';
 import { failureText } from '../actions/failure';
 import { touchTarget } from '../../../../ui/touch';
 
@@ -77,7 +78,7 @@ export const MessageCards = memo(function MessageCards({
   const agentCard = agents?.get(messageId);
   const recordList = records ? urls.map((url) => records.get(url)).filter((card): card is RecordCard => !!card) : [];
   const change = useCallback((next: AgentCard) => agents?.put(messageId, next), [agents, messageId]);
-  if (!(agentCard && (agentCard.packets.length || agentCard.wardmote)) && !recordList.length) return null;
+  if (!(agentCard && (agentCard.packets.length || agentCard.wardmote || agentCard.ticket || agentCard.ticketAsk)) && !recordList.length) return null;
   return (
     <View style={[styles.below, mine ? styles.belowMine : styles.belowTheirs, indent && styles.belowIndent]}>
       {agentCard ? <AgentCards card={agentCard} onChange={change} /> : null}
@@ -139,9 +140,11 @@ function WardmoteCard({ card, onChange }: { card: Wardmote; onChange: (next: War
 }
 
 export function AgentCards({ card, onChange }: { card: AgentCard; onChange: (next: AgentCard) => void }) {
-  if (!card.packets.length && !card.wardmote) return null;
+  if (!card.packets.length && !card.wardmote && !card.ticket && !card.ticketAsk) return null;
   return (
     <View style={styles.stack}>
+      {card.ticket ? <TicketCard ticket={card.ticket} /> : null}
+      {card.ticketAsk ? <TicketAskCard ask={card.ticketAsk} /> : null}
       {card.packets.map((packet) => (
         <DecisionCard key={packet.id} card={packet} onAnswered={(next) => onChange({ ...card, packets: card.packets.map((item) => (item.id === next.id ? next : item)) })} />
       ))}

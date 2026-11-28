@@ -26,6 +26,7 @@ import { RowActions } from '../../../ui/RowActions';
 import { conversationActions } from './conversationActions';
 import { refreshStarred } from '../starred';
 import { StarredSheet } from './thread/ListSheets';
+import { TicketsSheet } from './coworker/Tickets';
 import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
 
 function usePreview() {
@@ -168,6 +169,7 @@ export function ConversationList({
   const filter = filters.includes(chosen) ? chosen : 'all';
   const [inArchive, setInArchive] = useState(false);
   const [inStarred, setInStarred] = useState(false);
+  const [inTickets, setInTickets] = useState(false);
   const starred = useChat((state) => state.starred);
   const accountId = useChat((state) => state.accountId);
   useEffect(() => {
@@ -206,6 +208,21 @@ export function ConversationList({
         <Text variant="footnote" tone="inkFaint">
           {starred}
         </Text>
+      </Pressable>
+    ) : null;
+
+  const ticketsEntry =
+    filter === 'all' && hasFeature(features, 'agents') ? (
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => setInTickets(true)}
+        testID="chat-tickets-open"
+        style={({ pressed }) => [styles.archiveEntry, { backgroundColor: pressed ? colors.surface2 : colors.surface, borderColor: colors.line }]}>
+        <Icon name="sparkle" size={20} color={colors.inkSoft} />
+        <Text variant="callout" style={styles.flex}>
+          {t('tickets.title')}
+        </Text>
+        <Icon name="chevronDown" size={20} color={colors.inkFaint} />
       </Pressable>
     ) : null;
 
@@ -269,6 +286,7 @@ export function ConversationList({
       ) : null}
       {!pushSupported ? <Banner tone="info" icon="bell" text={t('list.iosNoPush')} testID="chat-ios-push-note" /> : null}
       {archiveEntry}
+      {ticketsEntry}
       {starredEntry}
     </View>
   );
@@ -326,6 +344,7 @@ export function ConversationList({
         }
       />
       {inArchive || short ? null : <Fab icon="edit" label={t('newChat.title')} onPress={onNew} testID="chat-new" />}
+      {inTickets ? <TicketsSheet onClose={() => setInTickets(false)} onOpenThread={(channelId, messageId) => onOpen(channelId, messageId)} /> : null}
       {inStarred ? (
         <StarredSheet
           onClose={() => setInStarred(false)}
