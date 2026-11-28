@@ -36,7 +36,7 @@ name: Admin account - Users list, move a person between internal and external, s
       id: user-role-admin
     timeout: 10000
 - assertVisible:
-    text: (Only a superadmin can make someone Admin|Hanya superadmin yang bisa menjadikan Admin)
+    text: (Only a superadmin can make someone admin|Hanya superadmin yang bisa menjadikan admin)
 - takeScreenshot: a2-role-sheet
 - tapOn:
     id: user-role-external
@@ -44,7 +44,7 @@ name: Admin account - Users list, move a person between internal and external, s
     id: user-role-confirm-confirm
 - extendedWaitUntil:
     visible:
-      text: (.* is now External\.|.* sekarang External\.)
+      text: (.* is now external\.|.* sekarang eksternal\.)
     timeout: 30000
 - takeScreenshot: a3-external
 - tapOn:
