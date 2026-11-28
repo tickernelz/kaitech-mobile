@@ -1,6 +1,7 @@
 import { route, rpc } from '../../api/odoo';
 import type { Card } from '../discovery/api';
 import { run } from './messageActions';
+import { questionFrom, ticketFrom, type Question, type Ticket } from './tickets';
 
 export type Work = {
   turnId: number;
@@ -29,7 +30,9 @@ export type Wardmote = {
   status: string;
 };
 
-export type AgentCard = { packets: Card[]; wardmote: Wardmote | null; handedBy: string | null; said: string };
+export type TicketAsk = { ticket: Ticket; question: Question };
+
+export type AgentCard = { packets: Card[]; wardmote: Wardmote | null; handedBy: string | null; said: string; ticket: Ticket | null; ticketAsk: TicketAsk | null };
 
 export type RecordCard = { kind: string; model: string; id: number; locked: boolean; title: string; status: string; key: string; parent: string; people: string[] };
 
@@ -98,14 +101,28 @@ export function agentCardsFor(channelId: number, messageIds: number[]) {
     for (const id of messageIds) {
       const card = isRecord(raw) ? raw[String(id)] : undefined;
       if (!isRecord(card)) {
-        out.set(id, { packets: [], wardmote: null, handedBy: null, said: '' });
+        out.set(id, { packets: [], wardmote: null, handedBy: null, said: '', ticket: null, ticketAsk: null });
         continue;
       }
       const handed = isRecord(card.handed) ? str(card.handed.by) || null : null;
-      out.set(id, { packets: Array.isArray(card.packets) ? (card.packets as Card[]) : [], wardmote: wardmoteFrom(card.wardmote), handedBy: handed, said: str(card.said) });
+      out.set(id, {
+        packets: Array.isArray(card.packets) ? (card.packets as Card[]) : [],
+        wardmote: wardmoteFrom(card.wardmote),
+        handedBy: handed,
+        said: str(card.said),
+        ticket: ticketFrom(card.ticket),
+        ticketAsk: ticketAskFrom(card.ticket_question),
+      });
     }
     return out;
   });
+}
+
+function ticketAskFrom(value: unknown): TicketAsk | null {
+  if (!isRecord(value)) return null;
+  const ticket = ticketFrom(value.ticket);
+  const question = questionFrom(value.question);
+  return ticket && question ? { ticket, question } : null;
 }
 
 export function decideWardmote(card: Wardmote, approve: boolean) {

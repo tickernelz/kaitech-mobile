@@ -33,6 +33,7 @@ import {
   type ChannelInfo,
 } from './odoo';
 import { isShownWork, workFrom, workOf, type Work } from './coworker';
+import { noticeTicket } from './tickets';
 import { featuresFromSession, noFeatures, urgentLeftFrom, type ChatFeatures } from './features';
 import { Outbox, retryDelay, type Sent } from './outbox';
 import { Realtime, type Notification, type RealtimeState } from './realtime';
@@ -337,6 +338,10 @@ function onNotifications(notifications: Notification[]) {
       const known = touchConversation(channelId, messages[messages.length - 1]);
       if (!known) void refreshConversations();
       if (active && state.openChannels.includes(channelId)) scheduleRead(channelId);
+      continue;
+    }
+    if (notification.type === 'kaitech_chat.ticket') {
+      noticeTicket(notification.payload);
       continue;
     }
     if (notification.type === 'kaitech_chat.work') {

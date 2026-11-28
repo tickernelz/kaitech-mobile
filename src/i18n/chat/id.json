@@ -704,5 +704,41 @@
     "coordinates": "Koordinat {{value}}",
     "blockedTitle": "Akses lokasi mati",
     "blockedBody": "Izinkan akses lokasi untuk Kaitech di Pengaturan, lalu coba lagi."
+  },
+  "tickets": {
+    "title": "Tiket",
+    "state": {
+      "draft": "Belum mulai",
+      "progress": "Dikerjakan",
+      "blocked": "Menunggu keputusan",
+      "done": "Selesai",
+      "cancelled": "Dibatalkan"
+    },
+    "askedBy": "Diminta {{requester}} · {{agent}}",
+    "working": "Sekarang: Coworker sedang bekerja",
+    "waitsFor": "{{number}} menunggu {{people}}",
+    "recommended": "Disarankan",
+    "chose": "{{person}} memilih: {{option}}",
+    "answeredInWords": "{{person}} menjawab dengan pesan",
+    "noLongerWaiting": "Tidak menunggu lagi",
+    "answer": "Jawab",
+    "only": "Hanya {{people}} yang bisa memutus ini.",
+    "you": "Kamu",
+    "offline": "Butuh koneksi untuk memutus; pesan tetap terkirim begitu kamu tersambung lagi.",
+    "programme": "Program: {{name}}",
+    "timeline": "Riwayat",
+    "linked": "Tertaut: {{list}}",
+    "follow": "Ikuti",
+    "unfollow": "Berhenti mengikuti",
+    "stop": "Hentikan tiket",
+    "keep": "Tetap kerjakan",
+    "stopConfirm": "Semua agent yang masih mengerjakan tiket ini berhenti, dan tiketnya dibatalkan. Kamu bisa meminta lagi dalam 14 hari dengan membalas kartunya.",
+    "scope": {
+      "waiting": "Menunggu saya",
+      "mine": "Saya minta",
+      "threads": "Percakapan saya"
+    },
+    "loading": "Memuat tiket…",
+    "none": "Belum ada tiket di sini."
   }
 }
