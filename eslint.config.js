@@ -1,6 +1,7 @@
 const { defineConfig } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
 const i18next = require('eslint-plugin-i18next');
+const design = require('./lint/design');
 
 const systemUi = [
   { importNames: ['RefreshControl'], message: 'Use Refresh from src/ui/Refresh: its offset keeps the Android pull indicator whole inside the list.', owner: 'src/ui/Refresh.tsx' },
@@ -8,6 +9,11 @@ const systemUi = [
   { importNames: ['ActionSheetIOS'], message: 'Use ActionSheet from src/ui/ActionSheet or choose from src/ui/dialog instead of the system action sheet.' },
   { importNames: ['ToastAndroid'], message: 'Use notify from src/ui/dialog instead of the system toast.' },
   { importNames: ['Modal'], message: 'Use Overlay from src/ui/Overlay: it carries the dialog layer, so a dialog opened inside shows above it on iOS.', owner: ['src/ui/Overlay.tsx', 'src/ui/Dialog.tsx'] },
+  {
+    importNames: ['Pressable', 'TouchableHighlight', 'TouchableNativeFeedback', 'TouchableOpacity'],
+    message: 'Use Pressable from src/ui/Pressable: on Android it bounds the ripple to the shape, so a rounded control never lights up as a square.',
+    owner: ['src/ui/Pressable.tsx', 'src/ui/Pressable.android.tsx'],
+  },
 ];
 
 const restrictedSyntax = [
@@ -63,6 +69,13 @@ module.exports = defineConfig([
     rules: {
       'no-restricted-syntax': ['error', ...restrictedSyntax, ...strokeSyntax],
     },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/theme/**'],
+    plugins: { design: design.plugin },
+    settings: { designExceptions: require('./lint/design-exceptions') },
+    rules: Object.fromEntries(Object.keys(design.plugin.rules).map((rule) => [`design/${rule}`, 'error'])),
   },
   {
     files: ['src/theme/tokens.ts'],
