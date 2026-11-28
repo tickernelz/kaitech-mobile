@@ -18,6 +18,7 @@ import { IconButton } from '../../ui/IconButton';
 import { StateView } from '../discovery/ui';
 import { joinChannel, preview, searchDirectory, type DirectoryHits } from './people';
 import { chipHeight, chipSlop, shortfall, touchTarget } from '../../ui/touch';
+import { choiceLook } from '../../ui/pill';
 
 type Filter = 'all' | 'chat' | 'discovery' | 'mom' | 'people';
 type Hit = { key: string; icon: IconName; title: string; detail: string; open: () => void; more?: boolean };
@@ -184,7 +185,7 @@ export function SearchScreen() {
                 accessibilityState={{ selected: on }}
                 onPress={() => setFilter(value)}
                 hitSlop={chipSlop}
-                style={[styles.chip, { backgroundColor: on ? colors.select : colors.surface, borderColor: on ? colors.select : colors.line }]}
+                style={[styles.chip, choiceLook(on, colors, { fill: colors.surface, paddingHorizontal: space.md })]}
                 testID={`search-filter-${value}`}>
                 <Text variant="footnote" style={{ color: on ? colors.selectInk : colors.ink }}>
                   {value === 'all' ? t('search.all') : t('search.filter', { name: t(`search.groups.${value}`), count: counts[value] })}

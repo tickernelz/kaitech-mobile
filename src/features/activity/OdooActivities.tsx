@@ -23,6 +23,7 @@ import { iconOfCategory } from './icons';
 import { byModel, filtered, overviewLimit, tally, type Activity, type Filter, type Meeting, type Overview } from './odoo';
 import { ScheduleSheet, type ScheduleMode } from './ScheduleSheet';
 import { chipBand, chipHeight, chipRowGap, chipSlop, touchTarget } from '../../ui/touch';
+import { choiceLook } from '../../ui/pill';
 
 const filters: Filter[] = ['all', 'overdue', 'today', 'planned'];
 
@@ -94,7 +95,7 @@ export function OdooActivities({
                     accessibilityState={{ selected: on }}
                     onPress={() => setFilter(key)}
                     hitSlop={chipSlop}
-                    style={[styles.chip, { backgroundColor: on ? colors.select : colors.surface, borderColor: on ? colors.select : colors.line }]}
+                    style={[styles.chip, choiceLook(on, colors, { fill: colors.surface, paddingHorizontal: space.md })]}
                     testID={`activities-filter-${key}`}>
                     <Text variant="footnote" style={{ color: on ? colors.selectInk : key === 'overdue' && counts.overdue ? colors.dangerInk : colors.ink }}>
                       {t(`activities.filter.${key}`, { count: counts[key] })}

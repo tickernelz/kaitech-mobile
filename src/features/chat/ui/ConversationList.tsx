@@ -32,6 +32,7 @@ import { StarredSheet } from './thread/ListSheets';
 import { TicketsSheet } from './coworker/Tickets';
 import { ChatShortcuts } from './ChatShortcuts';
 import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
+import { choiceLook } from '../../../ui/pill';
 
 function usePreview() {
   const { t } = useTranslation('chat');
@@ -235,13 +236,13 @@ export function ConversationList({
         onPress={() => setFilter(name)}
         hitSlop={chipSlop}
         testID={`chat-filter-${name}`}
-        style={[styles.chip, { backgroundColor: on ? colors.primary : colors.surface, borderColor: on ? colors.primary : colors.line }]}>
-        <Text variant="callout" style={{ color: on ? colors.onPrimary : colors.ink }}>
+        style={[styles.chip, choiceLook(on, colors, { fill: colors.surface, paddingHorizontal: space.md })]}>
+        <Text variant="callout" style={{ color: on ? colors.selectInk : colors.ink }}>
           {t(`list.filter.${name}`)}
         </Text>
         {name === 'unread' && unreadTotal ? (
-          <View style={[styles.count, { backgroundColor: on ? colors.onPrimary : colors.primary }]}>
-            <Text variant="label" style={{ color: on ? colors.primary : colors.onPrimary }}>
+          <View style={[styles.count, { backgroundColor: colors.primary }]}>
+            <Text variant="label" style={{ color: colors.onPrimary }}>
               {badgeText(unreadTotal)}
             </Text>
           </View>

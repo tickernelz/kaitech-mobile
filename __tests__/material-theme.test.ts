@@ -41,7 +41,7 @@ describe('Material 3 colour roles', () => {
       const { Platform } = require('react-native') as typeof import('react-native');
       Object.defineProperty(Platform, 'OS', { value: 'android', configurable: true });
       const android = (require('../src/theme/tokens') as typeof import('../src/theme/tokens')).colorsFor(scheme);
-      expect([android.primary, android.onPrimary]).toEqual([roles.primary, roles.onPrimary]);
+      expect([android.primary, android.onPrimary, android.link]).toEqual([roles.primary, roles.onPrimary, roles.primary]);
     });
   });
 
