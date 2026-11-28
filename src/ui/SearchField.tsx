@@ -3,7 +3,7 @@ import { radius, space, stroke, type as typography, useTheme } from '../theme';
 import { Icon } from './icons';
 import { touchTarget } from './touch';
 
-export const searchHeight = 48;
+const searchHeight = 48;
 
 export function SearchField({ label, style, ...props }: Omit<TextInputProps, 'placeholder' | 'placeholderTextColor' | 'accessibilityLabel' | 'style'> & { label: string; style?: StyleProp<ViewStyle> }) {
   const { colors } = useTheme();
