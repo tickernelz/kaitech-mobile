@@ -76,7 +76,7 @@ export function SolusiPanel({ meeting }: { meeting: number }) {
   const editable = data.canChange && !live;
   return (
     <>
-      <Scroll refreshing={overview.loading} onRefresh={() => void overview.refresh()}>
+      <Scroll onRefresh={overview.refresh}>
         {data.job && (data.job.label || data.job.message) ? (
           <Text variant="footnote" tone="inkSoft" accessibilityRole="alert">
             {[data.job.kindLabel, data.job.label, data.job.message].filter(Boolean).join(' · ')}

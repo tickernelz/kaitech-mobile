@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { cloneElement, createRef, type ReactElement } from 'react';
 import { Refresh } from '../src/ui/Refresh';
 
@@ -18,7 +18,7 @@ async function layoutOf(target: number, element = screen.getByTestId('refresh'))
 beforeEach(() => mockRelease.mockClear());
 
 it('releases the hidden circle when a list re-clones the control with its own ref, as Animated.ScrollView in FlashList does', async () => {
-  const element = <Refresh testID="refresh" refreshing={false} onRefresh={() => undefined} />;
+  const element = <Refresh testID="refresh" onRefresh={async () => undefined} />;
   await render(cloneElement(element as ReactElement<{ ref?: unknown }>, { ref: createRef() }));
   await layoutOf(42);
   expect(mockRelease).toHaveBeenCalledWith(42);
@@ -26,7 +26,7 @@ it('releases the hidden circle when a list re-clones the control with its own re
 
 it('releases each mounted refresh layout once and still calls the caller onLayout', async () => {
   const caller = jest.fn();
-  await render(<Refresh testID="refresh" refreshing={false} onRefresh={() => undefined} onLayout={caller} />);
+  await render(<Refresh testID="refresh" onRefresh={async () => undefined} onLayout={caller} />);
   await layoutOf(7);
   await layoutOf(7);
   await layoutOf(8);
@@ -42,7 +42,7 @@ it('retries on the next frames while the native layout is not mounted yet, then 
       frames.splice(0).forEach((callback) => callback(0));
     }
   };
-  const view = await render(<Refresh testID="refresh" refreshing={false} onRefresh={() => undefined} />);
+  const view = await render(<Refresh testID="refresh" onRefresh={async () => undefined} />);
   const control = view.getByTestId('refresh');
   const raf = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => frames.push(callback));
   try {
@@ -62,4 +62,17 @@ it('retries on the next frames while the native layout is not mounted yet, then 
   } finally {
     raf.mockRestore();
   }
+});
+
+it('shows the indicator only from a pull until the refresh it started settles, also when that refresh fails', async () => {
+  let fail: (error: Error) => void = () => undefined;
+  const onRefresh = jest.fn(() => new Promise<void>((_resolve, reject) => (fail = reject)));
+  await render(<Refresh testID="refresh" onRefresh={onRefresh} />);
+  const shown = () => screen.getByTestId('refresh').props.refreshing;
+  expect(shown()).toBe(false);
+  await fireEvent(screen.getByTestId('refresh'), 'refresh');
+  expect(onRefresh).toHaveBeenCalledTimes(1);
+  expect(shown()).toBe(true);
+  await act(async () => fail(new Error('boom')));
+  expect(shown()).toBe(false);
 });

@@ -73,10 +73,10 @@ export function AdminScreen({ part }: { part: AdminPart }) {
 function SettingsPanel() {
   const settings = useResource('mom.admin.settings', readSettings, 0);
   if (!settings.data) return <StateView loading={!settings.error} error={settings.error} onRetry={() => void settings.refresh()} testID="admin-settings" />;
-  return <SettingsForm key={JSON.stringify(settings.data.transcription)} data={settings.data} refreshing={settings.loading} onRefresh={() => void settings.refresh()} />;
+  return <SettingsForm key={JSON.stringify(settings.data.transcription)} data={settings.data} onRefresh={settings.refresh} />;
 }
 
-function SettingsForm({ data, refreshing, onRefresh }: { data: Settings; refreshing: boolean; onRefresh: () => void }) {
+function SettingsForm({ data, onRefresh }: { data: Settings; onRefresh: () => Promise<unknown> }) {
   const { t } = useTranslation();
   const action = useAdminRun('mom.admin.settings');
   const [form, setForm] = useState(data.transcription);
@@ -91,7 +91,7 @@ function SettingsForm({ data, refreshing, onRefresh }: { data: Settings; refresh
     if (answer) notify(answer.message);
   };
   return (
-    <Scroll refreshing={refreshing} onRefresh={onRefresh}>
+    <Scroll onRefresh={onRefresh}>
       <Section title={t('mom.admin.settings.keys')}>
         {data.keys.map((key) => (
           <Row key={key.id} title={key.label} detail={[key.configured ? t('mom.admin.settings.configured') : t('mom.admin.settings.missing'), key.purpose, key.where].filter(Boolean).join('\n')} />
@@ -203,7 +203,7 @@ function ImportPanel() {
   if (!data) return <StateView loading={!overview.error} error={overview.error} onRetry={() => void overview.refresh()} testID="admin-import" />;
   if (run) return <RunPanel run={run} onBack={() => setRun(null)} />;
   return (
-    <Scroll refreshing={overview.loading} onRefresh={() => void overview.refresh()}>
+    <Scroll onRefresh={overview.refresh}>
       <Section title={t('mom.admin.import.projects', { count: data.projects.length })}>
         {data.projects.map((one) => (
           <Row
@@ -266,7 +266,7 @@ function RunPanel({ run, onBack }: { run: number; onBack: () => void }) {
     if (go) void action.run('rollBack', (account) => rollBack(account, run)).then(() => void detail.refresh());
   };
   return (
-    <Scroll refreshing={detail.loading} onRefresh={() => void detail.refresh()}>
+    <Scroll onRefresh={detail.refresh}>
       <SmallButton label={t('mom.admin.import.back')} onPress={onBack} testID="import-run-back" />
       <Text variant="headline">{data.name}</Text>
       <Text variant="footnote" tone="inkSoft">

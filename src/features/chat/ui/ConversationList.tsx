@@ -173,7 +173,6 @@ export function ConversationList({
   useEffect(() => {
     if (accountId) void refreshStarred();
   }, [accountId]);
-  const [pulled, setPulled] = useState(false);
   const waiting = useMemo(() => {
     const counts = new Map<number, number>();
     for (const item of pending) counts.set(item.channelId, (counts.get(item.channelId) ?? 0) + 1);
@@ -319,11 +318,9 @@ export function ConversationList({
         onEndReachedThreshold={0.5}
         refreshControl={
           <Refresh
-            refreshing={pulled && loading}
             onRefresh={() => {
-              setPulled(true);
               if (!inArchive) void refreshStarred();
-              void (inArchive ? loadArchived() : refreshConversations()).finally(() => setPulled(false));
+              return inArchive ? loadArchived() : refreshConversations();
             }}
           />
         }

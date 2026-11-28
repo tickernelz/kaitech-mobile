@@ -213,12 +213,7 @@ export function DiscoveryHome() {
     }
   };
 
-  const refreshing = programmePanel.loading || list.loading;
-  const refresh = () => {
-    void list.refresh();
-    void programmePanel.refresh();
-    void latest.refresh();
-  };
+  const refresh = () => Promise.all([list.refresh(), programmePanel.refresh(), latest.refresh()]);
   const connection = useConnection({
     shown: !!current && programmePanel.data !== undefined,
     failed: [list.error, programmePanel.error, latest.error].some((error) => error !== undefined),
@@ -232,7 +227,7 @@ export function DiscoveryHome() {
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
         contentContainerStyle={[styles.content, { paddingBottom: space.xxl + tabSpace }]}
-        refreshControl={<Refresh refreshing={refreshing && !!programmePanel.data} onRefresh={refresh} />}
+        refreshControl={<Refresh onRefresh={refresh} />}
         testID="discovery-home">
         <ConnectionBanner notice={connection.notice} onRetry={refresh} testID="discovery-connection" />
         {current ? (

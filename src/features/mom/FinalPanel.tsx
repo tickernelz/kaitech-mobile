@@ -253,7 +253,7 @@ export function FinalPanel({ programme, meeting, header }: { programme: number; 
   return (
     <ScrollView
       contentContainerStyle={styles.content}
-      refreshControl={<Refresh refreshing={final.loading} onRefresh={() => void final.refresh()} />}
+      refreshControl={<Refresh onRefresh={final.refresh} />}
       testID="final-panel">
       {header}
       <View style={styles.body}>

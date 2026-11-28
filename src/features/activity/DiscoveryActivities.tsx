@@ -94,7 +94,7 @@ export function DiscoveryActivities({
       contentContainerStyle={[styles.list, { paddingBottom: space.lg + tabSpace }]}
       onScroll={onScroll}
       scrollEventThrottle={16}
-      refreshControl={<Refresh refreshing={items.loading && !!items.data} onRefresh={() => void items.refresh()} />}
+      refreshControl={<Refresh onRefresh={items.refresh} />}
       ListHeaderComponent={
         <View style={styles.head}>
           {header}

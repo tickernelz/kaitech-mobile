@@ -37,7 +37,7 @@ export function McpKeysScreen() {
           setShown(next);
         }} onCancel={() => setMaking(false)} />;
   return (
-    <Scroll refreshing={keys.loading} onRefresh={() => void keys.refresh()}>
+    <Scroll onRefresh={keys.refresh}>
       <Text tone="inkSoft">{t('mom.admin.keys.hint')}</Text>
       <Button label={t('mom.admin.keys.new')} onPress={() => setMaking(true)} testID="mcp-new" />
       {keys.data ? (
@@ -90,7 +90,7 @@ function MakeKey({ onMade, onCancel }: { onMade: (shown: KeyShown) => void; onCa
     }
   };
   return (
-    <Scroll refreshing={false} onRefresh={() => void programmes.refresh()}>
+    <Scroll onRefresh={programmes.refresh}>
       <TextField label={t('mom.admin.keys.client')} hint={t('mom.admin.keys.clientHint')} value={client} onChangeText={setClient} testID="mcp-client" />
       <Section title={t('mom.admin.keys.programmes', { count: chosen.length })}>
         {(programmes.data ?? []).map((one) => (
@@ -120,7 +120,7 @@ function Shown({ shown, onDone }: { shown: KeyShown; onDone: () => void }) {
     ['hermesConfig', shown.hermes_config],
   ];
   return (
-    <Scroll refreshing={false} onRefresh={() => undefined}>
+    <Scroll>
       <Text variant="headline">{t('mom.admin.keys.readyTitle')}</Text>
       <Text tone="warnInk">{t('mom.admin.keys.onlyOnce')}</Text>
       {parts

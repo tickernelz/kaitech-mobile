@@ -289,7 +289,7 @@ export function RecordListScreen({ programme, actionId, stashKey }: { programme:
             if (!loading && rows.length < total) void fetchPage(rows.length);
           }}
           onEndReachedThreshold={0.5}
-          refreshControl={<Refresh refreshing={loading && !!rows.length} onRefresh={() => void fetchPage(0)} />}
+          refreshControl={<Refresh onRefresh={() => fetchPage(0)} />}
           ListEmptyComponent={loading ? <StateView loading testID="list-rows" /> : <StateView empty={{ title: t('records.empty'), icon: 'search' }} testID="list-rows" />}
           contentContainerStyle={styles.listContent}
           testID="list-rows"

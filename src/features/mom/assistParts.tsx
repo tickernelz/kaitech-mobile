@@ -45,9 +45,9 @@ export function usePoll(live: boolean, refresh: () => Promise<void>) {
   }, [live, refresh]);
 }
 
-export function Scroll({ refreshing, onRefresh, children }: { refreshing: boolean; onRefresh: () => void; children: ReactNode }) {
+export function Scroll({ onRefresh, children }: { onRefresh?: () => Promise<unknown>; children: ReactNode }) {
   return (
-    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" refreshControl={<Refresh refreshing={refreshing} onRefresh={onRefresh} />}>
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" refreshControl={onRefresh ? <Refresh onRefresh={onRefresh} /> : undefined}>
       {children}
     </ScrollView>
   );

@@ -100,7 +100,7 @@ export function MomHome() {
         onScroll={bar.onScroll}
         scrollEventThrottle={16}
         contentContainerStyle={[styles.content, { paddingBottom: space.xxl + tabSpace }]}
-        refreshControl={<Refresh refreshing={meetings.loading && !!meetings.data} onRefresh={refreshMeetings} />}
+        refreshControl={<Refresh onRefresh={meetings.refresh} testID="mom-refresh" />}
         testID="mom-home">
         <ConnectionBanner notice={connection.notice} onRetry={refreshMeetings} testID="mom-connection" />
         <StatusRow onOpenMeeting={open} />

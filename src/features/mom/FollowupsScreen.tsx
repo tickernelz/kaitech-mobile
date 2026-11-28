@@ -163,7 +163,7 @@ export function FollowupsScreen() {
         keyExtractor={(row) => String(row.id)}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<Refresh refreshing={board.loading && !!data} onRefresh={() => void board.refresh()} />}
+        refreshControl={<Refresh onRefresh={board.refresh} />}
         ListHeaderComponent={top}
         renderItem={({ item }) => <FollowupLine row={item} onPress={() => open(item.id)} />}
         ListEmptyComponent={view === 'list' ? state : <View style={styles.body}>{body[view]}</View>}

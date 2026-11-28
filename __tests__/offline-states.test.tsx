@@ -53,6 +53,11 @@ jest.mock('../src/features/mom/MeetingView', () => ({ MeetingView: () => null })
 jest.mock('../src/features/mom/RecorderScreen', () => ({ RecorderBar: () => null }));
 jest.mock('../src/features/mom/RemoveRecording', () => ({ RemoveRecording: () => null }));
 jest.mock('../src/screens/HeaderActions', () => ({ HeaderActions: () => null }));
+jest.mock('react-native/Libraries/Components/RefreshControl/RefreshControl', () => {
+  const { View } = jest.requireActual('react-native');
+  const Control = (props: object) => <View {...props} />;
+  return { __esModule: true, default: Control };
+});
 jest.mock('../src/ui/RowActions', () => ({ RowActions: ({ children }: { children: (bind: object) => unknown }) => children({}) }));
 
 function mockAccount() {
@@ -181,6 +186,58 @@ describe('MomHome connection states', () => {
     const view = await render(<MomHome />);
     await waitFor(() => expect(screen.getByTestId('mom-meetings-error')).toBeTruthy());
     expect(screen.queryByTestId('mom-meetings-empty')).toBeNull();
+    await view.unmount();
+  });
+});
+
+describe('MomHome refresh indicator', () => {
+  const { MomHome } = require('../src/features/mom/MomHome') as typeof import('../src/features/mom/MomHome');
+  const resource = require('../src/api/resource') as typeof import('../src/api/resource');
+
+  let run = 0;
+  beforeEach(() => {
+    run += 1;
+    account = { ...account, id: `u2_pull${run}` };
+  });
+
+  const shown = () => screen.getByTestId('mom-refresh').props.refreshing;
+
+  it('never draws the pull indicator over Record a meeting while the app loads or reloads meetings by itself', async () => {
+    let answer: (board: Board) => void = () => undefined;
+    mockBoard.mockImplementation(() => new Promise<Board>((resolve) => (answer = resolve)));
+    const view = await render(<MomHome />);
+    expect(screen.getByTestId('mom-meetings-loading')).toBeTruthy();
+    expect(shown()).toBe(false);
+    await act(async () => answer({ meetings: [meeting], total: 1 }));
+    await waitFor(() => expect(screen.getByText('Kickoff')).toBeTruthy());
+    let reload: Promise<void> = Promise.resolve();
+    await act(async () => {
+      reload = resource.load(`${account.id}:mom.board.40`, () => mockBoard());
+    });
+    expect(mockBoard).toHaveBeenCalledTimes(2);
+    expect(screen.getByTestId('mom-record')).toBeTruthy();
+    expect(shown()).toBe(false);
+    await act(async () => {
+      answer({ meetings: [], total: 0 });
+      await reload;
+    });
+    await waitFor(() => expect(screen.getByTestId('mom-meetings-empty')).toBeTruthy());
+    expect(shown()).toBe(false);
+    await view.unmount();
+  });
+
+  it('shows the pull indicator from a pull until that reload settles, also when it fails', async () => {
+    mockBoard.mockResolvedValue({ meetings: [meeting], total: 1 });
+    const view = await render(<MomHome />);
+    await waitFor(() => expect(screen.getByText('Kickoff')).toBeTruthy());
+    let fail: (error: Error) => void = () => undefined;
+    mockBoard.mockImplementation(() => new Promise<Board>((_resolve, reject) => (fail = reject)));
+    await fireEvent(screen.getByTestId('mom-refresh'), 'refresh');
+    expect(mockBoard).toHaveBeenCalledTimes(2);
+    expect(shown()).toBe(true);
+    await act(async () => fail(new Error('boom')));
+    await waitFor(() => expect(shown()).toBe(false));
+    expect(screen.getByTestId('mom-connection-failed')).toBeTruthy();
     await view.unmount();
   });
 });
