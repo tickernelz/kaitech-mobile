@@ -29,8 +29,8 @@ function RailItem({ name, count }: { name: TabName; count: number }) {
   return (
     <Pressable onPress={open} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={tabSpoken(t, name, count)} testID={`tab-button-${name}`} style={styles.item}>
       <View collapsable={false} style={styles.pill}>
-        <Animated.View style={[styles.indicator, { backgroundColor: colors.primary }, indicator]} />
-        <Icon name={tabIcons[name]} color={focused ? colors.onPrimary : colors.inkSoft} variant={focused ? 'fill' : 'line'} />
+        <Animated.View style={[styles.indicator, { backgroundColor: colors.select }, indicator]} testID={`tab-highlight-${name}`} />
+        <Icon name={tabIcons[name]} color={focused ? colors.selectInk : colors.inkSoft} variant={focused ? 'fill' : 'line'} />
         <PillBadge name={name} text={badgeText(count)} fill={name === 'activity' ? colors.dangerInk : colors.primary} ink={name === 'activity' ? colors.onDanger : colors.onPrimary} edge={colors.surface} reduceMotion={reduceMotion} style={styles.badge} />
       </View>
       {focused ? (
