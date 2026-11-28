@@ -1,7 +1,8 @@
 import type { ComponentProps } from 'react';
 import { Pressable as NativePressable, StyleSheet, type ViewStyle } from 'react-native';
-import { colorsFor } from '../theme/tokens';
+import { colorsFor, stateLayer } from '../theme/tokens';
 import { useTheme } from '../theme';
+import { tapTimeout } from './touch';
 
 type Props = ComponentProps<typeof NativePressable>;
 
@@ -24,8 +25,6 @@ export function stateLayerInk(container: unknown, fallback: string): string {
   return light < 0.18 ? darkInk : lightInk;
 }
 
-const clipped = { overflow: 'hidden' } as const;
-
 function rounded(style: Readonly<Partial<ViewStyle>> | null | undefined): boolean {
   if (!style) return false;
   return Object.entries(style).some(([key, value]) => /^border\w*Radius$/.test(key) && (typeof value === 'number' ? value > 0 : typeof value === 'string'));
@@ -41,6 +40,8 @@ export function Pressable({ style, ...props }: Props) {
     const unpressed: Props['style'] = typeof style === 'function' ? (state) => style({ ...state, pressed: false }) : style;
     return <NativePressable android_ripple={{ color }} style={unpressed} {...props} />;
   }
-  const shaped: Props['style'] = typeof style === 'function' ? (state) => [style({ ...state, pressed: false }), clipped] : [style, clipped];
-  return <NativePressable android_ripple={{ color, foreground: true }} style={shaped} {...props} />;
+  const base = resting?.backgroundColor;
+  const layer = typeof base === 'string' && /^#[0-9a-f]{6}$/i.test(base) ? { backgroundColor: stateLayer(base, ink) } : base === undefined || base === 'transparent' ? { backgroundColor: color } : null;
+  const shaped: Props['style'] = (state) => [typeof style === 'function' ? style({ ...state, pressed: false }) : style, state.pressed && layer];
+  return <NativePressable unstable_pressDelay={tapTimeout} style={shaped} {...props} />;
 }

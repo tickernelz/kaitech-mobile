@@ -31,7 +31,7 @@ import { conversationById, getChat } from '../chat';
 import { Avatar } from './Avatar';
 import { AgentSaid } from './coworker/Cards';
 import type { AgentCard, CardStore } from '../coworker';
-import { reachBelow, touchTarget } from '../../../ui/touch';
+import { reachBelow, tapTimeout, touchTarget } from '../../../ui/touch';
 
 export type AuthorFace = 'show' | 'space' | 'none';
 export const faceSize = 32;
@@ -97,6 +97,7 @@ function Frame({
   const edge = mine && !failed ? null : failed ? colors.danger : colors.line;
   return (
     <ShapePressable
+      unstable_pressDelay={tapTimeout}
       onLongPress={onLongPress}
       delayLongPress={LONG_PRESS_MS}
       accessible={!interactive}

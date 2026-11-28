@@ -4,6 +4,7 @@ import { processColor, StyleSheet, type StyleProp, type ViewStyle } from 'react-
 import type { Message, Pending } from '../src/features/chat/types';
 import { MessageBubble, PendingBubble, tailReach } from '../src/features/chat/ui/MessageBubble';
 import { colorsFor, stateLayer, stroke } from '../src/theme/tokens';
+import { tapTimeout } from '../src/ui/touch';
 
 jest.mock('expo-sqlite/kv-store', () => ({ __esModule: true, default: { getItemSync: () => null, setItemSync: () => undefined } }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
@@ -108,12 +109,14 @@ describe('message bubble tail', () => {
     expect(drawn?.fill).toBe(paint(colors.select));
   });
 
-  test.each([true, false])('mine=%s: pressing darkens the bubble and its tail together, so the tail never shows as a lighter patch', async (mine) => {
+  test.each([true, false])('mine=%s: a held press darkens the bubble and its tail together after the tap timeout, so a fling never repaints it', async (mine) => {
     const bubble = await sent(mine);
     const resting = mine ? colors.select : colors.surface;
     expect(flat(bubble.props.style).backgroundColor).toBe(resting);
     const touch = { pageX: 10, pageY: 10, locationX: 10, locationY: 10, timestamp: 0, touches: [], changedTouches: [] };
     await act(async () => fireEvent(bubble, 'responderGrant', { nativeEvent: touch, persist: () => undefined, currentTarget: { measure: () => undefined } }));
+    expect(flat(screen.getByTestId('bubble-9').props.style).backgroundColor).toBe(resting);
+    await act(async () => new Promise((resolve) => setTimeout(resolve, tapTimeout + 20)));
     const pressed = stateLayer(resting, colors.ink);
     expect(pressed).not.toBe(resting);
     expect(flat(screen.getByTestId('bubble-9').props.style).backgroundColor).toBe(pressed);

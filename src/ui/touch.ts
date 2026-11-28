@@ -2,6 +2,8 @@ import type { Insets, ViewStyle } from 'react-native';
 
 export const touchTarget = 44;
 
+export const tapTimeout = 100;
+
 export function shortfall(size: number): number {
   return Math.max(0, Math.ceil((touchTarget - size) / 2));
 }
