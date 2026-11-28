@@ -111,14 +111,14 @@ describe('ClientHome', () => {
     expect(screen.getByTestId('home-published-51')).toHaveTextContent('3 documents published');
     expect(screen.getByTestId('home-team-51')).toHaveTextContent('Waiting for other members: Rina 2, Budi 1');
     expect(screen.queryByText('Data permission')).toBeNull();
-    expect(screen.getByTestId('home-quiet-52')).toHaveTextContent('Nothing is waiting for you in this Programme.');
+    expect(screen.getByTestId('home-quiet-52')).toHaveTextContent('Nothing is waiting for you in this programme.');
   });
 
   it('says so when no Programme is open yet', async () => {
     mockHome.mockResolvedValue([]);
     await render(<ClientHome />);
     await waitFor(() => expect(screen.getByTestId('home-empty')).toBeTruthy());
-    expect(screen.getByText('No Programme yet')).toBeTruthy();
+    expect(screen.getByText('No programme yet')).toBeTruthy();
   });
 
   it('shows a failed load with a retry that loads again', async () => {

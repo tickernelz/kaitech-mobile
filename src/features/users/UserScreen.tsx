@@ -55,7 +55,7 @@ function RoleSheet({ detail, actor, onPick, onClose }: { detail: Detail; actor: 
           <SheetItem
             key={role}
             label={t(`users.role.${role}`)}
-            detail={current ? t('users.roleNow') : allowed ? t(`users.roleHint.${role}`) : needsSuperadmin(actor, role) ? t('users.onlySuperadminMakes', { role: t(`users.role.${role}`) }) : t('users.roleUnavailable')}
+            detail={current ? t('users.roleNow') : allowed ? t(`users.roleHint.${role}`) : needsSuperadmin(actor, role) ? t('users.onlySuperadminMakes', { role: t(`users.roleInline.${role}`) }) : t('users.roleUnavailable')}
             selected={current}
             disabled={current || !allowed}
             onPress={() => onPick(role)}
@@ -116,7 +116,7 @@ export function UserScreen({ userId }: { userId: number }) {
   const roleLabel = t(`users.role.${person.role}`);
   const pick = async (role: Role) => {
     setPicking(false);
-    const label = t(`users.role.${role}`);
+    const label = t(`users.roleInline.${role}`);
     const go = await confirm({
       title: t('users.confirmTitle', { name: person.name, role: label }),
       body: t(`users.confirmBody.${role}`),
@@ -180,7 +180,7 @@ export function UserScreen({ userId }: { userId: number }) {
         ))}
       </Section>
       <Section title={t('users.programmesSection')}>
-        <Row title={t('users.programmes', { count: person.programmes })} testID="user-programmes" />
+        <Row title={person.programmes ? t('users.programmes', { count: person.programmes }) : t('users.programmesNone')} testID="user-programmes" />
         {person.programmeList.map((programme) => (
           <View key={programme.id}>
             <Divider />
