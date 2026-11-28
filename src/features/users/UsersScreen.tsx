@@ -9,7 +9,7 @@ import { useResource } from '../../api/resource';
 import { roles, type Role } from '../../auth/access';
 import { useSession } from '../../auth/session';
 import { useAccess } from '../../auth/useAccess';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { choose, notify } from '../../ui/dialog';
 import { IconButton } from '../../ui/IconButton';
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   filter: { minHeight: 36, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: space.md, justifyContent: 'center', overflow: 'hidden' },
   row: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
   rowText: { flex: 1, gap: 2 },
-  separator: { height: StyleSheet.hairlineWidth, marginLeft: space.xxxl + space.md },
+  separator: { height: stroke.hairline, marginLeft: space.xxxl + space.md },
   chip: { borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: space.sm, paddingVertical: 2 },
   roles: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   roleOption: { minHeight: 44, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: space.lg, justifyContent: 'center', overflow: 'hidden' },
