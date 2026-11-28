@@ -1417,7 +1417,7 @@
     }
   },
   "account": {
-    "title": "Odoo account",
+    "title": "Contact and preferences",
     "contact": "Contact",
     "email": "Email",
     "phone": "Phone",
@@ -1433,13 +1433,13 @@
     "awayFrom": "From",
     "awayTo": "Until",
     "awayMessage": "Message",
-    "language": "Odoo account language",
+    "language": "Email and notification language",
     "languageHint": "Used for emails and notifications the server sends you.",
     "appLanguage": "App language"
   },
   "security": {
     "thisPhone": "This phone",
-    "account": "Odoo account",
+    "account": "Account",
     "identity": {
       "title": "Confirm it is you",
       "body": "Enter your Odoo password to continue.",
@@ -1670,8 +1670,13 @@
     "cancel": "Cancel",
     "interviews": {
       "title": "Interview",
-      "row_one": "Interview, {{count}} question left",
-      "row_other": "Interview, {{count}} questions left",
+      "untitled": "Interview",
+      "stage": {
+        "summary_waits": "A summary of your answers waits for your confirmation",
+        "asks": "Questions are waiting for your answers",
+        "answered": "All answered, your consultant is reviewing",
+        "not_started": "Not started yet"
+      },
       "until": "open until {{day}}"
     },
     "documents": {

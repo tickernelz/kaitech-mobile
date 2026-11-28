@@ -161,8 +161,8 @@ function Programme({ block, account, busy, act }: { block: ProgrammeBlock; accou
           {block.interviews.map((item) => (
             <Line
               key={item.inviteId}
-              title={t('home.interviews.row', { count: item.questionsLeft })}
-              detail={item.expiresOn ? t('home.interviews.until', { day: day(item.expiresOn) }) : undefined}
+              title={item.topic || t('home.interviews.untitled')}
+              detail={[item.stage ? t(`home.interviews.stage.${item.stage}`) : '', item.expiresOn ? t('home.interviews.until', { day: day(item.expiresOn) }) : ''].filter(Boolean).join(' · ') || undefined}
               onPress={() => void openInterview(item.inviteId)}
               testID={`home-interview-${item.inviteId}`}
             />

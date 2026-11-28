@@ -25,7 +25,11 @@ jest.mock('../src/features/call/call', () => ({ pictureInPictureSupported: () =>
 jest.mock('../src/features/call/pipSetting', () => ({ usePictureInPictureAllowed: () => false, setPictureInPictureAllowed: jest.fn() }));
 jest.mock('../src/lock/lock', () => ({ useLock: () => ({ enabled: false, locked: false }), setLockEnabled: jest.fn() }));
 jest.mock('../src/lock/useLockLabel', () => ({ useLockLabel: () => ({ method: null, label: '', ready: true }) }));
-jest.mock('../src/features/account/odoo', () => ({ readMe: jest.fn(async () => ({ totpEnabled: false })) }));
+jest.mock('../src/features/account/odoo', () => ({
+  ...jest.requireActual('../src/features/account/odoo'),
+  readMe: jest.fn(async () => ({ email: 'klien@example.com', phone: '', tz: 'Asia/Jakarta', lang: 'id_ID', signature: '', notificationType: 'email', outOfOfficeFrom: '', outOfOfficeTo: '', outOfOfficeMessage: '', calendarPrivacy: 'public', totpEnabled: false })),
+  choices: jest.fn(async () => ({ tz: [{ value: 'Asia/Jakarta', label: 'Asia/Jakarta' }], notificationType: [], calendarPrivacy: [{ value: 'public', label: 'Public by default' }], languages: [] })),
+}));
 jest.mock('../src/features/account/security', () => ({
   devices: () => mockDevices(),
   appDevices: () => mockAppDevices(),
@@ -42,6 +46,7 @@ const internal: Access = { role: 'internal', capabilities: ['team'] };
 const Settings = (require('../src/app/settings/index') as typeof import('../src/app/settings/index')).default;
 const Security = (require('../src/app/settings/security') as typeof import('../src/app/settings/security')).default;
 const Devices = (require('../src/app/settings/devices') as typeof import('../src/app/settings/devices')).default;
+const Account = (require('../src/app/settings/account') as typeof import('../src/app/settings/account')).default;
 const Notifications = (require('../src/app/settings/notifications') as typeof import('../src/app/settings/notifications')).default;
 const Password = (require('../src/app/settings/password') as typeof import('../src/app/settings/password')).default;
 
@@ -57,6 +62,25 @@ describe('Settings a client account can use', () => {
     expect(screen.getByTestId('settings-account')).toBeTruthy();
     expect(screen.getByTestId('settings-security')).toBeTruthy();
     expect(screen.queryByTestId('settings-notifications')).toBeNull();
+  });
+
+  it('shows a client contact and time zone, and none of the team rows about calendar, signature or out of office', async () => {
+    mockAccount.access = external;
+    await render(<Account />);
+    await waitFor(() => expect(screen.getByTestId('account-email')).toBeTruthy());
+    expect(screen.getByText('Contact and preferences')).toBeTruthy();
+    expect(screen.getByTestId('account-timezone')).toBeTruthy();
+    expect(screen.queryByTestId('account-calendar-privacy')).toBeNull();
+    expect(screen.queryByTestId('account-signature')).toBeNull();
+    expect(screen.queryByTestId('account-away')).toBeNull();
+  });
+
+  it('keeps calendar privacy, signature and out of office for the team', async () => {
+    mockAccount.access = internal;
+    await render(<Account />);
+    await waitFor(() => expect(screen.getByTestId('account-calendar-privacy')).toBeTruthy());
+    expect(screen.getByTestId('account-signature')).toBeTruthy();
+    expect(screen.getByTestId('account-away')).toBeTruthy();
   });
 
   it('keeps Notifications for the team', async () => {
