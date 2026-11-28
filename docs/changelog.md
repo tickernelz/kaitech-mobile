@@ -2,6 +2,20 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.15.1 - 2026-11-28
+
+### Fixed
+
+- Chat: messages from one sender within 5 minutes form a group, as in Telegram and Signal. The first bubble carries the sender's name, the last one carries the tail and, in a group, the photo beside its bottom edge; the tail is now a curl that points at the photo instead of a squared corner (#173, ZHA-8105).
+- Chat: Coworker cards (tickets, questions waiting on a decision, decision and record cards) sit in the same column and at the same width as the bubbles, instead of starting further right and running to the screen edge. A card breaks a group, so the message after a card shows its sender again (#173, ZHA-8105).
+- Chat: a card waiting on a decision no longer repeats the question, the recommendation and the options the Coworker's message just above already shows; it names who decides and then shows the answer or the Answer button. Ticket cards leave out status lines written in the server's language, since the status chip already says the state (#173, ZHA-8105).
+- Chat: the sender's photo and the ticket filter tabs take at least 48 dp to tap (#173, ZHA-8105).
+- Docs: a measurable visual quality standard and its counting script (#172, ZHA-8112).
+
+### Known gaps
+
+- Reminders and escalations of a ticket ("Reminded ...", "Raised with ...") no longer show as the ticket card's last line; they stay in the ticket's timeline and in the reminder message itself (#173, ZHA-8105).
+
 ## 0.15.0 - 2026-11-28
 
 ### Added
