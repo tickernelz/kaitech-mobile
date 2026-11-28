@@ -12,6 +12,7 @@ import { CoworkerThread } from './CoworkerThread';
 import { Header } from './Header';
 import { openConversation, useOpenConversation } from './store';
 import { IconButton } from '../../ui/IconButton';
+import { Behind } from '../../ui/cover';
 import { useLatestConversation } from './useLatestConversation';
 
 export function CoworkerScreen({
@@ -48,6 +49,7 @@ export function CoworkerScreen({
 
   return (
     <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.fill, { backgroundColor: colors.canvas }]} testID="coworker-screen">
+      <Behind>
       {roomy ? (
       <Header
         title={t('discovery.thread.title')}
@@ -70,6 +72,7 @@ export function CoworkerScreen({
         }
       />
       ) : null}
+      </Behind>
       <CoworkerThread key={`${account}-${programme}-${open ?? 'new'}`} programme={programme} focusCard={card} focusInput={ask || prefill ? 1 : 0} prefill={prefill} />
     </SafeAreaView>
   );

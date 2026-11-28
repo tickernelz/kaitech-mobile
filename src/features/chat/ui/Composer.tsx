@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ComponentRef } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ComponentRef, type Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BackHandler, ScrollView, StyleSheet, TextInput, useWindowDimensions, View, type TextInputSelectionChangeEvent } from 'react-native';
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
@@ -46,6 +46,7 @@ import { FormatBar, useMarkup } from './FormatBar';
 import { useBottomInset } from '../../../ui/insets';
 import { glassEdge, pill } from '../../../ui/pill';
 import { touchTarget } from '../../../ui/touch';
+import { hideWhen } from '../../../ui/cover';
 
 type Staged = Outgoing['files'][number];
 
@@ -65,11 +66,30 @@ export function mentionQuery(text: string, cursor: number): { start: number; que
   return { start: at, query };
 }
 
-function RoundButton({ icon, label, onPress, filled, inRow, inCapsule, testID }: { icon: IconName; label: string; onPress?: () => void; filled?: boolean; inRow?: boolean; inCapsule?: boolean; testID?: string }) {
+function RoundButton({
+  icon,
+  label,
+  onPress,
+  filled,
+  inRow,
+  inCapsule,
+  testID,
+  ref,
+}: {
+  icon: IconName;
+  label: string;
+  onPress?: () => void;
+  filled?: boolean;
+  inRow?: boolean;
+  inCapsule?: boolean;
+  testID?: string;
+  ref?: Ref<ComponentRef<typeof View>>;
+}) {
   const { colors } = useTheme();
   const lift = useGlassShadow('thick', true);
   return (
     <Pressable
+      ref={ref}
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
@@ -102,6 +122,7 @@ export const Composer = forwardRef<
   const [cursor, setCursor] = useState(initial.text.length);
   const [suggestions, setSuggestions] = useState<Mention[]>([]);
   const [sheet, setSheet] = useState(false);
+  const attachButton = useRef<ComponentRef<typeof View>>(null);
   const [editing, setEditing] = useState<Message | null>(null);
   const [urgent, setUrgent] = useState(false);
   const [extra, setExtra] = useState<'later' | 'poll' | 'location' | null>(null);
@@ -428,7 +449,7 @@ export const Composer = forwardRef<
   return (
     <View pointerEvents="box-none" style={[styles.container, { paddingBottom: bottom }]} testID="composer">
       {queryText !== null && suggestions.length ? (
-        <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="mention-suggestions">
+        <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} importantForAccessibility={hideWhen(sheet)} testID="mention-suggestions">
           {suggestions.map((person) => (
             <Pressable
               key={person.id}
@@ -445,7 +466,7 @@ export const Composer = forwardRef<
         </View>
       ) : null}
       {cannedText !== null && canned.length ? (
-        <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} testID="canned-suggestions">
+        <View style={[styles.suggestions, { backgroundColor: colors.surface, borderColor: colors.line }]} importantForAccessibility={hideWhen(sheet)} testID="canned-suggestions">
           {canned.map((item) => (
             <Pressable key={item.id} accessibilityRole="button" onPress={() => pickCanned(item)} style={({ pressed }) => [styles.suggestion, pressed && { backgroundColor: colors.surface2 }]} testID={`canned-${item.id}`}>
               <Text variant="callout" style={styles.strong}>
@@ -458,7 +479,13 @@ export const Composer = forwardRef<
           ))}
         </View>
       ) : null}
-      <View pointerEvents="box-none" style={styles.float} onLayout={(event) => setFloatHeight(event.nativeEvent.layout.height)} testID="composer-float">
+      <View
+        pointerEvents="box-none"
+        collapsable={false}
+        importantForAccessibility={hideWhen(sheet)}
+        style={styles.float}
+        onLayout={(event) => setFloatHeight(event.nativeEvent.layout.height)}
+        testID="composer-float">
         {urgent ? (
           <View style={[styles.replyBar, { backgroundColor: colors.warnBand }]} testID="composer-urgent">
             <Icon name="alert" color={colors.warnInk} />
@@ -521,7 +548,7 @@ export const Composer = forwardRef<
           ) : (
             <Animated.View key="compose" style={styles.group} entering={composeIn} exiting={groupOut}>
               <GlassCapsule liquid thickness="thick" solid={solidCapsule} style={styles.capsule} testID="composer-capsule">
-                {editing ? null : <RoundButton icon="attach" label={t('composer.attach')} inCapsule onPress={() => setSheet(true)} testID="composer-attach" />}
+                {editing ? null : <RoundButton ref={attachButton} icon="attach" label={t('composer.attach')} inCapsule onPress={() => setSheet(true)} testID="composer-attach" />}
                 <View style={[styles.field, editing && styles.fieldAlone]} testID="composer-field">
                   <TextInput
                     ref={input}
@@ -584,7 +611,7 @@ export const Composer = forwardRef<
       {panelKept ? (
         <Animated.View
           pointerEvents={panel ? 'auto' : 'none'}
-          importantForAccessibility={panel ? 'auto' : 'no-hide-descendants'}
+          importantForAccessibility={hideWhen(!panel || sheet)}
           accessibilityElementsHidden={!panel}
           style={[styles.panelClip, panelStyle]}
           testID="composer-panel-clip">
@@ -608,6 +635,7 @@ export const Composer = forwardRef<
         visible={sheet}
         onClose={() => setSheet(false)}
         onPick={(source) => void pickFrom(source)}
+        returnFocus={attachButton}
         extras={extras}
         tools={
           editing
