@@ -1,0 +1,76 @@
+appId: io.kaitech.mobile
+name: Admin account - Users list, move a person between internal and external, superadmin read-only, admin role disabled
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-chat
+    timeout: 30000
+- tapOn:
+    id: open-settings
+- tapOn:
+    id: settings-users
+- extendedWaitUntil:
+    visible:
+      id: users-screen
+    timeout: 20000
+- tapOn:
+    id: users-search
+- inputText: ZHA-8099
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: user-${TARGET_ID}
+    timeout: 20000
+- takeScreenshot: a1-users
+- tapOn:
+    id: user-${TARGET_ID}
+- extendedWaitUntil:
+    visible:
+      id: user-role
+    timeout: 20000
+- tapOn:
+    id: user-role
+- extendedWaitUntil:
+    visible:
+      id: user-role-admin
+    timeout: 10000
+- assertVisible:
+    text: (Only a superadmin can make someone Admin|Hanya superadmin yang bisa menjadikan Admin)
+- takeScreenshot: a2-role-sheet
+- tapOn:
+    id: user-role-external
+- tapOn:
+    id: user-role-confirm-confirm
+- extendedWaitUntil:
+    visible:
+      text: (.* is now External\.|.* sekarang External\.)
+    timeout: 30000
+- takeScreenshot: a3-external
+- tapOn:
+    id: user-role
+- tapOn:
+    id: user-role-internal
+- tapOn:
+    id: user-role-confirm-confirm
+- extendedWaitUntil:
+    visible:
+      text: (.* is now Internal\.|.* sekarang Internal\.)
+    timeout: 30000
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: users-filter-superadmin
+- extendedWaitUntil:
+    visible:
+      id: user-${SUPERADMIN_ID}
+    timeout: 20000
+- tapOn:
+    id: user-${SUPERADMIN_ID}
+- extendedWaitUntil:
+    visible:
+      text: (Superadmin\. Only a superadmin changes an admin or a superadmin\.|Superadmin\. Hanya superadmin yang mengubah admin atau superadmin\.)
+    timeout: 20000
+- assertNotVisible:
+    id: user-deactivate
+- takeScreenshot: a4-superadmin-locked

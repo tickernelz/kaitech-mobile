@@ -1,0 +1,23 @@
+appId: io.kaitech.mobile
+name: Internal account - no Users entry in Settings
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-chat
+    timeout: 30000
+- assertVisible:
+    id: tab-button-mom
+- assertNotVisible:
+    id: tab-button-home
+- tapOn:
+    id: open-settings
+- extendedWaitUntil:
+    visible:
+      id: settings-account
+    timeout: 20000
+- assertNotVisible:
+    id: settings-users
+- takeScreenshot: i1-settings
+- tapOn:
+    id: settings-close
