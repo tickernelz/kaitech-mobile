@@ -76,7 +76,7 @@ name: External account on the phone - Home, hand over a file, ask a correction, 
     timeout: 30000
 - extendedWaitUntil:
     visible:
-      text: ${PROGRAMME}
+      text: ${PROGRAMME_NAME}
     timeout: 30000
 - assertNotVisible:
     text: (Halaman ini tidak ada.*|This page does not exist.*)
