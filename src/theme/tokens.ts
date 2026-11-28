@@ -10,9 +10,9 @@ const accents = {
     link: ['#705289', '#DDB9F8'],
   },
   ios: {
-    primary: ['#441D65', '#9358C7'],
-    primaryPressed: ['#2F1447', '#7A4DB8'],
-    onPrimary: ['#FFFFFF', '#FFFFFF'],
+    primary: ['#5F2E91', '#C4A8EE'],
+    primaryPressed: ['#5F2E91', '#C4A8EE'],
+    onPrimary: ['#FFFFFF', '#151418'],
     link: ['#5F2E91', '#C4A8EE'],
   },
 } as const;

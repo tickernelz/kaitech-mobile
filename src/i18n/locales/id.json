@@ -1792,6 +1792,7 @@
     "programmesMore_one": "Dan {{count}} Programme lain",
     "programmesMore_other": "Dan {{count}} Programme lain",
     "historySection": "Riwayat",
+    "historyAll": "Lihat semua {{count}}",
     "history": {
       "system": "Sistem",
       "role": "{{actor}} mengubah peran dari {{from}} ke {{to}}",

@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Platform, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { radius, space, stroke, useTheme } from '../../../theme';
 import { Icon } from '../../../ui/icons';
@@ -172,7 +172,7 @@ export const KtForm = memo(function KtForm({ block }: { block: FormBlock }) {
           disabled={!onReply || sent}
           onPress={submit}
           testID="kt-form-send"
-          style={({ pressed }) => [styles.send, { backgroundColor: pressed ? colors.primaryPressed : colors.primary, opacity: !onReply || sent ? 0.5 : 1 }]}>
+          style={({ pressed }) => [styles.send, { backgroundColor: pressed ? colors.primaryPressed : colors.primary, opacity: !onReply || sent ? 0.5 : pressed && Platform.OS === 'ios' ? 0.8 : 1 }]}>
           <Icon name="send" size={16} color={colors.onPrimary} variant="fill" />
           <Text variant="callout" style={[styles.bold, { color: colors.onPrimary }]}>
             {block.submitLabel}

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { PixelRatio, StyleSheet, Switch, View } from 'react-native';
 import { Pressable } from './Pressable';
+import { radioGeometry } from './radio';
 import { radius, space, stroke, useTheme } from '../theme';
 import type { RowBind } from './RowActions';
 import { Text } from './Text';
@@ -140,13 +141,15 @@ export function Divider() {
   return <View style={[styles.divider, { backgroundColor: colors.line }]} />;
 }
 
+const radio = radioGeometry(PixelRatio.get());
+
 const styles = StyleSheet.create({
   section: { gap: space.sm },
   sectionTitle: { paddingHorizontal: space.lg },
   card: { borderRadius: radius.card, borderWidth: stroke.thin, overflow: 'hidden' },
   row: { minHeight: 52, paddingHorizontal: space.lg, paddingVertical: space.md, flexDirection: 'row', alignItems: 'center', gap: space.md },
   rowText: { flex: 1, gap: 2 },
-  radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  radioDot: { width: 10, height: 10, borderRadius: 5 },
+  radio: { width: radio.ring, height: radio.ring, borderRadius: radio.ring / 2, borderWidth: radio.border, alignItems: 'center', justifyContent: 'center' },
+  radioDot: { width: radio.dot, height: radio.dot, borderRadius: radio.dot / 2 },
   divider: { height: stroke.hairline, marginLeft: 16 },
 });
