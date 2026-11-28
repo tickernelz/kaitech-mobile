@@ -2,6 +2,32 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.20.1 - 2026-11-28
+
+### Changed
+
+- Lint now fails on spacing, radius, font size, line height, elevation, duration, colour and icon size outside the design scale, on `Pressable` or `Touchable*` imported from `react-native`, and on an unbounded ripple on a rounded style. Existing hits are listed per file and the list can only shrink. No app behaviour change (#186, ZHA-8114).
+
+### Fixed
+
+- The dot of a list radio (Settings, the Discovery programme picker, the minutes screens) sits in the middle of its ring: ring, stroke and dot are whole pixels with an even gap at every density. On the Meizu Mblu 21 (density 1.75) the dot was 1.0-1.2 px off centre in all 12 selected rows measured, light and dark, font 1.0 and 2.0, and is now 0.0 px; the ring is 39 px instead of 38-38.5 px (#189, ZHA-8133).
+
+### Known gaps
+
+- The radio fix has been measured on the Mblu 21 only. At densities 1, 2 and 3 (iPhone included) the geometry stays 22/2/10 dp; other fractional densities are covered by unit tests only (#189, ZHA-8133).
+
+## 0.20.0 - 2026-11-28
+
+### Changed
+
+- iOS colours use one tint like the system: `#5F2E91` light and `#C4A8EE` dark, with near-black text on dark-theme tint fills; a press dims the control instead of darkening it (#188, ZHA-8128).
+- iOS: the new-chat button is a glass circle with a tint icon instead of a purple disc: system glass on iOS 26, blurred glass before, and a plain circle with an edge when Reduce Transparency or Increase Contrast is on (#188, ZHA-8128).
+- iPad: the side rail marks the current tab with the selection tone, like the tab bar, instead of a purple fill; the tab bar's solid fallback uses the same shadow as its glass (#188, ZHA-8128).
+
+### Known gaps
+
+- None of the iOS changes have been seen on an iPhone or iPad; they are proven by render tests and the contrast table only (#188, ZHA-7277).
+
 ## 0.19.0 - 2026-11-28
 
 ### Changed
