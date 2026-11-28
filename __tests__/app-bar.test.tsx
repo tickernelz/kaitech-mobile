@@ -19,7 +19,11 @@ jest.mock('react-native-reanimated', () => {
 jest.mock('../src/features/activity/OdooActivities', () => ({ OdooActivities: ({ header }: { header: unknown }) => header }));
 jest.mock('../src/features/activity/DiscoveryActivities', () => ({ DiscoveryActivities: ({ header }: { header: unknown }) => header }));
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: () => undefined, removeItemSync: () => undefined }));
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn(), navigate: jest.fn() }) }));
+jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn(), navigate: jest.fn(), setParams: jest.fn() }), useLocalSearchParams: () => ({}) }));
+jest.mock('../src/features/chat/ui/ConversationList', () => ({ ConversationList: () => null }));
+jest.mock('../src/features/chat/ui/ThreadView', () => ({ ThreadView: () => null }));
+jest.mock('../src/features/chat/ui/list/NewConversationSheet', () => ({ NewConversationSheet: () => null }));
+jest.mock('../src/features/chat/selection', () => ({ focusedMessage: () => null, selectChannel: jest.fn(), selectedChannel: () => null, useSelectedChannel: () => null }));
 jest.mock('expo-linking', () => ({ openURL: jest.fn() }));
 jest.mock('../src/auth/session', () => ({
   useSession: () => ({ active: { id: 'u1_a', name: 'Budi Santoso', partnerId: 3, origin: 'https://a.test' } }),
@@ -36,6 +40,7 @@ jest.mock('../src/features/discovery/api', () => ({ briefing: jest.fn() }));
 require('../src/i18n');
 const i18n = require('../src/i18n').default as typeof import('../src/i18n').default;
 const { ActivityScreen } = require('../src/features/activity/ActivityScreen') as typeof import('../src/features/activity/ActivityScreen');
+const { ChatHome } = require('../src/features/chat/ui/ChatHome') as typeof import('../src/features/chat/ui/ChatHome');
 const { TopAppBar, useScrolledUnder } = require('../src/ui/AppBar') as typeof import('../src/ui/AppBar');
 const { Refresh } = require('../src/ui/Refresh') as typeof import('../src/ui/Refresh');
 
@@ -79,6 +84,15 @@ describe('top app bar', () => {
     expect(style('app-bar-surface').backgroundColor).toBeTruthy();
     expect(style('app-bar').backgroundColor).toBeUndefined();
     expect(screen.getByTestId('tab-activity').props.edges.top).toBe('off');
+  });
+
+  test('the Chat tab leaves the top inset to its bar as well', async () => {
+    await render(
+      <SafeAreaProvider initialMetrics={{ frame, insets }}>
+        <ChatHome />
+      </SafeAreaProvider>,
+    );
+    expect(screen.getByTestId('tab-chat').props.edges.top).toBe('off');
   });
 
   test('the bar tints once the list scrolls under it and clears again at the top, without re-rendering the screen', async () => {
