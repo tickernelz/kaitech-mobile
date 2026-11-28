@@ -84,6 +84,7 @@ export function TicketCard({ ticket: initial }: { ticket: Ticket }) {
         style={[styles.card, { borderColor: colors.line, backgroundColor: colors.surface }]}
         testID={`ticket-card-${ticket.id}`}>
         <View style={styles.head}>
+          <Icon name="ticket" size={16} color={colors.inkSoft} />
           <Text variant="label" tone="inkSoft">
             {ticket.number}
           </Text>
