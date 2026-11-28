@@ -14,6 +14,11 @@ Every release of Kaitech Mobile, newest first. Each version has one section, `##
 ### Changed
 
 - Settings for a client account leaves out Notifications and the password change, which the server refuses to client accounts, and Devices lists only the app's devices (#175, ZHA-8099).
+- Android: outlines on rounded elements (chips, pills, cards, bubbles, the composer) are 1 dp rounded to whole pixels instead of one device pixel, 2 px on the Meizu Mblu 21, so their curves no longer break into steps; straight dividers keep one pixel. Lint rejects a one-pixel line on a rounded style (#174, ZHA-8109).
+
+### Fixed
+
+- Android: pressing a round or pill element (icon buttons, chips, the Tickets entry, the composer buttons, message bubbles) no longer lights up a square. The ripple stays a circle inside the shape; on the Mblu 21 the corner pixels of the bounding box keep the background colour while held. Thread scrolling measured 1.9% janky frames against 1.3% on main in the same session, inside main's spread of 0.95-2.6% that day (#174, ZHA-8109).
 
 ### Known gaps
 
@@ -21,6 +26,7 @@ Every release of Kaitech Mobile, newest first. Each version has one section, `##
 - The interview link from Home was checked in Chrome on Android only; the iOS browser has not been checked on a device (#175, ZHA-8099).
 - An account whose first profile read fails counts as the team until the next profile read, so a client may briefly see team tabs whose calls the server refuses (#175, ZHA-8099).
 - Opening the minutes PDF from Home was tested in unit tests only; lab0 had no rendered minutes to open on a device (#175, ZHA-8099).
+- The thicker outlines were not checked on an iPhone, where they are 3 px, nor in dark theme on the phone; pills and cards get a circular ripple in their middle rather than one the full shape of the pill (#174, ZHA-8109).
 
 ## 0.16.0 - 2026-11-28
 
