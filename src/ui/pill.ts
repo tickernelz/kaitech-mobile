@@ -5,9 +5,16 @@ import { touchTarget } from './touch';
 export const glassEdge = stroke.thin;
 export const selectedEdge = 2;
 
-export function choiceLook(on: boolean, colors: Colors, rest: { fill: string; paddingHorizontal: number; edge?: string }): ViewStyle {
+export function choiceLook(on: boolean, colors: Colors, rest: { fill: string; paddingHorizontal: number; paddingVertical?: number; edge?: string }): ViewStyle {
   if (!on) return { backgroundColor: rest.fill, borderColor: rest.edge ?? colors.line };
-  return { backgroundColor: colors.select, borderColor: colors.focus, borderWidth: selectedEdge, paddingHorizontal: rest.paddingHorizontal + stroke.thin - selectedEdge };
+  const inset = stroke.thin - selectedEdge;
+  return {
+    backgroundColor: colors.select,
+    borderColor: colors.focus,
+    borderWidth: selectedEdge,
+    paddingHorizontal: rest.paddingHorizontal + inset,
+    ...(rest.paddingVertical === undefined ? null : { paddingVertical: rest.paddingVertical + inset }),
+  };
 }
 const composerHeight = 52;
 const composerInside = composerHeight - 2 * glassEdge;

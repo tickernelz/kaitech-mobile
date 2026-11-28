@@ -52,7 +52,7 @@ export const KtReplies = memo(function KtReplies({ block }: { block: RepliesBloc
               testID={`kt-reply-${index}`}
               style={({ pressed }) => [
                 styles.reply,
-                choiceLook(chosen, colors, { fill: pressed ? colors.surface2 : colors.surface, paddingHorizontal: space.lg }),
+                choiceLook(chosen, colors, { fill: pressed ? colors.surface2 : colors.surface, paddingHorizontal: space.lg, paddingVertical: space.sm }),
                 { opacity: disabled && !chosen ? 0.5 : 1 },
               ]}>
               <Text variant="callout" style={{ color: chosen ? colors.selectInk : colors.ink }}>
