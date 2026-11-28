@@ -146,7 +146,6 @@ module.exports = {
     spacing: [4],
   },
   'src/layout/PillBar.tsx': {
-    colour: ['#000000', '#000000'],
     'font-size': [10],
     spacing: [4],
   },

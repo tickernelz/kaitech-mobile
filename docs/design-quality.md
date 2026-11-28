@@ -270,7 +270,7 @@ White on `danger` is 4.23 light and 3.15 dark, so it stays behind icons only (ca
 
 ## Measured today
 
-Counts on `main` at `3dec149` (0.19.0), from
+Counts on `main` at `7622ffe`, from
 
 ```bash
 node scripts/design-quality.mjs          # counts per rule and message
@@ -289,7 +289,7 @@ The script runs the lint rules of `lint/design.js` over `src` (`src/theme` exclu
 | design/line-height | offScale | 2 | `lineHeight` neither a token line height nor 1.18 to 1.5 times its font size |
 | design/elevation | offScale | 2 | elevation 10 and 40, used for stacking |
 | design/duration | offScale | 8 | animation duration 70, 80, 150, 160, 280 or 500 |
-| design/colour | literal | 17 | colour literal outside `src/theme` (wallpaper presets, plain backgrounds and the icon mask are content and excluded) |
+| design/colour | literal | 15 | colour literal outside `src/theme` (wallpaper presets, plain backgrounds and the icon mask are content and excluded) |
 | design/icon-size | offScale | 28 | `Icon` size 12, 14, 18, 22, 28 or 40 |
 | design/ripple | unbounded | 0 | explicit `android_ripple` on a rounded, unclipped Pressable without a radius or `borderless` |
 
@@ -299,7 +299,7 @@ Two guards outside the script also stand at zero: `StyleSheet.hairlineWidth` out
 
 Every rule marked **lint** on this page fails `npm run lint`, the required `lint` check of CI. The rules live in `lint/design.js` and are switched on for `src/**/*.{ts,tsx}` outside `src/theme` in `eslint.config.js`; `__tests__/design-guard.test.ts` and `__tests__/stroke-guard.test.ts` show each rule failing on an example and passing the allowed forms.
 
-The 94 hits counted above, in 48 files, sit in `lint/design-exceptions.js`: for each file, the rule and the exact values allowed there. A hit whose value is not listed for its file fails, so a new literal in a listed file fails like anywhere else. An exception that no longer matches a hit fails too and names the entry to delete, so the list only shrinks: a fix removes its entry in the same change, and nothing is ever added to it. Inline disable comments are not used.
+The 92 hits counted above, in 48 files, sit in `lint/design-exceptions.js`: for each file, the rule and the exact values allowed there. A hit whose value is not listed for its file fails, so a new literal in a listed file fails like anywhere else. An exception that no longer matches a hit fails too and names the entry to delete, so the list only shrinks: a fix removes its entry in the same change, and nothing is ever added to it. Inline disable comments are not used.
 
 The exceptions are not an audit waiver. They were taken as they stood when the guard landed, before the screen audit (ZHA-8113) graded any finding. When the audit grades a listed value A, the batch that fixes it deletes the entry; a listed value never keeps an A finding open.
 
