@@ -41,7 +41,7 @@ import { ThreadActionsSheet } from './thread/ThreadActionsSheet';
 import { ThreadHeader } from './thread/ThreadHeader';
 import { useAutoTranslate } from './useAutoTranslate';
 import { useReaction } from './useReaction';
-import { MessageCards, useAgentCards, useRecordCards } from './coworker/Cards';
+import { MessageCards, MessageGroup, useAgentCards, useRecordCards } from './coworker/Cards';
 import { WorkBar, WorkSheet } from './coworker/Work';
 import { linksOfMessage, type RecordCard } from '../coworker';
 import { MessageBubble, PendingBubble, type Quote } from './MessageBubble';
@@ -332,13 +332,27 @@ export function ThreadView({
       const fromAgent = agentsOn && message.authorId !== null && agentIds.has(message.authorId);
       const urls = cardsOn ? linksOfMessage(message, origin) : noLinks;
       const ticks = mine && type !== 'channel' ? readState(message, thread.members, partnerId) : null;
+      const follows = item.follows;
+      const followsAgent = !!follows && agentsOn && follows.authorId !== null && agentIds.has(follows.authorId);
       return (
+        <MessageGroup
+          agents={agentStore}
+          records={recordStore}
+          follows={followsAgent && follows ? follows.id : null}
+          followsUrls={follows && cardsOn ? linksOfMessage(follows, origin) : noLinks}
+          self={fromAgent ? message.id : null}
+          selfUrls={urls}
+          startsGroup={item.showAuthor}
+          endsGroup={item.endsGroup}>
+          {(startsGroup, endsGroup) => (
         <View style={highlight === message.id ? [styles.highlight, { backgroundColor: colors.select }] : undefined}>
           <MessageBubble
             message={message}
             mine={mine}
-            showAuthor={item.showAuthor && !twoPeople}
-            face={twoPeople ? 'none' : item.showAuthor ? 'show' : 'space'}
+            showAuthor={startsGroup && !twoPeople}
+            face={twoPeople ? 'none' : endsGroup ? 'show' : 'space'}
+            tail={endsGroup}
+            startsGroup={startsGroup}
             readState={ticks}
             quote={quoteOf(message)}
             origin={origin}
@@ -363,6 +377,8 @@ export function ThreadView({
             />
           ) : null}
         </View>
+          )}
+        </MessageGroup>
       );
     },
     [accountId, agentIds, agentStore, agentsOn, cardsOn, lookOn, colors, dayLabel, discard, highlight, jumpTo, online, openRecord, openSubOf, origin, partnerId, quoteOf, reactTo, recordStore, replyTo, retry, startActing, thread.members, thread.subChannels, twoPeople, type],
