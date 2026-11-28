@@ -17,7 +17,7 @@ Jobs run in parallel and are the only required checks for merging into `main`:
 | Check | Runs |
 |---|---|
 | `gitleaks diff` | gitleaks over the commits the change adds (`base..head` of the pull request, `before..after` of a push), not the whole history |
-| `lint` | `npm run lint`, the tablet config gate (`scripts/check-tablet-config.mjs`) |
+| `lint` | `npm run lint` (with the design regression guard of `lint/design.js`, see [Design quality](design-quality.md#regression-guard)), the tablet config gate (`scripts/check-tablet-config.mjs`) |
 | `typecheck` | `npm run typecheck`, `maestro check-syntax` over every flow |
 | `unit` | `npm run i18n:check` and `npm test -- --ci` (Jest) |
 

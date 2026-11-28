@@ -2,6 +2,18 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.20.0 - 2026-11-28
+
+### Changed
+
+- iOS colours use one tint like the system: `#5F2E91` light and `#C4A8EE` dark, with near-black text on dark-theme tint fills; a press dims the control instead of darkening it (#188, ZHA-8128).
+- iOS: the new-chat button is a glass circle with a tint icon instead of a purple disc: system glass on iOS 26, blurred glass before, and a plain circle with an edge when Reduce Transparency or Increase Contrast is on (#188, ZHA-8128).
+- iPad: the side rail marks the current tab with the selection tone, like the tab bar, instead of a purple fill; the tab bar's solid fallback uses the same shadow as its glass (#188, ZHA-8128).
+
+### Known gaps
+
+- None of the iOS changes have been seen on an iPhone or iPad; they are proven by render tests and the contrast table only (#188, ZHA-7277).
+
 ## 0.19.0 - 2026-11-28
 
 ### Changed
