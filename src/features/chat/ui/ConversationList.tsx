@@ -8,7 +8,7 @@ import { HeaderActions } from '../../../screens/HeaderActions';
 import { useLargeText, useWindowClass } from '../../../layout/windowClass';
 import { Banner } from '../../../ui/Banner';
 import { Fab } from '../../../ui/Fab';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { TopAppBar, useScrolledUnder } from '../../../ui/AppBar';
 import { Refresh } from '../../../ui/Refresh';
 import { Text } from '../../../ui/Text';
@@ -341,16 +341,16 @@ const fabClearance = 56 + space.lg * 2;
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { textAlign: 'center' },
-  archiveEntry: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
+  archiveEntry: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.md, borderWidth: stroke.thin },
   strong: { fontWeight: '600' },
   header: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.sm, gap: space.md },
   chipBar: { marginVertical: chipBand.marginVertical },
   chips: { gap: space.sm, paddingHorizontal: space.xs, paddingVertical: chipBand.paddingVertical },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  chip: { minHeight: chipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, flexDirection: 'row', alignItems: 'center', gap: space.xs },
   count: { minWidth: 18, minHeight: 18, borderRadius: radius.pill, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingLeft: space.lg, minHeight: 76 },
-  rowBody: { flex: 1, paddingVertical: space.md, paddingRight: space.lg, gap: 2, borderBottomWidth: StyleSheet.hairlineWidth },
+  rowBody: { flex: 1, paddingVertical: space.md, paddingRight: space.lg, gap: 2, borderBottomWidth: stroke.hairline },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   badge: { minWidth: 22, height: 22, borderRadius: 11, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
   empty: { padding: space.xxl, alignItems: 'center' },

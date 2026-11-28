@@ -60,6 +60,6 @@ const styles = StyleSheet.create({
   bar: { width: '100%', maxWidth: 560, minHeight: 48, borderRadius: radius.md, paddingLeft: space.lg, paddingRight: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.md },
   capsule: { borderRadius: radius.pill },
   line: { paddingVertical: space.md },
-  action: { minHeight: 44, minWidth: 64, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md },
+  action: { borderRadius: radius.pill, minHeight: 44, minWidth: 64, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.md },
   strong: { fontWeight: '600' },
 });

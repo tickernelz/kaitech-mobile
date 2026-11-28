@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { useResource } from '../../api/resource';
 import { useSession } from '../../auth/session';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Icon } from '../../ui/icons';
 import { Text } from '../../ui/Text';
 import { useErrorText } from '../discovery/ui';
@@ -100,5 +100,5 @@ export function StatusRow({ onOpenMeeting }: { onOpenMeeting: (meeting: number) 
 const styles = StyleSheet.create({
   wrap: { gap: space.xs },
   flex: { flex: 1 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.card, borderWidth: stroke.thin },
 });

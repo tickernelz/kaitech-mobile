@@ -6,7 +6,7 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSession } from '../../auth/session';
 import { useFormatters } from '../../i18n';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { IconButton } from '../../ui/IconButton';
 import { Row, Section } from '../../ui/List';
@@ -453,9 +453,9 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.xxl, gap: space.lg, width: '100%', maxWidth: 720, alignSelf: 'center' },
   bar: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   block: { gap: space.sm },
-  note: { borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth, padding: space.md },
+  note: { borderRadius: radius.md, borderWidth: stroke.thin, padding: space.md },
   editor: { paddingHorizontal: space.lg, paddingVertical: space.sm },
   editing: { paddingVertical: space.sm },
   long: { paddingHorizontal: space.lg, paddingVertical: space.md, gap: 2 },
-  footer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: space.sm, padding: space.md, borderTopWidth: StyleSheet.hairlineWidth },
+  footer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: space.sm, padding: space.md, borderTopWidth: stroke.hairline },
 });

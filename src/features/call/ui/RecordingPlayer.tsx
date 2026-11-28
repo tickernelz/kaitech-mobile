@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { space, useTheme } from '../../../theme';
+import { radius, space, useTheme } from '../../../theme';
 import { Text } from '../../../ui/Text';
 import { chatClient } from '../../chat/chat';
 import { Icon } from '../../../ui/icons';
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: space.lg, paddingVertical: space.sm, gap: space.sm },
   title: { flex: 1 },
-  close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  close: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   stage: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   video: { width: '100%', height: '100%' },
   note: { textAlign: 'center', padding: space.md },

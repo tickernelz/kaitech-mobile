@@ -13,7 +13,7 @@ import { useTabBarSpace } from '../../layout/tabBar';
 import { useWindowClass } from '../../layout/windowClass';
 import { HeaderActions } from '../../screens/HeaderActions';
 import { TopAppBar, useScrolledUnder } from '../../ui/AppBar';
-import { radius, space, useTheme } from '../../theme';
+import { radius, space, stroke, useTheme } from '../../theme';
 import { Section } from '../../ui/List';
 import { RowActions, type RowBind } from '../../ui/RowActions';
 import { Text } from '../../ui/Text';
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     paddingHorizontal: space.lg,
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: stroke.thin,
   },
   rowWrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.sm },
   metrics: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.lg, rowGap: space.xs },
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     minHeight: 56,
     paddingHorizontal: space.lg,
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: stroke.thin,
   },
   line: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 60, paddingHorizontal: space.lg, paddingVertical: space.md },
   lineIcon: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },

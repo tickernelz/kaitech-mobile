@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../theme';
+import { stroke, useTheme } from '../theme';
 import { hideWhen, useCovered } from '../ui/cover';
 import { listPaneWidth, useWindowClass } from './windowClass';
 
@@ -25,5 +25,5 @@ export function Panes({ list, detail }: { list: ReactNode; detail: ReactNode }) 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   row: { flexDirection: 'row' },
-  list: { width: listPaneWidth, borderRightWidth: StyleSheet.hairlineWidth },
+  list: { width: listPaneWidth, borderRightWidth: stroke.hairline },
 });

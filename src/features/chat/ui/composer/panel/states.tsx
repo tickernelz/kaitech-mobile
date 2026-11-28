@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { radius, space, useTheme } from '../../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../../theme';
 import { Icon, type IconName } from '../../../../../ui/icons';
 import { Pressable } from '../../../../../ui/Pressable';
 import { Text } from '../../../../../ui/Text';
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   center: { textAlign: 'center' },
   state: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.sm, padding: space.xl },
   stateIcon: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
-  action: { minHeight: 44, paddingHorizontal: space.lg, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginTop: space.xs },
+  action: { minHeight: 44, paddingHorizontal: space.lg, borderRadius: radius.pill, borderWidth: stroke.thin, alignItems: 'center', justifyContent: 'center', marginTop: space.xs },
   skeleton: { flexDirection: 'row', gap: 4, paddingTop: space.xs },
   column: { flex: 1, gap: 4 },
   bone: { borderRadius: 10 },

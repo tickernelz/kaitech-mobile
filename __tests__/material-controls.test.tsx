@@ -101,6 +101,33 @@ describe('Android pressables', () => {
     expect(drawn.plain.props.style({ pressed: true, hovered: false })).toEqual({ backgroundColor: 'white' });
     expect(drawn.own.props.style({ pressed: true, hovered: false })).toEqual({ backgroundColor: 'grey' });
   });
+
+  test('a rounded pressable limits its ripple to a circle that fits its shape, so a circle or pill never lights up a square', async () => {
+    type Drawn = { props: { android_ripple?: unknown; style: unknown } };
+    const drawn: Record<string, Drawn> = {};
+    function Probe(props: Parameters<typeof RipplePressable>[0] & { name: string }) {
+      const { name, ...rest } = props;
+      drawn[name] = RipplePressable(rest) as Drawn;
+      return null;
+    }
+    await render(
+      <>
+        <Probe name="circle" style={{ width: 44, height: 44, borderRadius: 999 }} onPress={() => undefined} />
+        <Probe name="pill" style={({ pressed }) => ({ minHeight: 36, borderRadius: 999, backgroundColor: pressed ? 'grey' : '#441D65' })} onPress={() => undefined} />
+        <Probe name="card" style={{ borderTopLeftRadius: 16 }} onPress={() => undefined} />
+        <Probe name="wide" style={{ width: 260, minHeight: 40, borderRadius: 12 }} onPress={() => undefined} />
+        <Probe name="square" style={{ width: 44, height: 44 }} onPress={() => undefined} />
+        <Probe name="shadowed" style={{ shadowRadius: 16, borderRadius: 0 }} onPress={() => undefined} />
+      </>,
+    );
+    expect(drawn.circle.props.android_ripple).toEqual({ color: '#1514181A', radius: 22 });
+    expect(drawn.pill.props.android_ripple).toEqual({ color: '#F1F0F31A', radius: 18 });
+    expect(drawn.card.props.android_ripple).toEqual({ color: '#1514181A', radius: 24 });
+    expect(drawn.wide.props.android_ripple).toEqual({ color: '#1514181A', radius: 20 });
+    expect(drawn.square.props.android_ripple).toEqual({ color: '#1514181A' });
+    expect(drawn.shadowed.props.android_ripple).toEqual({ color: '#1514181A' });
+    for (const name of ['circle', 'card', 'square']) expect(StyleSheet.flatten(drawn[name].props.style as object)).not.toHaveProperty('overflow');
+  });
 });
 
 describe('Android state layer colour', () => {

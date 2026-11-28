@@ -6,7 +6,7 @@ import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWindowClass } from '../../layout/windowClass';
-import { radius, space, type as typography, useTheme } from '../../theme';
+import { radius, space, stroke, type as typography, useTheme } from '../../theme';
 import { Text } from '../../ui/Text';
 import { Icon, type IconName } from '../../ui/icons';
 import { IconButton } from '../../ui/IconButton';
@@ -71,7 +71,7 @@ function RoundButton({
             height: size,
             backgroundColor: danger ? colors.danger : colors.surface,
             borderColor: danger ? colors.dangerBand : colors.line,
-            borderWidth: danger ? 6 : StyleSheet.hairlineWidth,
+            borderWidth: danger ? 6 : stroke.thin,
             opacity: disabled ? 0.4 : pressed ? 0.8 : 1,
           },
         ]}>
@@ -309,12 +309,12 @@ const styles = StyleSheet.create({
   round: { borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   roundLabel: { textAlign: 'center' },
   markers: { gap: space.sm, alignSelf: 'stretch' },
-  markerCard: { borderRadius: radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  marker: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.sm, borderBottomWidth: StyleSheet.hairlineWidth },
+  markerCard: { borderRadius: radius.card, borderWidth: stroke.thin, overflow: 'hidden' },
+  marker: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.sm, borderBottomWidth: stroke.hairline },
   markerInput: { flex: 1, minHeight: 44, paddingVertical: space.sm },
-  bar: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.sm, borderBottomWidth: StyleSheet.hairlineWidth },
+  bar: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.sm, borderBottomWidth: stroke.hairline },
   barMain: { flex: 1, minWidth: 240, flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 48 },
   barControls: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  smallRound: { width: 44, height: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
+  smallRound: { width: 44, height: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: stroke.thin },
   dot: { width: 12, height: 12, borderRadius: 6 },
 });

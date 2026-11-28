@@ -1,7 +1,7 @@
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { confirm, notify } from '../../../ui/dialog';
 import { Icon } from '../../../ui/icons';
 import { Pressable } from '../../../ui/Pressable';
@@ -113,6 +113,6 @@ const styles = StyleSheet.create({
   count: { minWidth: 20, textAlign: 'right' },
   track: { height: 4, borderRadius: radius.pill, overflow: 'hidden', marginLeft: 30 },
   fill: { height: 4, borderRadius: radius.pill },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.sm },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: stroke.hairline, paddingTop: space.sm },
   action: { minHeight: 32, justifyContent: 'center' },
 });

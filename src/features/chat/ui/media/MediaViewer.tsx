@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   top: { position: 'absolute', left: 0, right: 0, top: 0, flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.sm, paddingBottom: space.sm },
   title: { flex: 1, minWidth: 0 },
-  barButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  barButton: { borderRadius: radius.pill, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   play: { position: 'absolute', width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' },
   pageNotice: { position: 'absolute', alignSelf: 'center', padding: space.md, borderRadius: radius.md },
   failure: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
