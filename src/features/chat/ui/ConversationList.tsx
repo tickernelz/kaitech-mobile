@@ -32,6 +32,7 @@ import { StarredSheet } from './thread/ListSheets';
 import { TicketsSheet } from './coworker/Tickets';
 import { ChatShortcuts } from './ChatShortcuts';
 import { chipBand, chipHeight, chipSlop, touchTarget } from '../../../ui/touch';
+import { choiceLook } from '../../../ui/pill';
 
 function usePreview() {
   const { t } = useTranslation('chat');
@@ -235,7 +236,7 @@ export function ConversationList({
         onPress={() => setFilter(name)}
         hitSlop={chipSlop}
         testID={`chat-filter-${name}`}
-        style={[styles.chip, { backgroundColor: on ? colors.select : colors.surface, borderColor: on ? colors.select : colors.line }]}>
+        style={[styles.chip, choiceLook(on, colors, { fill: colors.surface, paddingHorizontal: space.md })]}>
         <Text variant="callout" style={{ color: on ? colors.selectInk : colors.ink }}>
           {t(`list.filter.${name}`)}
         </Text>

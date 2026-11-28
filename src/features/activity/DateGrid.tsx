@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '../../ui/Pressable';
 import { radius, space, stroke, useTheme } from '../../theme';
+import { selectedEdge } from '../../ui/pill';
 import { Text } from '../../ui/Text';
 import { IconButton } from '../../ui/IconButton';
 import { dayOf, isoDay } from './odoo';
@@ -56,8 +57,8 @@ export function DateGrid({ value, onChange, testID }: { value: string; onChange:
               <View
                 style={[
                   styles.day,
-                  isSelected && { backgroundColor: colors.select },
-                  !isSelected && isToday && { borderWidth: stroke.thin * 2, borderColor: colors.primary },
+                  isSelected && { backgroundColor: colors.select, borderWidth: selectedEdge, borderColor: colors.focus },
+                  !isSelected && isToday && { borderWidth: stroke.thin, borderColor: colors.primary },
                 ]}>
                 <Text variant="callout" style={{ color: isSelected ? colors.selectInk : colors.ink }}>
                   {day.getDate()}

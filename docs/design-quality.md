@@ -84,7 +84,7 @@ Android uses the Material 3 roles generated from the seed `#441D65` (`src/theme/
 
 | Emphasis | Used for | Android light / dark | iOS light / dark |
 |---|---|---|---|
-| Selected | tab, chip, segment or toggle that is on; selected row | `select` `#EDE7F5` / `#2D2739` with `selectInk` (the M3 `secondaryContainer` slot) | same tokens |
+| Selected | tab, chip, segment or toggle that is on; selected row | `select` `#EDE7F5` / `#2D2739` with `selectInk` (the M3 `secondaryContainer` slot); a chip, segment, day or choice also draws a 2 dp `focus` outline (`choiceLook` in `src/ui/pill.ts`), since `select` alone is 1.10 to 1.33 against `canvas` and `surface` | same tokens |
 | Accent, no fill | FAB icon, links, active icons, progress, spinner, slider, radio dot | `primary` `#705289` / `#DDB9F8` | tint `#5F2E91` / `#C4A8EE` |
 | Commit, filled | the one action that sends or confirms: send, send voice, held recording, filled `Button`; unread count badges | `primary` fill, `onPrimary` `#FFFFFF` / `#3F2358` | tint fill, `#FFFFFF` / `#151418` |
 | Idle control on glass | mic, camera, emoji, attach, call toggles that are off | `inkSoft` (`onSurfaceVariant`) | `inkSoft` |

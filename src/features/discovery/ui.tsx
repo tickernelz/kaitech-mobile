@@ -5,6 +5,7 @@ import { Pressable } from '../../ui/Pressable';
 import { ApiError } from '../../api/odoo';
 import { AppError } from '../../auth/errors';
 import { radius, space, stroke, useTheme, type Colors } from '../../theme';
+import { choiceLook } from '../../ui/pill';
 import { Button } from '../../ui/Button';
 import { Icon, type IconName } from '../../ui/icons';
 import { Text } from '../../ui/Text';
@@ -57,7 +58,7 @@ export function Segmented<T extends string>({
             testID={testID ? `${testID}-${option.value}` : undefined}
             style={[
               styles.segment,
-              { backgroundColor: selected ? colors.select : colors.surface, borderColor: selected ? colors.select : colors.line },
+              choiceLook(selected, colors, { fill: colors.surface, paddingHorizontal: space.lg }),
             ]}>
             <Text variant="callout" style={{ color: selected ? colors.selectInk : colors.ink }}>
               {option.label}

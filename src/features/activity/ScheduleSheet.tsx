@@ -26,6 +26,7 @@ import {
   type Person,
 } from './odoo';
 import { chipBand, chipHeight, chipRowGap, chipSlop, touchTarget } from '../../ui/touch';
+import { choiceLook } from '../../ui/pill';
 
 export type ScheduleMode =
   | { kind: 'edit'; activity: Activity }
@@ -188,7 +189,7 @@ function Choice({ label, selected, onPress, testID }: { label: string; selected:
       accessibilityState={{ selected }}
       onPress={onPress}
       hitSlop={chipSlop}
-      style={[styles.choice, { backgroundColor: selected ? colors.select : colors.surface, borderColor: selected ? colors.select : colors.line }]}
+      style={[styles.choice, choiceLook(selected, colors, { fill: colors.surface, paddingHorizontal: space.md })]}
       testID={testID}>
       <Text variant="footnote" style={{ color: selected ? colors.selectInk : colors.ink }}>
         {label}
