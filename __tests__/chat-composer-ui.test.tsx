@@ -1,6 +1,6 @@
 import { createElement } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { AccessibilityInfo, BackHandler, Platform, StyleSheet, View } from 'react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import '../src/i18n';
 
 const mockSend = jest.fn(async () => 'key');
@@ -244,6 +244,36 @@ describe('adaptive composer', () => {
     await fireEvent.press(screen.getByTestId('attach-audio'));
     expect(mockDocuments).toHaveBeenCalledWith(expect.objectContaining({ type: 'audio/*', multiple: true }));
     expect(screen.queryByTestId('staged-file')).toBeNull();
+  });
+
+  it('on Android, Back closes the attach sheet and TalkBack focus lands on the attach button once it is visible again', async () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
+    const handlers: (() => boolean)[] = [];
+    jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, handler) => {
+      handlers.push(handler as () => boolean);
+      return { remove: () => handlers.splice(handlers.indexOf(handler as () => boolean), 1) };
+    });
+    const focusedWhileVisible: boolean[] = [];
+    const focus = jest.spyOn(AccessibilityInfo, 'sendAccessibilityEvent').mockImplementation(() => {
+      focusedWhileVisible.push(visible('composer-attach'));
+    });
+    try {
+      await show();
+      focus.mockClear();
+      focusedWhileVisible.length = 0;
+      await fireEvent.press(screen.getByTestId('composer-attach'));
+      expect(screen.getByTestId('attach-photos')).toBeTruthy();
+      expect(visible('composer-attach')).toBe(false);
+      expect(focus).not.toHaveBeenCalled();
+      await act(async () => {
+        [...handlers].reverse().some((handler) => handler());
+      });
+      expect(focus).toHaveBeenCalledTimes(1);
+      expect(focus).toHaveBeenCalledWith(expect.objectContaining({ props: expect.objectContaining({ testID: 'composer-attach' }) }), 'focus');
+      expect(focusedWhileVisible).toEqual([true]);
+    } finally {
+      jest.restoreAllMocks();
+    }
   });
 
   it('switches the field button between the panel and the keyboard', async () => {

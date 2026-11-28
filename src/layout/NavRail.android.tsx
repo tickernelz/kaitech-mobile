@@ -7,6 +7,7 @@ import { radius, space, useTheme } from '../theme';
 import { Icon } from '../ui/icons';
 import { Pressable } from '../ui/Pressable';
 import { Text } from '../ui/Text';
+import { hideWhen, useCovered } from '../ui/cover';
 import { badgeText, tabIcons, tabs, type TabName } from './tabs';
 import { useTab } from './useTab';
 
@@ -61,8 +62,12 @@ function RailItem({ name }: { name: TabName }) {
 export function NavRail() {
   const { material } = useTheme();
   const insets = useSafeAreaInsets();
+  const covered = useCovered();
   return (
-    <View accessibilityRole="tablist" style={[styles.rail, { backgroundColor: material.surface, width: railWidth + insets.left, paddingLeft: insets.left, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.lg }]} testID="navigation-rail">
+    <View
+      accessibilityRole="tablist"
+      importantForAccessibility={hideWhen(covered)}
+      style={[styles.rail, { backgroundColor: material.surface, width: railWidth + insets.left, paddingLeft: insets.left, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.lg }]} testID="navigation-rail">
       {tabs.map((name) => (
         <RailItem key={name} name={name} />
       ))}

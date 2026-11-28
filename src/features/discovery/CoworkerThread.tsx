@@ -37,6 +37,7 @@ import { IconButton } from '../../ui/IconButton';
 import { StateView, useErrorText } from './ui';
 import { notify } from '../../ui/dialog';
 import { touchTarget } from '../../ui/touch';
+import { hideWhen } from '../../ui/cover';
 
 const bottomSlack = 48;
 const pollMs = 2500;
@@ -220,6 +221,7 @@ export function CoworkerThread({
   const [pending, setPending] = useState<Pending[]>([]);
   const [files, setFiles] = useState<Staged[]>([]);
   const [sheet, setSheet] = useState(false);
+  const attachButton = useRef<ComponentRef<typeof View>>(null);
   const maxBytes = useUploadLimit(active, 'coworker') ?? coworkerFallbackBytes;
   const { t: chatT } = useTranslation('chat');
   const { size } = useChatFormat();
@@ -399,6 +401,7 @@ export function CoworkerThread({
   const empty = !conversation && !shownPending.length;
   return (
     <KeyboardAvoidingView key={width} behavior="padding" automaticOffset style={styles.fill} testID={testID}>
+      <View style={styles.fill} collapsable={false} importantForAccessibility={hideWhen(sheet)}>
       {empty ? (
         <StateView empty={{ title: t('discovery.thread.emptyTitle'), body: t('discovery.thread.emptyBody') }} testID={testID} />
       ) : thread.loading && !thread.items.length ? (
@@ -438,8 +441,15 @@ export function CoworkerThread({
         </ItemsContext.Provider>
         </ThreadContext.Provider>
       )}
+      </View>
       {files.length ? (
-        <ScrollView horizontal contentContainerStyle={styles.staged} style={{ backgroundColor: colors.canvas }} showsHorizontalScrollIndicator={false} testID={`${testID}-staged`}>
+        <ScrollView
+          horizontal
+          contentContainerStyle={styles.staged}
+          style={{ backgroundColor: colors.canvas }}
+          showsHorizontalScrollIndicator={false}
+          importantForAccessibility={hideWhen(sheet)}
+          testID={`${testID}-staged`}>
           {files.map((file, index) => (
             <StagedFile
               key={file.uri}
@@ -453,12 +463,12 @@ export function CoworkerThread({
           ))}
         </ScrollView>
       ) : null}
-      <View style={[styles.composer, { borderColor: colors.line, backgroundColor: colors.canvas }]}>
+      <View style={[styles.composer, { borderColor: colors.line, backgroundColor: colors.canvas }]} importantForAccessibility={hideWhen(sheet)}>
         {voice.recording ? (
           <RecordingStrip recording={voice.recording} />
         ) : (
           <>
-            <IconButton icon="attach" label={t('discovery.thread.attach')} onPress={() => setSheet(true)} testID={`${testID}-attach`} />
+            <IconButton ref={attachButton} icon="attach" label={t('discovery.thread.attach')} onPress={() => setSheet(true)} testID={`${testID}-attach`} />
             <TextInput
               ref={input}
               value={draft}
@@ -482,11 +492,11 @@ export function CoworkerThread({
         <MicButton voice={voice} hidden={canSend} testID={`${testID}-mic`} />
       </View>
       {markup.showBar && !voice.recording ? (
-        <View style={[styles.formatBar, { backgroundColor: colors.canvas }]}>
+        <View style={[styles.formatBar, { backgroundColor: colors.canvas }]} importantForAccessibility={hideWhen(sheet)}>
           <FormatBar onApply={markup.apply} />
         </View>
       ) : null}
-      <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} />
+      <AttachSheet visible={sheet} onClose={() => setSheet(false)} onPick={(source) => void pickFrom(source)} returnFocus={attachButton} />
     </KeyboardAvoidingView>
   );
 }

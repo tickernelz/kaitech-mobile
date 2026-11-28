@@ -25,6 +25,7 @@ import { Header } from './Header';
 import { openConversation, rememberProgramme, useLastProgramme, useOpenConversation } from './store';
 import { Icon, type IconName } from '../../ui/icons';
 import { IconButton } from '../../ui/IconButton';
+import { Behind } from '../../ui/cover';
 import { Card, Chip, StateView } from './ui';
 import { useLatestConversation } from './useLatestConversation';
 import { Refresh } from '../../ui/Refresh';
@@ -334,6 +335,7 @@ export function DiscoveryHome() {
 
   const detail = current ? (
     <View style={styles.fill}>
+      <Behind>
       <Header
         back={false}
         title={t('discovery.thread.title')}
@@ -345,6 +347,7 @@ export function DiscoveryHome() {
           </>
         }
       />
+      </Behind>
       <CoworkerThread key={`${account}-${programme}-${conversation ?? 'new'}`} programme={programme} focusCard={focusCard} focusInput={focusInput} testID="coworker" />
     </View>
   ) : (

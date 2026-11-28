@@ -1,7 +1,9 @@
-import { createElement } from 'react';
-import { BackHandler, Keyboard, Platform } from 'react-native';
-import { act, render, screen } from '@testing-library/react-native';
+import { createElement, createRef, useState, type ComponentRef, type RefObject } from 'react';
+import { AccessibilityInfo, BackHandler, Dimensions, Keyboard, Platform, StyleSheet, View } from 'react-native';
+import { act, render, screen, within } from '@testing-library/react-native';
 import { AttachSheet } from '../src/features/chat/ui/composer/AttachSheet';
+import { Behind } from '../src/ui/cover';
+import { space } from '../src/theme';
 import '../src/i18n';
 
 jest.mock('react-native-reanimated', () => {
@@ -29,7 +31,7 @@ jest.mock('react-native-reanimated', () => {
 });
 jest.mock('react-native-worklets', () => ({ scheduleOnRN: (fn: (...args: unknown[]) => void, ...args: unknown[]) => fn(...args) }));
 jest.mock('expo-sqlite/kv-store', () => ({ getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() }));
-jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
+jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 24, bottom: 0, left: 0, right: 0 }) }));
 
 let backHandlers: (() => boolean)[];
 
@@ -41,11 +43,28 @@ beforeEach(() => {
     return { remove: () => (backHandlers = backHandlers.filter((item) => item !== handler)) };
   });
   jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => undefined);
+  jest.spyOn(AccessibilityInfo, 'sendAccessibilityEvent').mockClear().mockImplementation(() => undefined);
 });
 
 afterEach(() => jest.restoreAllMocks());
 
 const sheet = (visible: boolean, onClose = jest.fn()) => createElement(AttachSheet, { visible, onClose, onPick: jest.fn() });
+
+type Anchor = RefObject<ComponentRef<typeof View> | null>;
+
+function Thread({ anchor, returnFocus, startOpen = true }: { anchor: Anchor; returnFocus?: Anchor; startOpen?: boolean }) {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <View>
+      <Behind testID="behind">
+        <View ref={anchor} accessible testID="anchor" />
+      </Behind>
+      <AttachSheet visible={open} onClose={() => setOpen(false)} onPick={jest.fn()} returnFocus={returnFocus} />
+    </View>
+  );
+}
+
+const behindHidden = () => screen.getByTestId('behind', { includeHiddenElements: true }).props.importantForAccessibility;
 
 describe('attach sheet on Android', () => {
   it('draws nothing until it is first opened', async () => {
@@ -90,5 +109,61 @@ describe('attach sheet on Android', () => {
     expect(screen.getByTestId('attach-photos', { includeHiddenElements: true })).toBeTruthy();
     expect(screen.getByTestId('attach-layer', { includeHiddenElements: true }).props.pointerEvents).toBe('none');
     expect(backHandlers).toHaveLength(0);
+  });
+
+  it('hides the conversation behind from TalkBack while open, then shows it again and puts focus back on the attach button after Back', async () => {
+    const anchor: Anchor = createRef();
+    await render(<Thread anchor={anchor} returnFocus={anchor} />);
+    expect(behindHidden()).toBe('no-hide-descendants');
+    expect(screen.queryByTestId('anchor')).toBeNull();
+    expect(AccessibilityInfo.sendAccessibilityEvent).not.toHaveBeenCalled();
+    await act(async () => {
+      backHandlers[0]();
+    });
+    expect(behindHidden()).toBe('auto');
+    expect(screen.getByTestId('anchor')).toBeTruthy();
+    expect(AccessibilityInfo.sendAccessibilityEvent).toHaveBeenCalledTimes(1);
+    expect(AccessibilityInfo.sendAccessibilityEvent).toHaveBeenCalledWith(anchor.current, 'focus');
+    expect(anchor.current).toBeTruthy();
+  });
+
+  it('moves no focus while it has never been open', async () => {
+    const anchor: Anchor = createRef();
+    await render(<Thread anchor={anchor} returnFocus={anchor} startOpen={false} />);
+    expect(behindHidden()).toBe('auto');
+    expect(AccessibilityInfo.sendAccessibilityEvent).not.toHaveBeenCalled();
+  });
+
+  it('uncovers the screen on Back even without an attach button to return to', async () => {
+    await render(<Thread anchor={createRef()} />);
+    expect(behindHidden()).toBe('no-hide-descendants');
+    await act(async () => {
+      backHandlers[0]();
+    });
+    expect(behindHidden()).toBe('auto');
+    expect(AccessibilityInfo.sendAccessibilityEvent).not.toHaveBeenCalled();
+  });
+
+  it('uncovers the screen when the conversation is left with the sheet still open', async () => {
+    const view = await render(createElement(View, null, createElement(Behind, { testID: 'behind' }), sheet(true)));
+    expect(behindHidden()).toBe('no-hide-descendants');
+    await view.rerender(createElement(View, null, createElement(Behind, { testID: 'behind' })));
+    expect(behindHidden()).toBe('auto');
+  });
+
+  it('caps the sheet below the status bar and lets the sources scroll when the window is short, as in landscape', async () => {
+    await render(sheet(true));
+    const { height } = Dimensions.get('window');
+    expect(StyleSheet.flatten(screen.getByTestId('attach-sheet').props.style).maxHeight).toBe(height - 24 - space.xl);
+    const scroll = screen.getByTestId('attach-scroll');
+    for (const source of ['photos', 'camera', 'files', 'audio']) expect(within(scroll).getByTestId(`attach-${source}`)).toBeTruthy();
+  });
+});
+
+describe('attach sheet on iOS', () => {
+  it('leaves the screen behind alone because the native modal already isolates it', async () => {
+    jest.replaceProperty(Platform, 'OS', 'ios');
+    await render(createElement(View, null, createElement(Behind, { testID: 'behind' }), sheet(true)));
+    expect(behindHidden()).toBe('auto');
   });
 });
