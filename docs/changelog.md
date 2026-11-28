@@ -2,6 +2,25 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.17.0 - 2026-11-28
+
+### Added
+
+- Roles: the app reads the account's role and capabilities from the server's profile at sign-in and on every profile refresh, and draws tabs and screens from them; it no longer asks the server for group membership (#175, ZHA-8099).
+- Client accounts: a Home tab with one card per Programme, from which the client opens an interview in the browser, sends a requested file, asks for a minutes correction and reports a to-do done, with loading, empty, failed, offline and refused states. Chat lists only the people of their own Programmes. A link to a team screen opens "This page is for the Kaitech team." with a way back to Home (#175, ZHA-8099).
+- Users (Settings, for admins and superadmins): search and role filter, a person's role, capabilities, Programmes and history, invite, deactivate and reactivate. Roles the actor may not give stay visible and disabled with the reason; a role change reads the person again first and stops, naming who changed it, when someone got there before (#175, ZHA-8099).
+- Users: the person screen names the Programmes the person is in under the count, and "And N more" for the rest (#182, ZHA-8099).
+
+### Changed
+
+- Settings for a client account leaves out Notifications and the password change, which the server refuses to client accounts, and Devices lists only the app's devices (#175, ZHA-8099).
+
+### Known gaps
+
+- iOS 26 and later: a link to a team tab opens nothing for a client account instead of the team-only page, because the system tab bar blocks navigation to hidden tabs (#175, ZHA-8099).
+- The interview link from Home was checked in Chrome on Android only; the iOS browser has not been checked on a device (#175, ZHA-8099).
+- An account whose first profile read fails counts as the team until the next profile read, so a client may briefly see team tabs whose calls the server refuses (#175, ZHA-8099).
+
 ## 0.16.0 - 2026-11-28
 
 ### Changed
