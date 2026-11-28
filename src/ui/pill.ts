@@ -1,7 +1,7 @@
-import { space } from '../theme/tokens';
+import { space, stroke } from '../theme/tokens';
 import { touchTarget } from './touch';
 
-export const glassEdge = 1;
+export const glassEdge = stroke.thin;
 const composerHeight = 52;
 const composerInside = composerHeight - 2 * glassEdge;
 const composerIcon = 24;

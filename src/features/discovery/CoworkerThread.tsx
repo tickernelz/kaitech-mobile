@@ -526,5 +526,5 @@ const styles = StyleSheet.create({
     paddingVertical: space.sm,
     borderTopWidth: stroke.hairline,
   },
-  input: { flex: 1, minHeight: 44, maxHeight: 160, borderRadius: radius.field, borderWidth: 1, paddingHorizontal: space.lg, paddingTop: 11, paddingBottom: 11 },
+  input: { flex: 1, minHeight: 44, maxHeight: 160, borderRadius: radius.field, borderWidth: stroke.thin, paddingHorizontal: space.lg, paddingTop: 11, paddingBottom: 11 },
 });

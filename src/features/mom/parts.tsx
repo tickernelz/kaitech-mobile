@@ -297,6 +297,6 @@ export const styles = StyleSheet.create({
   uploadTop: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: space.sm },
   small: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill },
-  live: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 64, padding: space.lg, borderRadius: radius.card, borderWidth: 1 },
+  live: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 64, padding: space.lg, borderRadius: radius.card, borderWidth: stroke.thin },
   dot: { width: 12, height: 12, borderRadius: 6 },
 });

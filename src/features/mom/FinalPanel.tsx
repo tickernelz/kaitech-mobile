@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   content: { paddingBottom: space.xxl },
   body: { padding: space.lg, gap: space.lg, width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   stages: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  stage: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: 1 },
+  stage: { flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 36, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin },
   table: { borderWidth: stroke.thin, borderRadius: radius.sm, overflow: 'hidden' },
   tableRow: { flexDirection: 'row', gap: space.sm, paddingHorizontal: space.sm, paddingVertical: space.sm },
   tableLine: { borderTopWidth: stroke.hairline },

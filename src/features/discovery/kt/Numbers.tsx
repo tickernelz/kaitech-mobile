@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   change: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   bold: { fontWeight: '700' },
   pair: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  side: { flex: 1, gap: 2, borderWidth: 1, borderRadius: radius.md, padding: space.md },
+  side: { flex: 1, gap: 2, borderWidth: stroke.thin, borderRadius: radius.md, padding: space.md },
   grid: { borderWidth: stroke.thin, borderRadius: radius.sm, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center' },
   labelCell: { width: 168, paddingHorizontal: space.sm, paddingVertical: space.sm, gap: space.xs },

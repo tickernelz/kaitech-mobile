@@ -141,7 +141,7 @@ export function DecisionCard({ card, onAnswered }: { card: Card; onAnswered?: (n
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: radius.card, borderWidth: 1, overflow: 'hidden', width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
+  card: { borderRadius: radius.card, borderWidth: stroke.thin, overflow: 'hidden', width: '100%', maxWidth: readableWidth, alignSelf: 'center' },
   band: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm },
   body: { padding: space.lg, gap: space.sm },
   item: { borderTopWidth: stroke.hairline, paddingTop: space.sm, gap: 2 },

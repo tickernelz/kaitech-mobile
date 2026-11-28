@@ -1,7 +1,7 @@
 import { useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
-import { radius, space, useTheme } from '../../../../theme';
+import { radius, space, stroke, useTheme } from '../../../../theme';
 import { Button } from '../../../../ui/Button';
 import { Icon } from '../../../../ui/icons';
 import { ToggleRow } from '../../../../ui/List';
@@ -93,7 +93,7 @@ export function PollSheet({ onClose, onSend }: { onClose: () => void; onSend: (p
 
 const styles = StyleSheet.create({
   heading: { marginTop: space.md },
-  row: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: radius.field, paddingHorizontal: space.md, minHeight: 48 },
+  row: { flexDirection: 'row', alignItems: 'center', borderWidth: stroke.thin, borderRadius: radius.field, paddingHorizontal: space.md, minHeight: 48 },
   input: { flex: 1, fontSize: 16, paddingVertical: space.sm },
   remove: { borderRadius: radius.pill, width: touchTarget, height: touchTarget, marginRight: (32 - touchTarget) / 2, alignItems: 'center', justifyContent: 'center' },
   foot: { gap: space.sm },

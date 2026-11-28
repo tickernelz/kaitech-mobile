@@ -157,5 +157,5 @@ const styles = StyleSheet.create({
   field: { gap: space.xs },
   choices: { gap: space.sm, paddingVertical: space.xs },
   choice: { minHeight: touchTarget, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: stroke.thin, justifyContent: 'center' },
-  pick: { minHeight: 48, borderRadius: radius.field, borderWidth: 1, paddingHorizontal: space.md, justifyContent: 'center' },
+  pick: { minHeight: 48, borderRadius: radius.field, borderWidth: stroke.thin, paddingHorizontal: space.md, justifyContent: 'center' },
 });

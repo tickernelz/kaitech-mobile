@@ -314,6 +314,6 @@ const styles = StyleSheet.create({
   right: { textAlign: 'right' },
   bold: { fontWeight: '700' },
   spark: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 2 },
+  chip: { minHeight: chipHeight, minWidth: touchTarget, alignItems: 'center', justifyContent: 'center', borderWidth: stroke.thin, borderRadius: radius.pill, paddingHorizontal: 2 },
   more: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
 });

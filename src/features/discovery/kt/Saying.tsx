@@ -2,7 +2,7 @@ import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '../../../ui/Pressable';
-import { radius, space, useTheme } from '../../../theme';
+import { radius, space, stroke, useTheme } from '../../../theme';
 import { Icon } from '../../../ui/icons';
 import { Text } from '../../../ui/Text';
 import { useThread } from './place';
@@ -195,11 +195,11 @@ export const KtForm = memo(function KtForm({ block }: { block: FormBlock }) {
 
 const styles = StyleSheet.create({
   replies: { gap: space.sm },
-  reply: { minHeight: 44, borderRadius: radius.field, borderWidth: 1, paddingHorizontal: space.lg, paddingVertical: space.sm, justifyContent: 'center' },
+  reply: { minHeight: 44, borderRadius: radius.field, borderWidth: stroke.thin, paddingHorizontal: space.lg, paddingVertical: space.sm, justifyContent: 'center' },
   field: { gap: space.xs },
   choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  choice: { minHeight: touchTarget, flexDirection: 'row', alignItems: 'center', gap: space.xs, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md },
-  input: { minHeight: 44, borderWidth: 1, borderRadius: radius.field, paddingHorizontal: space.md, paddingVertical: space.sm, fontSize: 16 },
+  choice: { minHeight: touchTarget, flexDirection: 'row', alignItems: 'center', gap: space.xs, borderWidth: stroke.thin, borderRadius: radius.pill, paddingHorizontal: space.md },
+  input: { minHeight: 44, borderWidth: stroke.thin, borderRadius: radius.field, paddingHorizontal: space.md, paddingVertical: space.sm, fontSize: 16 },
   foot: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: space.md },
   send: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space.sm, borderRadius: radius.pill, paddingHorizontal: space.lg },
   bold: { fontWeight: '700' },

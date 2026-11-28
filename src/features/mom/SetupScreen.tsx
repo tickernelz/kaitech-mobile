@@ -311,7 +311,7 @@ export function SetupScreen() {
 
 const styles = StyleSheet.create({
   group: { gap: space.sm },
-  consent: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 64, padding: space.lg, borderRadius: radius.card, borderWidth: 1 },
+  consent: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 64, padding: space.lg, borderRadius: radius.card, borderWidth: stroke.thin },
   consentText: { flex: 1, gap: 2 },
   shrink: { flexShrink: 1 },
   switch: {
