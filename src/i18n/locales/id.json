@@ -722,7 +722,7 @@
       "none": "Tidak ada tindak lanjut di sini",
       "add": "Tambah tindak lanjut",
       "rescan": "Pindai ulang notulen",
-      "rescanDetail": "Mencari tindak lanjut di notulen terakhir programme ini",
+      "rescanDetail": "Mencari tindak lanjut di notulen terakhir program ini",
       "noneTeam": "Belum ada yang memegang tindak lanjut",
       "teamLine": "{{done}} dari {{total}} selesai · {{late}} terlambat · rata-rata {{average}}%",
       "positives": "Berjalan baik",
@@ -885,7 +885,7 @@
         "requirements": "Kebutuhan",
         "confirm": "Dikonfirmasi kemudian",
         "notes": "Catatan lain",
-        "programme": "Konteks programme",
+        "programme": "Konteks program",
         "attendance": "Kehadiran",
         "nextMeeting": "Rapat berikutnya"
       },
@@ -1163,7 +1163,7 @@
       "sequence": "Urutan",
       "weeklyTarget": "Rapat per minggu",
       "monthlyTarget": "Rapat per bulan",
-      "serves": "Departemen programme yang dilayani",
+      "serves": "Departemen program yang dilayani",
       "nickname": "Panggilan",
       "jobTitle": "Jabatan",
       "email": "Email",
@@ -1176,14 +1176,14 @@
       "group": "Administrasi",
       "keys": {
         "title": "Kunci MCP",
-        "hint": "Kunci membuat klien AI bisa membaca MoM programme yang kamu pilih, tidak lebih.",
+        "hint": "Kunci membuat klien AI bisa membaca MoM program yang kamu pilih, tidak lebih.",
         "new": "Kunci baru",
         "none": "Belum ada kunci",
         "revoke": "Cabut",
         "revokeTitle": "Cabut kunci ini?",
         "client": "Klien",
         "clientHint": "Tempat kunci dipakai, misalnya Claude Desktop di laptopku",
-        "programmes": "Programme ({{count}})",
+        "programmes": "Program ({{count}})",
         "passwordHint": "Kata sandi memastikan ini memang kamu",
         "make": "Buat kunci",
         "readyTitle": "Kunci MCP kamu",
@@ -1243,7 +1243,7 @@
         "runs": "Riwayat impor",
         "noRuns": "Belum ada impor",
         "runLine": "{{created}} baru, {{updated}} berubah, {{failed}} gagal, {{conflicts}} konflik",
-        "mapTo": "Impor ke programme",
+        "mapTo": "Impor ke program",
         "skip": "Lewati proyek ini",
         "reopen": "Putuskan ulang",
         "back": "Kembali ke impor",
@@ -1652,7 +1652,7 @@
   "gate": {
     "team": {
       "title": "Halaman ini untuk tim Kaitech.",
-      "body": "Akun Anda melihat Program Anda di Beranda dan percakapan Anda di Chat."
+      "body": "Akun Anda melihat program Anda di Beranda dan percakapan Anda di Chat."
     },
     "admin": {
       "title": "Halaman ini untuk admin.",
@@ -1664,9 +1664,9 @@
   },
   "home": {
     "stage": "Tahap: {{stage}}",
-    "quiet": "Belum ada yang menunggu Anda di Program ini.",
-    "emptyTitle": "Belum ada Program",
-    "emptyBody": "Konsultan Anda membuka Program untuk Anda. Program muncul di sini setelah dibuka.",
+    "quiet": "Belum ada yang menunggu Anda di program ini.",
+    "emptyTitle": "Belum ada program",
+    "emptyBody": "Konsultan Anda membuka program untuk Anda. Program muncul di sini setelah dibuka.",
     "cancel": "Batal",
     "interviews": {
       "title": "Interview",
@@ -1732,7 +1732,7 @@
       "superadmin": "Superadmin",
       "admin": "Admin",
       "internal": "Internal",
-      "external": "External",
+      "external": "Eksternal",
       "inactive": "Nonaktif"
     },
     "none": {
@@ -1740,20 +1740,26 @@
       "superadmin": "Tidak ada superadmin.",
       "admin": "Belum ada admin.",
       "internal": "Belum ada pengguna internal.",
-      "external": "Belum ada pengguna external.",
+      "external": "Belum ada pengguna eksternal.",
       "inactive": "Tidak ada pengguna nonaktif."
     },
     "noneNamed": "Tidak ada pengguna bernama '{{name}}'.",
     "role": {
-      "external": "External",
+      "external": "Eksternal",
       "internal": "Internal",
       "admin": "Admin",
       "superadmin": "Superadmin"
     },
+    "roleInline": {
+      "external": "eksternal",
+      "internal": "internal",
+      "admin": "admin",
+      "superadmin": "superadmin"
+    },
     "roleHint": {
-      "external": "Hanya melihat Program tempat ia menjadi anggota",
+      "external": "Hanya melihat program tempat ia menjadi anggota",
       "internal": "Memakai layar tim",
-      "admin": "Mengelola pengguna internal dan external",
+      "admin": "Mengelola pengguna internal dan eksternal",
       "superadmin": "Memegang Settings Odoo dan semua kunci"
     },
     "roleSection": "Peran",
@@ -1767,7 +1773,7 @@
     "confirmTitle": "Jadikan {{name}} {{role}}?",
     "confirmAction": "Jadikan {{role}}",
     "confirmBody": {
-      "external": "Ia hanya akan melihat Program tempat ia menjadi anggota, di portal dan aplikasi.",
+      "external": "Ia hanya akan melihat program tempat ia menjadi anggota, di portal dan aplikasi.",
       "internal": "Ia akan memakai layar tim: Discovery, MoM, dan Aktivitas.",
       "admin": "Ia akan bisa mengelola pengguna internal dan eksternal.",
       "superadmin": "Ia akan memegang Settings Odoo, semua kunci, dan semua akun."
@@ -1778,7 +1784,7 @@
     "capabilitiesSection": "Kemampuan",
     "capability": {
       "architect": "Reviewing Architect",
-      "programmes_all": "Semua programme",
+      "programmes_all": "Semua program",
       "wa_owner": "Pemilik WhatsApp",
       "lesson_curator": "Kurator pelajaran",
       "support_manager": "Manajer support",
@@ -1786,11 +1792,12 @@
       "process_owner": "Process owner",
       "sponsor": "Sponsor"
     },
-    "programmesSection": "Programme",
-    "programmes_one": "Anggota {{count}} Programme",
-    "programmes_other": "Anggota {{count}} Programme",
-    "programmesMore_one": "Dan {{count}} Programme lain",
-    "programmesMore_other": "Dan {{count}} Programme lain",
+    "programmesSection": "Program",
+    "programmesNone": "Belum jadi anggota program mana pun.",
+    "programmes_one": "Anggota {{count}} program",
+    "programmes_other": "Anggota {{count}} program",
+    "programmesMore_one": "Dan {{count}} program lain",
+    "programmesMore_other": "Dan {{count}} program lain",
     "historySection": "Riwayat",
     "historyAll": "Lihat semua {{count}}",
     "history": {
@@ -1817,12 +1824,12 @@
       "role": "Peran",
       "send": "Undang",
       "sent": "Undangan terkirim ke {{email}}.",
-      "madeExternal": "Akun {{email}} dibuat. Konsultan membuka Program untuknya.",
+      "madeExternal": "Akun {{email}} dibuat. Konsultan membuka program untuknya.",
       "takenTitle": "Email sudah dipakai",
       "takenBody": "{{email}} sudah punya akun.",
       "openExisting": "Buka akun itu",
       "hint": {
-        "external": "Tidak ada email yang dikirim. Konsultan membuka Program untuknya lewat kartu akses.",
+        "external": "Tidak ada email yang dikirim. Konsultan membuka program untuknya lewat kartu akses.",
         "internal": "Odoo mengirim email undangan.",
         "admin": "Odoo mengirim email undangan.",
         "superadmin": "Odoo mengirim email undangan."
