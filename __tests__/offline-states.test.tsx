@@ -240,4 +240,27 @@ describe('MomHome refresh indicator', () => {
     expect(screen.getByTestId('mom-connection-failed')).toBeTruthy();
     await view.unmount();
   });
+
+  it('keeps the pull indicator up until the answer of a reload that was already running when the user pulled', async () => {
+    mockBoard.mockResolvedValue({ meetings: [meeting], total: 1 });
+    const view = await render(<MomHome />);
+    await waitFor(() => expect(screen.getByText('Kickoff')).toBeTruthy());
+    let answer: (board: Board) => void = () => undefined;
+    mockBoard.mockImplementation(() => new Promise<Board>((resolve) => (answer = resolve)));
+    let reload: Promise<void> = Promise.resolve();
+    await act(async () => {
+      reload = resource.load(`${account.id}:mom.board.40`, () => mockBoard());
+    });
+    await fireEvent(screen.getByTestId('mom-refresh'), 'refresh');
+    await act(async () => undefined);
+    expect(mockBoard).toHaveBeenCalledTimes(2);
+    expect(shown()).toBe(true);
+    await act(async () => {
+      answer({ meetings: [{ ...meeting, id: 8, name: 'Review' }], total: 1 });
+      await reload;
+    });
+    await waitFor(() => expect(shown()).toBe(false));
+    expect(screen.getByText('Review')).toBeTruthy();
+    await view.unmount();
+  });
 });

@@ -129,3 +129,41 @@ it('keeps the starred count of the account that asked for it', () => {
   chat.stopChat();
   expect(chat.getChat().starred).toBe(0);
 });
+
+test('a pull while the list is loading settles only after the refresh it asked for has answered', async () => {
+  mockPages.length = 0;
+  chat.startChat(account as never);
+  await settle();
+  let settled = false;
+  const pull = chat.refreshConversations().then(() => {
+    settled = true;
+  });
+  await settle();
+  expect(settled).toBe(false);
+  mockPages.shift()?.resolve({ conversations: [row(4, '2026-11-22 09:00:00')], next_cursor: null, archived_count: 0, archived_unread: 0 });
+  await settle();
+  expect(mockPages).toHaveLength(1);
+  expect(settled).toBe(false);
+  mockPages.shift()?.resolve({ conversations: [row(5, '2026-11-23 09:00:00'), row(4, '2026-11-22 09:00:00')], next_cursor: null, archived_count: 0, archived_unread: 0 });
+  await pull;
+  expect(chat.getChat().conversations.map((item) => item.id)).toEqual([5, 4]);
+});
+
+test('a pull on the archive while it is loading settles with that load, not before', async () => {
+  mockPages.length = 0;
+  chat.startChat(account as never);
+  await settle();
+  mockPages.shift()?.resolve({ conversations: [], next_cursor: null, archived_count: 1, archived_unread: 0 });
+  await settle();
+  void chat.loadArchived();
+  let settled = false;
+  const pull = chat.loadArchived().then(() => {
+    settled = true;
+  });
+  await settle();
+  expect(settled).toBe(false);
+  expect(mockPages).toHaveLength(1);
+  mockPages.shift()?.resolve({ conversations: [row(9, '2026-11-01 09:00:00')], next_cursor: null, archived_count: 1, archived_unread: 0 });
+  await pull;
+  expect(chat.getChat().archived?.map((item) => item.id)).toEqual([9]);
+});
