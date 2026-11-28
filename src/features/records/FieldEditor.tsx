@@ -8,6 +8,7 @@ import { space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { Row, ToggleRow } from '../../ui/List';
 import { Text } from '../../ui/Text';
+import { SearchField } from '../../ui/SearchField';
 import { TextField } from '../../ui/TextField';
 import { createAttachment, nameSearch, type FieldInfo, type Relation } from './api';
 import { domainOf, htmlOfPlain, isRelation, plainOfHtml } from './model';
@@ -156,7 +157,7 @@ function RelationPicker({ model, domain, context, multiple, chosen, onDone, onCl
   const items = (rows ?? []).map((row) => ({ key: String(row.id), label: row.display_name, selected: picked.some((item) => item.id === row.id), onPress: () => toggle(row) }));
   return (
     <Sheet title={t('records.pick')} items={items} onClose={onClose} testID="relation-picker">
-      <TextField label={t('records.search')} value={query} onChangeText={setQuery} autoFocus testID="relation-search" />
+      <SearchField label={t('records.search')} value={query} onChangeText={setQuery} autoFocus testID="relation-search" />
       {rows === null && !failed ? <ActivityIndicator color={colors.primary} /> : null}
       {failed ? (
         <Text variant="footnote" tone="dangerInk">

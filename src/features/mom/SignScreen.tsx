@@ -9,6 +9,7 @@ import { Button } from '../../ui/Button';
 import { Check, Divider, Row } from '../../ui/List';
 import { Screen } from '../../ui/Screen';
 import { Text } from '../../ui/Text';
+import { SearchField } from '../../ui/SearchField';
 import { TextField } from '../../ui/TextField';
 import { Header } from '../discovery/Header';
 import { Chip, StateView, useErrorText } from '../discovery/ui';
@@ -71,7 +72,7 @@ export function SignScreen({ programme, meeting }: { programme: number; meeting:
       <Text tone="inkSoft">{t('mom.final.signBody')}</Text>
       {view ? (
         <>
-          <TextField label={t('mom.final.search')} value={query} onChangeText={setQuery} testID="sign-search" autoCorrect={false} />
+          <SearchField label={t('mom.final.search')} value={query} onChangeText={setQuery} testID="sign-search" autoCorrect={false} />
           <FlatList
             style={styles.fill}
             data={people}

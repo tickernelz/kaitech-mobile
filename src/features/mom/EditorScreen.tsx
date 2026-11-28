@@ -15,6 +15,7 @@ import { radius, space, useTheme } from '../../theme';
 import { Button } from '../../ui/Button';
 import { IconButton } from '../../ui/IconButton';
 import { Text } from '../../ui/Text';
+import { SearchField } from '../../ui/SearchField';
 import { TextField } from '../../ui/TextField';
 import { Header } from '../discovery/Header';
 import { StateView, useErrorText } from '../discovery/ui';
@@ -182,7 +183,7 @@ export function EditorScreen({ recording }: { recording: number }) {
                 testID="editor-speaker"
               />
             ) : null}
-            <TextField label={t('mom.records.search')} value={typed} onChangeText={setTyped} autoCorrect={false} testID="editor-search" />
+            <SearchField label={t('mom.records.search')} value={typed} onChangeText={setTyped} autoCorrect={false} testID="editor-search" />
           </View>
         }
         ListEmptyComponent={<Text tone="inkSoft">{t('mom.editor.none')}</Text>}

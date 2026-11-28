@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sheet, SheetItem } from './Sheet';
-import { TextField } from './TextField';
+import { SearchField } from './SearchField';
 
 const shownWithoutQuery = 60;
 
@@ -34,7 +34,7 @@ export function ChoiceSheet({
   }, [options, query, value]);
   return (
     <Sheet title={title} onClose={onClose} testID={testID}>
-      {searchable ? <TextField label={t('choice.search')} value={query} onChangeText={setQuery} autoCorrect={false} testID={`${testID}-search`} /> : null}
+      {searchable ? <SearchField label={t('choice.search')} value={query} onChangeText={setQuery} autoCorrect={false} testID={`${testID}-search`} /> : null}
       {shown.map((option) => (
         <SheetItem
           key={option.value}

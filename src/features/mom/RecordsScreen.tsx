@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResource } from '../../api/resource';
 import { readableWidth } from '../../layout/windowClass';
 import { space, useTheme } from '../../theme';
-import { TextField } from '../../ui/TextField';
+import { SearchField } from '../../ui/SearchField';
 import { Header } from '../discovery/Header';
 import { StateView } from '../discovery/ui';
 import { ChoiceRow } from './followupParts';
@@ -49,7 +49,7 @@ export function RecordsScreen({ kind }: { kind: RecordKind }) {
         refreshControl={<Refresh onRefresh={page.refresh} />}
         ListHeaderComponent={
           <View style={styles.head}>
-            <TextField label={t('mom.records.search')} value={typed} onChangeText={setTyped} returnKeyType="search" autoCorrect={false} testID="mom-records-search" />
+            <SearchField label={t('mom.records.search')} value={typed} onChangeText={setTyped} returnKeyType="search" autoCorrect={false} testID="mom-records-search" />
             {states.length ? (
               <ChoiceRow
                 options={[{ value: '', label: t('mom.followups.status.all') }, ...states.map((one) => ({ value: one.key, label: one.label }))]}
