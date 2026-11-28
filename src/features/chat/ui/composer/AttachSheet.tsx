@@ -1,6 +1,7 @@
-import { type ComponentRef, useEffect, useRef, useState } from 'react';
+import { type ComponentRef, type RefObject, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BackHandler, Keyboard, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { AccessibilityInfo, BackHandler, Keyboard, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { radius, space, useTheme } from '../../../../theme';
@@ -8,6 +9,7 @@ import { duration, easing } from '../../../../theme/motion';
 import { Icon, type IconName } from '../../../../ui/icons';
 import { useBottomInset } from '../../../../ui/insets';
 import { useLargeText } from '../../../../layout/windowClass';
+import { useCoverWhile } from '../../../../ui/cover';
 import { Overlay } from '../../../../ui/Overlay';
 import { Pressable } from '../../../../ui/Pressable';
 import { SheetItem } from '../../../../ui/Sheet';
@@ -20,11 +22,26 @@ const sourceIcons: Record<AttachSource, IconName> = { photos: 'image', camera: '
 
 export type Tool = { key: string; icon: IconName; label: string; onPress: () => void };
 
-export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] }: { visible: boolean; onClose: () => void; onPick: (source: AttachSource) => void; extras?: Extra[]; tools?: Tool[] }) {
+export function AttachSheet({
+  visible,
+  onClose,
+  onPick,
+  extras = [],
+  tools = [],
+  returnFocus,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onPick: (source: AttachSource) => void;
+  extras?: Extra[];
+  tools?: Tool[];
+  returnFocus?: RefObject<ComponentRef<typeof View> | null>;
+}) {
   const { t } = useTranslation('chat');
   const { colors } = useTheme();
   const bottomInset = useBottomInset(space.lg);
   const { height } = useWindowDimensions();
+  const { top } = useSafeAreaInsets();
   const largeText = useLargeText();
   const reduce = useReducedMotion();
   const inWindow = Platform.OS === 'android';
@@ -34,10 +51,18 @@ export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] 
   const layer = useRef<ComponentRef<typeof View>>(null);
   const [drop, setDrop] = useState(0);
   const reachWindowBottom = () => layer.current?.measureInWindow((_x, y, _width, layerHeight) => setDrop((current) => Math.max(0, Math.round(current + height - (y + layerHeight)))));
+  const wasVisible = useRef(visible);
   if (visible && !mounted) setMounted(true);
+  useCoverWhile(inWindow && visible);
   useEffect(() => {
     close.current = onClose;
   }, [onClose]);
+  useEffect(() => {
+    const closed = wasVisible.current && !visible;
+    wasVisible.current = visible;
+    const anchor = returnFocus?.current;
+    if (closed && anchor) AccessibilityInfo.sendAccessibilityEvent(anchor, 'focus');
+  }, [returnFocus, visible]);
   useEffect(() => {
     if (!inWindow || !visible) return;
     Keyboard.dismiss();
@@ -65,8 +90,9 @@ export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] 
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }, scrim]}>
         <Pressable style={styles.fill} onPress={onClose} accessibilityLabel={t('composer.closeSheet')} accessibilityRole="button" />
       </Animated.View>
-      <Animated.View style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset }, sheet]} accessibilityViewIsModal testID="attach-sheet">
+      <Animated.View style={[styles.sheet, { backgroundColor: colors.surface, paddingBottom: bottomInset, maxHeight: height - top - space.xl }, sheet]} accessibilityViewIsModal testID="attach-sheet">
         <View style={[styles.handle, { backgroundColor: colors.lineStrong }]} />
+        <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} bounces={false} testID="attach-scroll">
         <View style={styles.grid}>
           {[
             ...attachSources.filter((source) => source !== 'audio').map((source) => ({ key: source, icon: sourceIcons[source], label: t(`composer.source.${source}`), onPress: () => onPick(source) })),
@@ -90,6 +116,7 @@ export function AttachSheet({ visible, onClose, onPick, extras = [], tools = [] 
         <Text variant="label" tone="inkFaint" style={styles.note}>
           {t('composer.pickerNote')}
         </Text>
+        </ScrollView>
       </Animated.View>
     </>
   );
@@ -120,6 +147,8 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   sheet: { width: '100%', maxWidth: 560, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.sm },
   handle: { alignSelf: 'center', width: 32, height: 4, borderRadius: radius.pill, marginBottom: space.sm },
+  body: { flexGrow: 0 },
+  bodyContent: { gap: space.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: space.lg },
   item: { width: '25%', alignItems: 'center', gap: space.xs, minHeight: 84 },
   itemWide: { width: '50%' },

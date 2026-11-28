@@ -2,6 +2,21 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.14.5 - 2026-11-28
+
+### Fixed
+
+- Chat and Coworker: on Android, while the attach sheet is open, TalkBack no longer reaches the conversation behind the dimmed area. The header, message list and message field are hidden from the screen reader until the sheet closes, and closing it, Back included, puts the screen reader back on the attach button. On the Meizu Mblu 21 the screen-reader tree with the sheet open dropped from 61 conversation items to none (#162, ZHA-8085).
+- Chat: in landscape the attach sheet stops below the status bar and its contents scroll, so the first row (Gallery, Camera, Document, Location) is no longer cut off at the top (#162, ZHA-8085).
+
+### Changed
+
+- Developers: docs/e2e.md records the Mblu 21 frame budget (at most 7% late frames and a p99 of 30 ms per scenario) and the thread numbers it is based on (#161, ZHA-7969).
+
+### Known gaps
+
+- Android: returning the screen reader to the attach button is covered by tests but has not been tried with TalkBack switched on; the Mblu 21 is shared and TalkBack changes its gestures (#162, ZHA-8085).
+
 ## 0.14.4 - 2026-11-27
 
 ### Added

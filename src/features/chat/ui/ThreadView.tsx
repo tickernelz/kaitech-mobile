@@ -55,6 +55,7 @@ import { ChatBackground } from '../../appearance/ChatBackground';
 import { usePartnerStatus } from '../../people/statuses';
 import { confirm, inform } from '../../../ui/dialog';
 import { touchTarget } from '../../../ui/touch';
+import { Behind } from '../../../ui/cover';
 
 const noticeMs = 4000;
 const drawDistance = 1000;
@@ -416,6 +417,7 @@ export function ThreadView({
   return (
     <GalleryContext.Provider value={gallery}>
     <SafeAreaView edges={twoPane ? ['top', 'right'] : ['top', 'left', 'right']} style={[styles.flex, { backgroundColor: colors.canvas }]} testID={`thread-${channelId}`}>
+      <Behind>
       {header}
       {thread.info?.link && linkedOn ? (
         <Pressable
@@ -431,8 +433,9 @@ export function ThreadView({
       ) : null}
       {agentsOn ? <WorkBar works={thread.works} onPress={() => setWorkSheet(true)} /> : null}
       <VoiceMiniBar hideFor={channelId} />
+      </Behind>
       <KeyboardAvoidingView behavior="padding" automaticOffset style={styles.flex}>
-        <View style={styles.flex}>
+        <Behind style={styles.flex}>
           <ChatBackground channelId={channelId} />
           <FlashList
             ref={list}
@@ -466,7 +469,7 @@ export function ThreadView({
             keyboardShouldPersistTaps="handled"
             testID="thread-list"
           />
-        </View>
+        </Behind>
         {accountId ? (
           <View pointerEvents="box-none" style={[styles.composerWrap, { marginTop: -overlap }]}>
             <Composer key={channelId} ref={composer} accountId={accountId} channelId={channelId} messages={thread.messages} onSent={onSent} onNotice={setNotice} onOverlap={setOverlap} />
@@ -474,11 +477,11 @@ export function ThreadView({
         ) : null}
       </KeyboardAvoidingView>
       {notice ? (
-        <View pointerEvents="none" style={styles.noticeWrap}>
+        <Behind pointerEvents="none" style={styles.noticeWrap}>
           <Text variant="footnote" accessibilityLiveRegion="polite" style={[styles.notice, { backgroundColor: colors.ink, color: colors.canvas }]} testID="thread-notice">
             {notice}
           </Text>
-        </View>
+        </Behind>
       ) : null}
       <MessageActions
         message={acting}

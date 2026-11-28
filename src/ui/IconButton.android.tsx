@@ -1,4 +1,5 @@
-import { StyleSheet } from 'react-native';
+import type { ComponentRef, Ref } from 'react';
+import { StyleSheet, type View } from 'react-native';
 import { Pressable } from './Pressable';
 import { radius, useTheme } from '../theme';
 import { Icon, type IconName } from './icons';
@@ -10,6 +11,7 @@ export function IconButton({
   testID,
   filled = false,
   disabled,
+  ref,
 }: {
   icon: IconName;
   label: string;
@@ -17,11 +19,13 @@ export function IconButton({
   testID?: string;
   filled?: boolean;
   disabled?: boolean;
+  ref?: Ref<ComponentRef<typeof View>>;
 }) {
   const { colors, material } = useTheme();
   const ink = filled ? material.onPrimary : colors.ink;
   return (
     <Pressable
+      ref={ref}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled }}
