@@ -2,6 +2,22 @@
 
 Every release of Kaitech Mobile, newest first. Each version has one section, `## X.Y.Z - YYYY-MM-DD` (the day its tag was pushed, UTC), with the groups Added, Changed, Fixed and Known gaps; a group with nothing in it is left out. Every line names its pull request and task. The Release workflow copies the section into the body of the GitHub Release and stops a tag that has no section here. How to cut a release: [Releases](releases.md#cutting-a-release).
 
+## 0.15.0 - 2026-11-28
+
+### Added
+
+- Chat: Coworker tickets. When the Coworker takes on a piece of work, its ticket card shows in the conversation with the number, title, who asked, the state and the latest step, and it updates live while the Coworker works. Tapping it opens the ticket with its steps, Follow and Stop (#166, ZHA-8087).
+- Chat: when a ticket waits on a decision, a card names the person who decides, the question and the Coworker's recommendation. Only that person gets the Answer button and the answer sheet, with the recommended option first; it is disabled while the phone is offline. Others see who decides (#166, ZHA-8087).
+- Chat: a Tickets entry above the conversation list with Waiting on me, I asked and My conversations (#166, ZHA-8087).
+
+### Changed
+
+- Chat: the last ticket read is stored per account and shown only while the phone is offline. When the server says the account may no longer read a ticket, the stored copy is deleted and the card disappears; removing the account deletes all its tickets (#166, ZHA-8087).
+
+### Known gaps
+
+- Tickets need a server with Coworker tickets (lab0 from 28 Nov 2026). Checked on the Meizu Mblu 21; not tried on an iPhone (#166, ZHA-8087).
+
 ## 0.14.6 - 2026-11-28
 
 ### Fixed
