@@ -79,8 +79,8 @@ name: Superadmin account - admin to internal and back, invite an external person
     id: user-reactivate
 - tapOn:
     id: user-reactivate-confirm-confirm
-- extendedWaitUntil:
-    visible:
+- scrollUntilVisible:
+    element:
       id: user-deactivate
     timeout: 30000
 - tapOn:
