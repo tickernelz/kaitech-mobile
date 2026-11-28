@@ -20,7 +20,7 @@ jest.mock('../src/features/chat/messageActions', () => ({
 jest.mock('../src/api/odoo', () => ({ rpc: jest.fn() }));
 
 import { rpc } from '../src/api/odoo';
-import { noticeTicket, offlineTicket, onTicketNotice, questionFrom, readTicket, ticketDetail, ticketFrom } from '../src/features/chat/tickets';
+import { lastSteps, noticeTicket, offlineTicket, onTicketNotice, questionFrom, readTicket, ticketDetail, ticketFrom } from '../src/features/chat/tickets';
 
 const raw = {
   id: 7,
@@ -56,6 +56,12 @@ describe('ticket cards from the server', () => {
       ['Pembelian', true],
       ['Penjualan', false],
     ]);
+  });
+
+  it('leaves status lines, written in the server language, to the status chip and shows what the agents did', () => {
+    const ticket = ticketFrom({ ...raw, checkpoints: [...raw.checkpoints, { id: 4, seq: 4, kind: 'state', body: 'Waiting for Ani to answer.', actor: 'Coworker', at: '2026-11-28 05:00:01' }] });
+    expect(ticket && lastSteps(ticket, 1).map((step) => step.body)).toEqual(['Proses mana dulu?']);
+    expect(ticket && lastSteps({ ...ticket, checkpoints: ticket.checkpoints.filter((step) => step.kind === 'state') }, 1)).toEqual([]);
   });
 
   it('refuses rows without an id and an unknown state reads as in progress', () => {

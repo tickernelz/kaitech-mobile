@@ -7,7 +7,6 @@ import { Icon, type IconName } from '../../../../ui/icons';
 import { Pressable } from '../../../../ui/Pressable';
 import { Sheet } from '../../../../ui/Sheet';
 import { Text } from '../../../../ui/Text';
-import { touchTarget } from '../../../../ui/touch';
 import { useChat } from '../../chat';
 import type { TicketAsk } from '../../coworker';
 import {
@@ -26,6 +25,8 @@ import {
   type TicketState,
 } from '../../tickets';
 import { failureText } from '../actions/failure';
+
+const tabHeight = 48;
 
 const glyphs: Record<TicketState, IconName> = { draft: 'clock', progress: 'play', blocked: 'pause', done: 'check', cancelled: 'stop' };
 
@@ -78,7 +79,7 @@ export function TicketCard({ ticket: initial }: { ticket: Ticket }) {
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${ticket.number}, ${ticket.name}, ${t(`tickets.state.${ticket.state}`)}`}
+        accessibilityLabel={[ticket.number, ticket.name, t(`tickets.state.${ticket.state}`), ...steps.map((step) => `${step.actor}: ${step.body}`)].join(', ')}
         onPress={() => setOpen(true)}
         style={[styles.card, { borderColor: colors.line, backgroundColor: colors.surface }]}
         testID={`ticket-card-${ticket.id}`}>
@@ -122,35 +123,34 @@ export function TicketAskCard({ ask }: { ask: TicketAsk }) {
   const question: Question = answered ?? (fresh ? { ...fresh, canAnswer: ticket.canDecide && fresh.state === 'open' } : ask.question);
   const deciders = ticket.answerers.join(', ') || ticket.requester;
   const chosen = question.options.find((option) => option.id === question.answeredOption);
+  const open = question.state === 'open';
   if (gone) return null;
+  const heading = open ? t('tickets.waitsFor', { number: ticket.number, people: deciders }) : ticket.number;
+  const status = !open
+    ? chosen
+      ? t('tickets.chose', { person: question.answeredBy, option: chosen.label })
+      : question.answeredBy
+        ? t('tickets.answeredInWords', { person: question.answeredBy })
+        : t('tickets.noLongerWaiting')
+    : question.canAnswer
+      ? null
+      : t('tickets.only', { people: deciders });
   return (
-    <View style={[styles.card, styles.ask, { borderColor: colors.warnInk, backgroundColor: colors.warnBand }]} testID={`ticket-ask-${question.id}`}>
-      <View style={styles.head}>
-        <Icon name="ticket" size={16} color={colors.warnInk} />
-        <Text variant="label" tone="warnInk" style={styles.flex}>
-          {t('tickets.waitsFor', { number: ticket.number, people: deciders })}
-        </Text>
+    <View style={[styles.card, { borderColor: open ? colors.warnInk : colors.line, backgroundColor: open ? colors.warnBand : colors.surface }]} testID={`ticket-ask-${question.id}`}>
+      <View accessible accessibilityLabel={[heading, status].filter(Boolean).join('. ')} accessibilityLiveRegion="polite" style={styles.askText}>
+        <View style={styles.head}>
+          <Icon name={open ? 'pause' : 'check'} size={16} color={open ? colors.warnInk : colors.okInk} />
+          <Text variant="footnote" tone={open ? 'warnInk' : 'inkSoft'} style={[styles.bold, styles.flex]}>
+            {heading}
+          </Text>
+        </View>
+        {status ? (
+          <Text variant="footnote" tone={open ? 'ink' : 'inkSoft'} testID={open ? undefined : `ticket-ask-done-${question.id}`}>
+            {status}
+          </Text>
+        ) : null}
       </View>
-      <Text variant="callout" style={styles.bold}>
-        {question.question}
-      </Text>
-      <Text variant="footnote">
-        <Text variant="footnote" style={styles.bold}>
-          {t('tickets.recommended')}:{' '}
-        </Text>
-        {question.recommendation}
-      </Text>
-      {question.state !== 'open' ? (
-        <Text variant="footnote" tone="inkSoft" testID={`ticket-ask-done-${question.id}`}>
-          {chosen ? t('tickets.chose', { person: question.answeredBy, option: chosen.label }) : question.answeredBy ? t('tickets.answeredInWords', { person: question.answeredBy }) : t('tickets.noLongerWaiting')}
-        </Text>
-      ) : question.canAnswer ? (
-        <Button label={t('tickets.answer')} onPress={() => setSheet(true)} testID={`ticket-answer-${question.id}`} />
-      ) : (
-        <Text variant="footnote" tone="inkSoft">
-          {t('tickets.only', { people: deciders })}
-        </Text>
-      )}
+      {open && question.canAnswer ? <Button label={t('tickets.answer')} onPress={() => setSheet(true)} testID={`ticket-answer-${question.id}`} /> : null}
       {sheet ? (
         <AnswerSheet
           question={question}
@@ -397,15 +397,15 @@ export function TicketsSheet({ onClose, onOpenThread }: { onClose: () => void; o
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   bold: { fontWeight: '600' },
-  card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.card, padding: space.md, gap: 4, maxWidth: 420 },
-  ask: { borderWidth: 2, gap: space.xs },
+  card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.card, padding: space.md, gap: space.sm },
+  askText: { gap: space.xs },
   head: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: space.sm, paddingVertical: 2, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingHorizontal: space.sm, paddingVertical: space.xs, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   options: { gap: space.sm, padding: space.lg },
   detail: { gap: space.sm, padding: space.lg },
   step: { flexDirection: 'row', gap: space.sm },
   scopes: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, paddingHorizontal: space.lg, paddingBottom: space.sm },
-  scope: { minHeight: touchTarget, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  scope: { minHeight: tabHeight, justifyContent: 'center', paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth },
   pad: { padding: space.lg },
-  row: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, padding: space.md, gap: 4, marginHorizontal: space.lg, marginBottom: space.sm },
+  row: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.card, padding: space.md, gap: space.xs, marginHorizontal: space.lg, marginBottom: space.sm },
 });
