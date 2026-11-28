@@ -21,13 +21,14 @@ export default function Settings() {
   const { active } = useSession();
   const [busy, setBusy] = useState(false);
   const manages = useCan('users.manage');
+  const team = useCan('team');
   if (!active) return null;
   const more = <Icon name="forward" size={20} color={colors.inkFaint} />;
   const entries: Entry[] = [
     ...(manages ? [{ icon: 'people' as const, title: t('users.title'), href: '/settings/users' as const, testID: 'settings-users' }] : []),
     { icon: 'people', title: t('account.title'), href: '/settings/account', testID: 'settings-account' },
     { icon: 'image', title: t('settings.appearance'), href: '/settings/appearance', testID: 'settings-appearance' },
-    { icon: 'bell', title: t('settings.notifications'), href: '/settings/notifications', testID: 'settings-notifications' },
+    ...(team ? [{ icon: 'bell' as const, title: t('settings.notifications'), href: '/settings/notifications' as const, testID: 'settings-notifications' }] : []),
     { icon: 'people', title: t('settings.accountsAndServer'), href: '/settings/accounts', testID: 'settings-accounts' },
     { icon: 'lock', title: t('settings.security'), href: '/settings/security', testID: 'settings-security' },
     { icon: 'chat', title: t('settings.language'), href: '/settings/language', testID: 'settings-language' },

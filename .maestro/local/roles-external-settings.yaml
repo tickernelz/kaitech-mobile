@@ -1,0 +1,110 @@
+appId: io.kaitech.mobile
+name: External account - every Settings screen a client sees opens without a refusal; Notifications and the password change are left out
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: 30000
+- tapOn:
+    id: open-settings
+- extendedWaitUntil:
+    visible:
+      id: settings
+    timeout: 20000
+- assertNotVisible:
+    id: settings-notifications
+- assertNotVisible:
+    id: settings-users
+- takeScreenshot: es0-settings
+- tapOn:
+    id: settings-profile
+- extendedWaitUntil:
+    visible:
+      id: settings-profile-screen
+    timeout: 20000
+- assertNotVisible:
+    id: profile-error
+- takeScreenshot: es1-profile
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: settings-account
+- extendedWaitUntil:
+    visible:
+      id: settings-account-screen
+    timeout: 20000
+- assertNotVisible:
+    id: settings-account-error
+- takeScreenshot: es2-account
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: settings-appearance
+- extendedWaitUntil:
+    visible:
+      id: settings-appearance-screen
+    timeout: 20000
+- takeScreenshot: es3-appearance
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: settings-language
+- extendedWaitUntil:
+    visible:
+      id: settings-language-screen
+    timeout: 20000
+- takeScreenshot: es4-language
+- tapOn:
+    id: settings-back
+- scrollUntilVisible:
+    element:
+      id: settings-security
+- tapOn:
+    id: settings-security
+- extendedWaitUntil:
+    visible:
+      id: settings-security-screen
+    timeout: 20000
+- assertNotVisible:
+    id: security-password
+- assertNotVisible:
+    id: security-api-keys
+- takeScreenshot: es5-security
+- tapOn:
+    id: security-totp
+- extendedWaitUntil:
+    visible:
+      id: settings-totp-screen
+    timeout: 20000
+- assertNotVisible:
+    id: totp-error
+- takeScreenshot: es6-two-step
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: security-passkeys
+- extendedWaitUntil:
+    visible:
+      id: settings-passkeys-screen
+    timeout: 20000
+- assertNotVisible:
+    id: passkeys-error
+- takeScreenshot: es7-passkeys
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: security-devices
+- extendedWaitUntil:
+    visible:
+      id: settings-devices-screen
+    timeout: 20000
+- assertNotVisible:
+    id: app-devices-error
+- assertNotVisible:
+    id: devices-error
+- takeScreenshot: es8-devices
+- tapOn:
+    id: settings-back
+- tapOn:
+    id: settings-back

@@ -20,7 +20,7 @@ export default function SecuritySettings() {
   const team = useCan('team');
   const more = <Icon name="forward" size={20} color={colors.inkFaint} />;
   const rows: { icon: IconName; title: string; detail?: string; href: Href; testID: string }[] = [
-    { icon: 'lock', title: t('security.password.title'), href: '/settings/password', testID: 'security-password' },
+    ...(team ? [{ icon: 'lock' as const, title: t('security.password.title'), href: '/settings/password' as const, testID: 'security-password' }] : []),
     {
       icon: 'check',
       title: t('security.totp.title'),
